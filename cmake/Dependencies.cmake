@@ -180,7 +180,7 @@ if(BUILD_TEST)
     set(gtest_force_shared_crt ON)
   endif()
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest)
-  include_directories(${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest/googletest/include)
+  include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest/googletest/include)
 
   # We will not need to test benchmark lib itself.
   set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing as we don't need it.")
@@ -393,32 +393,53 @@ endif()
 
 # ---[ CUDA
 if(USE_CUDA)
+  # public/*.cmake uses CAFFE2_USE_*
+  set(CAFFE2_USE_CUDA ${USE_CUDA})
+  set(CAFFE2_USE_CUDNN ${USE_CUDNN})
+  set(CAFFE2_USE_TENSORRT ${USE_TENSORRT})
   include(${CMAKE_CURRENT_LIST_DIR}/public/cuda.cmake)
-  if(CAFFE2_FOUND_CUDA)
+  if(CAFFE2_USE_CUDA)
     # A helper variable recording the list of Caffe2 dependent libraries
     # caffe2::cudart is dealt with separately, due to CUDA_ADD_LIBRARY
     # design reason (it adds CUDA_LIBRARIES itself).
-    set(Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS
-        caffe2::cuda caffe2::cufft caffe2::curand caffe2::nvrtc)
-    if(CAFFE2_FOUND_CUDNN)
-      LIST(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::cudnn)
+    set(Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::cufft caffe2::curand)
+    if(BUILD_CAFFE2)
+      # Don't be deceived!  caffe2::cuda is the low-level DRIVER API,
+      # not the actual CUDA library.  Caffe2 depends directly on nvrtc
+      # and needs it, but ATen doesn't use it at all, and so the
+      # dependency is unnecessary.
+      #
+      # BTW, if you change this so that PyTorch has this dependency
+      # again, make sure Mac OS X GPU builds still work; there's
+      # a decent chance the library finding algorithm picked up
+      # on cuda.framework, which is totally not going to work when
+      # linking.
+      list(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::cuda caffe2::nvrtc)
+    endif()
+    if(CAFFE2_USE_CUDNN)
+      list(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::cudnn)
     else()
       if(BUILD_CAFFE2)
         # TODO: Get rid of special case for Caffe2 where we require
         # CUDA *and* cuDNN to be installed.
         message(WARNING
-            "Not compiling with CUDA since cuDNN is missing. Suppress "
-            "this warning with -DUSE_CUDA=OFF.")
+          "Not compiling with CUDA since cuDNN is missing. Suppress "
+          "this warning with -DUSE_CUDA=OFF.")
         caffe2_update_option(USE_CUDA OFF)
         caffe2_update_option(USE_CUDNN OFF)
+        caffe2_update_option(USE_TENSORRT OFF)
+        set(CAFFE2_USE_CUDA OFF)
+        set(CAFFE2_USE_CUDNN OFF)
+        set(CAFFE2_USE_TENSORRT OFF)
       else()
         message(WARNING
-            "Not compiling with cuDNN. Suppress this warning with "
-            "-DUSE_CUDNN=OFF.")
+          "Not compiling with cuDNN. Suppress this warning with "
+          "-DUSE_CUDNN=OFF.")
         caffe2_update_option(USE_CUDNN OFF)
+        set(CAFFE2_USE_CUDNN OFF)
       endif()
     endif()
-    if(USE_CUDA)
+    if(CAFFE2_USE_CUDA)
       if(CAFFE2_STATIC_LINK_CUDA)
         # When statically linking, this must be the order of the libraries
         LIST(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS
@@ -426,21 +447,28 @@ if(USE_CUDA)
       else()
         LIST(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::cublas)
       endif()
-      if(USE_TENSORRT)
+      if(CAFFE2_USE_TENSORRT)
         list(APPEND Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS caffe2::tensorrt)
+      else()
+        caffe2_update_option(USE_TENSORRT OFF)
       endif()
     endif()
   else()
     message(WARNING
-        "Not compiling with CUDA. Suppress this warning with "
-        "-DUSE_CUDA=OFF.")
+      "Not compiling with CUDA. Suppress this warning with "
+      "-DUSE_CUDA=OFF.")
     caffe2_update_option(USE_CUDA OFF)
+    caffe2_update_option(USE_CUDNN OFF)
+    caffe2_update_option(USE_TENSORRT OFF)
+    set(CAFFE2_USE_CUDA OFF)
+    set(CAFFE2_USE_CUDNN OFF)
+    set(CAFFE2_USE_TENSORRT OFF)
   endif()
 endif()
 
 # ---[ HIP
-if(BUILD_CAFFE2)
-  include(cmake/public/LoadHIP.cmake)
+if(BUILD_CAFFE2 OR BUILD_ATEN)
+  include(${CMAKE_CURRENT_LIST_DIR}/public/LoadHIP.cmake)
   if(PYTORCH_FOUND_HIP)
     message(INFO "Compiling with HIP for AMD.")
     caffe2_update_option(USE_ROCM ON)
@@ -449,7 +477,7 @@ if(BUILD_CAFFE2)
     set(Caffe2_HIP_INCLUDES
       ${hip_INCLUDE_DIRS} ${rocrand_INCLUDE_DIRS} ${hiprand_INCLUDE_DIRS} ${rocblas_INCLUDE_DIRS} ${miopen_INCLUDE_DIRS} ${Caffe2_HIP_INCLUDES} ${thrust_INCLUDE_DIRS})
     set(Caffe2_HIP_DEPENDENCY_LIBS
-      ${rocrand_LIBRARIES} ${hiprand_LIBRARIES} ${PYTORCH_HIP_HCC_LIBRARIES} ${PYTORCH_MIOPEN_LIBRARIES})
+      ${rocrand_LIBRARIES} ${hiprand_LIBRARIES} ${PYTORCH_HIP_HCC_LIBRARIES} ${PYTORCH_MIOPEN_LIBRARIES} ${hipsparse_LIBRARIES} ${hipblas_LIBRARIES})
 
     # TODO: There is a bug in rocblas's cmake files that exports the wrong targets name in ${rocblas_LIBRARIES}
     list(APPEND Caffe2_HIP_DEPENDENCY_LIBS
@@ -464,7 +492,7 @@ if(USE_ROCM AND NOT BUILD_CAFFE2)
  include_directories(${HIP_PATH}/include)
  include_directories(${HIPBLAS_PATH}/include)
  include_directories(${HIPSPARSE_PATH}/include)
- include_directories(${HIPRNG_PATH}/include)
+ include_directories(${HIPRAND_PATH}/include)
  include_directories(${THRUST_PATH})
 
  # load HIP cmake module and load platform id
@@ -472,7 +500,7 @@ if(USE_ROCM AND NOT BUILD_CAFFE2)
  EXECUTE_PROCESS(COMMAND ${HIP_PATH}/bin/hipconfig --cpp_config OUTPUT_VARIABLE HIP_CXX_FLAGS)
 
  # Link with HIPCC https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#linking-with-hipcc
- SET(CMAKE_CXX_LINK_EXECUTABLE ${HIP_HIPCC_EXECUTABLE})
+ # SET(CMAKE_CXX_LINK_EXECUTABLE ${HIP_HIPCC_EXECUTABLE})
 
  # Show message that we're using ROCm.
  MESSAGE(STATUS "ROCM TRUE:")
@@ -661,7 +689,6 @@ if (BUILD_ATEN)
     if (USE_CUDA)
       list(APPEND Caffe2_CUDA_DEPENDENCY_LIBS aten_op_header_gen)
     endif()
-    include_directories(${PROJECT_BINARY_DIR}/caffe2/contrib/aten/aten/src/ATen)
     include_directories(${PROJECT_BINARY_DIR}/caffe2/contrib/aten)
   endif()
 endif()
@@ -1124,6 +1151,13 @@ if (BUILD_ATEN)
   ELSE()
     include_directories(${CUDNN_INCLUDE_DIRS})
     set(AT_CUDNN_ENABLED 1)
+  ENDIF()
+
+  IF (NOT USE_ROCM)
+    MESSAGE(STATUS "MIOpen not found. Compiling without MIOpen support")
+    set(AT_MIOPEN_ENABLED 0)
+  ELSE()
+    set(AT_MIOPEN_ENABLED 1)
   ENDIF()
 
   if (NO_MKLDNN)

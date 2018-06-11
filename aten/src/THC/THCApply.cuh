@@ -165,13 +165,11 @@ inline dim3 getApplyBlock() {
   return dim3(THC_APPLY_THREADS_PER_BLOCK);
 }
 
-inline bool getApplyGrid(THCState* state, uint64_t totalElements, dim3& grid) {
-  int curDevice = -1;
-  cudaGetDevice(&curDevice);
+inline bool getApplyGrid(THCState* state, uint64_t totalElements, dim3& grid, int curDevice) {
   if (curDevice == -1) return false;
 
   uint64_t numBlocks = THCCeilDiv(totalElements, static_cast<uint64_t>(THC_APPLY_THREADS_PER_BLOCK));
-  uint64_t maxGridX = THCState_getCurrentDeviceProperties(state)->maxGridSize[0];
+  uint64_t maxGridX = THCState_getDeviceProperties(state, curDevice)->maxGridSize[0];
   if (numBlocks > maxGridX)
       numBlocks = maxGridX;
 
@@ -192,11 +190,11 @@ bool THC_pointwiseApply1(THCState* state,
                          const Op& op,
                          TensorArgType aType = ReadWrite) {
   static_assert(std::is_same<ScalarTypeA, typename TensorUtils<TensorTypeA>::DataType>::value, "ScalarTypeA must match");
-  if (TensorUtils<TensorTypeA>::getDims(state, a) > MAX_CUTORCH_DIMS) {
+  if (THCTensor_nDimension(state, a) > MAX_CUTORCH_DIMS) {
     return false;
   }
 
-  if (TensorUtils<TensorTypeA>::getDims(state, a) == 0) {
+  if (THCTensor_nDimension(state, a) == 0) {
     // Zero-dim tensor; do nothing
     return true;
   }
@@ -204,9 +202,11 @@ bool THC_pointwiseApply1(THCState* state,
   const dim3 block = getApplyBlock();
 
   dim3 grid;
-  ptrdiff_t totalElements = TensorUtils<TensorTypeA>::getNumElements(state, a);
-
-  if (!getApplyGrid(state, totalElements, grid)) {
+  ptrdiff_t totalElements = THCTensor_nElement(state, a);
+  
+  int curDevice = -1;
+  cudaGetDevice(&curDevice);
+  if (!getApplyGrid(state, totalElements, grid, curDevice)) {
     return false;
   }
 
@@ -218,7 +218,7 @@ bool THC_pointwiseApply1(THCState* state,
   TensorTypeA* oldA = NULL;
 
   if (aType == ReadWrite &&
-      TensorUtils<TensorTypeA>::maybeOverlappingIndices(state, a)) {
+      THCTensor_maybeOverlappingIndices(state, a)) {
     // Must perform in contiguous space
     oldA = a;
     a = TensorUtils<TensorTypeA>::newContiguous(state, a);
@@ -236,8 +236,8 @@ bool THC_pointwiseApply1(THCState* state,
   kernelPointwiseApply1<Op,                                             \
                         ScalarTypeA,                                    \
                         TYPE, A>                                        \
-    <<<grid, block, 0, THCState_getCurrentStream(state)>>>(             \
-      OffsetInfo<ScalarTypeA, TYPE, A>                                  \
+    <<<grid, block, 0, THCState_getCurrentStreamOnDevice(state, curDevice)>>>(             \
+      OffsetInfo<ScalarTypeA, TYPE, A>  \
           (aInfo),                                                      \
       (TYPE) totalElements, op);
 
@@ -259,7 +259,7 @@ bool THC_pointwiseApply1(THCState* state,
   // and the resulting non-linear offset is all computable using 32-bit math?)
   // We also use unsigned index math in the kernel, as signed div/mod has
   // additional overhead.
-  if (TensorUtils<TensorTypeA>::canUse32BitIndexMath(state, a)) {
+  if (THCTensor_canUse32BitIndexMath(state, a)) {
     TensorInfo<ScalarTypeA, unsigned int> aInfo =
       getTensorInfo<ScalarTypeA, TensorTypeA, unsigned int>(state, a);
     rearrangeDims(&aInfo);
@@ -310,7 +310,7 @@ bool THC_pointwiseApply1(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldA contiguous.
     TensorUtils<TensorTypeA>::copyIgnoringOverlaps(state, oldA, a);
-    TensorUtils<TensorTypeA>::free(state, a);
+    THCTensor_free(state, a);
     a = oldA;
   }
 
@@ -331,17 +331,17 @@ bool THC_pointwiseApply2(THCState* state,
   static_assert(std::is_same<ScalarTypeA, typename TensorUtils<TensorTypeA>::DataType>::value, "ScalarTypeA must match");
   static_assert(std::is_same<ScalarTypeB, typename TensorUtils<TensorTypeB>::DataType>::value, "ScalarTypeB must match");
 
-  ptrdiff_t totalElements = TensorUtils<TensorTypeA>::getNumElements(state, a);
-  if (totalElements != TensorUtils<TensorTypeB>::getNumElements(state, b)) {
+  ptrdiff_t totalElements = THCTensor_nElement(state, a);
+  if (totalElements != THCTensor_nElement(state, b)) {
     return false;
   }
 
-  if (TensorUtils<TensorTypeA>::getDims(state, a) > MAX_CUTORCH_DIMS ||
-      TensorUtils<TensorTypeB>::getDims(state, b) > MAX_CUTORCH_DIMS) {
+  if (THCTensor_nDimension(state, a) > MAX_CUTORCH_DIMS ||
+      THCTensor_nDimension(state, b) > MAX_CUTORCH_DIMS) {
     return false;
   }
 
-  if (TensorUtils<TensorTypeA>::getDims(state, a) == 0) {
+  if (THCTensor_nDimension(state, a) == 0) {
     // Zero-dim tensor; do nothing
     return true;
   }
@@ -349,7 +349,9 @@ bool THC_pointwiseApply2(THCState* state,
   const dim3 block = getApplyBlock();
 
   dim3 grid;
-  if (!getApplyGrid(state, totalElements, grid)) {
+  int curDevice = -1;
+  cudaGetDevice(&curDevice);
+  if (!getApplyGrid(state, totalElements, grid, curDevice)) {
     return false;
   }
 
@@ -362,13 +364,13 @@ bool THC_pointwiseApply2(THCState* state,
   TensorTypeB* oldB = NULL;
 
   if (aType == ReadWrite &&
-      TensorUtils<TensorTypeA>::maybeOverlappingIndices(state, a)) {
+      THCTensor_maybeOverlappingIndices(state, a)) {
     // Must perform in contiguous space
     oldA = a;
     a = TensorUtils<TensorTypeA>::newContiguous(state, a);
   }
   if (bType == ReadWrite &&
-      TensorUtils<TensorTypeB>::maybeOverlappingIndices(state, b)) {
+      THCTensor_maybeOverlappingIndices(state, b)) {
     // Must perform in contiguous space
     oldB = b;
     b = TensorUtils<TensorTypeB>::newContiguous(state, b);
@@ -387,8 +389,8 @@ bool THC_pointwiseApply2(THCState* state,
                         ScalarTypeA,                                    \
                         ScalarTypeB,                                    \
                         TYPE, A, B>                                     \
-    <<<grid, block, 0, THCState_getCurrentStream(state)>>>(             \
-      OffsetInfo<ScalarTypeA, TYPE, A>                                  \
+    <<<grid, block, 0, THCState_getCurrentStreamOnDevice(state, curDevice)>>>(             \
+      OffsetInfo<ScalarTypeA, TYPE, A>  \
           (aInfo),                                                      \
       OffsetInfo<ScalarTypeB, TYPE, B>                                  \
           (bInfo),                                                      \
@@ -422,8 +424,8 @@ bool THC_pointwiseApply2(THCState* state,
   }                                         \
 }
 
-  if (TensorUtils<TensorTypeA>::canUse32BitIndexMath(state, a) &&
-      TensorUtils<TensorTypeB>::canUse32BitIndexMath(state, b)) {
+  if (THCTensor_canUse32BitIndexMath(state, a) &&
+      THCTensor_canUse32BitIndexMath(state, b)) {
     TensorInfo<ScalarTypeA, unsigned int> aInfo =
       getTensorInfo<ScalarTypeA, TensorTypeA, unsigned int>(state, a);
 
@@ -490,7 +492,7 @@ bool THC_pointwiseApply2(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldA contiguous.
     TensorUtils<TensorTypeA>::copyIgnoringOverlaps(state, oldA, a);
-    TensorUtils<TensorTypeA>::free(state, a);
+    THCTensor_free(state, a);
     a = oldA;
   }
 
@@ -499,7 +501,7 @@ bool THC_pointwiseApply2(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldB contiguous.
     TensorUtils<TensorTypeB>::copyIgnoringOverlaps(state, oldB, b);
-    TensorUtils<TensorTypeB>::free(state, b);
+    THCTensor_free(state, b);
     b = oldB;
   }
 
@@ -525,20 +527,20 @@ bool THC_pointwiseApply3(THCState* state,
   static_assert(std::is_same<ScalarTypeB, typename TensorUtils<TensorTypeB>::DataType>::value, "ScalarTypeB must match");
   static_assert(std::is_same<ScalarTypeC, typename TensorUtils<TensorTypeC>::DataType>::value, "ScalarTypeB must match");
 
-  ptrdiff_t totalElements = TensorUtils<TensorTypeA>::getNumElements(state, a);
+  ptrdiff_t totalElements = THCTensor_nElement(state, a);
 
-  if (totalElements != TensorUtils<TensorTypeB>::getNumElements(state, b) ||
-      totalElements != TensorUtils<TensorTypeC>::getNumElements(state, c)) {
+  if (totalElements != THCTensor_nElement(state, b) ||
+      totalElements != THCTensor_nElement(state, c)) {
     return false;
   }
 
-  if (TensorUtils<TensorTypeA>::getDims(state, a) > MAX_CUTORCH_DIMS ||
-      TensorUtils<TensorTypeB>::getDims(state, b) > MAX_CUTORCH_DIMS ||
-      TensorUtils<TensorTypeC>::getDims(state, c) > MAX_CUTORCH_DIMS) {
+  if (THCTensor_nDimension(state, a) > MAX_CUTORCH_DIMS ||
+      THCTensor_nDimension(state, b) > MAX_CUTORCH_DIMS ||
+      THCTensor_nDimension(state, c) > MAX_CUTORCH_DIMS) {
     return false;
   }
 
-  if (TensorUtils<TensorTypeA>::getDims(state, a) == 0) {
+  if (THCTensor_nDimension(state, a) == 0) {
     // Zero-dim tensor; do nothing
     return true;
   }
@@ -546,7 +548,9 @@ bool THC_pointwiseApply3(THCState* state,
   const dim3 block = getApplyBlock();
 
   dim3 grid;
-  if (!getApplyGrid(state, totalElements, grid)) {
+  int curDevice = -1;
+  cudaGetDevice(&curDevice);
+  if (!getApplyGrid(state, totalElements, grid, curDevice)) {
     return false;
   }
 
@@ -560,19 +564,19 @@ bool THC_pointwiseApply3(THCState* state,
   TensorTypeC* oldC = NULL;
 
   if (aType == ReadWrite &&
-      TensorUtils<TensorTypeA>::maybeOverlappingIndices(state, a)) {
+      THCTensor_maybeOverlappingIndices(state, a)) {
     // Must perform in contiguous space
     oldA = a;
     a = TensorUtils<TensorTypeA>::newContiguous(state, a);
   }
   if (bType == ReadWrite &&
-      TensorUtils<TensorTypeB>::maybeOverlappingIndices(state, b)) {
+      THCTensor_maybeOverlappingIndices(state, b)) {
     // Must perform in contiguous space
     oldB = b;
     b = TensorUtils<TensorTypeB>::newContiguous(state, b);
   }
   if (cType == ReadWrite &&
-      TensorUtils<TensorTypeC>::maybeOverlappingIndices(state, c)) {
+      THCTensor_maybeOverlappingIndices(state, c)) {
     // Must perform in contiguous space
     oldC = c;
     c = TensorUtils<TensorTypeC>::newContiguous(state, c);
@@ -584,7 +588,7 @@ bool THC_pointwiseApply3(THCState* state,
                         ScalarTypeB,                                    \
                         ScalarTypeC,                                    \
                         TYPE, A, B, C>                                  \
-    <<<grid, block, 0, THCState_getCurrentStream(state)>>>(             \
+    <<<grid, block, 0, THCState_getCurrentStreamOnDevice(state, curDevice)>>>(             \
       OffsetInfo<ScalarTypeA, TYPE, A>                                  \
           (aInfo),                                                      \
       OffsetInfo<ScalarTypeB, TYPE, B>                                  \
@@ -635,9 +639,9 @@ bool THC_pointwiseApply3(THCState* state,
   }                                         \
 }
 
-  if (TensorUtils<TensorTypeA>::canUse32BitIndexMath(state, a) &&
-      TensorUtils<TensorTypeB>::canUse32BitIndexMath(state, b) &&
-      TensorUtils<TensorTypeC>::canUse32BitIndexMath(state, c)) {
+  if (THCTensor_canUse32BitIndexMath(state, a) &&
+      THCTensor_canUse32BitIndexMath(state, b) &&
+      THCTensor_canUse32BitIndexMath(state, c)) {
     TensorInfo<ScalarTypeA, unsigned int> aInfo =
       getTensorInfo<ScalarTypeA, TensorTypeA, unsigned int>(state, a);
 
@@ -720,7 +724,7 @@ bool THC_pointwiseApply3(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldA contiguous.
     TensorUtils<TensorTypeA>::copyIgnoringOverlaps(state, oldA, a);
-    TensorUtils<TensorTypeA>::free(state, a);
+    THCTensor_free(state, a);
     a = oldA;
   }
 
@@ -729,7 +733,7 @@ bool THC_pointwiseApply3(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldB contiguous.
     TensorUtils<TensorTypeB>::copyIgnoringOverlaps(state, oldB, b);
-    TensorUtils<TensorTypeB>::free(state, b);
+    THCTensor_free(state, b);
     b = oldB;
   }
 
@@ -738,7 +742,7 @@ bool THC_pointwiseApply3(THCState* state,
     // instead, it will recursively try and invoke ourselves to make
     // oldC contiguous.
     TensorUtils<TensorTypeC>::copyIgnoringOverlaps(state, oldC, c);
-    TensorUtils<TensorTypeC>::free(state, c);
+    THCTensor_free(state, c);
     c = oldC;
   }
 
