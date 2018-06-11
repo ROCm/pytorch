@@ -63,9 +63,12 @@ for root, _directories, files in os.walk(os.path.join(out_dir, "torch")):
                 f.flush()
                 os.fsync(f)
 
+# Figure out the path to the Hipify script or default to ROCm directory
+hipify = os.getenv('PYHIPIFY_PATH', "/opt/rocm/bin/hipify-python.py")
+
 # Execute the Hipify Script.
 subprocess.Popen(
-    ["/opt/rocm/bin/hipify-python.py",
+    [hipify,
         "--project-directory", proj_dir,
         "--output-directory", out_dir,
         "--include-dirs"] + include_dirs +
