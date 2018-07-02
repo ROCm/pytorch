@@ -173,12 +173,12 @@ void THCudaShutdown(THCState* state)
       THCublasCheck(cublasDestroy(res->blasHandles[i]));
     }
     /* Free user defined sparse handles */
-    for (int i = 0; i < res->numSparseHandles; ++i) {
-      THCusparseCheck(cusparseDestroy(res->sparseHandles[i]));
-    }
+//    for (int i = 0; i < res->numSparseHandles; ++i) {
+//      THCusparseCheck(cusparseDestroy(res->sparseHandles[i]));
+//    }
 
     free(res->blasHandles);
-    free(res->sparseHandles);
+//    free(res->sparseHandles);
     THCStream_free((THCStream*)THCThreadLocal_get(state->currentStreams[dev]));
     THCThreadLocal_free(state->currentStreams[dev]);
   }
@@ -354,14 +354,14 @@ void THCState_reserveDeviceSparseHandles(THCState* state, int device, int numSpa
   THCudaCheck(cudaGetDevice(&prevDev));
   THCudaCheck(cudaSetDevice(device));
 
-  size_t size = numSparseHandles * sizeof(cusparseHandle_t);
-  cusparseHandle_t* handles = (cusparseHandle_t*) realloc(res->sparseHandles, size);
-  for (int i = res->numSparseHandles; i < numSparseHandles; ++i) {
-    handles[i] = NULL;
-    THCusparseCheck(cusparseCreate(&handles[i]));
-  }
-  res->sparseHandles = handles;
-  res->numSparseHandles = numSparseHandles;
+//  size_t size = numSparseHandles * sizeof(cusparseHandle_t);
+//  cusparseHandle_t* handles = (cusparseHandle_t*) realloc(res->sparseHandles, size);
+//  for (int i = res->numSparseHandles; i < numSparseHandles; ++i) {
+//    handles[i] = NULL;
+//    THCusparseCheck(cusparseCreate(&handles[i]));
+//  }
+//  res->sparseHandles = handles;
+//  res->numSparseHandles = numSparseHandles;
 
   THCudaCheck(cudaSetDevice(prevDev));
 }
@@ -419,16 +419,16 @@ cublasHandle_t THCState_getDeviceBlasHandle(THCState *state, int device, int han
   return res->blasHandles[handle - 1];
 }
 
-cusparseHandle_t THCState_getDeviceSparseHandle(THCState *state, int device, int handle)
-{
-  if (handle <= 0 || handle > state->numUserSparseHandles) {
-    THError("%d is not a valid handle, valid range is: (1, %d)",
-            handle, state->numUserSparseHandles);
-  }
-  THCCudaResourcesPerDevice* res = THCState_getDeviceResourcePtr(state, device);
-  THCState_reserveDeviceSparseHandles(state, device, handle);
-  return res->sparseHandles[handle - 1];
-}
+//cusparseHandle_t THCState_getDeviceSparseHandle(THCState *state, int device, int handle)
+//{
+//  if (handle <= 0 || handle > state->numUserSparseHandles) {
+//    THError("%d is not a valid handle, valid range is: (1, %d)",
+//            handle, state->numUserSparseHandles);
+//  }
+//  THCCudaResourcesPerDevice* res = THCState_getDeviceResourcePtr(state, device);
+//  THCState_reserveDeviceSparseHandles(state, device, handle);
+//  return res->sparseHandles[handle - 1];
+//}
 
 static THCStream* THCState_getStreamOnDevice(THCState* state, int device)
 {
@@ -493,21 +493,21 @@ cublasHandle_t THCState_getCurrentBlasHandle(THCState *state)
   return NULL;
 }
 
-cusparseHandle_t THCState_getCurrentSparseHandle(THCState *state)
-{
-  /* This is called at the point of kernel execution.
-     For some debugging code or improperly instrumented kernels,
-     `state` is null */
-  if (state) {
-    int device;
-    THCudaCheck(cudaGetDevice(&device));
-
-    int handle = THCState_getCurrentSparseHandleIndex(state);
-    return THCState_getDeviceSparseHandle(state, device, handle);
-  }
-  THError("THCState and sparseHandles must be set as there is no default sparseHandle");
-  return NULL;
-}
+//cusparseHandle_t THCState_getCurrentSparseHandle(THCState *state)
+//{
+//  /* This is called at the point of kernel execution.
+//     For some debugging code or improperly instrumented kernels,
+//     `state` is null */
+//  if (state) {
+//    int device;
+//    THCudaCheck(cudaGetDevice(&device));
+//
+//    int handle = THCState_getCurrentSparseHandleIndex(state);
+//    return THCState_getDeviceSparseHandle(state, device, handle);
+//  }
+//  THError("THCState and sparseHandles must be set as there is no default sparseHandle");
+//  return NULL;
+//}
 
 int THCState_getCurrentBlasHandleIndex(THCState *state)
 {
@@ -643,54 +643,54 @@ void __THCublasCheck(cublasStatus_t status, const char *file, const int line)
   }
 }
 
-void __THCusparseCheck(cusparseStatus_t status, const char *file, const int line)
-{
-  if(status != CUSPARSE_STATUS_SUCCESS)
-  {
-    const char* errmsg = NULL;
-
-    switch(status)
-    {
-      case CUSPARSE_STATUS_NOT_INITIALIZED:
-        errmsg = "library not initialized";
-        break;
-
-      case CUSPARSE_STATUS_ALLOC_FAILED:
-        errmsg = "resource allocation failed";
-        break;
-
-      case CUSPARSE_STATUS_INVALID_VALUE:
-        errmsg = "an invalid numeric value was used as an argument";
-        break;
-
-      case CUSPARSE_STATUS_ARCH_MISMATCH:
-        errmsg = "an absent device architectural feature is required";
-        break;
-
-      case CUSPARSE_STATUS_MAPPING_ERROR:
-        errmsg = "an access to GPU memory space failed";
-        break;
-
-      case CUSPARSE_STATUS_EXECUTION_FAILED:
-        errmsg = "the GPU program failed to execute";
-        break;
-
-      case CUSPARSE_STATUS_INTERNAL_ERROR:
-        errmsg = "an internal operation failed";
-        break;
-
-      case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
-        errmsg = "the matrix type is not supported by this function";
-        break;
-
-      default:
-        errmsg = "unknown error";
-        break;
-    }
-
-    _THError(file, line, "cusparse runtime error : %s", errmsg);
-  }
-}
+//void __THCusparseCheck(cusparseStatus_t status, const char *file, const int line)
+//{
+//  if(status != CUSPARSE_STATUS_SUCCESS)
+//  {
+//    const char* errmsg = NULL;
+//
+//    switch(status)
+//    {
+//      case CUSPARSE_STATUS_NOT_INITIALIZED:
+//        errmsg = "library not initialized";
+//        break;
+//
+//      case CUSPARSE_STATUS_ALLOC_FAILED:
+//        errmsg = "resource allocation failed";
+//        break;
+//
+//      case CUSPARSE_STATUS_INVALID_VALUE:
+//        errmsg = "an invalid numeric value was used as an argument";
+//        break;
+//
+//      case CUSPARSE_STATUS_ARCH_MISMATCH:
+//        errmsg = "an absent device architectural feature is required";
+//        break;
+//
+//      case CUSPARSE_STATUS_MAPPING_ERROR:
+//        errmsg = "an access to GPU memory space failed";
+//        break;
+//
+//      case CUSPARSE_STATUS_EXECUTION_FAILED:
+//        errmsg = "the GPU program failed to execute";
+//        break;
+//
+//      case CUSPARSE_STATUS_INTERNAL_ERROR:
+//        errmsg = "an internal operation failed";
+//        break;
+//
+//      case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
+//        errmsg = "the matrix type is not supported by this function";
+//        break;
+//
+//      default:
+//        errmsg = "unknown error";
+//        break;
+//    }
+//
+//    _THError(file, line, "cusparse runtime error : %s", errmsg);
+//  }
+//}
 
 void THCSetGCHandler(THCState *state, void (*cutorchGCFunction_)(void *data), void *data )
 {

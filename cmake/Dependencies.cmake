@@ -496,8 +496,8 @@ endif()
 if(USE_ROCM AND NOT BUILD_CAFFE2)
  include_directories(SYSTEM ${HIP_PATH}/include)
  include_directories(SYSTEM ${HIPBLAS_PATH}/include)
- include_directories(SYSTEM ${HIPSPARSE_PATH}/include)
- include_directories(SYSTEM ${HIPRNG_PATH}/include)
+# include_directories(SYSTEM ${HIPSPARSE_PATH}/include)
+# include_directories(SYSTEM ${HIPRNG_PATH}/include)
  include_directories(SYSTEM ${THRUST_PATH})
 
  # load HIP cmake module and load platform id

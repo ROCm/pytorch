@@ -896,13 +896,13 @@ if USE_ROCM:
     rocm_include_path = '/opt/rocm/include'
     hcc_include_path = '/opt/rocm/hcc/include'
     hipblas_include_path = '/opt/rocm/hipblas/include'
-    hipsparse_include_path = '/opt/rocm/hcsparse/include'
+    #hipsparse_include_path = '/opt/rocm/hcsparse/include'
     hip_lib_path = '/opt/rocm/hip/lib'
     hcc_lib_path = '/opt/rocm/hcc/lib'
     include_dirs.append(rocm_include_path)
     include_dirs.append(hcc_include_path)
     include_dirs.append(hipblas_include_path)
-    include_dirs.append(hipsparse_include_path)
+    #include_dirs.append(hipsparse_include_path)
     include_dirs.append(tmp_install_path + "/include/THCUNN")
     extra_link_args.append('-L' + hip_lib_path)
     extra_link_args.append('-Wl,-rpath,' + hip_lib_path)

@@ -3,17 +3,17 @@
 #include "THCHalfAutoNumerics.cuh"
 #include "THCTensor.hpp"
 
-#include <cusparse.h>
+//#include <cusparse.h>
 
-static cusparseHandle_t cusparse_handle = 0;
+//static cusparseHandle_t cusparse_handle = 0;
 
 static void init_cusparse() {
-  if (cusparse_handle == 0) {
-    cusparseStatus_t status = cusparseCreate(&cusparse_handle);
-    if (status != CUSPARSE_STATUS_SUCCESS) {
-      THError("CUSPARSE Library initialization failed");
-    }
-  }
+//  if (cusparse_handle == 0) {
+//    cusparseStatus_t status = cusparseCreate(&cusparse_handle);
+//    if (status != CUSPARSE_STATUS_SUCCESS) {
+//      THError("CUSPARSE Library initialization failed");
+//    }
+//  }
 }
 
 #ifdef CUDA_HALF_TENSOR

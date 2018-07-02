@@ -180,7 +180,7 @@ __global__ void renorm_kernel(
     } else if (norm_type == 2) {
       v += x * x;
     } else {
-      v += std::pow(x, norm_type);
+      //v += std::pow(x, norm_type);
     }
   }
 
@@ -188,7 +188,7 @@ __global__ void renorm_kernel(
   v = reduceBlock<accscalar_t>(sdata, blockDim.x, v, Op(), 0);
 
   if (tid == 0) {
-    sdata[0] = std::pow(v, static_cast<accscalar_t>(1.0 / norm_type));
+    //sdata[0] = std::pow(v, static_cast<accscalar_t>(1.0 / norm_type));
   }
   __syncthreads();
 

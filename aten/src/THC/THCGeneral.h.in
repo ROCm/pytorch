@@ -12,7 +12,7 @@
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "cublas_v2.h"
-#include "cusparse.h"
+//#include "cusparse.h"
 
 #cmakedefine USE_MAGMA
 
@@ -65,7 +65,7 @@ typedef struct _THCCudaResourcesPerDevice {
   /* cuBLAS handes are lazily initialized */
   cublasHandle_t* blasHandles;
   /* cuSparse handes are lazily initialized */
-  cusparseHandle_t* sparseHandles;
+//  cusparseHandle_t* sparseHandles;
   /* Size of scratch space per each stream on this device available */
   size_t scratchSpacePerStream;
 } THCCudaResourcesPerDevice;
@@ -171,8 +171,8 @@ THC_API cublasHandle_t THCState_getCurrentBlasHandle(THCState *state);
 THC_API int THCState_getCurrentBlasHandleIndex(THCState *state);
 THC_API void THCState_setCurrentBlasHandleIndex(THCState *state, int handle);
 
-THC_API cusparseHandle_t THCState_getDeviceSparseHandle(THCState *state, int device, int handle);
-THC_API cusparseHandle_t THCState_getCurrentSparseHandle(THCState *state);
+//THC_API cusparseHandle_t THCState_getDeviceSparseHandle(THCState *state, int device, int handle);
+//THC_API cusparseHandle_t THCState_getCurrentSparseHandle(THCState *state);
 THC_API int THCState_getCurrentSparseHandleIndex(THCState *state);
 THC_API void THCState_setCurrentSparseHandleIndex(THCState *state, int handle);
 
@@ -184,12 +184,12 @@ THC_API size_t THCState_getDeviceScratchSpaceSize(THCState* state, int device);
 #define THCudaCheck(err)  __THCudaCheck(err, __FILE__, __LINE__)
 #define THCudaCheckWarn(err)  __THCudaCheckWarn(err, __FILE__, __LINE__)
 #define THCublasCheck(err)  __THCublasCheck(err,  __FILE__, __LINE__)
-#define THCusparseCheck(err)  __THCusparseCheck(err,  __FILE__, __LINE__)
+//#define THCusparseCheck(err)  __THCusparseCheck(err,  __FILE__, __LINE__)
 
 THC_API void __THCudaCheck(cudaError_t err, const char *file, const int line);
 THC_API void __THCudaCheckWarn(cudaError_t err, const char *file, const int line);
 THC_API void __THCublasCheck(cublasStatus_t status, const char *file, const int line);
-THC_API void __THCusparseCheck(cusparseStatus_t status, const char *file, const int line);
+//THC_API void __THCusparseCheck(cusparseStatus_t status, const char *file, const int line);
 
 THC_API cudaError_t THCudaMalloc(THCState *state, void **ptr, size_t size);
 THC_API cudaError_t THCudaFree(THCState *state, void *ptr);

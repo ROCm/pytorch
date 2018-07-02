@@ -3,9 +3,9 @@
 #include "ATen/cuda/CUDAApplyUtils.cuh"
 #include "ATen/AccumulateType.h"
 
-#include <curand.h>
-#include <curand_kernel.h>
-#include <curand_philox4x32_x.h>
+//#include <curand.h>
+//#include <curand_kernel.h>
+//#include <curand_philox4x32_x.h>
 #include <utility>
 #include <functional>
 #include <nvfunctional>

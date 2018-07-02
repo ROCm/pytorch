@@ -5,37 +5,37 @@
 #include "THCReduceApplyUtils.cuh"
 #include "THCTensorMathReduce.cuh"
 
-#include <curand_kernel.h>
+//#include <curand_kernel.h>
 
 #define MAX_NUM_BLOCKS 200 
 #define BLOCK_SIZE 256
 /* Separate kernel because curand_log_normal gets extra parameters. */
 
-template <typename T>
-__global__ void generateLogNormal(curandStateMtgp32 *state, int size, T *result, double mean, double stddev)
-{
-  int idx = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-  int rounded_size = THCCeilDiv(size, BLOCK_SIZE) * BLOCK_SIZE;
-  for (int i = idx; i < rounded_size; i += BLOCK_SIZE * MAX_NUM_BLOCKS) {
-    float x = curand_log_normal(&state[blockIdx.x], mean, stddev);
-    if (i < size) {
-      result[i] = ScalarConvert<float, T>::to(x);
-    }
-  }
-}
-
-template <>
-__global__ void generateLogNormal<double>(curandStateMtgp32 *state, int size, double *result, double mean, double stddev)
-{
-  int idx = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-  int rounded_size = THCCeilDiv(size, BLOCK_SIZE) * BLOCK_SIZE;
-  for (int i = idx; i < rounded_size; i += BLOCK_SIZE * MAX_NUM_BLOCKS) {
-    double x = curand_log_normal_double(&state[blockIdx.x], mean, stddev);
-    if (i < size) {
-      result[i] = x;
-    }
-  }
-}
+//template <typename T>
+//__global__ void generateLogNormal(curandStateMtgp32 *state, int size, T *result, double mean, double stddev)
+//{
+//  int idx = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+//  int rounded_size = THCCeilDiv(size, BLOCK_SIZE) * BLOCK_SIZE;
+//  for (int i = idx; i < rounded_size; i += BLOCK_SIZE * MAX_NUM_BLOCKS) {
+//    float x = curand_log_normal(&state[blockIdx.x], mean, stddev);
+//    if (i < size) {
+//      result[i] = ScalarConvert<float, T>::to(x);
+//    }
+//  }
+//}
+//
+//template <>
+//__global__ void generateLogNormal<double>(curandStateMtgp32 *state, int size, double *result, double mean, double stddev)
+//{
+//  int idx = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+//  int rounded_size = THCCeilDiv(size, BLOCK_SIZE) * BLOCK_SIZE;
+//  for (int i = idx; i < rounded_size; i += BLOCK_SIZE * MAX_NUM_BLOCKS) {
+//    double x = curand_log_normal_double(&state[blockIdx.x], mean, stddev);
+//    if (i < size) {
+//      result[i] = x;
+//    }
+//  }
+//}
 
 template <typename T>
 __global__ void
@@ -289,89 +289,89 @@ sampleMultinomialOnce(int64_t* dest,
   }
 }
 
-template <typename T>
-__global__ void
-sampleMultinomialWithReplacement(curandStateMtgp32* state,
-                                 int totalSamples,
-                                 int64_t* dest,
-                                 int64_t distributions,
-                                 int categories,
-                                 T* normDistPrefixSum) {
-  // At the moment, each warp computes one sample value in the binary
-  // search due to divergence. It seems possible to compute multiple
-  // values and limit divergence though later on. However, no matter
-  // what, all block threads must participate in the curand_uniform
-  // call to update the generator state.
-
-  // The block determines the distribution for which we generate a point
-  for (int64_t curDist = blockIdx.x;
-       curDist < distributions;
-       curDist += gridDim.x) {
-    for (int sampleBase = 0;
-         sampleBase < totalSamples; sampleBase += blockDim.y) {
-      // The warp determines the sample
-      int sample = sampleBase + threadIdx.y;
-
-      // All threads participate in this
-      T r = ScalarConvert<float, T>::to(curand_uniform(&state[blockIdx.x]));
-
-      if (threadIdx.x == 0 && sample < totalSamples) {
-        // Find the bucket that a uniform sample lies in
-        int choice = binarySearchForMultinomial<T>(
-          normDistPrefixSum + curDist * categories,
-          categories,
-          r);
-
-        // Torch indices are 1-based
-        dest[curDist * totalSamples + sample] = choice + TH_INDEX_BASE;
-      }
-    }
-  }
-}
-
-template <typename T>
-__global__ void
-sampleMultinomialWithoutReplacement(curandStateMtgp32* state,
-                                    int totalSamples,
-                                    int sample,
-                                    int64_t* dest,
-                                    int64_t distributions,
-                                    int categories,
-                                    T* origDist,
-                                    T* normDistPrefixSum) {
-  // At the moment, each warp computes one sample value in the binary
-  // search due to divergence. It seems possible to compute multiple
-  // values and limit divergence though later on. However, no matter
-  // what, all block threads must participate in the curand_uniform
-  // call to update the generator state.
-
-  // The block and warp determines the distribution for which we
-  // generate a point
-  for (int64_t curDistBase = blockIdx.x * blockDim.y;
-       curDistBase < distributions;
-       curDistBase += gridDim.x * blockDim.y) {
-    // The warp determines the distribution
-    int64_t curDist = curDistBase + threadIdx.y;
-
-    // All threads must participate in this
-    T r = ScalarConvert<float, T>::to(curand_uniform(&state[blockIdx.x]));
-
-    if (threadIdx.x == 0 && curDist < distributions) {
-      // Find the bucket that a uniform sample lies in
-      int choice = binarySearchForMultinomial<T>(
-        normDistPrefixSum + curDist * categories,
-        categories,
-        r);
-
-      // Torch indices are 1-based
-      dest[curDist * totalSamples + sample] = choice + TH_INDEX_BASE;
-
-      // Without replacement, so update the original probability so it
-      // is not considered a second time
-      origDist[curDist * categories + choice] = ScalarConvert<int, T>::to(0);
-    }
-  }
-}
+//template <typename T>
+//__global__ void
+//sampleMultinomialWithReplacement(curandStateMtgp32* state,
+//                                 int totalSamples,
+//                                 int64_t* dest,
+//                                 int64_t distributions,
+//                                 int categories,
+//                                 T* normDistPrefixSum) {
+//  // At the moment, each warp computes one sample value in the binary
+//  // search due to divergence. It seems possible to compute multiple
+//  // values and limit divergence though later on. However, no matter
+//  // what, all block threads must participate in the curand_uniform
+//  // call to update the generator state.
+//
+//  // The block determines the distribution for which we generate a point
+//  for (int64_t curDist = blockIdx.x;
+//       curDist < distributions;
+//       curDist += gridDim.x) {
+//    for (int sampleBase = 0;
+//         sampleBase < totalSamples; sampleBase += blockDim.y) {
+//      // The warp determines the sample
+//      int sample = sampleBase + threadIdx.y;
+//
+//      // All threads participate in this
+//      T r = ScalarConvert<float, T>::to(curand_uniform(&state[blockIdx.x]));
+//
+//      if (threadIdx.x == 0 && sample < totalSamples) {
+//        // Find the bucket that a uniform sample lies in
+//        int choice = binarySearchForMultinomial<T>(
+//          normDistPrefixSum + curDist * categories,
+//          categories,
+//          r);
+//
+//        // Torch indices are 1-based
+//        dest[curDist * totalSamples + sample] = choice + TH_INDEX_BASE;
+//      }
+//    }
+//  }
+//}
+//
+//template <typename T>
+//__global__ void
+//sampleMultinomialWithoutReplacement(curandStateMtgp32* state,
+//                                    int totalSamples,
+//                                    int sample,
+//                                    int64_t* dest,
+//                                    int64_t distributions,
+//                                    int categories,
+//                                    T* origDist,
+//                                    T* normDistPrefixSum) {
+//  // At the moment, each warp computes one sample value in the binary
+//  // search due to divergence. It seems possible to compute multiple
+//  // values and limit divergence though later on. However, no matter
+//  // what, all block threads must participate in the curand_uniform
+//  // call to update the generator state.
+//
+//  // The block and warp determines the distribution for which we
+//  // generate a point
+//  for (int64_t curDistBase = blockIdx.x * blockDim.y;
+//       curDistBase < distributions;
+//       curDistBase += gridDim.x * blockDim.y) {
+//    // The warp determines the distribution
+//    int64_t curDist = curDistBase + threadIdx.y;
+//
+//    // All threads must participate in this
+//    T r = ScalarConvert<float, T>::to(curand_uniform(&state[blockIdx.x]));
+//
+//    if (threadIdx.x == 0 && curDist < distributions) {
+//      // Find the bucket that a uniform sample lies in
+//      int choice = binarySearchForMultinomial<T>(
+//        normDistPrefixSum + curDist * categories,
+//        categories,
+//        r);
+//
+//      // Torch indices are 1-based
+//      dest[curDist * totalSamples + sample] = choice + TH_INDEX_BASE;
+//
+//      // Without replacement, so update the original probability so it
+//      // is not considered a second time
+//      origDist[curDist * categories + choice] = ScalarConvert<int, T>::to(0);
+//    }
+//  }
+//}
 
 template <typename T>
 __global__ void

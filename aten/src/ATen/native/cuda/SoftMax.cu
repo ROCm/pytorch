@@ -18,7 +18,7 @@ namespace {
 template<typename T, typename AccumT>
 struct LogSoftMaxForwardEpilogue {
   __device__ __forceinline__ LogSoftMaxForwardEpilogue(AccumT max_input, AccumT sum)
-    : logsum(max_input + std::log(sum)) {}
+    : logsum(max_input /*+ std::log(sum)*/ ) {}
 
   __device__ __forceinline__ T operator()(T input) const {
     return static_cast<T>(input - logsum);
@@ -33,7 +33,7 @@ struct LogSoftMaxBackwardEpilogue {
     : sum(sum) {}
 
   __device__ __forceinline__ T operator()(T gradOutput, T output) const {
-    return static_cast<T>(gradOutput - std::exp(static_cast<AccumT>(output)) * sum);
+    return static_cast<T>(gradOutput /*- std::exp(static_cast<AccumT>(output)) * sum */ );
   }
 
   const AccumT sum;
@@ -46,7 +46,7 @@ struct SoftMaxForwardEpilogue {
     , sum(sum) {}
 
   __device__ __forceinline__ T operator()(T input) const {
-    return static_cast<T>(std::exp(input - max_input) / sum);
+    return static_cast<T>(0); // std::exp(input - max_input) / sum);
   }
 
   const AccumT max_input;
@@ -203,9 +203,9 @@ __global__ void cunn_SpatialSoftMaxForward(
         max_input = spatialBlockReduceX<accscalar_t, Max>(sdata,max_input);
 
         accscalar_t sum = 0;
-        for (uint32_t d = threadIdx.x; d < dim_size; d += blockDim.x)
-          sum += std::exp(static_cast<accscalar_t>(input[data_offset + d * dim_stride])
-                 - max_input);
+        for (uint32_t d = threadIdx.x; d < dim_size; d += blockDim.x) {}
+          //sum += std::exp(static_cast<accscalar_t>(input[data_offset + d * dim_stride])
+          //       - max_input);
         sum = spatialBlockReduceX<accscalar_t, Add>(sdata, sum);
 
         Epilogue<scalar_t, accscalar_t> epilogue(max_input, sum);
@@ -218,9 +218,9 @@ __global__ void cunn_SpatialSoftMaxForward(
           max_input = Max<accscalar_t>()(max_input, value);
         }
         accscalar_t sum = 0;
-        for (uint32_t d = threadIdx.x; d < dim_size; d += blockDim.x)
-          sum += std::exp(static_cast<accscalar_t>(input[data_offset + d * dim_stride])
-                 - max_input);
+        for (uint32_t d = threadIdx.x; d < dim_size; d += blockDim.x) {}
+          //sum += std::exp(static_cast<accscalar_t>(input[data_offset + d * dim_stride])
+          //       - max_input);
         Epilogue<scalar_t, accscalar_t> epilogue(max_input, sum);
         for (uint32_t d = threadIdx.x; d < dim_size; d += blockDim.x)
           output[data_offset + d * dim_stride] = epilogue(input[data_offset + d * dim_stride]);
@@ -284,7 +284,7 @@ template <typename T, typename AccumT>
 struct MaxFloat
 {
   __device__ __forceinline__ AccumT operator()(AccumT max, T v) const {
-    return ::max(max, (AccumT)v);
+    return /*::max(max,*/ (AccumT)v /*)*/ ;
   }
 };
 
@@ -303,7 +303,7 @@ struct SumExpFloat
     : max_k(v) {}
 
   __device__ __forceinline__ AccumT operator()(AccumT sum, T v) const {
-    return sum + std::exp(v - max_k);
+    return sum; // + std::exp(v - max_k);
   }
 
   const AccumT max_k;

@@ -46,18 +46,18 @@ ELSE()
 ENDIF()
 
 # HIPRNG_PATH
-IF(NOT DEFINED ENV{HIPRNG_PATH})
-  SET(HIPRNG_PATH ${ROCM_PATH}/hcrng)
-ELSE()
-  SET(HIPRNG_PATH $ENV{HIPRNG_PATH})
-ENDIF()
+#IF(NOT DEFINED ENV{HIPRNG_PATH})
+#  SET(HIPRNG_PATH ${ROCM_PATH}/hcrng)
+#ELSE()
+#  SET(HIPRNG_PATH $ENV{HIPRNG_PATH})
+#ENDIF()
 
 # HIPSPARSE_PATH
-IF(NOT DEFINED ENV{HIPSPARSE_PATH})
-  SET(HIPSPARSE_PATH ${ROCM_PATH}/hcsparse)
-ELSE()
-  SET(HIPSPARSE_PATH $ENV{HIPSPARSE_PATH})
-ENDIF()
+#IF(NOT DEFINED ENV{HIPSPARSE_PATH})
+#  SET(HIPSPARSE_PATH ${ROCM_PATH}/hcsparse)
+#ELSE()
+#  SET(HIPSPARSE_PATH $ENV{HIPSPARSE_PATH})
+#ENDIF()
 
 # THRUST_PATH
 IF(DEFINED ENV{THRUST_PATH})
@@ -114,7 +114,7 @@ IF(HIP_FOUND)
   set(rocblas_DIR ${ROCBLAS_PATH}/lib/cmake/rocblas)
   set(miopen_DIR ${MIOPEN_PATH}/lib/cmake/miopen)
   set(hipblas_DIR ${HIPBLAS_PATH}/lib/cmake/hipblas)
-  set(hipsparse_DIR ${HIPSPARSE_PATH}/lib/cmake/hipsparse)
+  #set(hipsparse_DIR ${HIPSPARSE_PATH}/lib/cmake/hipsparse)
 
   find_package(rocrand REQUIRED)
   find_package(hiprand REQUIRED)
@@ -132,9 +132,9 @@ IF(HIP_FOUND)
   # however currently it's just the lib name
   FIND_LIBRARY(PYTORCH_MIOPEN_LIBRARIES ${miopen_LIBRARIES} HINTS ${MIOPEN_PATH}/lib)
   FIND_LIBRARY(hiprand_LIBRARIES hiprand HINTS ${HIPRAND_PATH}/lib)
-  FIND_LIBRARY(hiprng_LIBRARIES hcrng HINTS ${HIPRNG_PATH}/lib)
+#  FIND_LIBRARY(hiprng_LIBRARIES hcrng HINTS ${HIPRNG_PATH}/lib)
   FIND_LIBRARY(hipblas_LIBRARIES hipblas HINTS ${HIPBLAS_PATH}/lib)
-  FIND_LIBRARY(hipsparse_LIBRARIES hipsparse HINTS ${HIPSPARSE_PATH}/lib)
+#  FIND_LIBRARY(hipsparse_LIBRARIES hipsparse HINTS ${HIPSPARSE_PATH}/lib)
 
 
   # Necessary includes for building PyTorch since we include HIP headers that depend on hcc/hsa headers.

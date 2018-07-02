@@ -46,17 +46,17 @@ void magmaGesvBatched<double>(
       dB_array, lddb, dinfo_array, batch_count, queue);
 }
 
-static magma_queue_t createMagmaQueue(const Tensor& tensor) {
-  auto& context = tensor.type().get_context();
-  magma_queue_t magma_queue;
-  magma_queue_create_from_cuda(
-      tensor.get_device(),
-      context.getCurrentCUDAStream(),
-      THCState_getCurrentBlasHandle(context.getTHCState()),
-      THCState_getCurrentSparseHandle(context.getTHCState()),
-      &magma_queue);
-  return magma_queue;
-}
+//static magma_queue_t createMagmaQueue(const Tensor& tensor) {
+//  auto& context = tensor.type().get_context();
+//  magma_queue_t magma_queue;
+//  magma_queue_create_from_cuda(
+//      tensor.get_device(),
+//      context.getCurrentCUDAStream(),
+//      THCState_getCurrentBlasHandle(context.getTHCState()),
+//      THCState_getCurrentSparseHandle(context.getTHCState()),
+//      &magma_queue);
+//  return magma_queue;
+//}
 
 static inline magma_int_t magma_int_cast(int64_t value, const char* varname) {
   auto result = static_cast<magma_int_t>(value);
@@ -116,9 +116,9 @@ AT_ERROR("gesv: MAGMA library not found in "
     ipiv_array[i] = &ipiv_data[i * n];
   }
 
-  magmaGesvBatched<scalar_t>(
-      n, nrhs, A_array, n, ipiv_array, b_array, n,
-      info_array, batch_size, createMagmaQueue(b));
+//  magmaGesvBatched<scalar_t>(
+//      n, nrhs, A_array, n, ipiv_array, b_array, n,
+//      info_array, batch_size, createMagmaQueue(b));
 
   for (int64_t i = 0; i < batch_size; i++) {
     infos[i] = info_array[i];

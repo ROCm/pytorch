@@ -118,7 +118,7 @@ PyObject * THCPModule_getRNGState(PyObject *_unused)
   using namespace torch::autograd;
   HANDLE_TH_ERRORS
   auto tensor = VariableType::getType(CPU(kByte))->tensor();
-  THCRandom_getRNGState(state, (THByteTensor*)tensor.unsafeGetTH(false));
+//  THCRandom_getRNGState(state, (THByteTensor*)tensor.unsafeGetTH(false));
   return THPVariable_Wrap(tensor);
   END_HANDLE_TH_ERRORS
 }
@@ -131,7 +131,7 @@ PyObject * THCPModule_setRNGState(PyObject *_unused, PyObject *obj)
         Py_TYPE(obj)->tp_name);
   }
   auto& tensor = THPVariable_UnpackData(obj);
-  THCRandom_setRNGState(state, (THByteTensor*)tensor.unsafeGetTH(false));
+//  THCRandom_setRNGState(state, (THByteTensor*)tensor.unsafeGetTH(false));
   Py_RETURN_NONE;
   END_HANDLE_TH_ERRORS
 }

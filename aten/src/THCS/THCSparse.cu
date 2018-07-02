@@ -11,15 +11,17 @@ void THCudaSparse_Xcoo2csr(THCState *state, const int *coorowind, int64_t nnz, i
   ));
 }
 
-cusparseOperation_t convertTransToCusparseOperation(char trans) {
-  if (trans == 't') return CUSPARSE_OPERATION_TRANSPOSE;
-  else if (trans == 'n') return CUSPARSE_OPERATION_NON_TRANSPOSE;
-  else if (trans == 'c') return CUSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
-  else {
-    THError("trans must be one of: t, n, c");
-    return CUSPARSE_OPERATION_TRANSPOSE;
-  }
-}
+/*
+//cusparseOperation_t convertTransToCusparseOperation(char trans) {
+//  if (trans == 't') return CUSPARSE_OPERATION_TRANSPOSE;
+//  else if (trans == 'n') return CUSPARSE_OPERATION_NON_TRANSPOSE;
+//  else if (trans == 'c') return CUSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
+//  else {
+//    THError("trans must be one of: t, n, c");
+//    return CUSPARSE_OPERATION_TRANSPOSE;
+//  }
+//}
+*/
 
 void adjustLd(char transb, int64_t m, int64_t n, int64_t k, int64_t *ldb, int64_t *ldc)
 {
