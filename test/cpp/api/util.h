@@ -1,23 +1,17 @@
-#include <torch/nn/module.h>
-#include <torch/nn/modules/linear.h>
+#pragma once
 
-#include <memory>
-#include <stdexcept>
+#include <torch/nn/cloneable.h>
+
 #include <string>
 #include <utility>
 
 namespace torch {
+namespace test {
 
 // Lets you use a container without making a new class,
 // for experimental implementations
 class SimpleContainer : public nn::Cloneable<SimpleContainer> {
  public:
-  virtual std::vector<Variable> forward(std::vector<Variable>) {
-    throw std::runtime_error(
-        "SimpleContainer has no forward, maybe you"
-        " wanted to subclass and override this function?");
-  }
-
   void reset() override {}
 
   template <typename ModuleHolder>
@@ -28,18 +22,8 @@ class SimpleContainer : public nn::Cloneable<SimpleContainer> {
   }
 };
 
-struct SigmoidLinear : nn::Module {
-  SigmoidLinear(int64_t in, int64_t out) : linear(nn::Linear(in, out)) {
-    register_module("linear", linear);
-  }
-
-  explicit SigmoidLinear(nn::Linear linear_) : linear(std::move(linear_)) {
-    register_module("linear", linear);
-  }
-  Variable forward(Variable input) {
-    return linear->forward({input}).front().sigmoid();
-  }
-  nn::Linear linear;
-};
-
+inline bool pointer_equal(torch::Tensor first, torch::Tensor second) {
+  return first.data().data<float>() == second.data().data<float>();
+}
+} // namespace test
 } // namespace torch

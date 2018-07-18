@@ -3,8 +3,8 @@
 #include <torch/detail/static.h>
 #include <torch/nn/module.h>
 #include <torch/nn/pimpl.h>
+#include <torch/tensor.h>
 
-#include <torch/csrc/autograd/variable.h>
 #include <torch/csrc/utils/memory.h>
 #include <torch/csrc/utils/variadic.h>
 
@@ -36,7 +36,7 @@ class AnyModule {
   /// Constructs an `AnyModule` from a concrete module object.
   template <
       typename ModuleType,
-      typename = torch::detail::disable_if_module_holder_t<ModuleType>>
+      typename = torch::detail::enable_if_module_t<ModuleType>>
   explicit AnyModule(ModuleType&& module);
 
   /// Constructs an `AnyModule` from a module holder.
@@ -48,9 +48,13 @@ class AnyModule {
   AnyModule(AnyModule&&) = default;
   AnyModule& operator=(AnyModule&&) = default;
 
-  /// Copy is disallowed.
-  AnyModule(const AnyModule& other) = delete;
-  AnyModule& operator=(const AnyModule& other) = delete;
+  /// Creates a shallow copy of an `AnyModule`.
+  AnyModule(const AnyModule& other);
+  AnyModule& operator=(const AnyModule& other);
+
+  /// Creates a deep copy of an `AnyModule` if it contains a module, else an
+  /// empty `AnyModule` if it is empty.
+  AnyModule clone() const;
 
   /// Assigns a module to the `AnyModule` (to circumvent the explicit
   /// constructor).
@@ -182,13 +186,25 @@ class AnyModule::Value {
 
  private:
   friend class AnyModule;
-  friend class TestValue;
+  friend struct TestValue;
 
   /// Constructs the `Value` from value type.
-  template <typename T>
+  template <
+      typename T,
+      typename = torch::disable_if_t<std::is_same<at::Tensor, T>::value>>
   explicit Value(T&& value)
       : content_(
             torch::make_unique<Holder<decay_t<T>>>(std::forward<T>(value))) {}
+
+  /// Constructs the `Value`, but converts an `at::Tensor` to a `torch::Tensor`
+  /// implicitly if the `at::Tensor` is really a `torch::Tensor` (a variable).
+  explicit Value(at::Tensor tensor) {
+    if (tensor.is_variable()) {
+      content_ = torch::make_unique<Holder<torch::Tensor>>(std::move(tensor));
+    } else {
+      content_ = torch::make_unique<Holder<at::Tensor>>(std::move(tensor));
+    }
+  }
 
   /// The static type of the object we store in the `Value`, which erases the
   /// actual object's type, allowing us only to check the `type_info` of the
@@ -225,6 +241,12 @@ struct AnyModule::Placeholder : public AnyModule::Value::Placeholder {
 
   /// Returns std::shared_ptr<Module> pointing to the erased module.
   virtual std::shared_ptr<Module> ptr() = 0;
+
+  /// Returns a `Placeholder` with a shallow copy of this `AnyModule`.
+  virtual std::unique_ptr<Placeholder> copy() const = 0;
+
+  /// Returns a `Placeholder` with a deep copy of this `AnyModule`.
+  virtual std::unique_ptr<Placeholder> clone() const = 0;
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ AnyModule::Holder ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -282,6 +304,15 @@ struct AnyModule::Holder : public AnyModule::Placeholder {
     return module;
   }
 
+  std::unique_ptr<Placeholder> copy() const override {
+    return torch::make_unique<Holder>(*this);
+  }
+
+  std::unique_ptr<Placeholder> clone() const override {
+    return torch::make_unique<Holder>(
+        std::static_pointer_cast<ModuleType>(module->clone()));
+  }
+
   /// The actual concrete module instance.
   std::shared_ptr<ModuleType> module;
 };
@@ -301,7 +332,23 @@ AnyModule::AnyModule(ModuleType&& module)
 
 template <typename ModuleType>
 AnyModule::AnyModule(const ModuleHolder<ModuleType>& module_holder)
-    : AnyModule(module_holder.get()) {}
+    : AnyModule(module_holder.ptr()) {}
+
+inline AnyModule::AnyModule(const AnyModule& other)
+    : content_(other.content_ ? other.content_->copy() : nullptr) {}
+
+inline AnyModule& AnyModule::operator=(const AnyModule& other) {
+  if (this != &other) {
+    content_ = other.content_ ? other.content_->copy() : nullptr;
+  }
+  return *this;
+}
+
+inline AnyModule AnyModule::clone() const {
+  AnyModule clone;
+  clone.content_ = content_ ? content_->clone() : nullptr;
+  return clone;
+}
 
 template <typename ModuleType>
 AnyModule& AnyModule::operator=(std::shared_ptr<ModuleType> module) {

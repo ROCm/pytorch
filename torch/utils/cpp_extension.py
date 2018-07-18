@@ -303,6 +303,7 @@ def CppExtension(name, sources, *args, **kwargs):
 
         libraries = kwargs.get('libraries', [])
         libraries.append('caffe2')
+        libraries.append('torch')
         libraries.append('_C')
         kwargs['libraries'] = libraries
 
@@ -346,6 +347,7 @@ def CUDAExtension(name, sources, *args, **kwargs):
     libraries.append('cudart')
     if sys.platform == 'win32':
         libraries.append('caffe2')
+        libraries.append('torch')
         libraries.append('caffe2_gpu')
         libraries.append('_C')
     kwargs['libraries'] = libraries
@@ -692,6 +694,7 @@ def _prepare_ldflags(extra_ldflags, with_cuda, verbose):
         lib_path = os.path.join(torch_path, 'lib')
 
         extra_ldflags.append('caffe2.lib')
+        extra_ldflags.append('torch.lib')
         if with_cuda:
             extra_ldflags.append('caffe2_gpu.lib')
         extra_ldflags.append('_C.lib')
@@ -843,7 +846,7 @@ def _write_ninja_file(path,
             '  command = "{}/link.exe" $in /nologo $ldflags /out:$out'.format(
                 cl_path))
     else:
-        link_rule.append('  command = $cxx $ldflags $in -o $out')
+        link_rule.append('  command = $cxx $in $ldflags -o $out')
 
     # Emit one build rule per source to enable incremental build.
     object_files = []

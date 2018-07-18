@@ -68,10 +68,10 @@ void THCTensor_resize(THCState *state, THCTensor *self, THLongStorage *size, THL
 void THCTensor_resizeAs(THCState *state, THCTensor *self, THCTensor *src) {
   int isSame = 0;
   int d;
-  if(self->_dim() == src->_dim())
+  if(self->dim() == src->dim())
   {
     isSame = 1;
-    for(d = 0; d < self->_dim(); d++)
+    for(d = 0; d < self->dim(); d++)
     {
       if(self->size[d] != src->size[d])
       {
@@ -182,12 +182,12 @@ void THCTensor_setStorageNd(THCState *state, THCTensor *self, THCStorage *storag
       THError("Tensor: invalid null storage");
     }
     auto scalar_type = self->storage->scalar_type;
-    THCStorage_free(state, self->storage);
+    THStorage_free(self->storage);
 
     if(storage)
     {
       self->storage = storage;
-      THCStorage_retain(state, self->storage);
+      THStorage_retain(self->storage);
     }
     else
       self->storage = THCStorage_new(state, scalar_type);
@@ -258,9 +258,10 @@ void THCTensor_unsqueeze1d(THCState *state, THCTensor *self, THCTensor *src, int
 }
 
 bool THCTensor_isContiguous(THCState *state, const THCTensor *self) {
+  if (self->is_empty()) return true;
   int64_t z = 1;
   int d;
-  for(d = self->_dim()-1; d >= 0; d--)
+  for(d = self->dim()-1; d >= 0; d--)
   {
     if(self->size[d] != 1)
     {
@@ -297,27 +298,12 @@ ptrdiff_t THCTensor_nElement(THCState *state, const THCTensor *self) {
 }
 
 void THCTensor_retain(THCState *state, THCTensor *self) {
-  if(self->flag & TH_TENSOR_REFCOUNTED)
-    self->refcount++;
+  self->refcount++;
 }
 
 
 void THCTensor_free(THCState *state, THCTensor *self) {
-  if(!self)
-    return;
-
-  if(self->flag & TH_TENSOR_REFCOUNTED)
-  {
-    if(--self->refcount == 0)
-    {
-      THFree(self->size);
-      THFree(self->stride);
-      if(self->storage)
-        THCStorage_free(state, self->storage);
-      self->refcount.~atomic<int>();
-      THFree(self);
-    }
-  }
+  THTensor_free(self);
 }
 
 int THCTensor_getDevice(THCState* state, const THCTensor* tensor) {

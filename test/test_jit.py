@@ -9,7 +9,7 @@ from torch.autograd import Variable, Function
 from torch.autograd.function import traceable
 from torch.testing import assert_allclose
 from torch.onnx import OperatorExportTypes
-from common import TestCase, run_tests, IS_WINDOWS
+from common import TestCase, run_tests, IS_WINDOWS, TEST_WITH_UBSAN
 from textwrap import dedent
 import os
 import io
@@ -24,9 +24,10 @@ import warnings
 from test_autograd import method_tests, create_input, unpack_variables, \
     exclude_tensor_method, EXCLUDE_GRADCHECK, EXCLUDE_FUNCTIONAL
 from copy import deepcopy
-
+import random
 
 from torch.jit.frontend import NotSupportedError
+from torch.jit import BatchTensor
 
 try:
     import torchvision
@@ -70,13 +71,13 @@ def LSTMCell(input, hidden, w_ih, w_hh, b_ih=None, b_hh=None):
     gates = F.linear(input, w_ih, b_ih) + F.linear(hx, w_hh, b_hh)
 
     ingate, forgetgate, cellgate, outgate = gates.chunk(4, 1)
-    ingate = F.sigmoid(ingate)
-    forgetgate = F.sigmoid(forgetgate)
-    cellgate = F.tanh(cellgate)
-    outgate = F.sigmoid(outgate)
+    ingate = torch.sigmoid(ingate)
+    forgetgate = torch.sigmoid(forgetgate)
+    cellgate = torch.tanh(cellgate)
+    outgate = torch.sigmoid(outgate)
 
     cy = (forgetgate * cx) + (ingate * cellgate)
-    hy = outgate * F.tanh(cy)
+    hy = outgate * torch.tanh(cy)
     return hy, cy
 
 
@@ -169,7 +170,7 @@ class JitTestCase(TestCase):
             ge = torch.jit.trace(*input_tensors, optimize=optimize)(func)
 
         if verbose:
-            print(ge.__getattr__('forward').graph)
+            print(ge.graph)
 
         # test no gradients case
         outputs = func(*nograd_inputs)
@@ -221,7 +222,7 @@ class JitTestCase(TestCase):
             for g2, g2_ge in zip(grads2, grads2_ge):
                 if g2 is None and g2_ge is None:
                     continue
-                self.assertTrue(torch.allclose(g2, g2_ge, atol=5e-4, rtol=1e-4))
+                self.assertTrue(torch.allclose(g2, g2_ge, atol=7e-4, rtol=1e-4))
 
         return ge
 
@@ -253,6 +254,48 @@ class TestJit(JitTestCase):
         trace, z = torch.jit.get_trace_graph(f, (x, y))
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x, y))
+
+    def test_peephole(self):
+        a = torch.tensor([0.4], requires_grad=True)
+        b = torch.tensor([0.7], requires_grad=True)
+        c = torch.tensor([0], dtype=torch.int32)
+
+        def f(x, y):
+            return x.type_as(y)
+
+        trace, z = torch.jit.get_trace_graph(f, (a, b))
+        self.run_pass('peephole', trace)
+        self.assertExpectedGraph(trace)
+        trace, z = torch.jit.get_trace_graph(f, (a, c))
+        s = str(trace)
+        self.run_pass('peephole', trace)
+        self.assertEqual(s, str(trace))
+
+    def test_peephole_dynamic(self):
+        def f(x, y):
+            return x.type_as(y)
+
+        fn = torch.jit.script(f)
+        s = str(fn.graph)
+        torch._C._jit_pass_peephole(fn.graph)
+        self.assertEqual(s, str(fn.graph))
+
+    @unittest.skipIf(not RUN_CUDA, "cpp tests require CUDA")
+    def test_peephole_cuda(self):
+        a = torch.tensor([0.4], requires_grad=True, device='cpu')
+        b = torch.tensor([0.7], requires_grad=True, device='cuda')
+        c = torch.tensor([0.7], requires_grad=True, device='cuda')
+
+        def f(x, y):
+            return x.type_as(y)
+
+        trace, z = torch.jit.get_trace_graph(f, (a, c))
+        s = str(trace)
+        self.run_pass('peephole', trace)
+        self.assertEqual(s, str(trace))
+        trace, z = torch.jit.get_trace_graph(f, (b, c))
+        self.run_pass('peephole', trace)
+        self.assertExpectedGraph(trace, subname="same_device")
 
     def test_index(self):
         x = torch.tensor([0.4], requires_grad=True)
@@ -297,7 +340,7 @@ class TestJit(JitTestCase):
                 out = torch.sigmoid(out)
             return out
 
-        trace, z = torch.jit.get_trace_graph(f, (x, y), nderivs=0)
+        trace, z = torch.jit.get_trace_graph(f, (x, y))
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x, y))
 
@@ -438,6 +481,16 @@ class TestJit(JitTestCase):
 
         ge = self.checkTrace(self.fn_test_relu, (x, y))
 
+    @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
+    @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
+    def test_small_constant(self):
+        def fn_test_small_constant(x, y):
+            return (1e-8 * x + 5e-9 * y) * 1e8
+        x = torch.randn(4, 4, dtype=torch.float, device='cuda')
+        y = torch.randn(4, 4, dtype=torch.float, device='cuda')
+
+        ge = self.checkTrace(fn_test_small_constant, (x, y))
+
     @staticmethod
     def fn_test_exp(x, y):
         return (x + .5 * y).exp()
@@ -541,7 +594,7 @@ class TestJit(JitTestCase):
             z = (x + y) * (x + y) * (x + y) + t
             return z
 
-        trace, _ = torch.jit.get_trace_graph(fn, (x, y), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(fn, (x, y))
         self.run_pass('cse', trace)
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x, y))
@@ -553,7 +606,7 @@ class TestJit(JitTestCase):
 
         def fn(x, y):
             return x - y
-        trace, _ = torch.jit.get_trace_graph(fn, (x, y), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(fn, (x, y))
 
     def test_shape_analysis_broadcast(self):
         def broadcast(a, b):
@@ -578,27 +631,6 @@ class TestJit(JitTestCase):
 
         ge = self.checkTrace(doit, (x, y))
         self.assertExpectedGraph(ge.graph_for(x, y))
-
-    def test_assign_traces(self):
-        """Check that output Variables are assigned traces before they are saved."""
-        @traceable
-        class MyFn(Function):
-            @staticmethod
-            def forward(ctx, a):
-                out = a * 2
-                ctx.save_for_backward(out)
-                return out
-
-            @staticmethod
-            def backward(ctx, grad_a):
-                a, = ctx.saved_tensors
-                return a * grad_a
-
-        x = torch.randn(10, 10, requires_grad=True)
-        trace, out = torch.jit.get_trace_graph(MyFn.apply, x, nderivs=1)
-        out.sum().backward()
-        self.run_pass('dce', trace)
-        self.assertExpectedGraph(trace)
 
     # TODO: update verify to work with GraphExecutors
     @unittest.skip("verify needs to be updated to work with GraphExecutors")
@@ -632,7 +664,7 @@ class TestJit(JitTestCase):
 
         x = torch.tensor([0.], requires_grad=True)
         with self.assertRaisesRegex(RuntimeError, "MyLegacyFn"):
-            torch.jit.get_trace_graph(lambda x: MyLegacyFn()(x), (x,), nderivs=0)
+            torch.jit.get_trace_graph(lambda x: MyLegacyFn()(x), (x,))
 
     def test_inplace_transplant(self):
         x = torch.tensor([0.], requires_grad=True)
@@ -643,7 +675,7 @@ class TestJit(JitTestCase):
             y.add_(3)
             return y
 
-        trace, _ = torch.jit.get_trace_graph(fn, (x,), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(fn, (x,))
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x,))
 
@@ -676,7 +708,7 @@ class TestJit(JitTestCase):
             y = RegularFn.apply(y)
             return y
 
-        trace, _ = torch.jit.get_trace_graph(fn, (x,), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(fn, (x,))
         self.run_pass('dce', trace)
         ops = [n for n in trace.graph().nodes()]
         for op in ops:
@@ -864,7 +896,7 @@ class TestJit(JitTestCase):
             out.copy_(x)
             return out
 
-        trace, z = torch.jit.get_trace_graph(f, (x, ), nderivs=0)
+        trace, z = torch.jit.get_trace_graph(f, (x, ))
         self.run_pass('dce', trace)
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x,))
@@ -880,13 +912,13 @@ class TestJit(JitTestCase):
                 return x * self.a + self.b
 
         m = MyModule()
-        trace, _ = torch.jit.get_trace_graph(m, (torch.randn(2, 2),), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(m, (torch.randn(2, 2),))
         self.assertEqual(len(list(trace.graph().inputs())), 2)
         self.assertExpectedGraph(trace)
 
     def test_nested_inplace(self):
         x = torch.randn(2, 2)
-        trace, _ = torch.jit.get_trace_graph(lambda x: F.threshold(x, 0, 0, inplace=True), (x,), nderivs=0)
+        trace, _ = torch.jit.get_trace_graph(lambda x: F.threshold(x, 0, 0, inplace=True), (x,))
         self.assertExpectedGraph(trace)
         self.assertExportImport(trace, (x,))
 
@@ -1079,8 +1111,176 @@ class TestJit(JitTestCase):
         self.assertEqual(test_fn(ten, mask), traced_test_fn(ten, mask))
 
 
-class TestScript(JitTestCase):
+class TestBatched(TestCase):
+    # generate random examples and create an batchtensor with them
+    def rand_batch(self, *dims):
+        dims = [dim for dim in dims if dim != ()]
+        xs = [torch.rand(1, *(random.randint(1, size) if b else size for b, size in dims[1:])) for i in range(dims[0])]
+        xb = BatchTensor(xs, torch.tensor([b for b, d in dims[1:]]))
+        return xs, xb
 
+    def test_create_batchtensor(self):
+        # create from tensorlist
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2), (True, 5))
+        self.assertEqual(xs, batch.examples())
+        # create from data, mask, dims
+        batch2 = BatchTensor(batch.get_data(), batch.get_mask(), batch.get_dims())
+        self.assertEqual(xs, batch2.examples())
+        # expand a tensor to a batchtensor given batch_size
+        xs = torch.rand(3, 4, 5)
+        batch3 = BatchTensor(xs, 2)
+        xs = xs.unsqueeze(0)
+        self.assertEqual([xs, xs], batch3.examples())
+
+    def test_batch_elementwise_unary(self):
+        @torch.jit.batch(batch_size=4)
+        def tanh(a):
+            return torch.tanh(a)
+
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2))
+        res_batch = tanh(batch)
+        res = [torch.tanh(xs[j]) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+    def test_batch_elementwise_binary(self):
+        @torch.jit.batch(batch_size=4)
+        def add(a, b):
+            return a + b
+
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2))
+        xs2, batch2 = xs, batch
+        res_batch = add(batch, batch2)
+        res = [torch.add(xs[j], xs2[j]) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+        # test broadcast
+        xs, batch = self.rand_batch(4, (False, 3), (False, 2))
+        b = torch.rand(3, 2)
+        res_batch = add(batch, b)
+        res = [torch.add(xs[j], b) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+    def test_batch_mm(self):
+        @torch.jit.batch(batch_size=4)
+        def mm(a, b):
+            return torch.mm(a, b)
+
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 2), (True, 3))
+        res_batch = mm(batch, batch2)
+        res = [torch.mm(xs[j].squeeze(0), xs2[j].squeeze(0)).unsqueeze(0) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+        # test broadcast
+        b = torch.rand(2, 4)
+        res_batch = mm(batch, b)
+        res = [torch.mm(xs[j].squeeze(0), b).unsqueeze(0) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+    def test_batch_matmul(self):
+        @torch.jit.batch(batch_size=4)
+        def matmul(a, b):
+            return torch.matmul(a, b)
+
+        def matmul_test(xs, batch, xs2, batch2):
+            ys = [torch.matmul(xs[j].squeeze(0), xs2[j].squeeze(0)).unsqueeze(0) for j in range(4)]
+            ybs = matmul(batch, batch2)
+            self.assertEqual(ys, ybs.examples())
+
+        # 1 dimension * 1 dimension
+        xs, batch = self.rand_batch(4, (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 2))
+        matmul_test(xs, batch, xs2, batch2)
+        # 1 dimension * 2 dimension
+        xs, batch = self.rand_batch(4, (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 2), (True, 3))
+        matmul_test(xs, batch, xs2, batch2)
+        # 2 dimension * 1 dimensions
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 2))
+        matmul_test(xs, batch, xs2, batch2)
+        # 2 dimension * 2 dimension
+        xs, batch = self.rand_batch(4, (True, 3), (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 2), (True, 3))
+        matmul_test(xs, batch, xs2, batch2)
+
+    def test_batch_where(self):
+        @torch.jit.batch(batch_size=4)
+        def where(c, a, b):
+            return torch.where(c, a, b)
+
+        xs, batch = self.rand_batch(4, (False, 3), (False, 2))
+        xs2, batch2 = self.rand_batch(4, (False, 3), (False, 2))
+
+        dims = [4, (False, 3), (False, 2)]
+        xs_cond = [torch.rand(1, 3, 2).byte() for i in range(dims[0])]
+        batch_cond = BatchTensor(xs_cond, torch.tensor([b for b, d in dims[1:]]))
+
+        res_batch = where(batch_cond, batch, batch2)
+        res = [torch.where(xs_cond[j], xs[j], xs2[j]) for j in range(4)]
+        self.assertEqual(res, res_batch.examples())
+
+    def test_lstm_cell(self):
+        def LSTMCell(x, h, c, w_xi, w_xf, w_xo, w_xc, w_hi, w_hf, w_ho, w_hc, b_i, b_f, b_o, b_c):
+            i_t = torch.matmul(x, w_xi) + torch.matmul(h, w_hi) + b_i
+            f_t = torch.matmul(x, w_xf) + torch.matmul(h, w_hf) + b_f
+            o_t = torch.matmul(x, w_xo) + torch.matmul(h, w_ho) + b_o
+            # activations
+            i_t = torch.sigmoid(i_t)
+            f_t = torch.sigmoid(f_t)
+            o_t = torch.sigmoid(o_t)
+            # cell computations
+            c_t = torch.matmul(x, w_xc) + torch.matmul(h, w_hc) + b_c
+            c_t = torch.tanh(c_t)
+            c_t = torch.mul(c, f_t) + torch.mul(i_t, c_t)
+            h_t = torch.mul(o_t, torch.tanh(c_t))
+            return h_t
+
+        @torch.jit.batch(batch_size=4)
+        def LSTMCell_batch(x, h, c, w_xi, w_xf, w_xo, w_xc, w_hi, w_hf, w_ho, w_hc, b_i, b_f, b_o, b_c):
+            i_t = torch.matmul(x, w_xi) + torch.matmul(h, w_hi) + b_i
+            f_t = torch.matmul(x, w_xf) + torch.matmul(h, w_hf) + b_f
+            o_t = torch.matmul(x, w_xo) + torch.matmul(h, w_ho) + b_o
+            # activations
+            i_t = torch.sigmoid(i_t)
+            f_t = torch.sigmoid(f_t)
+            o_t = torch.sigmoid(o_t)
+            # cell computations
+            c_t = torch.matmul(x, w_xc) + torch.matmul(h, w_hc) + b_c
+            c_t = torch.tanh(c_t)
+            c_t = torch.mul(c, f_t) + torch.mul(i_t, c_t)
+            h_t = torch.mul(o_t, torch.tanh(c_t))
+            return h_t
+
+        batch_size, input_size, hidden_size = 4, 3, 2
+        xs, batch = self.rand_batch(batch_size, (False, input_size))
+        hx, h_batch = self.rand_batch(batch_size, (False, hidden_size))
+        cx, c_batch = self.rand_batch(batch_size, (False, hidden_size))
+
+        # input to hidden weights
+        w_xi = torch.rand(input_size, hidden_size)
+        w_xf = torch.rand(input_size, hidden_size)
+        w_xo = torch.rand(input_size, hidden_size)
+        w_xc = torch.rand(input_size, hidden_size)
+        # hidden to hidden weights
+        w_hi = torch.rand(hidden_size, hidden_size)
+        w_hf = torch.rand(hidden_size, hidden_size)
+        w_ho = torch.rand(hidden_size, hidden_size)
+        w_hc = torch.rand(hidden_size, hidden_size)
+        # bias terms
+        b_i = torch.rand(hidden_size)
+        b_f = torch.rand(hidden_size)
+        b_o = torch.rand(hidden_size)
+        b_c = torch.rand(hidden_size)
+
+        ys = [LSTMCell(xs[j].squeeze(0), hx[j], cx[j], w_xi, w_xf, w_xo, w_xc,
+                       w_hi, w_hf, w_ho, w_hc, b_i, b_f, b_o, b_c) for j in range(batch_size)]
+        ybs = LSTMCell_batch(batch, h_batch, c_batch, w_xi, w_xf, w_xo, w_xc,
+                             w_hi, w_hf, w_ho, w_hc, b_i, b_f, b_o, b_c)
+        self.assertEqual(ys, ybs.examples())
+
+
+class TestScript(JitTestCase):
     @contextmanager
     def capture_stdout(self):
         # No idea how to capture stdout from C++ on Windows
@@ -1306,7 +1506,8 @@ class TestScript(JitTestCase):
 
         self.assertExpected(canonical(func.graph), subname='1')
         # test that shape analysis is written correctly for sum with IntList[1] dim argument
-        torch._C._jit_pass_shape_analysis(func2.graph, (torch.zeros(1, 1, 1, 1, 4),), False)
+        torch._C._jit_pass_shape_analysis(
+            func2.graph, (torch.zeros(1, 1, 1, 1, 4),), False)
         self.assertExpected(canonical(func2.graph), subname='2')
 
     def test_cat(self):
@@ -3144,7 +3345,7 @@ def func(t):
             def f5(a):
                 torch.cat([[a]])
 
-        with self.assertRaisesRegex(RuntimeError, 'a value of type Tensor for argument \'size\' but found'):
+        with self.assertRaisesRegex(RuntimeError, 'expected a value of type int\\[\\] for argument \'size\''):
             @torch.jit.script
             def f6(a):
                 a.expand(size=[3, [4]])
@@ -3356,8 +3557,8 @@ def func(t):
         self.checkScript(fn, (torch.randn(3, 2, dtype=torch.float), torch.ones(3, 2, dtype=torch.float)))
 
     def test_reassign_module_lhs(self):
-        with self.assertRaisesRegex(RuntimeError, 'cannot re-assign \'self\' because it has type '
-                                                  'value. Only reassignments to first-class values are allowed'):
+        with self.assertRaisesRegex(RuntimeError, 'Cannot re-assign \'self\' because it has type value and self is'
+                                    ' not a first-class value.  Only reassignments to first-class values are allowed'):
             class ReassignSelfLHS(torch.jit.ScriptModule):
                 @torch.jit.script_method
                 def forward(self, x):
@@ -3368,8 +3569,8 @@ def func(t):
             ReassignSelfLHS()
 
     def test_reassign_module_rhs(self):
-        with self.assertRaisesRegex(RuntimeError, 'cannot re-assign \'x\' to a value of type module.'
-                                                  ' Only reassignments to first-class values are allowed'):
+        with self.assertRaisesRegex(RuntimeError, 'Cannot re-assign \'x\' to a value of type module because x is not a'
+                                    ' first-class value.  Only reassignments to first-class values are allowed'):
             class ReassignSelfRHS(torch.jit.ScriptModule):
                 @torch.jit.script_method
                 def forward(self, x):
@@ -3593,7 +3794,7 @@ def func(t):
             ''')
 
     def test_call_ge(self):
-        with self.assertRaisesRegex(RuntimeError, 'expected 1 arguments but found 3'):
+        with self.assertRaisesRegex(RuntimeError, 'expected at most 1 arguments but found 3'):
             @torch.jit.trace(torch.zeros(1, 2, 3))
             def foo(x):
                 return x
@@ -3720,7 +3921,7 @@ def func(t):
         # Note: parameter self.param from the traced module should appear as
         # an input to the graph and the neg op from the Python function should
         # be properly inlined
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_python_mod_from_traced_module(self):
         class PythonModule(torch.nn.Module):
@@ -3744,7 +3945,7 @@ def func(t):
 
         # Note: the parameters from both modules should appear in the flattened
         # inputs of the graph. All ops from both modules should be inlined.
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_traced_fn_from_traced_module(self):
         @torch.jit.trace(torch.rand(3, 4))
@@ -3761,7 +3962,7 @@ def func(t):
 
         tm = torch.jit.trace(torch.rand(3, 4))(TracedModule())
         # Note: neg op from the traced function should be properly inlined
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_traced_module_from_traced_module(self):
         class TracedModule1(torch.nn.Module):
@@ -3785,7 +3986,7 @@ def func(t):
 
         # Note: the parameters from both modules should appear in the flattened
         # inputs of the graph. All ops from both modules should be inlined.
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_script_fn_from_traced_module(self):
         @torch.jit.script
@@ -3802,7 +4003,7 @@ def func(t):
 
         tm = torch.jit.trace(torch.rand(3, 4))(TracedModule())
         # Note: neg op from the script function should be properly inlined
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_script_module_from_traced_module(self):
         class ScriptMod(torch.jit.ScriptModule):
@@ -3827,7 +4028,7 @@ def func(t):
 
         # Note: the parameters from both modules should appear in the flattened
         # inputs of the graph. All ops from both modules should be inlined.
-        self.assertExpected(str(tm.__getattr__('forward').graph))
+        self.assertExpected(str(tm.graph))
 
     def test_call_python_fn_from_script_fn(self):
         def python_fn(x):
@@ -3873,15 +4074,13 @@ def func(t):
         # script function's graph
         self.assertExpected(str(script_fn.graph))
 
-    @unittest.skip('TODO: Incorrect behavior')
     def test_call_traced_mod_from_script_fn(self):
         class TracedModule(torch.nn.Module):
             def __init__(self):
                 super(TracedModule, self).__init__()
-                self.param = torch.nn.Parameter(torch.rand(4, 3))
 
             def forward(self, x):
-                return torch.mm(x, self.param)
+                return torch.mm(x, torch.zeros(4, 3))
 
         tm = torch.jit.trace(torch.rand(3, 4))(TracedModule())
 
@@ -3889,17 +4088,6 @@ def func(t):
         def script_fn(x):
             return tm(x) + 1
 
-        # Note: At the time of writing this produces the following graph:
-        # graph(%x : Dynamic) {
-        #   %1 : Dynamic = ^<python_value>()(%x)
-        #   %2 : Long() = prim::Constant[value={1}]()
-        #   %3 : Dynamic = aten::add[alpha={1}](%1, %2)
-        #   return (%3);
-        # }
-        # This seems incorrect. Similarly to calling a traced module from a
-        # traced function, the behavior here should likely be that we inline
-        # the parameter from the traced module as a Constant node and we inline
-        # the ops into the graph of the script function. TODO: fix
         self.assertExpected(str(script_fn.graph))
 
     def test_call_script_fn_from_script_fn(self):
@@ -3915,16 +4103,14 @@ def func(t):
         # graph of script_fn
         self.assertExpected(str(script_fn.graph))
 
-    @unittest.skip('TODO: Incorrect behavior')
     def test_call_script_mod_from_script_fn(self):
         class ScriptMod(torch.jit.ScriptModule):
             def __init__(self):
                 super(ScriptMod, self).__init__()
-                self.param = torch.nn.Parameter(torch.rand(4, 3))
 
             @torch.jit.script_method
             def forward(self, x):
-                return torch.mm(x, self.param)
+                return torch.mm(x, torch.zeros([4, 3]))
 
         sm = ScriptMod()
 
@@ -3932,20 +4118,8 @@ def func(t):
         def script_fn(x):
             return sm(x) + 1
 
-        # Note: At the time of writing this produces the following graph:
-        # graph(%x : Dynamic) {
-        #   %1 : Dynamic = ^<python_value>()(%x)
-        #   %2 : Long() = prim::Constant[value={1}]()
-        #   %3 : Dynamic = aten::add[alpha={1}](%1, %2)
-        #   return (%3);
-        # }
-        # This seems incorrect. Similarly to calling a script module from a
-        # traced function, the behavior here should likely be that we inline
-        # the parameter from the traced module as a Constant node and we inline
-        # the ops into the graph of the script function. TODO: fix
         self.assertExpected(str(script_fn.graph))
 
-    @unittest.skip('TODO: Python value resolution broken')
     def test_call_python_fn_from_script_module(self):
         def python_fn(x):
             return torch.neg(x)
@@ -3960,13 +4134,6 @@ def func(t):
                 return python_fn(torch.mm(x, self.param))
 
         sm = ScriptMod()
-        # TODO: At the time of writing this test fails with:
-        # RuntimeError
-        # undefined value python_fn:
-        # @torch.jit.script_method
-        # def forward(self, x):
-        #     return python_fn(torch.mm(x, self.param))
-        #            ~~~~~~~~~ <--- HERE
         self.assertExpected(str(sm.__getattr__('forward').graph))
 
     def test_call_python_mod_from_script_module(self):
@@ -3991,9 +4158,8 @@ def func(t):
         sm = ScriptMod()
         # Note: the call into PythonMod appears as ^<python_value>(). Parameters
         # are NOT inlined
-        self.assertExpected(str(sm.__getattr__('forward').graph))
+        self.assertExpected(str(sm.graph))
 
-    @unittest.skip('TODO: Python value resolution broken')
     def test_call_tracing_fn_from_script_module(self):
         @torch.jit.trace(torch.rand(3, 3))
         def traced_fn(x):
@@ -4009,13 +4175,6 @@ def func(t):
                 return traced_fn(torch.mm(x, self.param))
 
         sm = ScriptMod()
-        # FIXME: at the time of writing we fail with the following:
-        # RuntimeError:
-        # undefined value traced_fn:
-        # @torch.jit.script_method
-        # def forward(self, x):
-        #     return traced_fn(torch.mm(x, self.param))
-        #            ~~~~~~~~~ <--- HERE
         self.assertExpected(str(sm.__getattr__('forward').graph))
 
     def test_call_tracing_mod_from_script_module(self):
@@ -4041,9 +4200,8 @@ def func(t):
         # Note: the parameters from both modules should appear in the flattened
         # input list to the graph. The mm op from TracedMod should be properly
         # inlined
-        self.assertExpected(str(sm.__getattr__('forward').graph))
+        self.assertExpected(str(sm.graph))
 
-    @unittest.skip('TODO: Python value resolution broken')
     def test_call_script_fn_from_script_module(self):
         @torch.jit.script
         def script_fn(x):
@@ -4059,13 +4217,6 @@ def func(t):
                 return script_fn(torch.mm(x, self.param))
 
         sm = ScriptMod()
-        # FIXME: at the time of writing, this failes with
-        # RuntimeError:
-        # undefined value traced_fn:
-        # @torch.jit.script_method
-        # def forward(self, x):
-        #     return traced_fn(torch.mm(x, self.param))
-        #            ~~~~~~~~~ <--- HERE
         self.assertExpected(str(sm.__getattr__('forward').graph))
 
     def test_call_script_mod_from_script_module(self):
@@ -4092,7 +4243,41 @@ def func(t):
         # Note: the parameters from both modules should appear in the flattened
         # input list to the graph. The mm op from ScriptMod1 should be properly
         # inlined
-        self.assertExpected(str(sm.__getattr__('forward').graph))
+        self.assertExpected(str(sm.graph))
+
+    def test_module_with_params_called_fails(self):
+        with self.assertRaisesRegex(RuntimeError, "Attempted to inline a Module with parameters. Stateful "
+                                                  "modules to be inlined must be submodules of the callee."):
+            class ScriptMod(torch.jit.ScriptModule):
+                def __init__(self):
+                    super(ScriptMod, self).__init__()
+                    self.param = torch.nn.Parameter(torch.rand(3, 3))
+
+                @torch.jit.script_method
+                def forward(self, x):
+                    return torch.mm(x, self.param)
+
+            sm = ScriptMod()
+
+            @torch.jit.script
+            def some_func(x):
+                return sm(x)
+
+    def test_index_put_trace_with_view(self):
+        @torch.jit.trace(torch.rand(100), torch.tensor([1, 2, 3, 4]), torch.rand(1, 1, 1, 4))
+        def test_index_put(target, indices, rhs):
+            target[indices] = rhs
+            return target
+
+        self.assertExpected(str(test_index_put.graph))
+
+    def test_index_put_trace_without_view(self):
+        @torch.jit.trace(torch.rand(100), torch.tensor([1, 2, 3, 4]), torch.rand(4))
+        def test_index_put(target, indices, rhs):
+            target[indices] = rhs
+            return target
+
+        self.assertExpected(str(test_index_put.graph))
 
 
 class TestEndToEndHybridFrontendModels(JitTestCase):
@@ -4413,36 +4598,59 @@ class TestEndToEndHybridFrontendModels(JitTestCase):
         net = Net(upscale_factor=4)
         self.checkTrace(net, (torch.rand(5, 1, 64, 64),))
 
-    @unittest.skip('This needs to be re-written into a script module')
     def test_time_sequence_prediction(self):
-        class Sequence(nn.Module):
+        class Sequence(torch.jit.ScriptModule):
             def __init__(self):
                 super(Sequence, self).__init__()
                 self.lstm1 = nn.LSTMCell(1, 51)
                 self.lstm2 = nn.LSTMCell(51, 51)
                 self.linear = nn.Linear(51, 1)
 
-            def forward(self, input, future=0):
-                outputs = []
-                h_t = torch.zeros(input.size(0), 51, dtype=torch.double)
-                c_t = torch.zeros(input.size(0), 51, dtype=torch.double)
-                h_t2 = torch.zeros(input.size(0), 51, dtype=torch.double)
-                c_t2 = torch.zeros(input.size(0), 51, dtype=torch.double)
+            # TODO: could not pass tuple to a python Op and type annotations
+            # is not descending to python signature, hence the wrapper
+            # see https://github.com/pytorch/pytorch/issues/8778
+            # and https://github.com/pytorch/pytorch/issues/8777
+            def test_lstm1(self, input, hx, cx):
+                # type: (Tensor, Tensor, Tensor) -> Tuple[Tensor, Tensor]
+                return self.lstm1(input, (hx, cx))
 
-                for _, input_t in enumerate(input.chunk(input.size(1), dim=1)):
-                    h_t, c_t = self.lstm1(input_t, (h_t, c_t))
-                    h_t2, c_t2 = self.lstm2(h_t, (h_t2, c_t2))
+            def test_lstm2(self, input, hx, cx):
+                # type: (Tensor, Tensor, Tensor) -> Tuple[Tensor, Tensor]
+                return self.lstm2(input, (hx, cx))
+
+            # TODO: could not support tensor constructors in script
+            # see https://github.com/pytorch/pytorch/issues/8814
+            def test_tensor(self):
+                return torch.tensor([], dtype=torch.double)
+
+            @torch.jit.script_method
+            def forward(self, input):
+                # TODO: add future as input with default val
+                # see https://github.com/pytorch/pytorch/issues/8724
+                outputs = self.test_tensor()
+                h_t = torch.zeros((3, 51), dtype=torch.double)
+                c_t = torch.zeros((3, 51), dtype=torch.double)
+                h_t2 = torch.zeros((3, 51), dtype=torch.double)
+                c_t2 = torch.zeros((3, 51), dtype=torch.double)
+
+                output = torch.zeros([3, 51])
+                future = 2
+
+                # TODO: chunk call should be input.chunk(input.size(1), dim=1)
+                # see https://github.com/pytorch/pytorch/issues/8775
+                for input_t in input.chunk(4, dim=1):
+                    h_t, c_t = self.test_lstm1(input_t, h_t, c_t)
+                    h_t2, c_t2 = self.test_lstm2(h_t, h_t2, c_t2)
                     output = self.linear(h_t2)
-                    outputs += [output]
+                    outputs = torch.cat((outputs, output), 1)
                 for _ in range(future):  # if we should predict the future
-                    h_t, c_t = self.lstm1(output, (h_t, c_t))
-                    h_t2, c_t2 = self.lstm2(h_t, (h_t2, c_t2))
+                    h_t, c_t = self.test_lstm1(output, h_t, c_t)
+                    h_t2, c_t2 = self.test_lstm2(h_t, h_t2, c_t2)
                     output = self.linear(h_t2)
-                    outputs += [output]
-                outputs = torch.stack(outputs, 1).squeeze(2)
+                    outputs = torch.cat((outputs, output), 1)
                 return outputs
 
-        self.checkTrace(Sequence(), (torch.rand(97, 999),), verbose=True)
+        self.checkTrace(Sequence(), (torch.rand(3, 4),))
 
     def test_vae(self):
         class VAE(nn.Module):
@@ -4469,7 +4677,7 @@ class TestEndToEndHybridFrontendModels(JitTestCase):
 
             def decode(self, z):
                 h3 = F.relu(self.fc3(z))
-                return F.sigmoid(self.fc4(h3))
+                return torch.sigmoid(self.fc4(h3))
 
             def forward(self, x):
                 mu, logvar = self.encode(x.view(-1, 784))
@@ -4537,18 +4745,6 @@ class TestPytorchExportModes(JitTestCase):
 
 # known to be failing in tracer
 EXCLUDE_TRACED = {
-    'test___getitem___adv_index',
-    'test___getitem___adv_index_beg',
-    'test___getitem___adv_index_comb',
-    'test___getitem___adv_index_dup',
-    'test___getitem___adv_index_end',
-    'test___getitem___adv_index_mid',
-    'test___getitem___adv_index_sub',
-    'test___getitem___adv_index_sub_2',
-    'test___getitem___adv_index_sub_3',
-    'test___getitem___adv_index_var',
-    'test_unsqueeze_last_neg0',
-    'test_unsqueeze_middle_neg0',
     'test_split_dim',
     'test_split_dim_neg0',
     'test_gesv',
@@ -4569,7 +4765,7 @@ EXCLUDE_SCRIPT = {
     # Right now, the following is happening:
     # - Shorter schemas come before longer schemas
     # - bool, int are treated as IntType rather than DynamicType like before
-    # So the schemas look like the following in aten_schema:
+    # So the schemas look like the following in operator:
     # (2) var(DynamicType, IntType)
     # (1) var(DynamicType, IntType, IntType, DynamicType)
     # Now, when one calls torch.var(tensor, dim=1), the compiler mistakingly
@@ -4588,8 +4784,6 @@ EXCLUDE_SCRIPT = {
     'test_split_size_list',
     'test_split_size_list_dim',
     'test_split_size_list_dim_neg0',
-    'test_unsqueeze_last_neg0',
-    'test_unsqueeze_middle_neg0',
     'test_expand',
     'test_expand_1_element',
     'test_expand_new_dim',
@@ -4739,6 +4933,45 @@ class TestJitGenerated(TestCase):
     pass
 
 
+# UBSAN per-function exclusions don't seem to work with OpenMP pragmas,
+# and we have to disable the failing tests here instead.
+UBSAN_BLACKLISTED_TESTS = [
+    "test___rdiv___constant",
+    "test___rdiv___scalar_constant",
+    "test_addcdiv",
+    "test_addcdiv_broadcast_all",
+    "test_addcdiv_broadcast_rhs",
+    "test_addcdiv_scalar",
+    "test_addcdiv_scalar_broadcast_lhs",
+    "test_addcdiv_scalar_broadcast_rhs",
+    "test_addcdiv_scalar_scale",
+    "test_addcdiv_scalar_scale_broadcast_lhs",
+    "test_addcdiv_scalar_scale_broadcast_rhs",
+    "test_addcdiv_scale",
+    "test_addcdiv_scale_broadcast_all",
+    "test_addcdiv_scale_broadcast_rhs",
+    "test_add_broadcast_all",
+    "test_add_broadcast_lhs",
+    "test_add_broadcast_rhs",
+    "test_add_constant",
+    "test_add_scalar",
+    "test_add_scalar_broadcast_lhs",
+    "test_add_scalar_broadcast_rhs",
+    "test_div",
+    "test_div_broadcast_all",
+    "test_div_broadcast_lhs",
+    "test_div_broadcast_rhs",
+    "test_div_scalar",
+    "test_div_scalar_broadcast_lhs",
+    "test_div_scalar_broadcast_rhs",
+    "test_rsqrt",
+    "test_rsqrt_scalar",
+    "test_add",
+    "test_reciprocal",
+    "test_reciprocal_scalar",
+]
+
+
 def add_test(
         name,
         self_size,
@@ -4818,7 +5051,8 @@ def add_test(
         for skip in skipTestIf:
             do_test = skip(do_test)
 
-        setattr(TestJitGenerated, test_name, do_test)
+        if not (TEST_WITH_UBSAN and test_name in UBSAN_BLACKLISTED_TESTS):
+            setattr(TestJitGenerated, test_name, do_test)
 
 for test in method_tests:
     add_test(*test)
