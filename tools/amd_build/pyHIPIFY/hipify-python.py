@@ -450,8 +450,9 @@ def disable_asserts(input_string):
         output_string = output_string.replace(input_string[start:p_end + 1], "")
     return output_string
 
+
 def replace_forceinline(input_string):
-    """__forceinline__'d methods can cause 'symbol multiply defined' errors in HIP. 
+    """__forceinline__'d methods can cause 'symbol multiply defined' errors in HIP.
     Adding 'static' to all such methods leads to compilation errors, so
     replacing '__forceinline__' with 'inline' as a workaround
     https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_faq.md#what-if-hip-generates-error-of-symbol-multiply-defined-only-on-amd-machine
@@ -459,6 +460,7 @@ def replace_forceinline(input_string):
     output_string = input_string
     output_string = re.sub("__forceinline__", "inline", output_string)
     return output_string
+
 
 def replace_math_functions(input_string):
     """ FIXME: Temporarily replace std:: invocations of math functions with non-std:: versions to prevent linker errors
@@ -470,6 +472,47 @@ def replace_math_functions(input_string):
     output_string = re.sub("std::log\(", "::log(", output_string)
     output_string = re.sub("std::pow\(", "::pow(", output_string)
     return output_string
+
+
+def replace_extern_shared(input_string):
+    """Match extern __shared__ type foo[]; syntax and use HIP_DYNAMIC_SHARED() MACRO instead.
+       https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_kernel_language.md#__shared__
+
+    Example:
+        "extern __shared__ char smemChar[];" => "HIP_DYNAMIC_SHARED( char, smemChar)"
+        "extern __shared__ unsigned char smem[];" => "HIP_DYNAMIC_SHARED( unsigned char, my_smem)"
+    """
+    output_string = input_string
+    output_string = re.sub(
+        r"extern\s+([\w\(\)]+)?\s*__shared__\s+([\w:<>\s]+)\s+(\w+)\s*\[\s*\]\s*;",
+        lambda inp: "HIP_DYNAMIC_SHARED({0} {1}, {2})".format(
+            inp.group(1) or "", inp.group(2), inp.group(3)), output_string)
+
+    return output_string
+
+
+def hip_header_magic(input_string):
+    """If this file makes kernel builtin calls, and does not include the cuda_runtime.h,
+        then add an #include to match "magic" includes provided by NVCC.
+        This logic can miss cases where cuda_runtime.h is included by another include file."""
+
+    # Copy the input.
+    output_string = input_string
+
+    # Check if include already exists.
+    if any(ext in output_string for ext in ["hip/hip_runtime.h", "hip/hip_runtime_api.h", "hip/hip_fp16.h"]):
+        return output_string
+
+    # Check if source contains device logic.
+    device_logic = False
+    if "hipLaunchKernelGGL" in output_string:
+        device_logic = True
+
+    if device_logic:
+        output_string = '#include "hip/hip_runtime.h"\n' + input_string
+
+    return output_string
+
 
 def disable_function(input_string, function, replace_style):
     """ Finds and disables a function in a particular file.
@@ -642,6 +685,12 @@ def preprocessor(filepath, stats):
 
         # Replace __forceinline__ with inline
         output_source = replace_forceinline(output_source)
+
+        # Replace the extern __shared__
+        output_source = replace_extern_shared(output_source)
+
+        # Include header if device code is contained.
+        output_source = hip_header_magic(output_source)
 
         # Overwrite file contents
         fileobj.seek(0)
@@ -905,12 +954,12 @@ def add_static_casts(directory, extensions, KernelTemplateParams):
                             # Add static_casts to relevant arguments
                             kernel_name_with_template = KernelTemplateParams[kernel_name]["kernel_with_template"]
                             argument_types = KernelTemplateParams[kernel_name]["arg_types"]
-                            
+
                             # The first 5 arguments are simply (function, number blocks, dimension blocks, shared memory, stream)
                             # old_kernel_launch_parameters - will contain the actual arguments to the function itself.
                             old_kernel_launch_parameters = input_source[arguments[5]["start"]:arguments[-1]["end"]]
                             new_kernel_launch_parameters = old_kernel_launch_parameters
-            
+
                             # full_old_kernel_launch - will contain the entire kernel launch closure.
                             full_old_kernel_launch = input_source[arguments[0]["start"]:arguments[-1]["end"]]
                             full_new_kernel_launch = full_old_kernel_launch
@@ -929,7 +978,7 @@ def add_static_casts(directory, extensions, KernelTemplateParams):
                                         # Update to static_cast, account for cases where argument is at start/end of string
                                         new_kernel_launch_parameters = re.sub(r'(^|\W)({0})(\W|$)'.format(
                                             re.escape(the_arg)), replace_arg, new_kernel_launch_parameters)
- 
+
                             # replace kernel arguments in full kernel launch arguments w/ static_cast ones
                             full_new_kernel_launch = full_new_kernel_launch.replace(old_kernel_launch_parameters, new_kernel_launch_parameters)
 
