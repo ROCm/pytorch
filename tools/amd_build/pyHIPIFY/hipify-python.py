@@ -492,23 +492,29 @@ def replace_extern_shared(input_string):
 
 
 def hip_header_magic(input_string):
-    """If this file makes kernel builtin calls, and does not include the cuda_runtime.h,
-        then add an #include to match "magic" includes provided by NVCC.
-        This logic can miss cases where cuda_runtime.h is included by another include file."""
+    """If the file makes kernel builtin calls and does not include the cuda_runtime.h header,
+    then automatically add an #include to match the "magic" includes provided by NVCC.
+
+    TODO:
+        Update logic to ignore cases where the cuda_runtime.h is included by another file.
+    """
 
     # Copy the input.
     output_string = input_string
 
-    # Check if include already exists.
-    if any(ext in output_string for ext in ["hip/hip_runtime.h", "hip/hip_runtime_api.h", "hip/hip_fp16.h"]):
+    # Check if one of the following headers is already included.
+    headers = ["hip/hip_runtime.h", "hip/hip_runtime_api.h"]
+    if any(re.search(r'#include ("{0}"|<{0}>)'.format(ext)) in output_string for ext in headers):
         return output_string
 
-    # Check if source contains device logic.
-    device_logic = False
-    if "hipLaunchKernelGGL" in output_string:
-        device_logic = True
+    # Rough logic to detect if we're inside device code
+    hasDeviceLogic += "hipLaunchKernelGGL" in output_string
+    hasDeviceLogic += "__global__" in output_string
+    hasDeviceLogic += "__shared__" in output_string
+    hasDeviceLogic += re.search(r"[:]?[:]?\b(__syncthreads)\b(\w*\()", output_string)
 
-    if device_logic:
+    # If device logic found, provide the necessary header.
+    if hasDeviceLogic:
         output_string = '#include "hip/hip_runtime.h"\n' + input_string
 
     return output_string
