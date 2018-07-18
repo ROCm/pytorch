@@ -504,14 +504,14 @@ def hip_header_magic(input_string):
 
     # Check if one of the following headers is already included.
     headers = ["hip/hip_runtime.h", "hip/hip_runtime_api.h"]
-    if any(re.search(r'#include ("{0}"|<{0}>)'.format(ext)) in output_string for ext in headers):
+    if any(re.search(r'#include ("{0}"|<{0}>)'.format(ext), output_string) in output_string for ext in headers):
         return output_string
 
     # Rough logic to detect if we're inside device code
     hasDeviceLogic += "hipLaunchKernelGGL" in output_string
     hasDeviceLogic += "__global__" in output_string
     hasDeviceLogic += "__shared__" in output_string
-    hasDeviceLogic += re.search(r"[:]?[:]?\b(__syncthreads)\b(\w*\()", output_string)
+    hasDeviceLogic += re.search(r"[:]?[:]?\b(__syncthreads)\b(\w*\()", output_string) is not None
 
     # If device logic found, provide the necessary header.
     if hasDeviceLogic:
