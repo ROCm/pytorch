@@ -262,7 +262,9 @@ if(USE_ROCM)
   IF(BUILD_CAFFE2)
      set_source_files_properties(${Caffe2_HIP_SRCS} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
   ENDIF()
-  hip_add_library(caffe2_hip ${Caffe2_HIP_SRCS})
+
+  # Make sure the SHARED flag is set or else -fPIC is dropped when linking with HIP.
+  hip_add_library(caffe2_hip ${Caffe2_HIP_SRCS} SHARED)
 
   # Since PyTorch files contain HIP headers, these flags are required for the necessary definitions to be added.
   set_target_properties(caffe2_hip PROPERTIES COMPILE_FLAGS ${HIP_HIPCC_FLAGS})
