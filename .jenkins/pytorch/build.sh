@@ -30,15 +30,6 @@ cmake --version
 pip install -r requirements.txt || true
 
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
-  # PyTorch ROCm is based off a Caffe2 dockerfile. In the Caffe2 Dockerfile, the symlinks,
-  # are not set for sccache (they're set in ./.jenkins/caffe2/build.sh)
-  # Set the symlinks here for ROCm builds.
-  for compiler in ("cc" "c++" "gcc" "g++" "clang" "clang++" "hcc")
-  do
-    printf "#!/bin/sh\nexec sccache $(which $compiler) \$*" > "/opt/cache/bin/$compiler"
-    chmod a+x "/opt/cache/bin/$compiler"
-  done
-
   # This is necessary in order to cross compile (or else we'll have missing GPU device).
   export HCC_AMDGPU_TARGET=gfx900
 
