@@ -1,5 +1,6 @@
 #include "torch/csrc/jit/tracer.h"
 
+#include "torch/csrc/jit/assertions.h"
 #include "torch/csrc/autograd/variable.h"
 #include "torch/csrc/autograd/function.h"
 #include "torch/csrc/autograd/engine.h"
@@ -44,15 +45,13 @@ PreTraceInfo preRecordTrace(Symbol op,
 
 void postRecordTrace(const PreTraceInfo& info,
                      at::ArrayRef<Variable> outputs) {
-  auto assignOutput = [&info](const Variable & output, Value * value) {
+  for (size_t i = 0; i < outputs.size(); i++) {
+    auto & output = outputs[i];
+    Value * value = info.n->addOutput();
     if (output.defined()) {
       value->inferTypeFrom(output.data());
       setValueTrace(output, value);
     }
-  };
-
-  for (size_t i = 0; i < outputs.size(); i++) {
-    assignOutput(outputs[i], info.n->addOutput());
   }
 }
 
@@ -62,12 +61,13 @@ autograd::Variable getSizeOf(const autograd::Variable& var, int64_t dim) {
 
   auto size_var = autograd::make_variable(at::Scalar(var.size(dim)).toTensor());
   auto* value = getValueTrace(var);
-  auto* node = graph->create(aten::size, {value})
-                    ->i_(attr::dim, dim);
-  node->output()->inferTypeFrom(size_var);
-  graph->appendNode(node);
-  setValueTrace(size_var, node->output());
+  WithInsertPoint ipoint { graph->block() };
+  auto* node = graph->insertNode(graph->create(aten::size, {value, insertConstant(*graph, dim)}));
+  node->output()->setType(jit::IntType::get());
 
+  auto ten =
+      graph->appendNode(graph->createNumToTensor(node->output()))->output();
+  setValueTrace(size_var, ten);
   return size_var;
 }
 
@@ -83,7 +83,13 @@ void ArgumentStash::stashIntListElem(const std::string& arg_name, size_t size, s
   JIT_ASSERT(size == list_trace.size());
   JIT_ASSERT(idx < list_trace.size());
   JIT_ASSERT(list_trace[idx] == nullptr);
-  list_trace[idx] = getValueTrace(var);
+
+  Value* ten = getValueTrace(var);
+  auto& g = *ten->owningGraph();
+  auto prim = g.createTensorToNum(jit::IntType::get(), ten)
+                   ->insertAfter(ten->node())
+                   ->output();
+  list_trace[idx] = prim;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
