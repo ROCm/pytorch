@@ -313,7 +313,8 @@ def add_dim3(kernel_string, cuda_kernel):
 def processKernelLaunches(string, stats):
     """ Replace the CUDA style Kernel launches with the HIP style kernel launches."""
     # Concat the namespace with the kernel names. (Find cleaner way of doing this later).
-    string = re.sub(r'([ ]+)(detail?)::[ ]+\\\n[ ]+', lambda inp: "{0}{1}::".format(inp.group(1), inp.group(2)), string)
+    string = re.sub(r'([ ]+)(detail?)::[ ]+\\\n[ ]+', lambda inp: "{0}{1}::".format(
+        re.escape(inp.group(1)), re.escape(inp.group(2))), string)
 
     def grab_method_and_template(in_kernel):
         # The positions for relevant kernel components.
@@ -679,11 +680,16 @@ def preprocessor(filepath, stats, hipify_caffe2):
                     if constants.HIP_UNSUPPORTED in meta_data:
                         stats["unsupported_calls"].append((cuda_type, filepath))
 
-                if cuda_type in output_source:
-                    if hipify_caffe2:
-                        pattern = r'({0})'.format(re.escape(cuda_type))
-                    else:
-                        pattern = r'(\b{0}\b)'.format(re.escape(cuda_type))
+                # Correctly include replacements in a special way.
+                if constants.CONV_INCLUDE in meta_data or constants.CONV_INCLUDE_CUDA_MAIN_H in meta_data:
+                    pattern1 = r'("{0}")'.format(re.escape(cuda_type))
+                    pattern2 = r'(<{0}>)'.format(re.escape(cuda_type))
+                    output_source = re.sub(pattern1, '"{0}"'.format(hip_type), output_source)
+                    output_source = re.sub(pattern2, '<{0}>'.format(hip_type), output_source)
+
+                # Handle all other replacements as regularly
+                elif cuda_type in output_source:
+                    pattern = r'({0})'.format(re.escape(cuda_type))
                     output_source = re.sub(pattern, hip_type, output_source)
 
         # Perform Kernel Launch Replacements
