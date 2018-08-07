@@ -28,7 +28,7 @@ for root, _, files in os.walk(os.path.join(proj_dir, "aten/src/ATen")):
             filepath = os.path.join(root, filename)
 
             # Add the include header!
-            with open(filepath, "r+") as f:
+            with open(filepath, "r+", encoding='utf-8') as f:
                 txt = f.read()
                 result = '#include "hip/hip_runtime.h"\n%s' % txt
                 f.seek(0)
@@ -50,7 +50,7 @@ for root, _directories, files in os.walk(os.path.join(proj_dir, "torch")):
             if reduce(lambda result, exclude: source.endswith(exclude) or result, ignore_files, False):
                 continue
             # Update contents.
-            with open(source, "r+") as f:
+            with open(source, "r+", encoding='utf-8') as f:
                 contents = f.read()
                 contents = contents.replace("USE_CUDA", "USE_ROCM")
                 contents = contents.replace("CUDA_VERSION", "0")

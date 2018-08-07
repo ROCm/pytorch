@@ -48,9 +48,9 @@ CAFFE2_TEMPLATE_MAP = {}
 
 def openf(filename, mode):
     if sys.version_info[0] == 3:
-        return open(filename, mode, errors='ignore')
+        return open(filename, mode, errors='ignore', encoding='utf-8')
     else:
-        return open(filename, mode)
+        return open(filename, mode, encoding='utf-8')
 
 
 # Color coding for printing
@@ -715,14 +715,14 @@ def is_caffe2_gpu_file(filepath):
 def preprocessor(filepath, stats, hipify_caffe2):
     """ Executes the CUDA -> HIP conversion on the specified file. """
     fin_path = filepath
-    with open(fin_path, 'r') as fin:
+    with open(fin_path, 'r', encoding='utf-8') as fin:
         output_source = fin.read()
 
     fout_path = get_hip_file_path(filepath, hipify_caffe2)
     if not os.path.exists(os.path.dirname(fout_path)):
         os.makedirs(os.path.dirname(fout_path))
 
-    with open(fout_path, 'w') as fout:
+    with open(fout_path, 'w', encoding='utf-8') as fout:
         # Perform type, method, constant replacements
         for mapping in CUDA_TO_HIP_MAPPINGS:
             for cuda_type, value in mapping.items():
