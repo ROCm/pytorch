@@ -1,11 +1,25 @@
 #include <ATen/TensorImpl.h>
 
+#include "ATen/Context.h"
 #include <ATen/Tensor.h>
-#include <ATen/optional.h>
+#include <ATen/core/optional.h>
+#include <ATen/Context.h>
+
+#include <ATen/detail/VariableHooksInterface.h>
 
 #include <TH/THTensor.hpp>
 
 namespace at {
+
+Type& TensorImpl::type() const {
+  Type* base_type = &globalContext().getType(backend_, scalar_type_);
+  if (is_variable_) {
+    return detail::getVariableHooks().getVariableType(*base_type);
+  } else {
+    return *base_type;
+  }
+}
+
 Tensor& TensorImpl::grad() {
   AT_ERROR("grad is not implemented for Tensor");
 }
@@ -39,6 +53,15 @@ void Tensor::backward(
     bool keep_graph,
     bool create_graph) {
   pImpl->backward(std::move(gradient), keep_graph, create_graph);
+}
+
+TensorImpl::TensorImpl(Backend backend, ScalarType scalar_type) {
+  backend_ = backend;
+  scalar_type_ = scalar_type;
+  auto type = &globalContext().getType(backend, scalar_type);
+  Storage* storage = type->storage(true).release();
+  StorageImpl* storage_impl = storage->pImpl();
+  tensor = new THTensor(storage_impl);
 }
 
 TensorImpl::~TensorImpl() {
@@ -83,6 +106,12 @@ void * TensorImpl::unsafeGetTH(bool retain) {
     tensor->retain();
   }
   return tensor;
+}
+
+std::unique_ptr<Storage> TensorImpl::storage() {
+  StorageImpl* storage = tensor->storage_;
+  storage->retain();
+  return std::unique_ptr<Storage>(new Storage(storage));
 }
 
 } // namespace at
