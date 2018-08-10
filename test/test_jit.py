@@ -9,7 +9,7 @@ from torch.autograd import Variable, Function
 from torch.autograd.function import traceable
 from torch.testing import assert_allclose
 from torch.onnx import OperatorExportTypes
-from common import TestCase, run_tests, IS_WINDOWS, TEST_WITH_UBSAN, TEST_WITH_ROCM
+from common import TestCase, run_tests, IS_WINDOWS, TEST_WITH_UBSAN, skipIfRocm
 from textwrap import dedent
 import os
 import io
@@ -123,6 +123,19 @@ def _construct_empty_tensor_list():
 
 class JitTestCase(TestCase):
     _do_cuda_memory_leak_check = True
+
+    def getExportImportCopy(self, m):
+        # Ideally we would like to not have to manually delete the file, but NamedTemporaryFile
+        # opens the file, and it cannot be opened multiple times in Windows. To support Windows,
+        # close the file after creation and try to remove it manually
+        f = tempfile.NamedTemporaryFile(delete=False)
+        try:
+            f.close()
+            m.save(f.name)
+            imported = torch.jit.load(f.name)
+        finally:
+            os.unlink(f.name)
+        return imported
 
     def assertExpectedONNXGraph(self, trace, *args, **kwargs):
         torch.onnx._optimize_trace(trace, operator_export_type=OperatorExportTypes.ONNX)
@@ -245,20 +258,11 @@ class JitTestCase(TestCase):
 
 class TestJit(JitTestCase):
     def assertExportImport(self, trace, inputs):
-        initializers = []
+        m = torch.jit.ScriptModule()
+        m._create_method_from_graph("forward", trace.graph())
+        m_import = self.getExportImportCopy(m)
 
-        def run(graph):
-            return torch._C.GraphExecutor(graph, False)(*inputs)
-
-        proto, _ = trace.graph().export(initializers, onnx_opset_version=0,
-                                        defer_weight_export=False,
-                                        operator_export_type=OperatorExportTypes.RAW)
-        self.assertFalse(initializers)
-
-        imported_graph, initializers = torch._C._jit_import_graph(proto)
-        self.assertFalse(initializers)
-
-        self.assertEqual(run(trace.graph()), run(imported_graph))
+        self.assertEqual(m.forward(*inputs), m_import.forward(*inputs))
 
     def test_simple(self):
         x = torch.tensor([0.4], requires_grad=True)
@@ -401,7 +405,7 @@ class TestJit(JitTestCase):
     # TODO: Fuser doesn't work at all when inputs require grad. Fix that
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_lstm_fusion_cuda(self):
         inputs = get_lstm_inputs('cuda')
         ge = self.checkTrace(LSTMCellF, inputs)
@@ -425,7 +429,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_lstm_fusion_concat(self):
         inputs = get_lstm_inputs('cuda')
         ge = self.checkTrace(LSTMCellC, inputs)
@@ -433,7 +437,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_concat_fusion(self):
         hx = torch.randn(3, 20, dtype=torch.float, device='cuda')
         cx = torch.randn(3, 20, dtype=torch.float, device='cuda')
@@ -446,7 +450,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_fusion_distribute(self):
         def f(x, y):
             z1, z2 = (x + y).chunk(2, dim=1)
@@ -491,7 +495,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_comparison_gt_lt(self):
         x = torch.randn(4, 4, dtype=torch.float, device='cuda')
         y = torch.randn(4, 4, dtype=torch.float, device='cuda')
@@ -500,7 +504,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_comparison_ge_le(self):
         def f(x, y):
             mask = (x >= 0).type_as(x)
@@ -520,7 +524,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_relu(self):
         x = torch.randn(4, 4, dtype=torch.float, device='cuda')
         y = torch.randn(4, 4, dtype=torch.float, device='cuda')
@@ -543,7 +547,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "fuser requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_exp(self):
         x = torch.randn(4, 4, dtype=torch.float, device='cuda')
         y = torch.randn(4, 4, dtype=torch.float, device='cuda')
@@ -888,7 +892,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "cpp tests require CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_cpp(self):
         # rather than rebuild assertExpected in cpp,
         # just glob all the cpp outputs into one file for now
@@ -1008,7 +1012,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "requires CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_ge_cuda(self):
         self.run_ge_tests(True, True)
 
@@ -1045,7 +1049,7 @@ class TestJit(JitTestCase):
 
     @unittest.skipIf(IS_WINDOWS, "NYI: fuser support for Windows")
     @unittest.skipIf(not RUN_CUDA, "calls .cuda()")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_traced_module(self):
         class Model(nn.Module):
             def __init__(self, num_features, num_layers):
@@ -2245,6 +2249,42 @@ a")
             RuntimeError,
             "bool value of Tensor")
 
+    def test_list_slice(self):
+        def test_regular_slice():
+            a = [0, 1, 2, 3, 4]
+            return a[2:3] == [2]
+        self.checkScript(test_regular_slice, ())
+
+        def test_open_ended_slice():
+            a = [0, 1, 2, 3, 4]
+            return a[2:] == [2, 3, 4]
+        self.checkScript(test_open_ended_slice, ())
+
+        def test_open_ended_slice2():
+            a = [0, 1, 2, 3, 4]
+            return a[:2] == [0, 1]
+        self.checkScript(test_open_ended_slice2, ())
+
+        def test_negative_slice():
+            a = [0, 1, 2, 3, 4]
+            return a[:-1] == [0, 1, 2, 3]
+        self.checkScript(test_negative_slice, ())
+
+        def test_negative_slice2():
+            a = [0, 1, 2, 3, 4]
+            return a[-3:-1] == [2, 3]
+        self.checkScript(test_negative_slice2, ())
+
+        def test_backward_slice():
+            a = [0, 1, 2, 3, 4]
+            return a[3:2] == _construct_empty_int_list()
+        self.checkScript(test_backward_slice, ())
+
+        def test_over_slice():
+            a = [0, 1, 2, 3, 4]
+            return a[3:10] == [3, 4]
+        self.checkScript(test_backward_slice, ())
+
     def test_func_call(self):
         script = '''
         def add(a, b):
@@ -2804,7 +2844,7 @@ def func(t):
         self._test_tensor_number_math()
 
     @unittest.skipIf(not RUN_CUDA, "No CUDA")
-    @unittest.skipIf(TEST_WITH_ROCM, "test doesn't currently work on the ROCm stack")
+    @skipIfRocm
     def test_tensor_number_math_cuda(self):
         self._test_tensor_number_math(device='cuda')
 
@@ -3844,9 +3884,7 @@ def func(t):
                 return a + b + self.bias + c
 
         m_orig = M2()
-        m_import = torch.jit.ScriptModule()
-        m_export, storage_map = m_orig.export()
-        torch._C._jit_import_module(m_import, m_export, storage_map)
+        m_import = self.getExportImportCopy(m_orig)
 
         input = torch.randn(3, 2)
         self.assertEqual(m_orig.doit(input), m_import.doit(input))
@@ -3858,9 +3896,7 @@ def func(t):
     def test_script_module_export_resnet18(self):
         x = torch.ones(1, 3, 224, 224)
         m_orig = torch.jit.trace(torch.ones(1, 3, 224, 224))(torchvision.models.resnet18())
-        m_import = torch.jit.ScriptModule()
-        m_export, storage_map = m_orig.export()
-        torch._C._jit_import_module(m_import, m_export, storage_map)
+        m_import = self.getExportImportCopy(m_orig)
 
         input = torch.randn(1, 3, 224, 224, requires_grad=True)
         output_orig = m_orig(input)
@@ -3888,9 +3924,7 @@ def func(t):
 
         for type in [torch.float, torch.double]:
             m_orig = M(type)
-            m_import = torch.jit.ScriptModule()
-            m_export, storage_map = m_orig.export()
-            torch._C._jit_import_module(m_import, m_export, storage_map)
+            m_import = self.getExportImportCopy(m_orig)
             self.assertEqual(m_orig.foo(), m_import.foo())
             self.assertTrue(m_orig.foo().dtype == m_import.foo().dtype)
 
@@ -3907,9 +3941,7 @@ def func(t):
                 return self.param
 
         m_orig = M()
-        m_import = torch.jit.ScriptModule()
-        m_export, storage_map = m_orig.export()
-        torch._C._jit_import_module(m_import, m_export, storage_map)
+        m_import = self.getExportImportCopy(m_orig)
         self.assertTrue(m_import.foo().device == torch.device('cpu'))
         self.assertEqual(m_orig.foo(), m_import.foo())
         self.assertTrue(m_orig.foo().dtype == m_import.foo().dtype)
@@ -3928,9 +3960,8 @@ def func(t):
                 return self.param1 + self.param2 + self.param3
 
         m_orig = M()
-        m_import = torch.jit.ScriptModule()
-        m_export, storage_map = m_orig.export()
-        torch._C._jit_import_module(m_import, m_export, storage_map)
+        m_import = self.getExportImportCopy(m_orig)
+
         self.assertEqual(m_orig.foo(), m_import.foo())
         self.assertTrue(m_import.param1.storage().data_ptr() == m_import.param2.storage().data_ptr())
         self.assertTrue(m_import.param1.storage().data_ptr() != m_import.param3.storage().data_ptr())
