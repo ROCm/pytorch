@@ -48,6 +48,10 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   sudo apt-get install libc++abi1
 
   python tools/amd_build/build_pytorch_amd.py
+  
+  # Enable LAPACK
+  pip install mkl mkl-devel
+
   USE_ROCM=1 python setup.py install --user
   exit 0
 fi
