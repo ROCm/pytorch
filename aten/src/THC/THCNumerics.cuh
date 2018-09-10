@@ -297,7 +297,7 @@ struct THCNumerics<half> {
   }
 
   static inline __host__ __device__ half abs(half a) {
-    return static_cast<at::Half>(::abs(static_cast<at::Half>(a)));
+    return static_cast<at::Half>(std::abs(static_cast<at::Half>(a)));
   }
 
   static inline __host__ __device__ half round(half a) {
