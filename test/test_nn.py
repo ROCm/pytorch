@@ -4987,6 +4987,7 @@ class TestNN(NNTestCase):
             inp = torch.randn(1, 3, dtype=torch.double, device=device, requires_grad=True)
             self.assertTrue(gradcheck(F.pdist, (inp,)))
 
+    @skipIfRocm
     def test_pdist_empty_col(self):
         for device in device_():
             inp = torch.randn(4, 0, dtype=torch.double, device=device, requires_grad=True)
@@ -6640,7 +6641,6 @@ def add_test(test, decorator=None):
         add(cuda_test_name + '_double', lambda self,
             test=test, kwargs=kwargs: test.test_cuda(self, dtype=torch.double, **kwargs))
 
-        @skipIfRocm
         def test_half(self, test=test, kwargs=kwargs):
             test.test_cuda(self, dtype=torch.half, **kwargs)
         if getattr(test, 'check_half', True):
