@@ -63,8 +63,7 @@ Tensor batch_norm(
   }
 
   bool use_miopen = (input.type().is_cuda()
-               && (input.type().scalarType() != at::kHalf
-                 || weight.type().scalarType() == at::kFloat)
+               && input.type().scalarType() != at::kDouble
                && weight.defined() && bias.defined()
                && ((running_mean.defined() && running_var.defined())
                  || (!running_mean.defined() && !running_var.defined() && training))
