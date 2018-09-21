@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#define MIOPEN_DIM_MAX 4
+
 namespace at { namespace native {
 
 namespace {
@@ -63,11 +65,13 @@ Tensor batch_norm(
   }
 
   bool use_miopen = (input.type().is_cuda()
+               && input.dim() < MIOPEN_DIM_MAX
                && input.type().scalarType() != at::kDouble
                && weight.defined() && bias.defined()
                && ((running_mean.defined() && running_var.defined())
                  || (!running_mean.defined() && !running_var.defined() && training))
                && detail::getCUDAHooks().compiledWithMIOpen()
+               && getenv("DISABLE_MIOPEN") == NULL
                );
 
   if (use_miopen) {

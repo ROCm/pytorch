@@ -3,6 +3,8 @@
 
 #include "ATen/Config.h"
 
+#define MIOPEN_DIM_MAX = 4
+
 namespace at { namespace native {
 
 struct ConvParams {
@@ -120,7 +122,7 @@ auto ConvParams::use_cudnn(const at::Tensor& input) const -> bool {
 }
 
 auto ConvParams::use_miopen(const at::Tensor& input) const -> bool {
-  if (!detail::getCUDAHooks().compiledWithMIOpen() || !input.type().is_cuda() || !cudnn_enabled)
+  if (!detail::getCUDAHooks().compiledWithMIOpen() || !input.type().is_cuda() || input.dim() > MIOPEN_DIM_MAX || getenv("DISABLE_MIOPEN") != NULL)
     return false;
   return true;
 }
