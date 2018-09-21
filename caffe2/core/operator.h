@@ -143,36 +143,26 @@ class CAFFE2_API OperatorBase : public Observable<OperatorBase> {
   inline bool InputIsType(int idx) {
     static_assert(
         !std::is_same<T, Tensor>::value,
-        "You should use InputIsType<Tensor>(int, DeviceType) for "
+        "You should use InputIsTensorType(int, DeviceType) for "
         "Tensor.");
     return inputs_.at(idx)->template IsType<T>();
   }
 
-  template <typename T>
-  inline bool InputIsType(int idx, DeviceType device_type) {
-    static_assert(
-        std::is_same<T, Tensor>::value,
-        "InputIsType(idx, DeviceType) only available on "
-        "Tensor types.");
-    return inputs_.at(idx)->template IsType<T>(device_type);
+  inline bool InputIsTensorType(int idx, DeviceType device_type) {
+    return inputs_.at(idx)->IsTensorType(device_type);
   }
 
   template <typename T>
   inline bool OutputIsType(int idx) {
     static_assert(
         !std::is_same<T, Tensor>::value,
-        "You should use OutputIsType<Tensor>(int, DeviceType) for "
+        "You should use OutputIsTensorType(int, DeviceType) for "
         "Tensor.");
     return outputs_.at(idx)->template IsType<T>();
   }
 
-  template <typename T>
-  inline bool OutputIsType(int idx, DeviceType type) {
-    static_assert(
-        std::is_same<T, Tensor>::value,
-        "OutputIsType(idx, DeviceType) only available on "
-        "Tensor types.");
-    return outputs_.at(idx)->template IsType<T>(type);
+  inline bool OutputIsTensorType(int idx, DeviceType type) {
+    return outputs_.at(idx)->IsTensorType(type);
   }
 
   inline int InputSize() const {
@@ -997,6 +987,10 @@ CAFFE2_API std::map<string, std::pair<DeviceOption, DeviceOption>> ValidateTenso
 
 // Get a set of registered operator names
 CAFFE2_API std::set<std::string> GetRegisteredOperators();
+
+// Operator logging capabilities
+CAFFE2_API void SetOperatorLogger(std::function<void(const OperatorDef&)> tracer);
+std::function<void(const OperatorDef&)> GetOperatorLogger();
 
 }  // namespace caffe2
 

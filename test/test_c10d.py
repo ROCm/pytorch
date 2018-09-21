@@ -1,6 +1,7 @@
 import copy
 import math
 import multiprocessing
+import os
 import sys
 import tempfile
 import time
@@ -14,8 +15,8 @@ import torch
 import common
 from torch import nn
 import torch.nn.functional as F
-from torch.distributed import c10d
-from torch.nn.parallel import distributed_c10d
+import torch.distributed as c10d
+from torch.nn.parallel import DistributedDataParallel
 
 from common import TestCase
 
@@ -144,6 +145,77 @@ class RendezvousTest(TestCase):
     def test_unknown_handler(self):
         with self.assertRaisesRegex(RuntimeError, "^No rendezvous handler"):
             c10d.rendezvous('invalid://')
+
+
+class RendezvousEnvTest(TestCase):
+    def test_common_errors(self):
+        vars = {
+            "WORLD_SIZE": "2",
+            "RANK": "0",
+            "MASTER_ADDR": "127.0.0.1",
+            "MASTER_PORT": common.find_free_port(),
+        }
+
+        class Env(object):
+            def __init__(self, vars):
+                self.vars = vars
+
+            def __enter__(self):
+                for key, value in self.vars.items():
+                    os.environ[key] = str(value)
+
+            def __exit__(self, type, value, traceback):
+                for key in self.vars.keys():
+                    del os.environ[key]
+
+        def without(d, key):
+            d = d.copy()
+            d.pop(key)
+            return d
+
+        with Env(without(vars, 'WORLD_SIZE')):
+            with self.assertRaisesRegex(ValueError, 'WORLD_SIZE expected'):
+                gen = c10d.rendezvous('env://')
+                next(gen)
+        with Env(without(vars, 'RANK')):
+            with self.assertRaisesRegex(ValueError, 'RANK expected'):
+                gen = c10d.rendezvous('env://')
+                next(gen)
+        with Env(without(vars, 'MASTER_ADDR')):
+            with self.assertRaisesRegex(ValueError, 'MASTER_ADDR expected'):
+                gen = c10d.rendezvous('env://')
+                next(gen)
+        with Env(without(vars, 'MASTER_PORT')):
+            with self.assertRaisesRegex(ValueError, 'MASTER_PORT expected'):
+                gen = c10d.rendezvous('env://')
+                next(gen)
+
+    def test_nominal(self):
+        os.environ['WORLD_SIZE'] = '2'
+        os.environ['MASTER_ADDR'] = '127.0.0.1'
+        os.environ['MASTER_PORT'] = str(common.find_free_port())
+
+        # First rank
+        os.environ['RANK'] = '0'
+        gen0 = c10d.rendezvous('env://')
+        store0, rank0, size0 = next(gen0)
+        self.assertEqual(0, rank0)
+        self.assertEqual(2, size0)
+
+        # Second rank
+        os.environ['RANK'] = '1'
+        gen1 = c10d.rendezvous('env://')
+        store1, rank1, size1 = next(gen1)
+        self.assertEqual(1, rank1)
+        self.assertEqual(2, size1)
+
+        # Set value on both stores
+        store0.set("key0", "value0")
+        store1.set("key1", "value1")
+
+        # Cross check with get
+        self.assertEqual(b"value0", store1.get("key0"))
+        self.assertEqual(b"value1", store0.get("key1"))
 
 
 class RendezvousFileTest(TestCase):
@@ -379,14 +451,14 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         for i in range(self.world_size):
             if i == self.rank:
                 continue
-            send_work.append(pg.send([inputs[i]], i))
+            send_work.append(pg.send([inputs[i]], i, 0))
 
         # Issue recvs
         recv_work = []
         for i in range(self.world_size):
             if i == self.rank:
                 continue
-            recv_work.append(pg.recv([outputs[i]], i))
+            recv_work.append(pg.recv([outputs[i]], i, 0))
 
         # Wait for sends to complete
         for work in send_work:
@@ -567,10 +639,9 @@ class DistributedDataParallelTest(MultiProcessTestCase):
     def world_size(self):
         return 2
 
-    def _test_ddp_with_process_group(self, process_group):
-        gpus = gpus_for_rank(self.world_size)[self.rank]
+    def _test_ddp_with_process_group(self, process_group, gpus):
         model = Net()
-        ddp_model = distributed_c10d._DistributedDataParallelC10d(
+        ddp_model = DistributedDataParallel(
             copy.deepcopy(model).cuda(gpus[0]),
             device_ids=gpus,
             process_group=process_group)
@@ -620,14 +691,18 @@ class DistributedDataParallelTest(MultiProcessTestCase):
         options = c10d.ProcessGroupGloo.Options()
         options.devices = [c10d.ProcessGroupGloo.create_tcp_device(interface="lo")]
         process_group = c10d.ProcessGroupGloo(store, self.rank, self.world_size, options)
-        self._test_ddp_with_process_group(process_group)
+        gpus = gpus_for_rank(self.world_size)[self.rank]
+        self._test_ddp_with_process_group(process_group, gpus)
+        self._test_ddp_with_process_group(process_group, list(map(lambda i: torch.device('cuda:' + str(i)), gpus)))
 
     @skip_if_not_multigpu
     @skip_if_not_nccl
     def test_nccl_backend(self):
         store = c10d.TCPStore('localhost', self.port, self.is_master)
         process_group = c10d.ProcessGroupNCCL(store, self.rank, self.world_size)
-        self._test_ddp_with_process_group(process_group)
+        gpus = gpus_for_rank(self.world_size)[self.rank]
+        self._test_ddp_with_process_group(process_group, gpus)
+        self._test_ddp_with_process_group(process_group, list(map(lambda i: torch.device('cuda:' + str(i)), gpus)))
 
     @skip_if_not_multigpu
     def test_dist_broadcast_coalesced(self):
@@ -721,6 +796,37 @@ class DistributedDataParallelTest(MultiProcessTestCase):
         for device_data in buffer_data:
             for i, buffer in enumerate(device_data):
                 self.assertEqual(buffer, target[i])
+
+    @skip_if_not_multigpu
+    @skip_if_not_nccl
+    def test_fp16(self):
+        store = c10d.TCPStore('localhost', self.port, self.rank == 0)
+        process_group = c10d.ProcessGroupNCCL(store, self.rank, self.world_size)
+
+        gpus = gpus_for_rank(self.world_size)[self.rank]
+        model = nn.Linear(1, 1, bias=False).cuda(gpus[0]).half()
+        nn.init.constant_(model.weight, 1)
+        ddp_model = DistributedDataParallel(
+            model,
+            device_ids=[gpus[0]],
+            process_group=process_group,
+            bucket_cap_mb=1,
+        )
+
+        # Input 2**15, so that the gradients will overflow with a
+        # world_size of 2, unless we normalize the gradient by the
+        # world_size before the reduction
+        input = torch.Tensor([[2**15]]).cuda(gpus[0]).half()
+
+        # Step model
+        ddp_model.train()
+        output = ddp_model(input)
+        loss = output.sum()
+        loss.backward()
+
+        self.assertFalse(
+            any(torch.isinf(p.grad).any() for p in ddp_model.parameters())
+        )
 
 if __name__ == '__main__':
     assert not torch.cuda._initialized, "test_distributed must not have initialized CUDA context on main process"
