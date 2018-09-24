@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#define MIOPEN_DIM_MAX 4
+static int MIOPEN_DIM_MAX = 4;
 
 namespace at { namespace native {
 
