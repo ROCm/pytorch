@@ -8,6 +8,7 @@
 #include <vector>
 
 static int MIOPEN_DIM_MAX = 4;
+static bool MIOPEN_ENABLED = getenv("DISABLE_MIOPEN") != NULL;
 
 namespace at { namespace native {
 
@@ -75,7 +76,7 @@ Tensor batch_norm(
                && ((running_mean.defined() && running_var.defined())
                  || (!running_mean.defined() && !running_var.defined() && training))
                && detail::getCUDAHooks().compiledWithMIOpen()
-               && getenv("DISABLE_MIOPEN") == NULL
+               && MIOPEN_ENABLED
                );
 
   if (use_miopen) {
