@@ -496,6 +496,7 @@ class TestSparse(TestCase):
         test_shape(3, 10, [100, 100, 100, 5, 5, 5, 0])
         test_shape(3, 0, [0, 0, 100, 5, 5, 5, 0])
 
+    @skipIfRocm
     def test_Sparse_to_Sparse_copy_(self):
         # This is for testing torch.copy_(SparseTensor, SparseTensor)
         sparse_dims = 3
