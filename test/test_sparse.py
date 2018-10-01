@@ -536,6 +536,7 @@ class TestSparse(TestCase):
         self.assertEqual(None, x1.grad)
 
     @unittest.skipIf(torch.cuda.device_count() < 2, "no multi-GPU")
+    @skipIfRocm
     def test_Sparse_to_Sparse_copy_multi_gpu(self):
         # This is for testing torch.copy_(SparseTensor, SparseTensor) across GPU devices
         sparse_dims = 3
