@@ -144,8 +144,6 @@
     {
       "path": "aten/src/ATen/native/cuda/Distributions.cu",
       "functions": [
-        "_s_poisson_cuda",
-        "poisson_cuda_kernel",
         "gamma_cuda_kernel",
         "gamma_grad_cuda_kernel",
       ]
