@@ -163,12 +163,6 @@
       ]
     },
     {
-      "path": "aten/src/THCUNN/LookupTable.cu",
-      "functions": [
-        "calculate_norms_and_renorm"
-      ]
-    },
-    {
       "path": "aten/src/THC/generic/THCTensor.cu",
       "functions": [
         "THCTensor_(getTextureObject)"
