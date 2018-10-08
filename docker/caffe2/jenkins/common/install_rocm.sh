@@ -56,4 +56,7 @@ else
   exit 1
 fi
 
+# Enable the usage of LD.Gold for linking.
+ln -s `which gold` /usr/bin/ld
+
 install_hip_thrust
