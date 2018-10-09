@@ -39,13 +39,6 @@
         }
       },
       {
-        "path": "aten/src/THC/THCNumerics.cuh",
-        "s_constants": {
-          "#ifdef __CUDA_ARCH__": "#if defined(__CUDA_ARCH__) || defined(__HIP_PLATFORM_HCC__)",
-          "#if CUDA_VERSION < 9000": "#if CUDA_VERSION < 9000 && !defined(__HIP_PLATFORM_HCC__)"
-        }
-      },
-      {
         "path": "aten/src/ATen/native/cuda/RoiPooling.cu",
         "s_constants": {
           "RoiPooling2d_forward_kernel<<<": "RoiPooling2d_forward_kernel<float><<<"
