@@ -33,12 +33,6 @@
         }
       },
       {
-        "path": "aten/src/ATen/native/Distributions.h",
-        "s_constants": {
-          "scalar_cast": "static_cast"
-        }
-      },
-      {
         "path": "aten/src/ATen/native/cuda/Distributions.cu",
         "s_constants": {
           "#include <nvfunctional>": ""
