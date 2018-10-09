@@ -33,12 +33,6 @@
         }
       },
       {
-        "path": "aten/src/ATen/Context.cpp",
-        "s_constants": {
-          "#ifdef USE_SSE3": "#if defined(USE_SSE3) && !defined(__HIP_DEVICE_COMPILE__)"
-        }
-      },
-      {
         "path": "aten/src/ATen/native/Distributions.h",
         "s_constants": {
           "scalar_cast": "static_cast"

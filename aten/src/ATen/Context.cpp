@@ -16,7 +16,7 @@
 
 #include "TH/TH.h"  // for USE_LAPACK
 
-#ifdef USE_SSE3
+#if defined(USE_SSE3) && !defined(__HIP_DEVICE_COMPILE__)
 #include <pmmintrin.h>
 #endif
 
@@ -94,7 +94,7 @@ bool Context::hasLAPACK() const {
 }
 
 bool Context::setFlushDenormal(bool on) {
-#ifdef USE_SSE3
+#if defined(USE_SSE3) && !defined(__HIP_DEVICE_COMPILE__)
   // Setting flush-to-zero (FTZ) flag
   _MM_SET_FLUSH_ZERO_MODE(on ? _MM_FLUSH_ZERO_ON
                              : _MM_FLUSH_ZERO_OFF);
