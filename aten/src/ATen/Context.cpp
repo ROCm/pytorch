@@ -13,12 +13,9 @@
 #include "ATen/CPUGenerator.h"
 #include "ATen/RegisterCPU.h"
 #include "ATen/Tensor.h"
+#include <ATen/cpu/FlushDenormal.h>
 
 #include "TH/TH.h"  // for USE_LAPACK
-
-#if defined(USE_SSE3) && !defined(__HIP_DEVICE_COMPILE__)
-#include <pmmintrin.h>
-#endif
 
 namespace at {
 
@@ -94,18 +91,7 @@ bool Context::hasLAPACK() const {
 }
 
 bool Context::setFlushDenormal(bool on) {
-#if defined(USE_SSE3) && !defined(__HIP_DEVICE_COMPILE__)
-  // Setting flush-to-zero (FTZ) flag
-  _MM_SET_FLUSH_ZERO_MODE(on ? _MM_FLUSH_ZERO_ON
-                             : _MM_FLUSH_ZERO_OFF);
-
-  // Setting denormals-are-zero (DAZ) flag
-  _MM_SET_DENORMALS_ZERO_MODE(on ? _MM_DENORMALS_ZERO_ON
-                                 : _MM_DENORMALS_ZERO_OFF);
-  return true;
-#else
-  return false;
-#endif
+  return at::cpu::set_flush_denormal(on);
 }
 
 TypeExtendedInterface& getType(TensorOptions options) {
