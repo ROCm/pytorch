@@ -58,6 +58,8 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   # Need the libc++1 and libc++abi1 libraries to allow torch._C to load at runtime
   sudo apt-get install libc++1
   sudo apt-get install libc++abi1
+  # Needed for proper LOCALE support
+  sudo apt-get install locales
 
   python tools/amd_build/build_pytorch_amd.py
   python tools/amd_build/build_caffe2_amd.py
