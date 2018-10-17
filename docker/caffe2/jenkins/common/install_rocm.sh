@@ -82,9 +82,6 @@ install_centos() {
   rm -rf /var/cache/yum
   rm -rf /var/lib/yum/yumdb
   rm -rf /var/lib/yum/history
-    
-echo "Not implemented yet"
-    exit 1
 }
  
 # Install Python packages depending on the base OS

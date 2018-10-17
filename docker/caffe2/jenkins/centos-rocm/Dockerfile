@@ -1,4 +1,5 @@
 ARG CENTOS_VERSION
+FROM centos:${CENTOS_VERSION}
 
 # Install required packages to build Caffe2
 ARG EC2
