@@ -43,6 +43,13 @@ cmake --version
 pip install -r requirements.txt || true
 
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
+
+  if [[ "$BUILD_ENVIRONMENT" == *centos* ]]; then
+    # we need to use devtoolset-7
+    # https://rocm.github.io/ROCmInstall.html#centosrhel-7-both-74-and-75-support
+    scl enable devtoolset-7 bash
+  fi
+  
   # This is necessary in order to cross compile (or else we'll have missing GPU device).
   export HCC_AMDGPU_TARGET=gfx900
 
@@ -54,10 +61,6 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   # This environment variable enabled HCC Optimizations that speed up the linking stage.
   # https://github.com/RadeonOpenCompute/hcc#hcc-with-thinlto-linking
   export KMTHINLTO=1
-
-  # Need the libc++1 and libc++abi1 libraries to allow torch._C to load at runtime
-  sudo apt-get install libc++1
-  sudo apt-get install libc++abi1
 
   python tools/amd_build/build_pytorch_amd.py
   python tools/amd_build/build_caffe2_amd.py
