@@ -18,6 +18,11 @@ ENV PATH /opt/rocm/opencl/bin:$PATH
 ENV MIOPEN_DISABLE_CACHE 1
 ENV HIP_PLATFORM hcc
 
+# Install non-default CMake version
+ARG CMAKE_VERSION
+ADD ./install_cmake.sh install_cmake.sh
+RUN if [ -n "${CMAKE_VERSION}" ]; then bash ./install_cmake.sh; fi
+
 # Compile/install ccache for faster builds
 ADD ./install_ccache.sh install_ccache.sh
 RUN bash ./install_ccache.sh && rm install_ccache.sh
