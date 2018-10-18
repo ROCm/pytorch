@@ -82,8 +82,10 @@ Tensor batch_norm(
 
   if (use_miopen) {
     return std::get<0>(at::miopen_batch_norm(
-                        input, weight, bias,
-                        running_mean, running_var,
+                        input.contiguous(), weight.contiguous(),
+                        bias.contiguous(),
+                        running_mean.defined() ? running_mean.contiguous() : running_mean,
+                        running_var.defined() ? running_var.contiguous() : running_var,
                         training, momentum, eps));
   }
 

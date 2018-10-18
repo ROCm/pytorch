@@ -127,6 +127,7 @@ auto ConvParams::use_miopen(const at::Tensor& input) const -> bool {
          && detail::getCUDAHooks().compiledWithMIOpen()
          && input.type().is_cuda()
          && input.dim() <= MIOPEN_DIM_MAX
+         && (is_dilated() && groups != 1) == false  // dilated group convolutions not supported
          && MIOPEN_ENABLED
          ;
 }
