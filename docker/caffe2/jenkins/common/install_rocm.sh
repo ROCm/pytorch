@@ -41,14 +41,12 @@ install_ubuntu() {
 
 install_centos() {
 
-  yum update
+  yum update -y
   yum install -y wget
   yum install -y openblas-devel
 
-  subscription-manager repos --enable rhel-server-rhscl-7-rpms
-  subscription-manager repos --enable rhel-7-server-optional-rpms
-  subscription-manager repos --enable rhel-7-server-extras-rpms
-  rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  yum install -y centos-release-scl
+  yum install -y devtoolset-7
 
   yum install -y epel-release
   yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
@@ -59,7 +57,7 @@ install_centos() {
   echo "enabled=1" >> /etc/yum.repos.d/rocm.repo
   echo "gpgcheck=0" >> /etc/yum.repos.d/rocm.repo
 
-  yum update
+  yum update -y
 
   yum install -y \
                    rocm-dev \
