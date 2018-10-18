@@ -47,15 +47,17 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   if [[ "$BUILD_ENVIRONMENT" == *centos* ]]; then
     # we need devtoolset-7 for ROCm
     source scl_source enable devtoolset-7
+    # These environment variables are not set on CI when we were running as the Jenkins user.
+    # The HIP Utility scripts require these environment variables to be set in order to run without error.
+    export LC_ALL=en_US.utf8
+    export LANG=en_US.utf8
+  else
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
   fi
 
   # This is necessary in order to cross compile (or else we'll have missing GPU device).
   export HCC_AMDGPU_TARGET=gfx900
-
-  # These environment variables are not set on CI when we were running as the Jenkins user.
-  # The HIP Utility scripts require these environment variables to be set in order to run without error.
-  export LANG=C.UTF-8
-  export LC_ALL=C.UTF-8
 
   # This environment variable enabled HCC Optimizations that speed up the linking stage.
   # https://github.com/RadeonOpenCompute/hcc#hcc-with-thinlto-linking
