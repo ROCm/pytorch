@@ -45,8 +45,6 @@ pip install -r requirements.txt || true
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
 
   if [[ "$BUILD_ENVIRONMENT" == *centos* ]]; then
-    # we need devtoolset-7 for ROCm
-    source scl_source enable devtoolset-7
     # These environment variables are not set on CI when we were running as the Jenkins user.
     # The HIP Utility scripts require these environment variables to be set in order to run without error.
     export LC_ALL=en_US.utf8
