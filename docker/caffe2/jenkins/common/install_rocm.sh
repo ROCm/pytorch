@@ -48,6 +48,8 @@ install_centos() {
   yum install -y centos-release-scl
   yum install -y devtoolset-7
 
+  echo "source scl_source enable devtoolset-7" >> /etc/profile
+
   yum install -y epel-release
   yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 
@@ -71,8 +73,7 @@ install_centos() {
                    cxlactivitylogger \
                    rocsparse \
                    hipsparse \
-                   rocrand \
-                   hip-thrust
+                   rocrand
 
 
   # Cleanup
@@ -80,6 +81,12 @@ install_centos() {
   rm -rf /var/cache/yum
   rm -rf /var/lib/yum/yumdb
   rm -rf /var/lib/yum/history
+
+  # Needed for now, will be replaced once hip-thrust is packaged for CentOS
+  git clone --recursive https://github.com/ROCmSoftwarePlatform/Thrust.git /data/Thrust
+  rm -rf /data/Thrust/thrust/system/cuda/detail/cub-hip
+  git clone --recursive https://github.com/ROCmSoftwarePlatform/cub-hip.git /data/Thrust/thrust/system/cuda/detail/cub-hip
+  ln -s /data/Thrust/thrust /opt/rocm/include/thrust
 }
  
 # Install Python packages depending on the base OS
