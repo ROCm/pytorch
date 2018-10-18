@@ -44,6 +44,11 @@ pip install -r requirements.txt || true
 
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
 
+  if [[ "$BUILD_ENVIRONMENT" == *centos* ]]; then
+    # we need devtoolset-7 for ROCm
+    source scl_source enable devtoolset-7
+  fi
+
   # This is necessary in order to cross compile (or else we'll have missing GPU device).
   export HCC_AMDGPU_TARGET=gfx900
 
