@@ -38,7 +38,7 @@ ARG JENKINS
 ARG JENKINS_UID
 ARG JENKINS_GID
 ADD ./add_jenkins_user.sh add_jenkins_user.sh
-RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh; fi
+RUN if [ -n "${JENKINS}" ]; then bash ./add_jenkins_user.sh; echo "source scl_source enable devtoolset-7" >> /var/lib/jenkins/.bashrc; fi
 RUN rm add_jenkins_user.sh
 
 # Include BUILD_ENVIRONMENT environment variable in image
