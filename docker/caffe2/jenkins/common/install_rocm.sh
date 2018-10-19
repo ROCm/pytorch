@@ -48,7 +48,7 @@ install_centos() {
   yum install -y centos-release-scl
   yum install -y devtoolset-7
 
-  echo "source scl_source enable devtoolset-7" >> /etc/profile
+  echo "source scl_source enable devtoolset-7" >> /root/.bashrc
 
   yum install -y epel-release
   yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
