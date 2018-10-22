@@ -100,7 +100,12 @@ auto ConvParams::view1d_as_2d() -> void {
   if (stride.size() == 1) {
     stride.insert(stride.begin(), 1);
     padding.insert(padding.begin(), 0);
-    dilation.insert(dilation.begin(), 1);
+    if (!MIOPEN_ENABLED) {
+        dilation.insert(dilation.begin(), 1);
+    } else {
+        //Currently MIOpen doesn't support assymetric dilation values.
+        dilation.insert(dilation.begin(), dilation.front());
+    }
     output_padding.insert(output_padding.begin(), 0);
   }
 }
