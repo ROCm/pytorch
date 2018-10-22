@@ -344,8 +344,8 @@ tests = [
     ('max', small_3d_unique, lambda t: [-1], 'neg_dim'),
     ('max', medium_2d, lambda t: [medium_2d(t)], 'elementwise'),
     ('min', small_3d_unique, lambda t: []),
-    ('min', small_3d_unique, lambda t: [1], 'dim', types, False, skipIfRocm),
-    ('min', small_3d_unique, lambda t: [-1], 'neg_dim', types, False, skipIfRocm),
+    ('min', small_3d_unique, lambda t: [1], 'dim'),
+    ('min', small_3d_unique, lambda t: [-1], 'neg_dim'),
     ('min', medium_2d, lambda t: [medium_2d(t)], 'elementwise'),
     ('mean', small_3d, lambda t: []),
     ('mean', small_3d, lambda t: [-1], 'neg_dim'),
@@ -393,11 +393,11 @@ tests = [
     ('size', new_t(1, 2, 3, 4), lambda t: [],),
     ('size', new_t(1, 2, 3, 4), lambda t: [1], 'dim'),
     ('size', new_t(1, 2, 3, 4), lambda t: [-2], 'neg_dim'),
-    ('sort', small_3d_unique, lambda t: [], '', types, False, skipIfRocm),
-    ('sort', small_3d_unique, lambda t: [1], 'dim', types, False, skipIfRocm),
-    ('sort', small_3d_unique, lambda t: [-1], 'neg_dim', types, False, skipIfRocm),
-    ('sort', small_3d_unique, lambda t: [1, True], 'dim_descending', types, False, skipIfRocm),
-    ('sort', small_3d_unique, lambda t: [-1, True], 'neg_dim_descending', types, False, skipIfRocm),
+    ('sort', small_3d_unique, lambda t: [], ''),
+    ('sort', small_3d_unique, lambda t: [1], 'dim'),
+    ('sort', small_3d_unique, lambda t: [-1], 'neg_dim'),
+    ('sort', small_3d_unique, lambda t: [1, True], 'dim_descending'),
+    ('sort', small_3d_unique, lambda t: [-1, True], 'neg_dim_descending'),
     ('split', small_3d, lambda t: [2],),
     ('split', small_3d, lambda t: [2, 1], 'dim'),
     ('split', small_3d, lambda t: [2, -3], 'neg_dim'),
@@ -409,9 +409,9 @@ tests = [
     ('transpose', new_t(1, 2, 3, 4), lambda t: [1, 2],),
     ('transpose', new_t(1, 2, 3, 4), lambda t: [-1, -2], 'neg_dim'),
     ('to_list', small_3d, lambda t: [],),
-    ('topk', small_3d_unique, lambda t: [2, 1, False, True], 'dim_sort', types, False, skipIfRocm),
-    ('topk', small_3d_unique, lambda t: [2, -1, False, True], 'neg_dim_sort', types, False, skipIfRocm),
-    ('topk', small_3d_unique, lambda t: [2, 1, True, True], 'dim_desc_sort', types, False, skipIfRocm),
+    ('topk', small_3d_unique, lambda t: [2, 1, False, True], 'dim_sort', types, False, "skipIfRocm:HalfTensor"),
+    ('topk', small_3d_unique, lambda t: [2, -1, False, True], 'neg_dim_sort', types, False, "skipIfRocm:HalfTensor"),
+    ('topk', small_3d_unique, lambda t: [2, 1, True, True], 'dim_desc_sort', types, False, "skipIfRocm:HalfTensor"),
     ('trace', medium_2d, lambda t: []),
     ('tril', medium_2d, lambda t: [],),
     ('tril', medium_2d_expanded, lambda t: [], 'zero_stride', types, True),
@@ -770,7 +770,6 @@ class TestCuda(TestCase):
             pass
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_memory_stats_multigpu(self):
         # advance a generator with a end flag
         def advance(gen, end):
@@ -808,7 +807,6 @@ class TestCuda(TestCase):
                 t += 1
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_autogpu(self):
         x = torch.randn(5, 5).cuda()
         y = torch.randn(5, 5).cuda()
@@ -826,7 +824,6 @@ class TestCuda(TestCase):
         self.assertEqual(z.get_device(), 0)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_new(self):
         x = torch.randn(3, 3).cuda()
         self.assertEqual(x.new([0, 1, 2]).get_device(), 0)
@@ -837,7 +834,6 @@ class TestCuda(TestCase):
             self.assertEqual(x.new([0, 1, 2], device=1).get_device(), 1)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_copy_device(self):
         x = torch.randn(5, 5).cuda()
         with torch.cuda.device(1):
@@ -907,7 +903,6 @@ class TestCuda(TestCase):
         test_mul(torch.float64)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_type_conversions_same_gpu(self):
         x = torch.randn(5, 5).cuda(1)
         self.assertEqual(x.int().get_device(), 1)
@@ -1008,7 +1003,6 @@ class TestCuda(TestCase):
         self._test_broadcast_coalesced(self, tensors, num_bytes * 5 // 2)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_broadcast_coalesced_dense_only(self):
         numel = 5
         num_bytes = numel * 8
@@ -1023,7 +1017,6 @@ class TestCuda(TestCase):
         self._test_broadcast_coalesced(self, tensors, num_bytes * 5 // 2)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_reduce_add(self):
         x = torch.randn(5, 5)
         y = torch.randn(5, 5)
@@ -1071,7 +1064,6 @@ class TestCuda(TestCase):
         self._test_reduce_add_coalesced(self, tensors, num_bytes * 5 // 2)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_reduce_add_coalesced_dense_only(self):
         numel = 5
         num_bytes = numel * 8
@@ -1176,13 +1168,15 @@ class TestCuda(TestCase):
             torch.cuda.manual_seed(2)
             self.assertEqual(torch.cuda.initial_seed(), 2)
             x.uniform_()
+            a = torch.bernoulli(torch.full_like(x, 0.5))
             torch.cuda.manual_seed(2)
             y = x.clone().uniform_()
+            b = torch.bernoulli(torch.full_like(x, 0.5))
             self.assertEqual(x, y)
+            self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_cat_autogpu(self):
         x = torch.randn(4, 4).cuda(1)
         y = torch.randn(4, 4).cuda(1)
@@ -1210,11 +1204,9 @@ class TestCuda(TestCase):
         z = torch.cat([x, y])
         self.assertEqual(z.size(), (21, SIZE, SIZE))
 
-    @skipIfRocm
     def test_cat_empty_legacy(self):
         TestTorch._test_cat_empty_legacy(self, use_cuda=True)
 
-    @skipIfRocm
     def test_cat_empty(self):
         TestTorch._test_cat_empty(self, use_cuda=True)
 
@@ -1269,7 +1261,6 @@ class TestCuda(TestCase):
             self.assertEqual(copy.get_device(), original.get_device())
 
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
-    @skipIfRocm
     def test_multigpu_serialization(self):
         x = [torch.randn(4, 4).cuda(0), torch.randn(4, 4).cuda(1)]
         with tempfile.NamedTemporaryFile() as f:
@@ -1282,7 +1273,6 @@ class TestCuda(TestCase):
             self.assertEqual(copy.get_device(), original.get_device())
 
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
-    @skipIfRocm
     def test_multigpu_serialization_remap(self):
         x = [torch.randn(4, 4).cuda(0), torch.randn(4, 4).cuda(1)]
 
@@ -1301,7 +1291,6 @@ class TestCuda(TestCase):
             self.assertEqual(copy.get_device(), 0)
 
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
-    @skipIfRocm
     def test_multigpu_serialization_remap_dict(self):
         x = [torch.randn(4, 4).cuda(0), torch.randn(4, 4).cuda(1)]
         with tempfile.NamedTemporaryFile() as f:
@@ -1314,7 +1303,6 @@ class TestCuda(TestCase):
             self.assertEqual(copy.get_device(), 0)
 
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
-    @skipIfRocm
     def test_cuda_set_device(self):
         x = torch.randn(5, 5)
         with torch.cuda.device(1):
@@ -1355,7 +1343,6 @@ class TestCuda(TestCase):
         self.assertTrue(default_stream.query())
 
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
-    @skipIfRocm
     def test_streams_multi_gpu(self):
         default_stream = torch.cuda.current_stream()
         self.assertEqual(default_stream.device, 0)
@@ -1366,7 +1353,6 @@ class TestCuda(TestCase):
             self.assertNotEqual(torch.cuda.current_stream(), default_stream)
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
-    @skipIfRocm
     def test_tensor_device(self):
         self.assertEqual(torch.cuda.FloatTensor(1).get_device(), 0)
         self.assertEqual(torch.cuda.FloatTensor(1, device=1).get_device(), 1)
@@ -1489,6 +1475,9 @@ class TestCuda(TestCase):
     def test_matrix_power(self):
         TestTorch._test_matrix_power(self, conv_fn=lambda t: t.cuda())
 
+    def test_chain_matmul(self):
+        TestTorch._test_chain_matmul(self, cast=lambda t: t.cuda())
+
     @unittest.skipIf(not TEST_MAGMA, "no MAGMA library detected")
     def test_det_logdet_slogdet(self):
         TestTorch._test_det_logdet_slogdet(self, lambda t: t.cuda())
@@ -1576,17 +1565,6 @@ class TestCuda(TestCase):
         r = torch.multinomial(p, 1)
         self.assertNotEqual(r.min().item(), 0)
 
-        # multinomial without repeat but with less nonzero
-        # elements than draws
-        # the intention currently is to return 0 for those
-        # and match CPU behaviour, see issue #9062
-        p = torch.zeros(1, 5, device="cuda")
-        p[:, 1] = 1
-        r = torch.multinomial(p, 2, replacement=False)
-        expected = torch.zeros(1, 2, device="cuda", dtype=torch.long)
-        expected[:, 0] = 1
-        self.assertEqual(r, expected)
-
     @staticmethod
     def mute():
         os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stderr.fileno())
@@ -1603,7 +1581,7 @@ class TestCuda(TestCase):
     def _test_multinomial_invalid_probs_cuda(probs):
         try:
             with torch.random.fork_rng(devices=[0]):
-                torch.multinomial(probs.to('cuda'), 1)
+                torch.multinomial(probs.to('cuda'), 2)
                 torch.cuda.synchronize()
             return False  # Should not be reached
         except RuntimeError as e:
@@ -1617,10 +1595,11 @@ class TestCuda(TestCase):
                      but we need it for creating another process with CUDA")
     def test_multinomial_invalid_probs_cuda(self):
         test_method = TestCuda._test_multinomial_invalid_probs_cuda
-        self._spawn_method(test_method, torch.Tensor([0, -1]))
-        self._spawn_method(test_method, torch.Tensor([0, inf]))
-        self._spawn_method(test_method, torch.Tensor([0, -inf]))
-        self._spawn_method(test_method, torch.Tensor([0, nan]))
+        self._spawn_method(test_method, torch.Tensor([1, -1, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, inf, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, -inf, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, 1, nan]))
+        self._spawn_method(test_method, torch.Tensor([0, 1, 0]))
 
     @skipIfRocm
     def test_broadcast(self):
@@ -1708,7 +1687,6 @@ class TestCuda(TestCase):
     def test_dim_reduction(self):
         TestTorch._test_dim_reduction(self, lambda t: t.cuda())
 
-    @skipIfRocm
     def test_tensor_gather(self):
         TestTorch._test_gather(self, lambda t: t.cuda(), False)
 
@@ -1848,6 +1826,10 @@ class TestCuda(TestCase):
     def test_symeig(self):
         TestTorch._test_symeig(self, lambda t: t.cuda())
 
+    @unittest.skipIf(not TEST_MAGMA, "no MAGMA library detected")
+    def test_svd_no_singularvectors(self):
+        TestTorch._test_svd_no_singularvectors(self, lambda t: t.cuda())
+
     def test_arange(self):
         for t in ['IntTensor', 'LongTensor', 'FloatTensor', 'DoubleTensor']:
             a = torch.cuda.__dict__[t]()
@@ -1877,7 +1859,6 @@ class TestCuda(TestCase):
         TestTorch._test_trtrs(self, lambda t: t.cuda())
 
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
-    @skipIfRocm
     def test_get_set_rng_state_all(self):
         states = torch.cuda.get_rng_state_all()
         before0 = torch.cuda.FloatTensor(100, device=0).normal_()

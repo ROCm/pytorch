@@ -1005,7 +1005,6 @@ class TestTorch(TestCase):
             expected = fn(y, 1, keepdim=False)
             self.assertEqual(x[:, 1], expected, '{} with out= kwarg'.format(fn_name))
 
-    @skipIfRocm
     def test_dim_reduction(self):
         self._test_dim_reduction(self, lambda t: t)
 
@@ -1598,6 +1597,10 @@ class TestTorch(TestCase):
         for i in range(num_batches):
             r = torch.mm(b1[i], b2[i])
             self.assertEqual(r, res[i])
+        if torch.cuda.is_available():
+            # check that mixed arguments are rejected
+            self.assertRaises(RuntimeError, lambda: torch.bmm(b1, b2.cuda()))
+            self.assertRaises(RuntimeError, lambda: torch.bmm(b1.cuda(), b2))
 
     def test_addbmm(self):
         # num_batches = 10
@@ -2207,6 +2210,10 @@ class TestTorch(TestCase):
         self.assertIs(torch.float32, a.to('cpu', dtype=torch.float32).dtype)
         self.assertEqual(a.device, a.to(torch.float32).device)
         self.assertIs(torch.float32, a.to(dtype=torch.float32).dtype)
+        self.assertEqual(a.data_ptr(), a.to('cpu').data_ptr())
+        self.assertEqual(a.data_ptr(), a.to(dtype=a.dtype, device=a.device, copy=False).data_ptr())
+        self.assertEqual(a.data_ptr(), a.to('cpu', copy=False).data_ptr())
+        self.assertNotEqual(a.data_ptr(), a.to('cpu', copy=True).data_ptr())
 
         if torch.cuda.is_available():
             for non_blocking in [True, False]:
@@ -2844,7 +2851,8 @@ class TestTorch(TestCase):
     @staticmethod
     def _test_multinomial_invalid_probs(probs):
         try:
-            torch.multinomial(probs.to('cpu'), 1)
+            # n_sample = 1 is a special case, test n_sample=2 which is more general
+            torch.multinomial(probs.to('cpu'), 2)
             return False  # Should not be reached
         except RuntimeError as e:
             return 'invalid multinomial distribution' in str(e)
@@ -2857,10 +2865,11 @@ class TestTorch(TestCase):
                      but we need it for for testing failure case for CPU RNG on Windows")
     def test_multinomial_invalid_probs(self):
         test_method = TestTorch._test_multinomial_invalid_probs
-        self._spawn_method(test_method, torch.Tensor([0, -1]))
-        self._spawn_method(test_method, torch.Tensor([0, inf]))
-        self._spawn_method(test_method, torch.Tensor([0, -inf]))
-        self._spawn_method(test_method, torch.Tensor([0, nan]))
+        self._spawn_method(test_method, torch.Tensor([1, -1, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, inf, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, -inf, 1]))
+        self._spawn_method(test_method, torch.Tensor([1, 1, nan]))
+        self._spawn_method(test_method, torch.Tensor([0, 1, 0]))
 
     @suppress_warnings
     def test_range(self):
@@ -3451,7 +3460,6 @@ class TestTorch(TestCase):
                 seen.add(ixx[k][j])
             self.assertEqual(len(seen), size)
 
-    @skipIfRocm
     def test_sort(self):
         SIZE = 4
         x = torch.rand(SIZE, SIZE)
@@ -3577,7 +3585,6 @@ class TestTorch(TestCase):
         self.assertRaises(TypeError, lambda: q.topk(4, True))
 
     @unittest.skipIf(not torch.cuda.is_available(), 'no CUDA')
-    @skipIfRocm
     def test_topk_noncontiguous_gpu(self):
         t = torch.randn(20, device="cuda")[::2]
         top1, idx1 = t.topk(5)
@@ -3585,7 +3592,6 @@ class TestTorch(TestCase):
         self.assertEqual(top1, top2)
         self.assertEqual(idx1, idx2)
 
-    @skipIfRocm
     def test_kthvalue(self):
         SIZE = 50
         x = torch.rand(SIZE, SIZE, SIZE)
@@ -3630,7 +3636,6 @@ class TestTorch(TestCase):
         self.assertEqual(torch.kthvalue(y, 3)[0], 3, 0)
         self.assertEqual(torch.kthvalue(y, 2)[0], 1, 0)
 
-    @skipIfRocm
     def test_median(self):
         for size in (155, 156):
             x = torch.rand(size, size)
@@ -3666,7 +3671,6 @@ class TestTorch(TestCase):
             # input unchanged
             self.assertEqual(x, x0, 0)
 
-    @skipIfRocm
     def test_mode(self):
         x = torch.arange(1., SIZE * SIZE + 1).clone().resize_(SIZE, SIZE)
         x[:2] = 1
@@ -3995,7 +3999,6 @@ class TestTorch(TestCase):
         self.assertEqual(torch.cuda.HalfTensor(10).is_signed(), True)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_gesv(self):
         a = torch.Tensor(((6.80, -2.11, 5.66, 5.97, 8.23),
                           (-6.05, -3.30, 5.36, -4.44, 1.08),
@@ -4126,7 +4129,6 @@ class TestTorch(TestCase):
         self._test_gesv_batched_dims(self, lambda t: t)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_qr(self):
 
         # Since the QR decomposition is unique only up to the signs of the rows of
@@ -4309,12 +4311,10 @@ class TestTorch(TestCase):
         self.assertEqual(res1, tb, 0)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_trtrs(self):
         self._test_trtrs(self, lambda t: t)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_gels(self):
         def _test_underdetermined(a, b, expectedNorm):
             m = a.size()[0]
@@ -4430,7 +4430,6 @@ class TestTorch(TestCase):
         self.assertEqual((torch.mm(a, tb) - b).norm(), expectedNorm, 1e-8)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_eig(self):
         a = torch.Tensor(((1.96, 0.00, 0.00, 0.00, 0.00),
                           (-6.49, 3.80, 0.00, 0.00, 0.00),
@@ -4512,7 +4511,6 @@ class TestTorch(TestCase):
         self.assertEqual(X, Xhat, 1e-8, 'VeV\' wrong')
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_symeig(self):
         self._test_symeig(self, lambda x: x)
 
@@ -4558,6 +4556,17 @@ class TestTorch(TestCase):
         torch.svd(X, out=(U, S, V))
         Xhat = torch.mm(U, torch.mm(S.diag(), V.t()))
         self.assertEqual(X, Xhat, 1e-8, 'USV\' wrong')
+
+    @staticmethod
+    def _test_svd_no_singularvectors(self, cast):
+        for size in [(5, 5), (5, 20), (20, 5)]:
+            a = cast(torch.randn(*size))
+            u, s_expect, v = torch.svd(a)
+            u, s_actual, v = torch.svd(a, compute_uv=False)
+            self.assertEqual(s_expect, s_actual, "Singular values don't match")
+
+    def test_svd_no_singularvectors(self):
+        self._test_svd_no_singularvectors(self, lambda t: t)
 
     @staticmethod
     def _test_matrix_rank(self, conv_fn):
@@ -4707,6 +4716,26 @@ class TestTorch(TestCase):
     @skipIfNoLapack
     def test_matrix_power(self):
         self._test_matrix_power(self, conv_fn=lambda x: x)
+
+    @staticmethod
+    def _test_chain_matmul(self, cast):
+        def product(matrices):
+            for mat in matrices[1:]:
+                matrices[0] = matrices[0].mm(mat)
+            return matrices[0]
+
+        def run_test(p, cast):
+            matrices = []
+            for (pi, pi_1) in zip(p[:-1], p[1:]):
+                matrices.append(cast(torch.randn(pi, pi_1)))
+            self.assertEqual(torch.chain_matmul(*matrices), product(matrices))
+
+        run_test([10, 20, 30, 5], cast)
+        run_test([15, 5, 10, 20, 25], cast)
+
+    @skipIfRocm
+    def test_chain_matmul(self):
+        self._test_chain_matmul(self, cast=lambda x: x)
 
     @staticmethod
     def _test_det_logdet_slogdet(self, conv_fn):
@@ -5297,7 +5326,6 @@ class TestTorch(TestCase):
         self.assertLessEqual(inv0.dist(inv1), 1e-12)
 
     @skipIfNoLapack
-    @skipIfRocm
     def test_pstrf(self):
         def checkPsdCholesky(a, uplo, inplace):
             if inplace:
@@ -6329,6 +6357,13 @@ class TestTorch(TestCase):
         for i in range(num_dest):
             if mask[i]:
                 dst2[i] = val
+        self.assertEqual(dst, dst2, 0)
+
+        # test non-contiguous case
+        dst = torch.randn(num_dest, num_dest, num_dest).permute((2, 0, 1))
+        dst2 = dst.clone()
+        dst.masked_fill_(dst > 0, val)
+        dst2.masked_fill_(dst2 > 0, val)
         self.assertEqual(dst, dst2, 0)
 
     def test_abs(self):
@@ -8020,7 +8055,6 @@ class TestTorch(TestCase):
             t2.fill_(rnum)
             self.assertEqual(t1, t2, 0)
 
-    @skipIfRocm
     def test_print(self):
         default_type = torch.Tensor().type()
         for t in torch._tensor_classes:
@@ -8192,6 +8226,7 @@ class TestTorch(TestCase):
             self.assertEqual(torch.empty_like(a).type(), a.type())
 
     @unittest.skipIf(not torch.cuda.is_available(), 'no CUDA')
+    @skipIfRocm
     def test_pin_memory(self):
         x = torch.randn(3, 5)
         self.assertFalse(x.is_pinned())

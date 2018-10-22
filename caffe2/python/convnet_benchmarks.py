@@ -569,7 +569,7 @@ def Inception(order, cudnn_ws, model_path=""):
 def Resnet50(args):
     gpus = [0]
     device_opt = core.DeviceOption(caffe2_pb2.HIP)
-    device_opt.hip_gpu_id = gpus[0]
+    device_opt.device_id = gpus[0]
     num_labels = 1000
     base_learning_rate = 0.0004 * args.batch_size
 
@@ -587,7 +587,8 @@ def Resnet50(args):
                                                  "data",
                                                  num_input_channels=3,
                                                  num_labels=num_labels,
-                                                 label="label", )
+                                                 label="label",
+                                                 no_bias=True, )
         prefix = model.net.Proto().name
         loss = model.net.Scale(loss, prefix + "_loss", scale=loss_scale)
         brew.accuracy(model, [softmax, "label"], prefix + "_accuracy")
@@ -637,9 +638,7 @@ def Inception_v2(order, cudnn_ws, model_path=""):
     if model_path == "":
         print("ERROR: please specify paths to init_net and predict_net protobufs for Inception_v2")
         exit(1)
-    device_opts = caffe2_pb2.DeviceOption()
-    device_opts.device_type = caffe2_pb2.HIP
-    device_opts.hip_gpu_id = 0
+    device_opts = caffe2_pb2.DeviceOption(caffe2_pb2.HIP)
 
     INIT_NET_PB = os.path.join(model_path, "init_net.pb")
     PREDICT_NET_PB = os.path.join(model_path, "predict_net.pb")

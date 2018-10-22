@@ -25,13 +25,20 @@ install_ubuntu() {
                    cxlactivitylogger \
                    rocsparse \
                    hipsparse \
-                   rocrand
+                   rocrand \
+                   hip-thrust
 
     # HIP has a bug that drops DEBUG symbols in generated MakeFiles.
     # https://github.com/ROCm-Developer-Tools/HIP/pull/588
     if [[ -f /opt/rocm/hip/cmake/FindHIP.cmake ]]; then
         sudo sed -i 's/set(_hip_build_configuration "${CMAKE_BUILD_TYPE}")/string(TOUPPER _hip_build_configuration "${CMAKE_BUILD_TYPE}")/' /opt/rocm/hip/cmake/FindHIP.cmake
     fi
+
+    # there is a case-sensitivity issue in the cmake files of some ROCm libraries. Fix this here until the fix is released
+    sed -i 's/find_dependency(hip)/find_dependency(HIP)/g' /opt/rocm/rocsparse/lib/cmake/rocsparse/rocsparse-config.cmake
+    sed -i 's/find_dependency(hip)/find_dependency(HIP)/g' /opt/rocm/rocfft/lib/cmake/rocfft/rocfft-config.cmake
+    sed -i 's/find_dependency(hip)/find_dependency(HIP)/g' /opt/rocm/miopen/lib/cmake/miopen/miopen-config.cmake
+    sed -i 's/find_dependency(hip)/find_dependency(HIP)/g' /opt/rocm/rocblas/lib/cmake/rocblas/rocblas-config.cmake
 }
 
 install_centos() {
@@ -39,13 +46,6 @@ install_centos() {
     exit 1
 }
  
-install_hip_thrust() {
-    # Needed for now, will be replaced soon
-    git clone --recursive https://github.com/ROCmSoftwarePlatform/Thrust.git /data/Thrust
-    rm -rf /data/Thrust/thrust/system/cuda/detail/cub-hip
-    git clone --recursive https://github.com/ROCmSoftwarePlatform/cub-hip.git /data/Thrust/thrust/system/cuda/detail/cub-hip
-}
-
 # Install Python packages depending on the base OS
 if [ -f /etc/lsb-release ]; then
   install_ubuntu
@@ -55,5 +55,3 @@ else
   echo "Unable to determine OS..."
   exit 1
 fi
-
-install_hip_thrust

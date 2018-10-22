@@ -420,7 +420,7 @@ class NewCriterionTest(InputVariableMixin, CriterionTest):
     def test_cuda(self, test_case, dtype=None, extra_args=None):
         def convert_dtype(obj, dtype, requires_grad=False):
             if isinstance(obj, torch.Tensor):
-                return torch.tensor(obj.data, dtype=dtype, requires_grad=requires_grad)
+                return obj.detach().to(dtype=dtype).requires_grad_(requires_grad)
             elif isinstance(obj, torch.Tensor):
                 return obj.to(dtype)
             elif isinstance(obj, tuple):
@@ -766,14 +766,14 @@ class TestNN(NNTestCase):
         input = input.to(device).fill_(1 - p)
 
         module = cls(p)
-        input_var = torch.tensor(input, requires_grad=True)
+        input_var = input.clone().requires_grad_()
         output = module(input_var)
         self.assertLess(abs(output.data.mean() - (1 - p)), 0.05)
         output.backward(input)
         self.assertLess(abs(input_var.grad.data.mean() - (1 - p)), 0.05)
 
         module = cls(p, True)
-        input_var = torch.tensor(input.clone(), requires_grad=True)
+        input_var = input.clone().requires_grad_()
         output = module(input_var + 0)
         self.assertLess(abs(output.data.mean() - (1 - p)), 0.05)
         output.backward(input)
@@ -794,7 +794,7 @@ class TestNN(NNTestCase):
 
         for p in [0.2, 0.5, 0.8]:
             module = cls(p)
-            input_var = torch.tensor(input, requires_grad=True)
+            input_var = input.detach().clone().requires_grad_()
             output = module(input_var)
             # output mean should be close to input mean
             self.assertLess(abs(output.data.mean() - mean), 0.1)
@@ -1858,7 +1858,6 @@ class TestNN(NNTestCase):
 
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     @repeat_test_for_types(ALL_TENSORTYPES)
-    @skipIfRocm
     def test_embedding_max_norm_cuda(self, dtype=torch.float):
         embedding = nn.Embedding(22, 5, max_norm=1.0).to("cuda", dtype=dtype)
         # nn.Embedding only takes LongTensor as input
@@ -1890,6 +1889,22 @@ class TestNN(NNTestCase):
         res_F = F.embedding(a, embeddings)
         self.assertEqual(res_old, res_F)
 
+    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types([torch.float, torch.half])
+    @skipIfRocm
+    def test_softmax_dtype(self, dtype=torch.float):
+        input = torch.rand(32, 100, device="cuda", dtype=dtype, requires_grad=True)
+        inputf = input.to(torch.float).detach().requires_grad_(True)
+        out = F.softmax(input, dim=-1, dtype=torch.float)
+        outf = F.softmax(inputf, dim=-1)
+        # should be bitwise equal
+        self.assertEqual(out, outf, prec=0)
+        gO = torch.empty_like(outf).uniform_()
+        out.backward(gO)
+        outf.backward(gO)
+        # should be bitwise equal
+        self.assertEqual(input.grad, inputf.grad.to(dtype), prec=0)
+
     def _test_gumbel_softmax_st(self, cuda, dtype=torch.float):
         th = torch.cuda if cuda else torch
         """
@@ -1915,7 +1930,7 @@ class TestNN(NNTestCase):
 
         exceed_limits = 0
         for draw in range(num_draws):
-            logits_var = torch.tensor(logits, requires_grad=True)
+            logits_var = logits.detach().requires_grad_()
             y_draw = torch.nn.functional.gumbel_softmax(
                 logits_var,
                 hard=True)
@@ -2223,7 +2238,7 @@ class TestNN(NNTestCase):
     def _test_InstanceNorm_general(self, cls, input, device="cpu", dtype=torch.float):
         # default case track_running_stats=False
         b, c = input.size(0), input.size(1)
-        input_var = torch.tensor(input, device=device, dtype=dtype, requires_grad=True)
+        input_var = input.to(device=device, dtype=dtype).requires_grad_()
 
         IN = cls(c, eps=0).to(device, dtype)
 
@@ -2539,7 +2554,7 @@ class TestNN(NNTestCase):
         module = module_cls(2, return_indices=True).to(device, dtype=dtype)
         numel = 4 ** (num_dim + 1)
         input = torch.arange(1, numel + 1).view(2, 2, *repeat(4, num_dim)).to(device, dtype=dtype)
-        input_var = torch.tensor(input, requires_grad=True)
+        input_var = input.clone().detach().requires_grad_()
 
         # Check forward
         output, indices = module(input_var)
@@ -2681,7 +2696,7 @@ class TestNN(NNTestCase):
         self._test_max_pool_nan(self, device="cpu")
 
     def _test_scatter(self, tensor):
-        x = torch.tensor(tensor, requires_grad=True)
+        x = tensor.detach().requires_grad_()
         result = dp.scatter(x, (0, 1))
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], x[:2])
@@ -2700,7 +2715,6 @@ class TestNN(NNTestCase):
         self._test_scatter(torch.randn(4, 4))
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
-    @skipIfRocm
     def test_scatter_gpu(self):
         self._test_scatter(torch.randn(4, 4).cuda())
 
@@ -2752,7 +2766,6 @@ class TestNN(NNTestCase):
         self._test_gather(-1)
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
-    @skipIfRocm
     def test_gather_gpu(self):
         self._test_gather(0)
 
@@ -2768,25 +2781,22 @@ class TestNN(NNTestCase):
         with self.assertRaises(ValueError):
             _ = dp.gather(inputs, target_device=0)
 
-    def _test_broadcast_double_backwards(self, *tensors):
-        variables = tuple(torch.tensor(t, requires_grad=True) for t in tensors)
-        _assertGradAndGradgradChecks(self, lambda *i: Broadcast.apply((0, 1), *i), variables)
-
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
     @skipIfRocm
     def test_broadcast_double_backwards_gpu(self):
-        self._test_broadcast_double_backwards(torch.randn(4, 4).cuda(),
-                                              torch.randn(4, 4).cuda(),
-                                              torch.randn(4, 4).cuda())
+        tensors = (torch.randn(4, 4, device='cuda', requires_grad=True),
+                   torch.randn(4, 4, device='cuda', requires_grad=True),
+                   torch.randn(4, 4, device='cuda', requires_grad=True))
+        _assertGradAndGradgradChecks(self, lambda *i: Broadcast.apply((0, 1), *i), tensors)
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
     def test_broadcast_not_requiring_grad(self):
         variables = [
-            Variable(torch.randn(1, 2).cuda(), requires_grad=True),
-            Variable(torch.randn(1, 2).cuda(), requires_grad=False),
-            Variable(torch.randn(1, 2).cuda(), requires_grad=False),
-            Variable(torch.randn(1, 2).cuda(), requires_grad=True),
-            Variable(torch.randn(1, 2).cuda(), requires_grad=True),
+            torch.randn(1, 2, device='cuda', requires_grad=True),
+            torch.randn(1, 2, device='cuda', requires_grad=False),
+            torch.randn(1, 2, device='cuda', requires_grad=False),
+            torch.randn(1, 2, device='cuda', requires_grad=True),
+            torch.randn(1, 2, device='cuda', requires_grad=True),
         ]
         broadcasted_variables = Broadcast.apply((0, 1), *variables)
         for output_idx, broadcasted_var in enumerate(broadcasted_variables):
@@ -2957,7 +2967,6 @@ class TestNN(NNTestCase):
         self.assertRaises(AssertionError, lambda: dp.data_parallel(l, i, (0, 1)))
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
-    @skipIfRocm
     def test_data_parallel(self):
         l = nn.Linear(10, 5).float().cuda()
         i = Variable(torch.randn(20, 10).float().cuda(1))
@@ -3147,7 +3156,6 @@ class TestNN(NNTestCase):
         self.assertEqual(out.data, expected_out)
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
-    @skipIfRocm
     def test_data_parallel_device_args(self):
         cuda0 = torch.device('cuda:0')
         cuda1 = torch.device('cuda:1')
@@ -3473,7 +3481,7 @@ class TestNN(NNTestCase):
                 conv = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1).to("cuda", dtype)
                 for size in sizes:
                     x = torch.randn(size, device="cuda", dtype=dtype)
-                    out = conv(torch.tensor(x, requires_grad=True))
+                    out = conv(x.detach().clone().requires_grad_())
                     out.backward(torch.ones_like(out))
 
         run_test(benchmark=False)
@@ -3605,7 +3613,7 @@ class TestNN(NNTestCase):
     def test_Conv2d_depthwise_naive_groups_cuda(self, dtype=torch.float):
         for depth_multiplier in [1, 2]:
             m = nn.Conv2d(2, 2 * depth_multiplier, kernel_size=3, groups=2).to("cuda", dtype)
-            i = torch.tensor(torch.randn(2, 2, 6, 6, device="cuda", dtype=dtype) / 2, requires_grad=True)
+            i = torch.randn(2, 2, 6, 6, device="cuda", dtype=dtype).div_(2).requires_grad_()
             output = m(i)
             grad_output = torch.randn(2, 2 * depth_multiplier, 4, 4, device="cuda", dtype=dtype) / 2
             output.backward(grad_output)
@@ -3615,14 +3623,14 @@ class TestNN(NNTestCase):
             m1 = nn.Conv2d(1, 1 * depth_multiplier, kernel_size=3).to("cuda", dtype)
             m1.weight.data = m.weight.data[:offset].clone()
             m1.bias.data = m.bias.data[:offset].clone()
-            i1 = torch.tensor(i.data[:, :1].contiguous(), requires_grad=True)
+            i1 = i.detach()[:, :1].clone().requires_grad_()
             output1 = m1(i1)
             output1.backward(grad_output[:, :offset].contiguous())
 
             m2 = nn.Conv2d(1, 1 * depth_multiplier, kernel_size=3).to("cuda", dtype)
             m2.weight.data.copy_(m.weight.data[offset:])
             m2.bias.data.copy_(m.bias.data[offset:])
-            i2 = torch.tensor(i.data[:, 1:].contiguous(), requires_grad=True)
+            i2 = i.detach()[:, 1:].clone().requires_grad_()
             output2 = m2(i2)
             output2.backward(grad_output[:, offset:].contiguous())
 
@@ -3865,8 +3873,7 @@ class TestNN(NNTestCase):
         batch_sizes = [sum(map(bool, filter(lambda x: x >= i, lengths))) for i in range(1, max_length + 1)]
         offset = 0
         padded = torch.cat([pad(i * 100 + torch.arange(1., 5 * l + 1).view(l, 1, 5), max_length)
-                            for i, l in enumerate(lengths, 1)], 1)
-        padded = torch.tensor(padded, requires_grad=True)
+                            for i, l in enumerate(lengths, 1)], 1).requires_grad_()
         expected_data = [[torch.arange(1., 6) + (i + 1) * 100 + 5 * n for i in range(batch_size)]
                          for n, batch_size in enumerate(batch_sizes)]
         expected_data = list(itertools.chain.from_iterable(expected_data))
@@ -3965,7 +3972,6 @@ class TestNN(NNTestCase):
             (hx + cx).sum().backward()
 
     @unittest.skipIf(not (TEST_CUDNN and TEST_MULTIGPU), 'CUDNN or multi-gpu not available')
-    @skipIfRocm
     def test_cudnn_rnn_dropout_states_device(self):
         rnn = nn.RNN(10, 20, num_layers=2, dropout=.5)
         device = 1
@@ -4561,7 +4567,6 @@ class TestNN(NNTestCase):
 
     @unittest.skipIf(not TEST_CUDA, 'CUDA not available')
     @repeat_test_for_types(ALL_TENSORTYPES)
-    @skipIfRocm
     def test_noncontig_conv_grad_cuda(self, dtype=torch.float):
         # FIXME: remove after adding non-contiguous grad tests for all modules
         module = nn.Conv2d(3, 5, kernel_size=3, padding=1).to("cuda", dtype)
@@ -5006,8 +5011,8 @@ class TestNN(NNTestCase):
                                                                    margin=0.5, reduction='none'))
 
     def test_margin_ranking_loss_no_reduce(self):
-        input1 = torch.tensor(torch.randn(15).mul(10), requires_grad=True)
-        input2 = torch.tensor(torch.randn(15).mul(10), requires_grad=True)
+        input1 = torch.randn(15).mul_(10).requires_grad_()
+        input2 = torch.randn(15).mul_(10).requires_grad_()
         target = torch.randn(15).sign()
         self.assertTrue(gradcheck(lambda x, y, z: F.margin_ranking_loss(
             x, y, z, reduction='none'), (input1, input2, target)))
@@ -5015,8 +5020,8 @@ class TestNN(NNTestCase):
                          loss_reference_fns['MarginRankingLoss'](input1, input2, target, reduction='none'))
 
     def test_margin_ranking_loss_margin_no_reduce(self):
-        input1 = torch.tensor(torch.randn(15).mul(10), requires_grad=True)
-        input2 = torch.tensor(torch.randn(15).mul(10), requires_grad=True)
+        input1 = torch.randn(15).mul_(10).requires_grad_()
+        input2 = torch.randn(15).mul_(10).requires_grad_()
         target = torch.randn(15).sign()
         self.assertTrue(gradcheck(lambda x, y, z: F.margin_ranking_loss(
             x, y, z, margin=0.5, reduction='none'), (input1, input2, target)))
@@ -6013,7 +6018,6 @@ class TestNN(NNTestCase):
                                                no_weight)
 
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
-    @skipIfRocm
     def test_cudnn_noncontiguous_weight(self):
         # Noncontiguous weights must be contiguous() before being
         # passed to cuDNN
@@ -6051,27 +6055,30 @@ class TestNN(NNTestCase):
             for batch, stride, padding, chan_in, chan_out, dilation in \
                     product([1, 2], [1, 2], [0, 1, 2], [2], [3], [1]):
 
-                input_shape = [batch, chan_in]
-                weight_shape = [chan_out, chan_in]
-                for _ in range(dim):
-                    input_shape.append(inp_size)
-                    weight_shape.append(kern)
+                for has_bias in [True, False]:
+                    input_shape = [batch, chan_in]
+                    weight_shape = [chan_out, chan_in]
+                    for _ in range(dim):
+                        input_shape.append(inp_size)
+                        weight_shape.append(kern)
 
-                input = torch.randn(input_shape, requires_grad=True)
-                weight = torch.randn(weight_shape, requires_grad=True)
-                output = func_forward(input, weight, stride=stride, padding=padding, dilation=dilation)
+                    input = torch.randn(input_shape, requires_grad=True)
+                    weight = torch.randn(weight_shape, requires_grad=True)
+                    if has_bias:
+                        bias = torch.randn([chan_out], requires_grad=True)
+                    output = func_forward(input, weight, stride=stride, padding=padding, dilation=dilation, bias=bias)
 
-                gradient_o = torch.randn(output.shape)
-                gradient_w = torch.autograd.grad(output, input if (gradient == 'input') else weight, gradient_o)
+                    gradient_o = torch.randn(output.shape)
+                    gradient_w = torch.autograd.grad(output, input if (gradient == 'input') else weight, gradient_o)
 
-                self.assertAlmostEqual(gradient_w[0],
-                                       func_backward(
-                                           input_shape if (gradient == 'input') else input,
-                                           weight_shape if (gradient == 'weight') else weight,
-                                           gradient_o,
-                                           stride=stride,
-                                           padding=padding,
-                                           dilation=dilation))
+                    self.assertAlmostEqual(gradient_w[0],
+                                           func_backward(
+                                               input_shape if (gradient == 'input') else input,
+                                               weight_shape if (gradient == 'weight') else weight,
+                                               gradient_o,
+                                               stride=stride,
+                                               padding=padding,
+                                               dilation=dilation))
 
     def test_grad_conv1d_input(self):
         self.run_grad_conv_test(F.conv1d, F.grad.conv1d_input, 1, 'input')
@@ -6894,7 +6901,8 @@ def bceloss_weights_no_reduce_test():
         input_fn=lambda: torch.rand(15, 10).clamp_(2.8e-2, 1 - 2.8e-2),
         reference_fn=lambda i, m: -(t * i.log() + (1 - t) * (1 - i).log()) * weights,
         check_gradgrad=False,
-        pickle=False)
+        pickle=False
+    )
 
 
 def bceloss_weights_no_reduce_scalar_test():
@@ -6908,7 +6916,8 @@ def bceloss_weights_no_reduce_scalar_test():
         input_fn=lambda: torch.rand(()).clamp_(2.8e-2, 1 - 2.8e-2),
         reference_fn=lambda i, m: -(t * i.log() + (1 - t) * (1 - i).log()) * weights,
         check_gradgrad=False,
-        pickle=False)
+        pickle=False
+    )
 
 
 def bce_with_logistic_no_reduce_test():
@@ -6921,7 +6930,8 @@ def bce_with_logistic_no_reduce_test():
         input_fn=lambda: torch.rand(15, 10).clamp_(2.8e-2, 1 - 2.8e-2),
         reference_fn=lambda i, m: -(t * sigmoid(i).log() + (1 - t) * (1 - sigmoid(i)).log()),
         check_gradgrad=False,
-        pickle=False,)
+        pickle=False,
+    )
 
 
 def bce_with_logistic_no_reduce_scalar_test():
@@ -6934,7 +6944,8 @@ def bce_with_logistic_no_reduce_scalar_test():
         input_fn=lambda: torch.rand(()).clamp_(2.8e-2, 1 - 2.8e-2),
         reference_fn=lambda i, m: -(t * sigmoid(i).log() + (1 - t) * (1 - sigmoid(i)).log()),
         check_gradgrad=False,
-        pickle=False,)
+        pickle=False,
+    )
 
 
 def kldivloss_with_target_no_reduce_test():
@@ -6958,7 +6969,8 @@ def kldivloss_no_reduce_test():
         input_fn=lambda: torch.rand(10, 10).log(),
         reference_fn=lambda i, _:
             loss_reference_fns['KLDivLoss'](i, t.type_as(i), reduction='none'),
-        pickle=False,)
+        pickle=False,
+    )
 
 
 def kldivloss_no_reduce_scalar_test():
@@ -7499,7 +7511,6 @@ new_module_tests = [
         cudnn=True,
         check_eval=True,
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='BatchNorm2d',
@@ -7509,7 +7520,6 @@ new_module_tests = [
         check_eval=True,
         desc='2d_simple_average',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='BatchNorm2d',
@@ -7519,7 +7529,6 @@ new_module_tests = [
         check_eval=True,
         desc='momentum',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='BatchNorm2d',
@@ -7538,7 +7547,6 @@ new_module_tests = [
         check_eval=True,
         desc='not_tracking_stats',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='BatchNorm3d',
@@ -7546,7 +7554,6 @@ new_module_tests = [
         input_size=(2, 3, 4, 4, 4),
         cudnn=True,
         check_eval=True,
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='BatchNorm3d',
@@ -7555,7 +7562,6 @@ new_module_tests = [
         cudnn=True,
         check_eval=True,
         desc='3d_simple_average',
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='BatchNorm3d',
@@ -7564,7 +7570,6 @@ new_module_tests = [
         cudnn=True,
         check_eval=True,
         desc='momentum',
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='BatchNorm3d',
@@ -7581,7 +7586,6 @@ new_module_tests = [
         cudnn=True,
         check_eval=True,
         desc='not_tracking_stats',
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='InstanceNorm1d',
@@ -7726,7 +7730,6 @@ new_module_tests = [
         input_size=(2, 4, 10),
         cudnn=True,
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv1d',
@@ -7735,7 +7738,6 @@ new_module_tests = [
         cudnn=True,
         desc='stride',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv1d',
@@ -7744,7 +7746,6 @@ new_module_tests = [
         cudnn=True,
         desc='pad1',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv1d',
@@ -7753,7 +7754,6 @@ new_module_tests = [
         cudnn=True,
         desc='pad2',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv1d',
@@ -7762,7 +7762,6 @@ new_module_tests = [
         cudnn=True,
         desc='pad1size1',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv1d',
@@ -7771,14 +7770,12 @@ new_module_tests = [
         cudnn=True,
         desc='pad2size1',
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv1d_dilated',
         constructor=lambda: nn.Conv1d(4, 5, kernel_size=3, dilation=2),
         input_size=(2, 4, 10),
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv1d_groups',
@@ -7786,14 +7783,12 @@ new_module_tests = [
         input_size=(2, 4, 6),
         cudnn=True,
         skip_double=TEST_WITH_ROCM,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='ConvTranspose1d',
         constructor=lambda: nn.ConvTranspose1d(3, 4, kernel_size=3, stride=(3,), padding=1, output_padding=(1,)),
         cudnn=True,
         input_size=(1, 3, 7),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose1d',
@@ -7801,7 +7796,6 @@ new_module_tests = [
         input_size=(1, 3, 6),
         cudnn=True,
         desc='no_bias',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose1d',
@@ -7809,14 +7803,12 @@ new_module_tests = [
         input_size=(1, 3, 6),
         cudnn=True,
         desc='dilated',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='ConvTranspose1d_groups',
         constructor=lambda: nn.ConvTranspose1d(4, 6, 3, stride=(3,), padding=1, output_padding=(1,), groups=2),
         cudnn=True,
         input_size=(2, 4, 7),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='MaxPool1d',
@@ -7834,7 +7826,6 @@ new_module_tests = [
         constructor_args=(3, 4, (3, 2)),
         input_size=(2, 3, 7, 5),
         cudnn=True,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv2d',
@@ -7842,7 +7833,6 @@ new_module_tests = [
         input_size=(2, 3, 6, 6),
         cudnn=True,
         desc='strided',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv2d',
@@ -7850,7 +7840,6 @@ new_module_tests = [
         input_size=(2, 3, 6, 6),
         cudnn=True,
         desc='padding',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv2d',
@@ -7858,7 +7847,6 @@ new_module_tests = [
         input_size=(2, 3, 8, 8),
         cudnn=True,
         desc='dilated',
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='Conv2d',
@@ -7866,27 +7854,23 @@ new_module_tests = [
         input_size=(2, 3, 6, 5),
         cudnn=True,
         desc='no_bias',
-        decorator=skipIfRocm,
     ),
     dict(
         fullname='Conv2d_groups',
         constructor=lambda: nn.Conv2d(4, 6, (3, 2), groups=2),
         input_size=(2, 4, 6, 5),
         cudnn=True,
-        decorator=skipIfRocm,
     ),
     dict(
         fullname='Conv2d_groups_thnn',
         constructor=lambda: nn.Conv2d(4, 6, (3, 2), groups=2),
         input_size=(2, 4, 6, 5),
-        decorator=skipIfRocm,
     ),
     dict(
         module_name='ConvTranspose2d',
         constructor_args=(3, 4, 3, (3, 2), 1, (1, 1)),
         cudnn=True,
         input_size=(1, 3, 7, 6),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose2d',
@@ -7894,7 +7878,6 @@ new_module_tests = [
         input_size=(1, 3, 6, 7),
         cudnn=True,
         desc='dilated',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose2d',
@@ -7902,14 +7885,12 @@ new_module_tests = [
         input_size=(1, 3, 6, 7),
         cudnn=True,
         desc='no_bias',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='ConvTranspose2d_groups',
         constructor=lambda: nn.ConvTranspose2d(2, 4, (2, 3), groups=2),
         input_size=(1, 2, 4, 5),
         cudnn=True,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv2d_depthwise',
@@ -8066,7 +8047,6 @@ new_module_tests = [
         constructor_args=(3, 4, (2, 3, 4)),
         input_size=(2, 3, 3, 4, 5),
         cudnn=True,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv3d',
@@ -8074,7 +8054,6 @@ new_module_tests = [
         input_size=(2, 3, 3, 4, 5),
         cudnn=True,
         desc='no_bias',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv3d',
@@ -8082,7 +8061,6 @@ new_module_tests = [
         input_size=(2, 3, 5, 5, 5),
         cudnn=True,
         desc='stride',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='Conv3d',
@@ -8090,33 +8068,28 @@ new_module_tests = [
         input_size=(2, 3, 5, 5, 5),
         cudnn=True,
         desc='stride_padding',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv3d_groups',
         constructor=lambda: nn.Conv3d(4, 6, kernel_size=3, groups=2),
         input_size=(2, 4, 4, 5, 4),
         cudnn=True,
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv3d_dilated',
         constructor=lambda: nn.Conv3d(3, 4, kernel_size=2, dilation=2),
         input_size=(2, 3, 5, 5, 5),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         fullname='Conv3d_dilated_strided',
         constructor=lambda: nn.Conv3d(3, 4, kernel_size=2, dilation=2, stride=2),
         input_size=(2, 3, 5, 5, 5),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose3d',
         constructor_args=(2, 3, (2, 3, 2)),
         cudnn=True,
         input_size=(1, 2, 4, 5, 4),
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='ConvTranspose3d',
@@ -8124,7 +8097,6 @@ new_module_tests = [
         cudnn=True,
         input_size=(1, 2, 4, 5, 4),
         desc='dilated',
-        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='MaxPool3d',
@@ -8556,6 +8528,13 @@ new_module_tests = [
         pickle=False,
     ),
     dict(
+        constructor=wrap_functional(F.softmax, dim=1, dtype=torch.float64),
+        input_size=(2, 128),
+        fullname='softmax_lastdim_dtype',
+        pickle=False,
+        test_cuda=False
+    ),
+    dict(
         constructor=wrap_functional(F.softmax, dim=1),
         input_size=(2, 128, 2, 2),  # trigger special case of spatial CUDA algo
         fullname='softmax_spatial_special',
@@ -8567,6 +8546,13 @@ new_module_tests = [
         input_size=(2, 2, 4, 4),  # regular spatial algorithm
         fullname='softmax_spatial',
         pickle=False,
+    ),
+    dict(
+        constructor=wrap_functional(F.softmax, dim=1, dtype=torch.float64),
+        input_size=(2, 2, 4, 4),  # regular spatial algorithm
+        fullname='softmax_spatial_dtype',
+        pickle=False,
+        test_cuda=False
     ),
     dict(
         constructor=wrap_functional(F.softmax, dim=0),
