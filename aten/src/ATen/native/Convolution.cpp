@@ -134,7 +134,8 @@ auto ConvParams::use_miopen(const at::Tensor& input) const -> bool {
          && input.type().is_cuda()
          && input.dim() <= MIOPEN_DIM_MAX
          && MIOPEN_ENABLED
-	 && !(groups > 1 && is_dilated()) // MIOpen currently does not support dilation with groups of size > 1
+	 && (groups > 1 && is_dilated()) == false // MIOpen currently does not support dilation with groups of size > 1
+         && transposed == false
          ;
 }
 
