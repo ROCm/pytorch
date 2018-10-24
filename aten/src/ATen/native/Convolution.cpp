@@ -100,12 +100,7 @@ auto ConvParams::view1d_as_2d() -> void {
   if (stride.size() == 1) {
     stride.insert(stride.begin(), 1);
     padding.insert(padding.begin(), 0);
-    if (!MIOPEN_ENABLED) {
-        dilation.insert(dilation.begin(), 1);
-    } else {
-        //Currently MIOpen doesn't support assymetric dilation values.
-        dilation.insert(dilation.begin(), dilation.front());
-    }
+    dilation.insert(dilation.begin(), 1);
     output_padding.insert(output_padding.begin(), 0);
   }
 }
@@ -134,8 +129,10 @@ auto ConvParams::use_miopen(const at::Tensor& input) const -> bool {
          && input.type().is_cuda()
          && input.dim() <= MIOPEN_DIM_MAX
          && MIOPEN_ENABLED
-	 && (groups > 1 && is_dilated()) == false // MIOpen currently does not support dilation with groups of size > 1
-         && transposed == false
+         && !(groups > 1 && is_dilated()) // MIOpen currently does not support dilation with groups of size > 1
+         && !transposed
+         && (dilation.at(0) == dilation.at(1)) //MIOpen currently does not support assymetric dilation values.
+         && (stride.at(0) == stride.at(1)) //Line 549 & 635 (swapping stride and dilation values) leads to assymetric dilation values.
          ;
 }
 
