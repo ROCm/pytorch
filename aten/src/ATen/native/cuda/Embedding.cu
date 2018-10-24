@@ -98,8 +98,12 @@ __global__ void embedding_backward_feature_kernel
           matchmask ^= (1 << first_remaining_peer);
           while(matchmask)
           {
+#ifdef __HIP_PLATFORM_HCC__
+            first_remaining_peer = __ffsll(matchmask) - 1;
+#else
             first_remaining_peer = __ffs(matchmask) - 1;
-            my_s[threadIdx.x] += smem[threadIdx.x + WARP_SIZE*first_remaining_peer];
+#endif
+	    my_s[threadIdx.x] += smem[threadIdx.x + WARP_SIZE*first_remaining_peer];
             matchmask ^= (1 << first_remaining_peer);
           }
           if(f < s)
