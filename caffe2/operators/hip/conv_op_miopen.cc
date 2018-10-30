@@ -379,6 +379,13 @@ bool MIOPENConvOp::RunOnDevice() {
         float, // B
         float, // Math
         float>(); // Y
+  } else if (Input(0).IsType<at::Half>()) {
+    return DoRunWithType<
+        at::Half, // X
+        at::Half, // W
+        at::Half, // B
+        at::Half, // Math
+        at::Half>(); // Y
   } else {
     LOG(FATAL) << "Only float (32bit) is supported by "
                << "miopen convolution, but input " << debug_def().input(0)
@@ -630,6 +637,16 @@ bool MIOPENConvGradientOp::RunOnDevice() {
         float, // dX
         float, // dW
         float>(); // db
+  } else if (Input(0).IsType<at::Half>()){
+    return DoRunWithType<
+        at::Half, //  X
+        at::Half, // dY
+        at::Half, //  W
+        at::Half, //  b
+        at::Half, // Math
+        at::Half, // dX
+        at::Half, // dW
+        at::Half>(); // db
   } else {
     LOG(FATAL) << "Unsupported input types";
   }
