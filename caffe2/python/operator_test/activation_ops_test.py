@@ -44,7 +44,7 @@ class TestActivations(serial.SerializedTestCase):
     @unittest.skipIf(not workspace.has_gpu_support,
                      "Relu for float16 can only run on GPU now.")
     @given(X=hu.tensor(dtype=np.float16), in_place=st.booleans(),
-           engine=st.sampled_from(["", "CUDNN"]), **hu.gcs_gpu_only)
+           engine=st.sampled_from(["", "CUDNN"]), **hu.gcs_gpu_or_hip_only)
     def test_relu_fp16(self, X, in_place, engine, gc, dc):
         op = core.CreateOperator(
             "Relu",
@@ -68,7 +68,7 @@ class TestActivations(serial.SerializedTestCase):
         X[X == 0.0] += 0.02
 
         self.assertReferenceChecks(
-            hu.gpu_do,
+            gc,
             op,
             [X],
             relu_ref,
