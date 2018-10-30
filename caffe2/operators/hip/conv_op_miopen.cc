@@ -387,7 +387,7 @@ bool MIOPENConvOp::RunOnDevice() {
         at::Half, // Math
         at::Half>(); // Y
   } else {
-    LOG(FATAL) << "Only float (32bit) is supported by "
+    LOG(FATAL) << "Only float (32bit) and Half are supported by "
                << "miopen convolution, but input " << debug_def().input(0)
                << " has [" << Input(0).meta().name() << "]";
   }
