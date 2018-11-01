@@ -653,6 +653,10 @@ void addObjectMethods(py::module& m) {
           DefinitionGetter(CUDAOperatorRegistry()),
           py::return_value_policy::reference)
       .def_static(
+          "get_hip_impl",
+          DefinitionGetter(HIPOperatorRegistry()),
+          py::return_value_policy::reference)
+      .def_static(
           "get_gradient_impl",
           DefinitionGetter(GradientRegistry()),
           py::return_value_policy::reference);
