@@ -185,6 +185,12 @@ TaskThreadPoolBase* AsyncNetBase::pool(const DeviceOption& device_option) {
         gpu_id >= 0 && gpu_id < FLAGS_caffe2_net_async_max_gpus,
         "Invalid GPU id: " + caffe2::to_string(gpu_id));
     return poolGetter(gpu_pools_, PROTO_CUDA, gpu_id, num_workers_);
+  } else if (device_option.device_type() == PROTO_HIP) {
+    auto gpu_id = device_option.device_id();
+    CAFFE_ENFORCE(
+        gpu_id >= 0 && gpu_id < FLAGS_caffe2_net_async_max_gpus,
+        "Invalid GPU id: " + caffe2::to_string(gpu_id));
+    return poolGetter(gpu_pools_, PROTO_HIP, gpu_id, num_workers_);
   } else {
     CAFFE_THROW(
         "Unsupported device type " +
@@ -195,7 +201,7 @@ TaskThreadPoolBase* AsyncNetBase::pool(const DeviceOption& device_option) {
 int AsyncNetBase::stream(int task_id) {
   const auto& device_option = event(task_id).GetDeviceOption();
   int stream_id = 0;
-  if (device_option.device_type() == PROTO_CUDA) {
+  if (device_option.device_type() == PROTO_CUDA || device_option.device_type() == PROTO_HIP) {
     int gpu_id = device_option.device_id();
     CAFFE_ENFORCE_GE(gpu_id, 0, "Invalid gpu id: " + caffe2::to_string(gpu_id));
     if ((unsigned)gpu_id >= getStreamCounters().size()) {
