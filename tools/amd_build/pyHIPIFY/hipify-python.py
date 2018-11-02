@@ -1280,14 +1280,20 @@ def main():
 
     # Extract all of the kernel parameter and template type information.
     if args.add_static_casts:
+	KernelTemplateParams = {}
+        # ignore caffe2/utils/math_gpu.cu for static_casts as PowKernel
+	# conflicts with kernel in caffe2/operators/pow_op.cu.
+	# Need to figure out a long-term solution.
         for filepath in all_files:
-            KernelTemplateParams = {}
-            get_kernel_template_params(
-                filepath,
-                KernelTemplateParams,
-                CAFFE2_TEMPLATE_MAP if args.hipify_caffe2 else PYTORCH_TEMPLATE_MAP)
-            add_static_casts(get_hip_file_path(filepath, hipify_caffe2=args.hipify_caffe2), KernelTemplateParams)
+	    if "math_gpu.cu" not in os.path.basename(filepath):
+	        get_kernel_template_params(
+                    filepath,
+                    KernelTemplateParams,
+                    CAFFE2_TEMPLATE_MAP if args.hipify_caffe2 else PYTORCH_TEMPLATE_MAP)
 
+        # Execute the Clang Tool to Automatically add static casts
+        for filepath in all_files:
+            add_static_casts(get_hip_file_path(filepath, hipify_caffe2=args.hipify_caffe2), KernelTemplateParams)
 
 if __name__ == '__main__':
     main()
