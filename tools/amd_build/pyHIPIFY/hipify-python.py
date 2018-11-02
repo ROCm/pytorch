@@ -354,7 +354,8 @@ def processKernelLaunches(string, stats):
 
             # Handle Kernel Name
             if status != AT_TEMPLATE:
-                if string[i] == "(" or string[i] == ")" or string[i] == "_" or string[i].isalnum() or string[i] == ":":
+                if string[i] == "(" or string[i] == ")" or string[i] == "_" or \
+                   string[i].isalnum() or string[i] == ":" or string[i] == "#":
                     if status != AT_KERNEL_NAME:
                         status = AT_KERNEL_NAME
                         pos["kernel_name"]["end"] = i
@@ -1279,15 +1280,12 @@ def main():
 
     # Extract all of the kernel parameter and template type information.
     if args.add_static_casts:
-        KernelTemplateParams = {}
         for filepath in all_files:
+            KernelTemplateParams = {}
             get_kernel_template_params(
                 filepath,
                 KernelTemplateParams,
                 CAFFE2_TEMPLATE_MAP if args.hipify_caffe2 else PYTORCH_TEMPLATE_MAP)
-
-        # Execute the Clang Tool to Automatically add static casts
-        for filepath in all_files:
             add_static_casts(get_hip_file_path(filepath, hipify_caffe2=args.hipify_caffe2), KernelTemplateParams)
 
 
