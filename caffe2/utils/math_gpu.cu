@@ -96,7 +96,7 @@ __global__ void RowwiseBinaryOpCUDAKenel(
 #ifndef __HIPCC__
     const int j = cols.Mod(C_index);
 #else
-    const int j = C_index % cols;;
+    const int j = C_index % cols;
 #endif
     const int A_index = broadcast_1st ? j : C_index;
     const int B_index = broadcast_1st ? C_index : j;
