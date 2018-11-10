@@ -164,8 +164,8 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
       Weight.ndim() == 4,
       "ConvTranspose op with MIOpen engine is supported only for 2D convolutions");
 
-  const int M = Weight.dim32(0);
-  ConvTransposeUnpoolBase<HIPContext>::SetOutputSize(X, Y, M);
+  const int C = Weight.dim32(1);
+  ConvTransposeUnpoolBase<HIPContext>::SetOutputSize(X, Y, C);
 
   int N = X.dim32(0);
   int C = X.dim32(1);
@@ -178,7 +178,7 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
   int H_out = Y->dim32(2);
   int W_out = Y->ndim() > 3 ? Y->dim32(3) : 1;
   int D_out = Y->ndim() > 4 ? Y->dim32(4) : 1;
-  CAFFE_ENFORCE_EQ(Weight.dim32(1), C);
+  CAFFE_ENFORCE_EQ(Weight.dim32(1), C_out);
 
   bool input_changed = (X.dims() != mio_input_dims_);
   bool weight_changed = (Weight.dims() != mio_weight_dims_);
@@ -206,8 +206,8 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
       MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
           weight_desc_,
           miopenTypeWrapper<T>::type,
-          M,
           C,
+          C_out,
           kernel_h(),
           kernel_w()));
     }
@@ -226,7 +226,7 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
 
     if (InputSize() == 3) {
       MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
-          bias_desc_, miopenTypeWrapper<T>::type, 1, M, 1, 1));
+          bias_desc_, miopenTypeWrapper<T>::type, 1, C_out, 1, 1));
     }
 
     while (!bestAlgoFound_) {
@@ -286,7 +286,7 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
       auto& bias = Input(BIAS);
 
       CAFFE_ENFORCE_EQ(bias.ndim(), 1);
-      CAFFE_ENFORCE_EQ(bias.dim32(0), M);
+      CAFFE_ENFORCE_EQ(bias.dim32(0), C_out);
       miopen_wrapper_.with_miopen_state(miopen_state_, [&](MIOPENState* state) {
         MIOPEN_ENFORCE(miopenConvolutionForwardBias(
           state->miopen_handle(),
@@ -332,7 +332,7 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
   W_out = dY.ndim() > 3 ? dY.dim32(3) : 1;
   D_out = dY.ndim() > 4 ? dY.dim32(4) : 1;
 
-  CAFFE_ENFORCE_EQ(Weight.dim32(1), C);
+  CAFFE_ENFORCE_EQ(Weight.dim32(1), C_out);
 
   bool doBwdDataComputation = (OutputSize() == 3 || (no_bias_ && (OutputSize() == 2)));
   bool input_changed = (X.dims() != mio_input_dims_);
@@ -361,8 +361,8 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
       MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
           weight_desc_,
           miopenTypeWrapper<T>::type,
-          M,
           C,
+          C_out,
           kernel_h(),
           kernel_w()));
     }
@@ -381,7 +381,7 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
 
     if (!no_bias_) {
         MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
-            bias_desc_, miopenTypeWrapper<T>::type, 1, M, 1, 1));
+            bias_desc_, miopenTypeWrapper<T>::type, 1, C_out, 1, 1));
     }
 
     while ((!bestDataAlgoFound_) && doBwdDataComputation) {
@@ -494,7 +494,7 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
   ////////////////////////////////////// BIAS ///////////////////////////
   if (!no_bias_) {
       auto* dbias = Output(BIAS_OR_INPUT_GRAD);
-      dbias->Resize(M);
+      dbias->Resize(C_out);
       miopen_wrapper_.with_miopen_state(miopen_state_, [&](MIOPENState* state) {
         MIOPEN_ENFORCE(miopenConvolutionBackwardBias(
           state->miopen_handle(),
