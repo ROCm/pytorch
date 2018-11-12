@@ -211,15 +211,6 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
           kernel_w()));
     }
 
-    MIOPEN_ENFORCE(miopenGetConvolutionForwardOutputDim(
-        conv_desc_,
-        bottom_desc_,
-        weight_desc_,
-        &N_out,
-        &C_out,
-        &H_out,
-        &W_out));
-
     MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
         top_desc_, miopenTypeWrapper<T>::type, N_out, C_out, H_out, W_out));
 
@@ -363,15 +354,6 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
           kernel_h(),
           kernel_w()));
     }
-
-    MIOPEN_ENFORCE(miopenGetConvolutionForwardOutputDim(
-        conv_desc_,
-        bottom_desc_,
-        weight_desc_,
-        &N_out,
-        &C_out,
-        &H_out,
-        &W_out));
 
     MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
         top_desc_, miopenTypeWrapper<T>::type, N_out, C_out, H_out, W_out));
