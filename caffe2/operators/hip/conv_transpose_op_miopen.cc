@@ -164,8 +164,8 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
       Weight.ndim() == 4,
       "ConvTranspose op with MIOpen engine is supported only for 2D convolutions");
 
-  const int C = Weight.dim32(1);
-  ConvTransposeUnpoolBase<HIPContext>::SetOutputSize(X, Y, C);
+  const int C_in = Weight.dim32(1);
+  ConvTransposeUnpoolBase<HIPContext>::SetOutputSize(X, Y, C_in);
 
   int N = X.dim32(0);
   int C = X.dim32(1);
@@ -178,7 +178,6 @@ bool MIOPENConvTransposeOp<T>::RunOnDevice() {
   int H_out = Y->dim32(2);
   int W_out = Y->ndim() > 3 ? Y->dim32(3) : 1;
   int D_out = Y->ndim() > 4 ? Y->dim32(4) : 1;
-  CAFFE_ENFORCE_EQ(Weight.dim32(1), C_out);
 
   bool input_changed = (X.dims() != mio_input_dims_);
   bool weight_changed = (Weight.dims() != mio_weight_dims_);
@@ -331,8 +330,6 @@ bool MIOPENConvTransposeGradientOp<T>::RunOnDevice() {
   H_out = dY.dim32(2);
   W_out = dY.ndim() > 3 ? dY.dim32(3) : 1;
   D_out = dY.ndim() > 4 ? dY.dim32(4) : 1;
-
-  CAFFE_ENFORCE_EQ(Weight.dim32(1), C_out);
 
   bool doBwdDataComputation = (OutputSize() == 3 || (no_bias_ && (OutputSize() == 2)));
   bool input_changed = (X.dims() != mio_input_dims_);
