@@ -2702,7 +2702,7 @@ class TestNN(NNTestCase):
         self.assertRaises(AssertionError, lambda: F.pad(inputs, (1, 1)))
         self.assertRaises(AssertionError, lambda: F.pad(inputs, (1,)))
 
-        def test_nn_scalars(self):
+    def test_nn_scalars(self):
         # One off tests to ensure scalars from nn.yaml are properly applied
         def verify_scalars(input, output):
             if input.dim() == 0:
@@ -2711,6 +2711,7 @@ class TestNN(NNTestCase):
                 self.assertNotEqual((), output.shape)
             output.sum().backward()
             self.assertEqual(input.shape, input.grad.shape)
+
         devices = ['cpu'] if not torch.cuda.is_available() else ['cpu', 'cuda']
         for device in devices:
             for input_shape in [(5, 6), ()]:
@@ -2721,6 +2722,7 @@ class TestNN(NNTestCase):
                     m = module()
                     output = m(input)
                     verify_scalars(input, output)
+
     def test_nn_scalars_reductions(self):
         # One off tests to ensure scalars from nn.yaml are properly applied
         def verify_reduction_scalars(input, reduction, output):
@@ -2730,6 +2732,7 @@ class TestNN(NNTestCase):
                 self.assertNotEqual((), output.shape)
             output.sum().backward()
             self.assertEqual(input.shape, input.grad.shape)
+
         devices = ['cpu'] if not torch.cuda.is_available() else ['cpu', 'cuda']
         for device in devices:
             for input_shape in [(5, 6), ()]:
@@ -2739,11 +2742,11 @@ class TestNN(NNTestCase):
                         input = torch.randn(input_shape, device=device, requires_grad=True)
                         target = torch.empty(input_shape, device=device).random_(2)
                         sigmoid = nn.Sigmoid()
+
                         input = torch.randn(input_shape, device=device, requires_grad=True)
                         m = module(reduction=reduction)
                         output = m(sigmoid(input), target)
                         verify_reduction_scalars(input, reduction, output)
-
 
     def test_normalize(self):
         inputs = torch.randn(1, 3, 4, 4, requires_grad=True)
