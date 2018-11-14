@@ -18,6 +18,7 @@ if (BUILD_CAFFE2_OPS)
     set(Caffe2_HIP_INCLUDES ${Caffe2_HIP_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
     hip_include_directories(${Caffe2_HIP_INCLUDES})
     set_source_files_properties(${Detectron_HIP_SRCS} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+    set_source_files_properties(${Detectron_CPU_SRCS} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
     HIP_ADD_LIBRARY(
         caffe2_detectron_ops_hip SHARED
         ${Detectron_CPU_SRCS}
