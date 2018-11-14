@@ -6977,7 +6977,7 @@ new_criterion_tests = [
             loss_reference_fns['NLLLossNd'](i, t, reduction=get_reduction(m)),
         check_sum_reduction=True,
         desc='2d',
-        test_cuda=(not TEST_WITH_ROCM)
+        test_cuda=(not TEST_WITH_ROCM),
     ),
     dict(
         module_name='NLLLoss',
