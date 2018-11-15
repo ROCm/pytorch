@@ -783,6 +783,7 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
     // call cublasHgemm
     CUBLAS_ENFORCE(cublasSetPointerMode(
         context->cublas_handle(), CUBLAS_POINTER_MODE_HOST));
+  #ifdef __HIPCC__
     CUBLAS_ENFORCE(cublasHgemm(
         context->cublas_handle(),
         cu_trans_B,
@@ -790,7 +791,6 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         N,
         M,
         K,
-      #ifdef __HIPCC__
         reinterpret_cast<const rocblas_half*>(&alpha_fp16),
         reinterpret_cast<const rocblas_half*>(B),
         ldb,
@@ -798,7 +798,15 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         lda,
         reinterpret_cast<const rocblas_half*>(&beta_fp16),
         reinterpret_cast<rocblas_half*>(C),
-      #else
+        N));
+  #else
+    CUBLAS_ENFORCE(cublasHgemm(
+        context->cublas_handle(),
+        cu_trans_B,
+        cu_trans_A,
+        N,
+        M,
+        K,
         &alpha_fp16,
         (const __half*)B,
         ldb,
@@ -806,8 +814,8 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         lda,
         &beta_fp16,
         (__half*)C,
-      #endif
         N));
+  #endif
   } else {
     // fail
     CAFFE_THROW("Unsupported math type");
@@ -1520,6 +1528,7 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
     const __half beta_fp16 = at::Half(beta);
     CUBLAS_ENFORCE(cublasSetPointerMode(
         context->cublas_handle(), CUBLAS_POINTER_MODE_HOST));
+  #ifdef __HIPCC__
     CUBLAS_ENFORCE(cublasHgemm(
         context->cublas_handle(),
         cu_trans_A,
@@ -1527,7 +1536,6 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         m,
         1,
         k,
-      #ifdef __HIPCC__
         reinterpret_cast<const rocblas_half*>(&alpha_fp16),
         reinterpret_cast<const rocblas_half*>(A),
         lda,
@@ -1535,7 +1543,15 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         k,
         reinterpret_cast<const rocblas_half*>(&beta_fp16),
         reinterpret_cast<rocblas_half*>(y),
-      #else
+        ldc));
+  #else
+    CUBLAS_ENFORCE(cublasHgemm(
+        context->cublas_handle(),
+        cu_trans_A,
+        CUBLAS_OP_N,
+        m,
+        1,
+        k,
         &alpha_fp16,
         (const __half*)A,
         lda,
@@ -1543,8 +1559,8 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         k,
         &beta_fp16,
         (__half*)y,
-      #endif
         ldc));
+  #endif
   } else {
     // fail
     CAFFE_THROW("Unsupported math type");
