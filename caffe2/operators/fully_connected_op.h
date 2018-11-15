@@ -274,7 +274,13 @@ class FullyConnectedGradientOp : public Operator<Context> {
         bias_multiplier_.template data<T_B>(),
         0,
         db->template mutable_data<T_DB>(),
-        &context_);
+        &context_
+      #ifdef __HIPCC__
+        // cuda passes float as math_type by default.
+        // float compute type is not supported on rocblas yet.
+        ,math_type
+      #endif
+        );
 
     // Compute dX
     if (OutputSize() == 3) {
