@@ -743,9 +743,6 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
     at::Half* C,
     CUDAContext* context,
     TensorProto::DataType math_type) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
-#else
   // Note that cublas follows fortran order, so the order is different from
   // the cblas convention.
   const int lda = (trans_A == CblasNoTrans) ? K : M;
@@ -755,6 +752,9 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
   const cublasOperation_t cu_trans_B =
       (trans_B == CblasNoTrans) ? CUBLAS_OP_N : CUBLAS_OP_T;
   if (math_type == TensorProto_DataType_FLOAT) {
+#ifdef __HIPCC__
+    CAFFE_THROW("Unsupported math type");
+#else
     CUBLAS_ENFORCE(cublasSetPointerMode(
         context->cublas_handle(), CUBLAS_POINTER_MODE_HOST));
     CUBLAS_ENFORCE(cublasSgemmEx(
@@ -775,6 +775,7 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         C,
         CUDA_R_16F,
         N));
+#endif // __HIPCC__
   } else if (math_type == TensorProto_DataType_FLOAT16) {
     // convert alpha, beta from float -> __half
     const __half alpha_fp16 = at::Half(alpha);
@@ -789,6 +790,15 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         N,
         M,
         K,
+      #ifdef __HIPCC__
+        reinterpret_cast<const rocblas_half*>(&alpha_fp16),
+        reinterpret_cast<const rocblas_half*>(B),
+        ldb,
+        reinterpret_cast<const rocblas_half*>(A),
+        lda,
+        reinterpret_cast<const rocblas_half*>(&beta_fp16),
+        reinterpret_cast<rocblas_half*>(C),
+      #else
         &alpha_fp16,
         (const __half*)B,
         ldb,
@@ -796,12 +806,12 @@ CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext>(
         lda,
         &beta_fp16,
         (__half*)C,
+      #endif
         N));
   } else {
     // fail
     CAFFE_THROW("Unsupported math type");
   }
-#endif
 }
 
 template <>
@@ -968,9 +978,6 @@ CAFFE2_CUDA_EXPORT void GemmBatched<at::Half, CUDAContext>(
     at::Half** C,
     CUDAContext* context,
     TensorProto::DataType math_type) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
-#else
 #if __CUDACC_VER_MAJOR__ < 9
   // loop over matrices in the batch
   for (int i = 0; i < batch_size; ++i) {
@@ -1083,7 +1090,6 @@ CAFFE2_CUDA_EXPORT void GemmBatched<at::Half, CUDAContext>(
     CAFFE_THROW("Unsupported math type");
   }
 #endif
-#endif
 }
 
 template <>
@@ -1104,9 +1110,6 @@ CAFFE2_CUDA_EXPORT void GemmStridedBatched<at::Half, CUDAContext>(
     const int C_stride,
     CUDAContext* context,
     TensorProto::DataType math_type) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
-#else
 #if __CUDACC_VER_MAJOR__ < 8
   // loop over matrices in the batch
   for (int i = 0; i < batch_size; ++i) {
@@ -1192,7 +1195,6 @@ CAFFE2_CUDA_EXPORT void GemmStridedBatched<at::Half, CUDAContext>(
   } else {
     CAFFE_THROW("Unsupported math type");
   }
-#endif
 #endif
 }
 
@@ -1479,9 +1481,6 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
     at::Half* y,
     CUDAContext* context,
     TensorProto::DataType math_type) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
-#else
   const cublasOperation_t cu_trans_A =
       (trans_A == CblasNoTrans) ? CUBLAS_OP_T : CUBLAS_OP_N;
 
@@ -1492,6 +1491,9 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
   const int ldc = m;
 
   if (math_type == TensorProto_DataType_FLOAT) {
+#ifdef __HIPCC__
+    CAFFE_THROW("Unsupported math type");
+#else
     CUBLAS_ENFORCE(cublasSetPointerMode(
         context->cublas_handle(), CUBLAS_POINTER_MODE_HOST));
     CUBLAS_ENFORCE(cublasSgemmEx(
@@ -1512,6 +1514,7 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         y,
         CUDA_R_16F,
         ldc));
+#endif // __HIPCC__
   } else if (math_type == TensorProto_DataType_FLOAT16) {
     const __half alpha_fp16 = at::Half(alpha);
     const __half beta_fp16 = at::Half(beta);
@@ -1524,6 +1527,15 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         m,
         1,
         k,
+      #ifdef __HIPCC__
+        reinterpret_cast<const rocblas_half*>(&alpha_fp16),
+        reinterpret_cast<const rocblas_half*>(A),
+        lda,
+        reinterpret_cast<const rocblas_half*>(x),
+        k,
+        reinterpret_cast<const rocblas_half*>(&beta_fp16),
+        reinterpret_cast<rocblas_half*>(y),
+      #else
         &alpha_fp16,
         (const __half*)A,
         lda,
@@ -1531,12 +1543,12 @@ CAFFE2_CUDA_EXPORT void Gemv<at::Half, CUDAContext>(
         k,
         &beta_fp16,
         (__half*)y,
+      #endif
         ldc));
   } else {
     // fail
     CAFFE_THROW("Unsupported math type");
   }
-#endif
 }
 
 namespace {
@@ -1727,8 +1739,8 @@ CAFFE2_CUDA_EXPORT void Dot<at::Half, CUDAContext>(
     const at::Half* b,
     at::Half* y,
     CUDAContext* context) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
+#if defined(__HIPCC__)
+  CAFFE_THROW("HIP currently does not support FP16 completely yet.");
 #else
   // execute with 32-bit math
   CUBLAS_ENFORCE(cublasSetPointerMode(
@@ -2358,8 +2370,8 @@ CAFFE2_CUDA_EXPORT void Axpy<at::Half, CUDAContext>(
     const at::Half* X,
     at::Half* Y,
     CUDAContext* context) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
+#if defined(__HIPCC__)
+  CAFFE_THROW("HIP currently does not support FP16 completely yet.");
 #else
   CUBLAS_ENFORCE(
       cublasSetPointerMode(context->cublas_handle(), CUBLAS_POINTER_MODE_HOST));
@@ -2397,8 +2409,8 @@ CAFFE2_CUDA_EXPORT void Axpy<at::Half, CUDAContext>(
     const at::Half* X,
     at::Half* Y,
     CUDAContext* context) {
-#if defined(__HIPCC__) && !ROCBLAS_FP16
-  CAFFE_THROW("HIP currently does not support FP16 yet.");
+#if defined(__HIPCC__)
+  CAFFE_THROW("HIP currently does not support FP16 completely yet.");
 #else
   CUBLAS_ENFORCE(cublasSetPointerMode(
       context->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE));

@@ -687,7 +687,6 @@ if(NOT BUILD_ATEN_MOBILE)
     list(APPEND HIP_CXX_FLAGS -Wno-unused-command-line-argument)
     list(APPEND HIP_CXX_FLAGS -Wno-duplicate-decl-specifier)
     list(APPEND HIP_CXX_FLAGS -DCAFFE2_USE_MIOPEN)
-    list(APPEND HIP_CXX_FLAGS -DROCBLAS_FP16=0)
 
     if(CMAKE_BUILD_TYPE MATCHES Debug)
        list(APPEND HIP_CCX_FLAGS -g)
