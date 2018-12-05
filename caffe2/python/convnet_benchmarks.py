@@ -767,7 +767,7 @@ def AddParameterUpdate(model):
 
 
 def Benchmark(model_gen, arg):
-    if arg.model == 'Resnet50' or arg.model == "Resnext101" or arg.model == "Resnet101":
+    if arg.model in ("Resnet50", "Resnext101", "Resnet101"):
         model, input_size = model_gen(arg)
     else:
         model, input_size = model_gen(arg.order, arg.cudnn_ws, arg.model_path)
@@ -802,7 +802,7 @@ def Benchmark(model_gen, arg):
         print('{}: running forward only.'.format(arg.model))
     else:
         print('{}: running forward-backward.'.format(arg.model))
-        if not (arg.model == "Resnet50" or arg.model == "Resnext101" or arg.model == "Resnet101"):
+        if not (arg.model in ("Resnet50", "Resnext101", "Resnet101")):
             model.AddGradientOperators(["loss"])
             AddParameterUpdate(model)
         if arg.order == 'NHWC':
