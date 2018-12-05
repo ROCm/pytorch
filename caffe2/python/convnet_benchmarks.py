@@ -656,7 +656,7 @@ def Resnet101(args):
                                                  label="label",
                                                  num_layers=101,
                                                  num_groups=1,
-                                                 num_width_per_group=32,
+                                                 num_width_per_group=64,
                                                  no_bias=True, )
         prefix = model.net.Proto().name
         loss = model.net.Scale(loss, prefix + "_loss", scale=loss_scale)
