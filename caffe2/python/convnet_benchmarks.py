@@ -645,7 +645,7 @@ def Resnet101(args):
     ##################
     # Define the Model
     ##################
-    train_model = model_helper.ModelHelper(name="resnet50_train")
+    train_model = model_helper.ModelHelper(name="resnet101_train")
 
     def create_resnet101_model_ops(model, loss_scale=1.0):
         # residual network
