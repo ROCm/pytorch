@@ -632,6 +632,48 @@ def Resnet50(args):
 
     return train_model, 224
 
+def Resnet101(args):
+    gpus = [0]
+    device_opt = core.DeviceOption(caffe2_pb2.HIP)
+    device_opt.device_id = gpus[0]
+    num_labels = 1000
+    base_learning_rate = 0.0004 * args.batch_size
+
+    # Weight decay (L2 regularization)
+    weight_decay = 1e-4
+
+    ##################
+    # Define the Model
+    ##################
+    train_model = model_helper.ModelHelper(name="resnet50_train")
+
+    def create_resnet101_model_ops(model, loss_scale=1.0):
+        # residual network
+        [softmax, loss] = resnet.create_resnext(model,
+                                                 "data",
+                                                 num_input_channels=3,
+                                                 num_labels=num_labels,
+                                                 label="label",
+                                                 num_layers=101,
+                                                 num_groups=1,
+                                                 num_width_per_group=32,
+                                                 no_bias=True, )
+        prefix = model.net.Proto().name
+        loss = model.net.Scale(loss, prefix + "_loss", scale=loss_scale)
+        brew.accuracy(model, [softmax, "label"], prefix + "_accuracy")
+        return [loss]
+
+    with core.NameScope(""):
+        with core.DeviceScope(device_opt):
+            losses = create_resnet101_model_ops(train_model)
+            if not args.forward_only:
+                blobs_to_gradients = train_model.AddGradientOperators(losses)
+                add_parameter_update_ops_resnet(train_model, base_learning_rate, weight_decay)
+        if not args.forward_only:
+            optimize_gradient_memory_resnet(train_model, [blobs_to_gradients[losses[0]]])
+
+    return train_model, 224
+
 def Resnext101(args):
     gpus = [0]
     device_opt = core.DeviceOption(caffe2_pb2.HIP)
@@ -725,7 +767,7 @@ def AddParameterUpdate(model):
 
 
 def Benchmark(model_gen, arg):
-    if arg.model == 'Resnet50' or arg.model == "Resnext101":
+    if arg.model == 'Resnet50' or arg.model == "Resnext101" or arg.model == "Resnet101":
         model, input_size = model_gen(arg)
     else:
         model, input_size = model_gen(arg.order, arg.cudnn_ws, arg.model_path)
@@ -760,7 +802,7 @@ def Benchmark(model_gen, arg):
         print('{}: running forward only.'.format(arg.model))
     else:
         print('{}: running forward-backward.'.format(arg.model))
-        if not (arg.model == "Resnet50" or arg.model == "Resnext101"):
+        if not (arg.model == "Resnet50" or arg.model == "Resnext101" or arg.model == "Resnet101"):
             model.AddGradientOperators(["loss"])
             AddParameterUpdate(model)
         if arg.order == 'NHWC':
@@ -879,6 +921,7 @@ if __name__ == '__main__':
             'Inception': Inception,
             'MLP': MLP,
             'Resnet50': Resnet50,
+            'Resnet101': Resnet101,
             'Inception_v2': Inception_v2,
             'Resnext101': Resnext101,
         }
