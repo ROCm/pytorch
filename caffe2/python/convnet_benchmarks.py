@@ -595,7 +595,7 @@ def Inception(order, cudnn_ws, model_path=""):
 
 def Resnet50(args):
     gpus = [0]
-    device_opt = core.DeviceOption(caffe2_pb2.HIP)
+    device_opt = core.DeviceOption(caffe2_pb2.HIP if workspace.has_hip_support else caffe2_pb2.CUDA)
     device_opt.device_id = gpus[0]
     num_labels = 1000
     base_learning_rate = 0.0004 * args.batch_size
@@ -634,7 +634,7 @@ def Resnet50(args):
 
 def Resnet101(args):
     gpus = [0]
-    device_opt = core.DeviceOption(caffe2_pb2.HIP)
+    device_opt = core.DeviceOption(caffe2_pb2.HIP if workspace.has_hip_support else caffe2_pb2.CUDA)
     device_opt.device_id = gpus[0]
     num_labels = 1000
     base_learning_rate = 0.0004 * args.batch_size
@@ -676,7 +676,7 @@ def Resnet101(args):
 
 def Resnext101(args):
     gpus = [0]
-    device_opt = core.DeviceOption(caffe2_pb2.HIP)
+    device_opt = core.DeviceOption(caffe2_pb2.HIP if workspace.has_hip_support else caffe2_pb2.CUDA)
     device_opt.device_id = gpus[0]
     num_labels = 1000
     base_learning_rate = 0.0004 * args.batch_size
