@@ -286,7 +286,7 @@ void THCudaBlas_Hgemm(THCState *state, char transa, char transb, int64_t m, int6
       cublasSetStream(handle, THCState_getCurrentStream(state));
 
 #ifdef __HIP_PLATFORM_HCC__
-#if __hcc_workweek__ < 18383
+#if __hcc_workweek__ < 18451
       THCublasCheck(rocblas_hgemm(handle, opa, opb, i_m, i_n, i_k,
                     reinterpret_cast<rocblas_half*>(&alpha), reinterpret_cast<rocblas_half*>(a), i_lda,
                     reinterpret_cast<rocblas_half*>(b), i_ldb, reinterpret_cast<rocblas_half*>(&beta),
@@ -358,7 +358,7 @@ void THCudaBlas_Dgemm(THCState *state, char transa, char transb, int64_t m, int6
           "with the bound [val] <= %d", INT_MAX);
 }
 
-#if CUDA_VERSION >= 9010  || (defined __HIP_PLATFORM_HCC__ && __hcc_workweek__ > 18383)
+#if CUDA_VERSION >= 9010  || (defined __HIP_PLATFORM_HCC__ && __hcc_workweek__ > 18451)
 void THCudaBlas_HgemmStridedBatched(THCState *state, char transa, char transb, int64_t m, int64_t n, int64_t k,
                              at::Half alpha, const at::Half *a, int64_t lda, int64_t strideA, const at::Half *b, int64_t ldb, int64_t strideB,
                              at::Half beta, at::Half *c, int64_t ldc, int64_t strideC, int64_t batchCount)
