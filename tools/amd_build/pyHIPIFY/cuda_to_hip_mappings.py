@@ -238,6 +238,10 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict([
     ("curandStateXORWOW_t", ("hiprandStateXORWOW_t", CONV_TYPE, API_RAND)),
     ("curandState_t", ("hiprandState_t", CONV_TYPE, API_RAND)),
     ("curandState", ("hiprandState_t", CONV_TYPE, API_RAND)),
+    ("ncclResult_t", ("rcclResult_t", CONV_TYPE, API_RCCL)),
+    ("ncclComm_t", ("rcclComm_t", CONV_TYPE, API_RCCL)),
+    ("ncclDataType_t", ("rcclDataType_t", CONV_TYPE, API_RCCL)),
+    ("ncclRedOp_t", ("rcclRedOp_t", CONV_TYPE, API_RCCL)),
 ])
 
 CUDA_INCLUDE_MAP = collections.OrderedDict([
@@ -276,6 +280,7 @@ CUDA_INCLUDE_MAP = collections.OrderedDict([
     ("cusparse.h", ("hipsparse.h", CONV_INCLUDE, API_RAND)),
     ("cufft.h", ("hipfft.h", CONV_INCLUDE, API_BLAS)),
     ("cufftXt.h", ("hipfft.h", CONV_INCLUDE, API_BLAS)),
+    ("<nccl.h>", ("<rccl.h>", CONV_INCLUDE, API_RCCL)), #PyTorch also has a source file named "nccl.h", so we need to use "<"">" to differentiate
 ])
 
 CUDA_IDENTIFIER_MAP = collections.OrderedDict([
@@ -2172,6 +2177,40 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict([
     ("cufftDestroy", ("hipfftDestroy", CONV_MATH_FUNC, API_FFT)),
     ("cufftGetVersion", ("hipfftGetVersion", CONV_MATH_FUNC, API_FFT)),
     ("cufftGetProperty", ("hipfftGetProperty", CONV_MATH_FUNC, API_FFT, HIP_UNSUPPORTED)),
+    ("ncclGetErrorString", ("rcclGetErrorString", CONV_ERROR, API_RCCL)),
+    ("ncclCommInitAll", ("rcclCommInitAll", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclCommInitRank", ("rcclCommInitRank", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclCommDestroy", ("rcclCommDestroy", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclBcast", ("rcclBcast", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclReduce", ("rcclReduce", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclAllReduce", ("rcclAllReduce", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclAllGather", ("rcclAllGather", CONV_SPECIAL_FUNC, API_RCCL)),
+    ("ncclReduceScatter", ("rcclReduceScatter", CONV_SPECIAL_FUNC, API_RCCL, HIP_UNSUPPORTED)),
+    ("ncclSuccess", ("rcclSuccess", CONV_TYPE, API_RCCL)),
+    ("ncclChar", ("rcclChar", CONV_TYPE, API_RCCL)),
+    ("ncclInt8", ("rcclChar", CONV_TYPE, API_RCCL)),
+    ("ncclUint8", ("rcclChar", CONV_TYPE, API_RCCL)), #FIXME: This should be mapped to an unsigned int8 type
+    ("ncclInt", ("rcclInt", CONV_TYPE, API_RCCL)),
+    ("ncclInt32", ("rcclInt", CONV_TYPE, API_RCCL)),
+    ("ncclUint32", ("rcclInt", CONV_TYPE, API_RCCL)), #FIXME: This should be mapped to an unsigned int32 type
+    ("ncclInt64", ("rcclInt64", CONV_TYPE, API_RCCL)),
+    ("ncclUint64", ("rcclUint64", CONV_TYPE, API_RCCL)),
+    ("ncclHalf", ("rcclHalf", CONV_TYPE, API_RCCL)),
+    ("ncclFloat16", ("rcclHalf", CONV_TYPE, API_RCCL)),
+    ("ncclFloat", ("rcclFloat", CONV_TYPE, API_RCCL)),
+    ("ncclFloat32", ("rcclFloat", CONV_TYPE, API_RCCL)),
+    ("ncclDouble", ("rcclDouble", CONV_TYPE, API_RCCL)),
+    ("ncclFloat64", ("rcclDouble", CONV_TYPE, API_RCCL)),
+    ("ncclSum", ("rcclSum", CONV_TYPE, API_RCCL)),
+    ("ncclProd", ("rcclProd", CONV_TYPE, API_RCCL)),
+    ("ncclMin", ("rcclMin", CONV_TYPE, API_RCCL)),
+    ("ncclMax", ("rcclMax", CONV_TYPE, API_RCCL)),
+    ("ncclUniqueId", ("rcclUniqueId", CONV_TYPE, API_RCCL)),
+    ("ncclGetUniqueId", ("rcclGetUniqueId", CONV_TYPE, API_RCCL)),
+    ("ncclGroupStart", ("rcclGroupStart", CONV_TYPE, API_RCCL)),
+    ("ncclGroupEnd", ("rcclGroupEnd", CONV_TYPE, API_RCCL)),
+    ("NCCL_UNIQUE_ID_BYTES", ("RCCL_UNIQUE_ID_BYTES", CONV_TYPE, API_RCCL)),
+    ("USE_NCCL", ("USE_RCCL", CONV_DEF, API_RCCL)),
 ])
 
 CUDA_SPARSE_MAP = collections.OrderedDict([

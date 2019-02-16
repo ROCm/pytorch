@@ -13,6 +13,7 @@ from distutils.version import LooseVersion
 from .setup_helpers.cuda import USE_CUDA, CUDA_HOME
 from .setup_helpers.dist_check import USE_DISTRIBUTED, USE_GLOO_IBVERBS
 from .setup_helpers.nccl import USE_SYSTEM_NCCL, NCCL_INCLUDE_DIR, NCCL_ROOT_DIR, NCCL_SYSTEM_LIB
+from .setup_helpers.rccl import USE_RCCL, RCCL_LIB_DIR, RCCL_INCLUDE_DIR, RCCL_ROOT_DIR, RCCL_SYSTEM_LIB
 from .setup_helpers.rocm import ROCM_HOME, ROCM_VERSION, USE_ROCM
 from .setup_helpers.nnpack import USE_NNPACK
 from .setup_helpers.qnnpack import USE_QNNPACK
@@ -171,6 +172,11 @@ def run_cmake(version,
         NCCL_INCLUDE_DIR=NCCL_INCLUDE_DIR,
         NCCL_ROOT_DIR=NCCL_ROOT_DIR,
         NCCL_SYSTEM_LIB=NCCL_SYSTEM_LIB,
+        USE_RCCL=USE_RCCL,
+        RCCL_LIB_DIR=RCCL_LIB_DIR,
+        RCCL_INCLUDE_DIR=RCCL_INCLUDE_DIR,
+        RCCL_ROOT_DIR=RCCL_ROOT_DIR,
+        RCCL_SYSTEM_LIB=RCCL_SYSTEM_LIB,
         CAFFE2_STATIC_LINK_CUDA=check_env_flag('USE_CUDA_STATIC_LINK'),
         USE_ROCM=USE_ROCM,
         USE_NNPACK=USE_NNPACK,
@@ -199,6 +205,9 @@ def run_cmake(version,
 
     if USE_GLOO_IBVERBS:
         cmake_defines(cmake_args, USE_IBVERBS="1", USE_GLOO_IBVERBS="1")
+
+    if USE_MKLDNN:
+        cmake_defines(cmake_args, MKLDNN_ENABLE_CONCURRENT_EXEC="ON")
 
     expected_wrapper = '/usr/local/opt/ccache/libexec'
     if IS_DARWIN and os.path.exists(expected_wrapper):

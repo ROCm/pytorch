@@ -134,6 +134,11 @@
 #   NCCL_INCLUDE_DIR
 #     specify where nccl is installed
 #
+#   RCCL_ROOT_DIR
+#   RCCL_LIB_DIR
+#   RCCL_INCLUDE_DIR
+#     specify where rccl is installed
+#
 #   NVTOOLSEXT_PATH (Windows only)
 #     specify where nvtoolsext is installed
 #
@@ -169,6 +174,7 @@ from tools.setup_helpers.cudnn import USE_CUDNN, CUDNN_LIBRARY, CUDNN_INCLUDE_DI
 from tools.setup_helpers.rocm import USE_ROCM
 from tools.setup_helpers.miopen import USE_MIOPEN, MIOPEN_LIBRARY, MIOPEN_INCLUDE_DIR
 from tools.setup_helpers.nccl import USE_NCCL, USE_SYSTEM_NCCL, NCCL_SYSTEM_LIB, NCCL_INCLUDE_DIR
+from tools.setup_helpers.rccl import USE_RCCL, RCCL_LIB_DIR, RCCL_INCLUDE_DIR, RCCL_ROOT_DIR, RCCL_SYSTEM_LIB
 from tools.setup_helpers.dist_check import USE_DISTRIBUTED
 ################################################################################
 # Parameters parsed from environment
@@ -343,6 +349,11 @@ class build_ext(setuptools.command.build_ext.build_ext):
             report('-- Building NCCL library')
         else:
             report('-- Not using NCCL')
+        if USE_RCCL:
+            print('-- Detected RCCL library at ' +
+                  RCCL_SYSTEM_LIB + ', ' + RCCL_INCLUDE_DIR)
+        else:
+            print('-- Not using RCCL')
         if USE_DISTRIBUTED:
             report('-- Building with THD distributed package ')
             if IS_LINUX:
@@ -792,12 +803,15 @@ if __name__ == '__main__':
                 'include/torch/csrc/api/include/torch/optim/*.h',
                 'include/torch/csrc/api/include/torch/serialize/*.h',
                 'include/torch/csrc/autograd/*.h',
+                'include/torch/csrc/autograd/functions/*.h',
                 'include/torch/csrc/autograd/generated/*.h',
+                'include/torch/csrc/autograd/utils/*.h',
                 'include/torch/csrc/cuda/*.h',
                 'include/torch/csrc/jit/*.h',
                 'include/torch/csrc/jit/generated/*.h',
                 'include/torch/csrc/jit/passes/*.h',
                 'include/torch/csrc/jit/script/*.h',
+                'include/torch/csrc/onnx/*.h',
                 'include/torch/csrc/utils/*.h',
                 'include/pybind11/*.h',
                 'include/pybind11/detail/*.h',
