@@ -1,5 +1,11 @@
 {
   "disable_unsupported_hip_calls": [
+   {
+    "path": "torch/lib/c10d/NCCLUtils.hpp",
+    "s_constants": {
+        "<nccl.h>": "\"c10d/rccl1_compat.h\""
+    }
+   }
   ],
   "disabled_modules": [
   ],

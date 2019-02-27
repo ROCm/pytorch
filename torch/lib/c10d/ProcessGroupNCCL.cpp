@@ -164,6 +164,22 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   processGroupID_ = std::to_string(processGroupCounterMap_[groupKey]);
   groupPgID_ = groupName_ + "_" + processGroupID_;
   pgUniqueNCCLIDCnt_[groupPgID_] = -1;
+
+#ifdef __HIP_PLATFORM_HCC__
+  int nDevices;
+  if (hipGetDeviceCount(&nDevices) != hipSuccess) {
+    hipGetLastError();
+    nDevices = 0;
+  }
+  for (int i = 0; i < nDevices; ++i) {
+    hipSetDevice(i);
+    // Enable peer access from current device to all other devices
+    for (int j = 0; j < nDevices; ++j) {
+      if (i==j) continue;
+      hipDeviceEnablePeerAccess(j, 0);
+    }
+  }
+#endif
 }
 
 ProcessGroupNCCL::~ProcessGroupNCCL() {

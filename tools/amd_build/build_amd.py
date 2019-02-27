@@ -97,12 +97,14 @@ if not args.out_of_place_only:
         # These files use nvrtc, hip doesn't have equivalent
         "csrc/autograd/profiler.h",
         "csrc/autograd/profiler.cpp",
+        "torch/lib/c10d/ProcessGroupGloo.hpp",
+        "torch/lib/c10d/ProcessGroupGloo.cpp",
         # These files are compatible with both cuda and hip
         "csrc/autograd/engine.cpp"
     ]
     for root, _directories, files in os.walk(os.path.join(proj_dir, "torch")):
         for filename in files:
-            if filename.endswith(".cpp") or filename.endswith(".h"):
+            if filename.endswith(".cpp") or filename.endswith(".h") or filename.endswith(".hpp"):
                 source = os.path.join(root, filename)
                 # Disabled files
                 if reduce(lambda result, exclude: source.endswith(exclude) or result, ignore_files, False):

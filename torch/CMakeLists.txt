@@ -688,7 +688,7 @@ if (BUILD_PYTHON)
       list(APPEND TORCH_PYTHON_SRCS ${TORCH_SRC_DIR}/csrc/distributed/c10d/init.cpp)
       list(APPEND TORCH_PYTHON_LINK_LIBRARIES c10d)
       list(APPEND TORCH_PYTHON_COMPILE_DEFINITIONS USE_C10D)
-      if (USE_CUDA)
+      if (USE_CUDA OR USE_ROCM)
         list(APPEND TORCH_PYTHON_SRCS ${TORCH_SRC_DIR}/csrc/distributed/c10d/ddp.cpp)
       endif()
     endif()
@@ -702,6 +702,13 @@ if (BUILD_PYTHON)
     list(APPEND TORCH_PYTHON_LINK_LIBRARIES __caffe2_nccl)
     if (USE_SYSTEM_NCCL)
     endif()
+  endif()
+
+  if (USE_RCCL)
+    list(APPEND TORCH_PYTHON_SRCS
+      ${TORCH_SRC_DIR}/csrc/cuda/nccl.cpp
+      ${TORCH_SRC_DIR}/csrc/cuda/python_nccl.cpp)
+    list(APPEND TORCH_PYTHON_COMPILE_DEFINITIONS USE_RCCL)
   endif()
 
   add_custom_target(torch_python_stubs DEPENDS "${TORCH_SRC_DIR}/__init__.pyi")

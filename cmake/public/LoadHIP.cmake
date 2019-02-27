@@ -100,6 +100,13 @@ ELSE()
   SET(HCC_AMDGPU_TARGET $ENV{HCC_AMDGPU_TARGET})
 ENDIF()
 
+# RCCL PATH
+IF(NOT DEFINED ENV{RCCL_PATH})
+  SET(RCCL_PATH ${ROCM_PATH}/rccl)
+ELSE()
+  SET(RCCL_PATH $ENV{RCCL_PATH})
+ENDIF()
+
 # Add HIP to the CMAKE Module Path
 set(CMAKE_MODULE_PATH ${HIP_PATH}/cmake ${CMAKE_MODULE_PATH})
 
@@ -140,6 +147,7 @@ IF(HIP_FOUND)
   set(rocfft_DIR ${ROCFFT_PATH}/lib/cmake/rocfft)
   set(hipsparse_DIR ${HIPSPARSE_PATH}/lib/cmake/hipsparse)
   set(rocsparse_DIR ${ROCSPARSE_PATH}/lib/cmake/rocsparse)
+  set(rccl_DIR ${RCCL_PATH}/lib/cmake/rccl)
 
   find_package_and_print_version(rocrand REQUIRED)
   find_package_and_print_version(hiprand REQUIRED)
@@ -149,6 +157,7 @@ IF(HIP_FOUND)
   find_package_and_print_version(rocfft REQUIRED)
   #find_package_and_print_version(hipsparse REQUIRED)
   find_package_and_print_version(rocsparse REQUIRED)
+  find_package_and_print_version(rccl)
 
   # TODO: hip_hcc has an interface include flag "-hc" which is only
   # recognizable by hcc, but not gcc and clang. Right now in our
@@ -158,6 +167,7 @@ IF(HIP_FOUND)
   # TODO: miopen_LIBRARIES should return fullpath to the library file,
   # however currently it's just the lib name
   FIND_LIBRARY(PYTORCH_MIOPEN_LIBRARIES ${miopen_LIBRARIES} HINTS ${MIOPEN_PATH}/lib)
+  FIND_LIBRARY(PYTORCH_RCCL_LIBRARIES ${rccl_LIBRARIES} HINTS ${RCCL_PATH}/lib)
   FIND_LIBRARY(hiprand_LIBRARIES hiprand HINTS ${HIPRAND_PATH}/lib)
   FIND_LIBRARY(rocsparse_LIBRARIES rocsparse HINTS ${ROCSPARSE_PATH}/lib)
   FIND_LIBRARY(hipsparse_LIBRARIES hipsparse HINTS ${HIPSPARSE_PATH}/lib)
