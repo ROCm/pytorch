@@ -161,11 +161,11 @@ set(TORCH_SRCS
   ${TORCH_SRC_DIR}/csrc/jit/passes/remove_inplace_ops.cpp
   ${TORCH_SRC_DIR}/csrc/jit/passes/shape_analysis.cpp
   ${TORCH_SRC_DIR}/csrc/jit/passes/requires_grad_analysis.cpp
-  ${TORCH_SRC_DIR}/csrc/jit/passes/specialize_undef.cpp
+  ${TORCH_SRC_DIR}/csrc/jit/passes/specialize_autogradzero.cpp
   ${TORCH_SRC_DIR}/csrc/jit/passes/python_print.cpp
   ${TORCH_SRC_DIR}/csrc/jit/passes/utils/subgraph_utils.cpp
   ${TORCH_SRC_DIR}/csrc/jit/passes/utils/check_alias_annotation.cpp
-  ${TORCH_SRC_DIR}/csrc/jit/passes/utils/alias_tracker.cpp
+  ${TORCH_SRC_DIR}/csrc/jit/passes/utils/memory_dag.cpp
   ${TORCH_SRC_DIR}/csrc/jit/fuser/interface.cpp
   ${TORCH_SRC_DIR}/csrc/jit/register_prim_ops.cpp
   ${TORCH_SRC_DIR}/csrc/jit/register_special_ops.cpp
@@ -177,7 +177,7 @@ set(TORCH_SRCS
   ${TORCH_SRC_DIR}/csrc/jit/script/schema_type_parser.cpp
   ${TORCH_SRC_DIR}/csrc/jit/script/script_type_parser.cpp
   ${TORCH_SRC_DIR}/csrc/jit/script/sugared_value.cpp
-  ${TORCH_SRC_DIR}/csrc/jit/script/user_type.cpp
+  ${TORCH_SRC_DIR}/csrc/jit/script/class_type.cpp
   ${TORCH_SRC_DIR}/csrc/jit/script/parser.cpp
   ${TORCH_SRC_DIR}/csrc/jit/script/builtin_functions.cpp
   ${TORCH_SRC_DIR}/csrc/jit/script/edit_distance.cpp
@@ -689,7 +689,7 @@ if (BUILD_PYTHON)
       list(APPEND TORCH_PYTHON_SRCS ${TORCH_SRC_DIR}/csrc/distributed/c10d/init.cpp)
       list(APPEND TORCH_PYTHON_LINK_LIBRARIES c10d)
       list(APPEND TORCH_PYTHON_COMPILE_DEFINITIONS USE_C10D)
-      if (USE_CUDA)
+      if (USE_CUDA OR USE_ROCM)
         list(APPEND TORCH_PYTHON_SRCS ${TORCH_SRC_DIR}/csrc/distributed/c10d/ddp.cpp)
       endif()
     endif()
@@ -703,6 +703,13 @@ if (BUILD_PYTHON)
     list(APPEND TORCH_PYTHON_LINK_LIBRARIES __caffe2_nccl)
     if (USE_SYSTEM_NCCL)
     endif()
+  endif()
+
+  if (USE_RCCL)
+    list(APPEND TORCH_PYTHON_SRCS
+      ${TORCH_SRC_DIR}/csrc/cuda/nccl.cpp
+      ${TORCH_SRC_DIR}/csrc/cuda/python_nccl.cpp)
+    list(APPEND TORCH_PYTHON_COMPILE_DEFINITIONS USE_RCCL)
   endif()
 
   add_custom_target(torch_python_stubs DEPENDS "${TORCH_SRC_DIR}/__init__.pyi")
