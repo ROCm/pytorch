@@ -875,7 +875,7 @@ for mapping in CUDA_TO_HIP_MAPPINGS:
             CAFFE2_MAP[src] = dst
 RE_CAFFE2_PREPROCESSOR = re.compile(CAFFE2_TRIE.pattern())
 # Use \W instead of \b so that even if the pattern contains non-word characters, the replacement still succeeds
-RE_PYTORCH_PREPROCESSOR = re.compile(r'(\W)({0})(\W)'.format(PYTORCH_TRIE.pattern()))
+RE_PYTORCH_PREPROCESSOR = re.compile(r'(\W)({0})(?=\W)'.format(PYTORCH_TRIE.pattern()))
 
 RE_QUOTE_HEADER = re.compile(r'#include "([^"]+)"')
 RE_ANGLE_HEADER = re.compile(r'#include <([^>]+)>')
@@ -896,7 +896,7 @@ def preprocessor(output_directory, filepath, stats, hip_clang_launch):
         # unsupported_calls statistics reporting is broken atm
         if is_pytorch_file(filepath):
             def pt_repl(m):
-                return m.group(1) + PYTORCH_MAP[m.group(2)] + m.group(3)
+                return m.group(1) + PYTORCH_MAP[m.group(2)]
             output_source = RE_PYTORCH_PREPROCESSOR.sub(pt_repl, output_source)
         else:
             def c2_repl(m):
