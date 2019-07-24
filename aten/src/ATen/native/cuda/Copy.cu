@@ -84,6 +84,9 @@ static void copy_device_to_device(TensorIterator& iter, bool non_blocking) {
     device_guard.set_device(dst_device);
     src_ready.block(getCurrentCUDAStream(dst_device.index()));
   }
+  else if (!non_blocking) {
+    AT_CUDA_CHECK(cudaStreamSynchronize(getCurrentCUDAStream()));
+  }
 
   AT_CUDA_CHECK(cudaGetLastError());
 }
