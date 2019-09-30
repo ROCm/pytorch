@@ -83,7 +83,7 @@ static PyObject * THPModule_initNames(PyObject *self, PyObject *arg)
 
   int num_classes = PySequence_Fast_GET_SIZE(types.get());
   names.reserve(names.size() + num_classes);
-  for (int i = 0; i < num_classes; i++) {
+  for (size_t i = 0; i < num_classes; i++) {
     PyObject* obj = PySequence_Fast_GET_ITEM(types.get(), i);
     THPUtils_assert(PyType_Check(obj), "expected a PyTypeObject");
     PyTypeObject* type = (PyTypeObject*)obj;
@@ -491,15 +491,30 @@ PyObject *THPModule_getDefaultDevice(PyObject *_unused, PyObject *arg) {
 
 PyObject *THPModule_setQEngine(PyObject */* unused */, PyObject *arg)
 {
-  TORCH_CHECK(THPQEngine_Check(arg), "qengine arg must be an instance of the torch.qengine");
-  const auto qengine = reinterpret_cast<THPQEngine*>(arg);
-  at::globalContext().setQEngine(qengine->qengine);
+  THPUtils_assert(THPUtils_checkLong(arg), "set_qengine expects an int, "
+          "but got %s", THPUtils_typename(arg));
+  auto qengine = static_cast<int>(THPUtils_unpackLong(arg));
+  at::globalContext().setQEngine(static_cast<at::QEngine>(qengine));
   Py_RETURN_NONE;
 }
 
 PyObject *THPModule_qEngine(PyObject */* unused */)
 {
-  return THPQEngine_New(at::globalContext().qEngine(), toString(at::globalContext().qEngine()));
+  return THPUtils_packInt64(static_cast<int>(at::globalContext().qEngine()));
+}
+
+PyObject *THPModule_supportedQEngines(PyObject */* unused */)
+{
+  auto qengines = at::globalContext().supportedQEngines();
+  auto list = THPObjectPtr(PyList_New(qengines.size()));
+  for (size_t i = 0; i < qengines.size(); ++i) {
+    PyObject *i64 = THPUtils_packInt64(static_cast<int>(qengines[i]));
+    if (!i64) {
+      throw python_error();
+    }
+    PyList_SET_ITEM(list.get(), i, i64);
+  }
+  return list.release();
 }
 
 static PyMethodDef TorchMethods[] = {
@@ -540,6 +555,7 @@ static PyMethodDef TorchMethods[] = {
   {"_get_default_device", (PyCFunction)THPModule_getDefaultDevice, METH_NOARGS,   nullptr},
   {"_get_qengine", (PyCFunction)THPModule_qEngine, METH_NOARGS, nullptr},
   {"_set_qengine", (PyCFunction)THPModule_setQEngine, METH_O, nullptr},
+  {"_supported_qengines", (PyCFunction)THPModule_supportedQEngines, METH_NOARGS, nullptr},
   {nullptr, nullptr, 0, nullptr}
 };
 
