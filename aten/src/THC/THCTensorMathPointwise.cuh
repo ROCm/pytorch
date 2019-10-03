@@ -116,6 +116,17 @@ struct TensorCRemainderOp<at::Half> {
   }
 };
 
+template <>
+struct TensorCRemainderOp<at::BFloat16> {
+  __device__ __forceinline__ void operator()(at::BFloat16* out, at::BFloat16* in) {
+    *out = *in != 0.f ? *out - *in * floorf(*out / *in) : NAN;
+ }
+
+  __device__ __forceinline__ void operator()(at::BFloat16* out, at::BFloat16* in1, at::BFloat16* in2) {
+    *out = *in2 != 0.f ? *in1 - *in2 * floorf(*in1 / *in2) : NAN;
+  }
+};
+
 template <typename T>
 struct TensorCFmodOp {
   __device__ __forceinline__ void operator()(T* out, T* in) {
@@ -156,6 +167,17 @@ struct TensorCFmodOp<at::Half> {
   }
 
   __device__ __forceinline__ void operator()(at::Half* out, at::Half* in1, at::Half* in2) {
+    *out = fmodf(*in1, *in2);
+  }
+};
+
+template <>
+struct TensorCFmodOp<at::BFloat16> {
+  __device__ __forceinline__ void operator()(at::BFloat16* out, at::BFloat16* in) {
+    *out = fmodf(*out, *in);
+ }
+
+  __device__ __forceinline__ void operator()(at::BFloat16* out, at::BFloat16* in1, at::BFloat16* in2) {
     *out = fmodf(*in1, *in2);
   }
 };

@@ -9,5 +9,3 @@
 #include <THC/generic/THCStorageCopy.cpp>
 #include <THC/THCGenerateBoolType.h>
 
-#include <THC/generic/THCStorageCopy.cpp>
-#include <THC/THCGenerateBFloat16Type.h>
