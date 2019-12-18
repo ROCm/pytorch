@@ -14812,7 +14812,6 @@ def generate_tensor_op_tests(cls):
         if make_inplace_variant:
             op_str = op_str + '_'
             subtest_str = 'inplace' + subtest_str
-            generate_test_function(cls, op_str, subtest_str, tensor_ctor, arg_ctor, half_precision, 
             generate_test_function(cls, op_str, subtest_str, tensor_ctor, arg_ctor, half_precision,
                                    bfloat16_precision, float_precision, dtype_list, decorators)
 
