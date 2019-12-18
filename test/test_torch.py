@@ -6710,8 +6710,8 @@ class TestTorchDeviceType(TestCase):
                 self.assertEqual(expected_res.bool(), c.bool())
 
             # in-place
-            b = torch.tensor([1, 0, 0, 10], dtype=dtype, device=device)
-            a.logical_xor_(b)
+            b = torch.tensor(b_, dtype=dtype, device=device)
+            getattr(a, op + '_')(b)
             self.assertEqual(expected_res, a)
 
     def test_logical_xor(self, device):
