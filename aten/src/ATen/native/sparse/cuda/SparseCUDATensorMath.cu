@@ -322,8 +322,8 @@ Tensor& add_out_dense_sparse_cuda(Tensor& r_, const Tensor& dense, const SparseT
     if (sparse.dense_dim() == 0) {
       TORCH_CHECK(cuda::getApplyGrid(nnz, grid, curDevice), "add: Argument #0: tensor too large or too many dimensions");
 
-      AT_DISPATCH_ALL_TYPES_AND(
-        at::ScalarType::Half, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
+      AT_DISPATCH_ALL_TYPES_AND2(
+        at::ScalarType::Half, at::ScalarType::BFloat16, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
             apply::sparseElementwiseKernelScalar<TensorCAddOp<scalar_t>, uint64_t, scalar_t>
               <<<grid, block, 0, stream>>>(
                 TensorCAddOp<scalar_t>(value.to<scalar_t>()),
@@ -336,8 +336,8 @@ Tensor& add_out_dense_sparse_cuda(Tensor& r_, const Tensor& dense, const SparseT
       // sparseElementwiseKernel needs values to be contiguous too
       values = values.contiguous();
 
-      AT_DISPATCH_ALL_TYPES_AND(
-        at::ScalarType::Half, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
+      AT_DISPATCH_ALL_TYPES_AND2(
+        at::ScalarType::Half, at::ScalarType::BFloat16, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
             apply::sparseElementwiseKernel<TensorCAddOp<scalar_t>, uint64_t, scalar_t>
               <<<grid, block, 0, stream>>>(
                 TensorCAddOp<scalar_t>(value.to<scalar_t>()),
@@ -350,8 +350,8 @@ Tensor& add_out_dense_sparse_cuda(Tensor& r_, const Tensor& dense, const SparseT
 
     // FIXME: at some point we can wrap the scale into indexAdd
     // NB: Purposely not inplace!
-    AT_DISPATCH_ALL_TYPES_AND(
-      at::ScalarType::Half, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
+    AT_DISPATCH_ALL_TYPES_AND2(
+      at::ScalarType::Half, at::ScalarType::BFloat16, values.scalar_type(), "add_out_dense_sparse_cuda", [&] {
           if (value.to<scalar_t>() != static_cast<scalar_t>(1)) {
             values = values.mul(value);
           }
@@ -414,8 +414,8 @@ SparseTensor& add_out_sparse_cuda(SparseTensor& r_, const SparseTensor& t, const
   LongTensor s_indices_ = src._indices();
   Tensor s_values_ = src._values();
 
-  AT_DISPATCH_ALL_TYPES_AND(
-    at::ScalarType::Half, s_values_.scalar_type(), "add_out_sparse_cuda", [&] {
+  AT_DISPATCH_ALL_TYPES_AND2(
+    at::ScalarType::Half, at::ScalarType::BFloat16, s_values_.scalar_type(), "add_out_sparse_cuda", [&] {
         if (value.to<scalar_t>() != static_cast<scalar_t>(1)) {
           s_values_ = s_values_.mul(value);
         }
@@ -484,8 +484,8 @@ SparseTensor& mul_out_sparse_cuda(SparseTensor& r_, const SparseTensor& t_, cons
   TORCH_CHECK(cuda::getApplyGrid(valueSize, grid, curDevice), "mul: Argument #0: tensor too large or too many dimensions");
 
   LongTensor resultNnz = at::empty({1}, CUDA(kLong));
-  AT_DISPATCH_ALL_TYPES_AND(
-    at::ScalarType::Half, t_values_.scalar_type(), "mul_out_sparse_cuda", [&] {
+  AT_DISPATCH_ALL_TYPES_AND2(
+    at::ScalarType::Half, at::ScalarType::BFloat16, t_values_.scalar_type(), "mul_out_sparse_cuda", [&] {
         apply::valueSparseIntersectionKernel<TensorMulOp<scalar_t>, uint64_t, scalar_t>
           <<<grid, block, 0, stream>>>(
             TensorMulOp<scalar_t>(),
@@ -659,7 +659,7 @@ Tensor _sparse_sum_backward_cuda(const Tensor& grad_, const SparseTensor& input_
       auto input_indices_ti = getTensorInfo<int64_t, int64_t>(input_indices_1D);
       auto input_indices_pos_ti = getTensorInfo<int64_t, int64_t>(input_indices_pos);
 
-      AT_DISPATCH_FLOATING_TYPES_AND_HALF(grad_values.scalar_type(), "_sparse_sum_backward_cuda", [&] {
+      AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, grad_values.scalar_type(), "_sparse_sum_backward_cuda", [&] {
         auto grad_values_expand_ti = getTensorInfo<scalar_t, int64_t>(grad_values_expand);
         auto grad_input_values_ti = getTensorInfo<scalar_t, int64_t>(grad_input_values);
 

@@ -7,7 +7,7 @@
 
 void THCTensor_(cbitand)(THCState* state, THCTensor *self_, THCTensor *src1, THCTensor *src2)
 {
-#if defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE)
+#if defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_BFLOAT16)
   return THError("cbitand is only supported for integer type tensors");
 #else
   THAssert(THCTensor_(checkGPU)(state, 3, self_, src1, src2));
@@ -34,7 +34,7 @@ void THCTensor_(cbitand)(THCState* state, THCTensor *self_, THCTensor *src1, THC
 
 void THCTensor_(cbitor)(THCState* state, THCTensor *self_, THCTensor *src1, THCTensor *src2)
 {
-#if defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE)
+#if defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_BFLOAT16)
   return THError("cbitor is only supported for integer type tensors");
 #else
   THAssert(THCTensor_(checkGPU)(state, 3, self_, src1, src2));
@@ -166,7 +166,7 @@ static void propagate_names_if_named_tensor_enabled(THCTensor* result, THCTensor
 #define IMPLEMENT_CUDA_TENSOR_BASIC_FUNC(NAME, CFUNC, REAL) \
   IMPLEMENT_CUDA_TENSOR_BASIC_FUNC_(NAME, CFUNC, REAL)
 
-#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF)
+#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_BFLOAT16)
 
 IMPLEMENT_CUDA_TENSOR_BASIC_FUNC(  exp, THCNumerics<scalar_t>::exp,   Real)
 IMPLEMENT_CUDA_TENSOR_BASIC_FUNC(  cos, THCNumerics<scalar_t>::cos,   Real)
@@ -232,6 +232,8 @@ void THCTensor_(cadd)(THCState *state, THCTensor *self_, THCTensor* src1, scalar
   auto out = at::Tensor(retainTensorImpl(self_));
 #ifdef THC_REAL_IS_HALF
   auto alpha = at::Half(value);
+#elif defined(THC_REAL_IS_BFLOAT16)
+  auto alpha = at::BFloat16(value);
 #else
   auto alpha = value;
 #endif
@@ -243,6 +245,8 @@ void THCTensor_(csub)(THCState *state, THCTensor *self_, THCTensor* src1, scalar
   auto out = at::Tensor(retainTensorImpl(self_));
 #ifdef THC_REAL_IS_HALF
   auto alpha = at::Half(value);
+#elif defined(THC_REAL_IS_BFLOAT16)
+  auto alpha = at::BFloat16(value);
 #else
   auto alpha = value;
 #endif
@@ -265,6 +269,8 @@ void THCTensor_(clshift)(THCState* state, THCTensor *self_, THCTensor *src1, THC
 {
 #if defined(THC_REAL_IS_HALF)
   return THError("clshift not supported for torch.CudaHalfTensor");
+#elif defined(THC_REAL_IS_BFLOAT16)
+  return THError("clshift not supported for torch.CudaBFloat16Tensor");
 #else
   THAssert(THCTensor_(checkGPU)(state, 3, self_, src1, src2));
   THArgCheck(THCTensor_(nElement)(state, src1) ==
@@ -292,6 +298,8 @@ void THCTensor_(crshift)(THCState* state, THCTensor *self_, THCTensor *src1, THC
 {
 #if defined(THC_REAL_IS_HALF)
   return THError("crshift not supported for torch.CudaHalfTensor");
+#elif defined(THC_REAL_IS_BFLOAT16)
+  return THError("crshift not supported for torch.CudaBFloat16Tensor");
 #else
   THAssert(THCTensor_(checkGPU)(state, 3, self_, src1, src2));
   THArgCheck(THCTensor_(nElement)(state, src1) ==

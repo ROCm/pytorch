@@ -242,8 +242,8 @@ Tensor embedding_dense_backward_cuda(const Tensor & grad_, const Tensor & indice
     dim3 grid(THCCeilDiv(stride, (int64_t)C10_WARP_SIZE));
     dim3 block(C10_WARP_SIZE, BLOCKDIMY);
 
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF
-      (grad.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2
+      (kHalf, kBFloat16, grad.scalar_type(),
        "embedding_backward",
        [&]
        {
@@ -356,7 +356,7 @@ Tensor & embedding_renorm_cuda_(Tensor & self, const Tensor & indices,
   dim3 block(128);
   int dim = self.stride(0);
 
-  AT_DISPATCH_FLOATING_TYPES_AND_HALF(self.scalar_type(), "embedding_backward", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, self.scalar_type(), "embedding_backward", [&] {
     using accscalar_t = acc_type<scalar_t, true>;
     renorm_kernel<<<grid, block, 128 * sizeof(accscalar_t), stream>>>(
       self.data_ptr<scalar_t>(),

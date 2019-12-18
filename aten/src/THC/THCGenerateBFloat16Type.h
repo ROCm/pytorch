@@ -6,6 +6,7 @@
 #define scalar_t at::BFloat16
 #define accreal float
 #define Real BFloat16
+#define accreal float
 
 #define CReal CudaBFloat16
 
@@ -15,7 +16,7 @@
 #undef scalar_t
 #undef accreal
 #undef Real
-
+#undef accreal
 #undef CReal
 
 #undef THC_REAL_IS_BFLOAT16

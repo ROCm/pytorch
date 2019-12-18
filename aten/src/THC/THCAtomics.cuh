@@ -5,6 +5,7 @@
 #include <TH/THHalf.h>
 #include <THC/THCNumerics.cuh>
 #include <ATen/ATen.h>
+#include <c10/util/BFloat16.h>
 
 template <typename T, size_t n>
 struct AtomicAddIntegerImpl;
@@ -110,6 +111,24 @@ static inline __device__ void atomicAdd(int64_t *address, int64_t val) {
 static inline __device__ void atomicAdd(bool *address, bool val) {
   *address = address && val;
 }
+
+#ifdef __HIP_PLATFORM_HCC__
+static inline __device__ void atomicAdd(at::BFloat16 *address, at::BFloat16 val) {
+    unsigned int * address_as_ui =
+      (unsigned int *) ((char *)address - ((size_t)address & 2));
+    unsigned int old = *address_as_ui;
+    unsigned int assumed;
+
+    do {
+      assumed = old;
+      at::BFloat16 bsum;
+      bsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
+      bsum = THCNumerics<at::BFloat16>::add(bsum, val);
+      old = (size_t)address & 2 ? (old & 0xffff) | (bsum.x << 16) : (old & 0xffff0000) | bsum.x;
+      old = atomicCAS(address_as_ui, assumed, old);
+    } while (assumed != old);
+}
+#endif
 
 static inline  __device__ void atomicAdd(at::Half *address, at::Half val) {
   #if ((CUDA_VERSION < 10000) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700)))

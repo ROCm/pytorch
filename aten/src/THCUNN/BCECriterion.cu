@@ -133,3 +133,6 @@ struct bce_updateGradInput_functor_weights
 
 #include <THCUNN/generic/BCECriterion.cu>
 #include <THC/THCGenerateFloatTypes.h>
+
+#include <THCUNN/generic/BCECriterion.cu>
+#include <THC/THCGenerateBFloat16Type.h>

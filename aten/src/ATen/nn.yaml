@@ -9,8 +9,8 @@
     forward_scalar_types: ['Float', 'Double', 'Half']
     backward_scalar_types: ['Float', 'Double', 'Half']
   CUDA:
-    forward_scalar_types: ['Float', 'Double', 'Half']
-    backward_scalar_types: ['Float', 'Double', 'Half']
+    forward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
+    backward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
 
 - name: _thnn_multi_margin_loss(Tensor self, LongTensor target, Scalar p, Scalar margin, Tensor? weight, int64_t reduction)
   cname: MultiMarginCriterion
@@ -23,6 +23,9 @@
   cname: ClassNLLCriterion
   buffers: [total_weight]
   CPU:
+    forward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
+    backward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
+  CUDA:
     forward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
     backward_scalar_types: ['Float', 'Double', 'Half', 'BFloat16']
 

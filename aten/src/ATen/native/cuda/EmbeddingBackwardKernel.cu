@@ -265,7 +265,7 @@ Tensor embedding_backward_cuda_kernel(
   const int block = std::min(stride_warped, MAX_BLOCK_SIZE);
   const int grid = ceil_div(num_of_partial_segments*stride_warped, block);
 
-  AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+  AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
     grad.scalar_type(), "embedding_bag_backward_cuda_compute_grad_weight", [&] {
       // For numerical stability, the dtype of `grad_weight_per_segment`
       // should match `acc_type`

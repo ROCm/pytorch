@@ -7,7 +7,7 @@ CONFIGURE_FILE(THCGeneral.h.in "${CMAKE_CURRENT_BINARY_DIR}/THCGeneral.h")
 
 set(extra_src)
 # loop over all types
-foreach(THC_TYPE Byte Char Short Int Long Half Float Double)
+foreach(THC_TYPE Byte Char Short Int Long Half Float Double BFloat16)
    # loop over files which need to be split between types (because of long compile times)
    foreach(THC_FILE TensorSort TensorMathPointwise TensorMathReduce TensorMasked)
       if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generated/THC${THC_FILE}${THC_TYPE}.cu")
@@ -24,14 +24,6 @@ foreach(THC_FILE TensorMathPointwise TensorMathReduce TensorMasked)
         "#include <THC/THC${THC_FILE}.cuh>\n#include <THC/THCTensor.hpp>\n\n#include <THC/generic/THC${THC_FILE}.cu>\n#include <THC/THCGenerateBoolType.h>\n")
    endif()
    LIST(APPEND extra_src "${CMAKE_CURRENT_SOURCE_DIR}/generated/THC${THC_FILE}Bool.cu")
-endforeach()
-
-foreach(THC_FILE TensorMathReduce TensorMasked)
-   if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generated/THC${THC_FILE}BFloat16.cu")
-      FILE(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/generated/THC${THC_FILE}BFloat16.cu"
-        "#include <THC/THC${THC_FILE}.cuh>\n#include <THC/THCTensor.hpp>\n\n#include <THC/generic/THC${THC_FILE}.cu>\n#include <THC/THCGenerateBFloat16Type.h>\n")
-   endif()
-   LIST(APPEND extra_src "${CMAKE_CURRENT_SOURCE_DIR}/generated/THC${THC_FILE}BFloat16.cu")
 endforeach()
 
 set(ATen_CUDA_SRCS ${ATen_CUDA_SRCS}

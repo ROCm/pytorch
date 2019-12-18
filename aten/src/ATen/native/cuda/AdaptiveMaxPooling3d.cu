@@ -362,7 +362,7 @@ void adaptive_max_pool3d_out_cuda_template(
     totalZ = sizeB * sizeD * osizeT;
   }
 
-  AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+  AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
     "adaptive_max_pool3d_cuda",
     [&] {
       scalar_t *input_data = input.data_ptr<scalar_t>();
@@ -429,7 +429,7 @@ void adaptive_max_pool3d_backward_out_cuda_template(
   }
 
   if (atomic) {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "adaptive_max_pool3d_backward_cuda",
       [&] {
         scalar_t *gradInput_data = gradInput.data_ptr<scalar_t>();
@@ -443,7 +443,7 @@ void adaptive_max_pool3d_backward_out_cuda_template(
       }
     );
   } else {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "adaptive_max_pool3d_backward_cuda",
       [&] {
         scalar_t *gradInput_data = gradInput.data_ptr<scalar_t>();

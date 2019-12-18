@@ -184,3 +184,6 @@ __global__ void cunn_ClassNLLCriterion_updateGradInput_kernel(
 
 #include <THCUNN/generic/ClassNLLCriterion.cu>
 #include <THC/THCGenerateFloatTypes.h>
+
+#include <THCUNN/generic/ClassNLLCriterion.cu>
+#include <THC/THCGenerateBFloat16Type.h>

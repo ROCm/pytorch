@@ -41,7 +41,7 @@ int THCTensor_(equal)(THCState *state, THCTensor *self_, THCTensor *src_) {
 
 void THCTensor_(bitand)(THCState* state, THCTensor *self_, THCTensor *src_, scalar_t value)
 {
-#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF)
+#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_BFLOAT16)
   return THError("bitand only supported for integer type tensors");
 #else
   if (self_ == src_) {
@@ -62,7 +62,7 @@ void THCTensor_(bitand)(THCState* state, THCTensor *self_, THCTensor *src_, scal
 
 void THCTensor_(bitor)(THCState* state, THCTensor *self_, THCTensor *src_, scalar_t value)
 {
-#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF)
+#if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE) || defined(THC_REAL_IS_HALF) || defined(THC_REAL_IS_BFLOAT16)
   return THError("bitor only supported for integer type tensors");
 #else
   if (self_ == src_) {
@@ -127,6 +127,8 @@ void THCTensor_(lshift)(THCState* state, THCTensor *self_, THCTensor *src_, scal
   THCTensor_(mul)(state, self_, src_, pow(2, value));
 #elif defined(THC_REAL_IS_HALF)
   return THError("lshift not supported for torch.CudaHalfTensor");
+#elif defined(THC_REAL_IS_BFLOAT16)
+  return THError("lshift not supported for torch.CudaBFloat16Tensor");
 #else
   if (self_ == src_) {
     if (!THC_pointwiseApply1<scalar_t>(state, self_, TensorLShiftConstantOp<scalar_t>(value))) {
@@ -150,6 +152,8 @@ void THCTensor_(rshift)(THCState* state, THCTensor *self_, THCTensor *src_, scal
   THCTensor_(mul)(state, self_, src_, pow(2, -value));
 #elif defined(THC_REAL_IS_HALF)
   return THError("rshift not supported for torch.CudaHalfTensor");
+#elif defined(THC_REAL_IS_BFLOAT16)
+  return THError("rshift not supported for torch.CudaBFloat16Tensor");
 #else
   if (self_ == src_) {
     if (!THC_pointwiseApply1<scalar_t>(state, self_, TensorRShiftConstantOp<scalar_t>(value))) {

@@ -400,7 +400,7 @@ void avg_pool3d_out_cuda_template(
     work_output = work_output.reshape({nbatch * nslices, otime, oheight, owidth});
   }
 
-  AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+  AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
     input.scalar_type(),
     "avg_pool3d_out_cuda",
     [&] {
@@ -545,7 +545,7 @@ void avg_pool3d_backward_out_cuda_template(
   // specialization yields 3x speedup over the atomicAdd implementation.
   // Padding must be 0, otherwise, pool size may change.
   if (dT == 1 && dH == 1 && dW == 1 && padT == 0 && padH == 0 && padW == 0) {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "avg_pool3d_backward_out_frame_stride1",
       [&] {
         using accscalar_t = acc_type<scalar_t, true>;
@@ -584,7 +584,7 @@ void avg_pool3d_backward_out_cuda_template(
     );
   }
   else {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "avg_pool3d_backward_out_frame",
       [&] {
         using accscalar_t = acc_type<scalar_t, true>;

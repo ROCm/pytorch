@@ -89,7 +89,7 @@ static void sum_kernel_cuda(TensorIterator& iter) {
     // type promotion that does cast and reduction in a single kernel
     return sum_kernel_impl<at::Half, float, float>(iter);
   }
-  AT_DISPATCH_ALL_TYPES_AND(ScalarType::Bool, iter.dtype(), "sum_cuda", [&]() {
+  AT_DISPATCH_ALL_TYPES_AND2(ScalarType::BFloat16, ScalarType::Bool, iter.dtype(), "sum_cuda", [&]() {
     sum_kernel_impl<scalar_t>(iter);
   });
 }
@@ -106,9 +106,13 @@ static void prod_kernel_cuda(TensorIterator& iter) {
 static void mean_kernel_cuda(TensorIterator& iter) {
   if (iter.dtype() == kHalf) {
     return mean_kernel_impl<at::Half, float>(iter);
+  } else if (iter.dtype() == kBFloat16) {
+    return mean_kernel_impl<at::BFloat16, float>(iter);
   } else if (iter.dtype(1) == kHalf && iter.dtype() == kFloat) {
     // type promotion that does cast and reduction in a single kernel
     return mean_kernel_impl<at::Half, float, float>(iter);
+  } else if (iter.dtype(1) == kBFloat16 && iter.dtype() == kBFloat16) {
+    return mean_kernel_impl<at::BFloat16, float, float>(iter);
   }
   AT_DISPATCH_ALL_TYPES(iter.dtype(), "mean_cuda", [&]() {
     mean_kernel_impl<scalar_t>(iter);
@@ -160,6 +164,8 @@ void min_values_kernel_cuda_impl(TensorIterator& iter) {
 void max_values_kernel_cuda(TensorIterator& iter) {
   if (iter.dtype(1) == kHalf) {
     max_values_kernel_cuda_impl<at::Half, float>(iter);
+  } else if (iter.dtype(1) == kBFloat16) {
+    max_values_kernel_cuda_impl<at::BFloat16, float>(iter);
   } else {
     AT_DISPATCH_ALL_TYPES(iter.dtype(), "max_values_cuda", [&]() {
       max_values_kernel_cuda_impl<scalar_t>(iter);
@@ -170,6 +176,8 @@ void max_values_kernel_cuda(TensorIterator& iter) {
 void min_values_kernel_cuda(TensorIterator& iter) {
   if (iter.dtype(1) == kHalf) {
     min_values_kernel_cuda_impl<at::Half, float>(iter);
+  } else if (iter.dtype(1) == kBFloat16) {
+    min_values_kernel_cuda_impl<at::BFloat16, float>(iter);
   } else {
     AT_DISPATCH_ALL_TYPES(iter.dtype(), "min_values_cuda", [&]() {
       min_values_kernel_cuda_impl<scalar_t>(iter);
@@ -198,6 +206,8 @@ void argmax_kernel_cuda(TensorIterator& iter) {
     // Instead of implementing is_nan and warp_shfl_down
     // we can convert halves to float and do all the operations in float
     argmax_kernel_cuda_impl<at::Half, float>(iter);
+  } else if (iter.dtype(1) == kBFloat16) {
+    argmax_kernel_cuda_impl<at::BFloat16, float>(iter);
   } else {
     AT_DISPATCH_ALL_TYPES(iter.dtype(1), "argmax_cuda", [&]() {
       argmax_kernel_cuda_impl<scalar_t>(iter);
@@ -210,6 +220,8 @@ void argmin_kernel_cuda(TensorIterator& iter) {
     // Instead of implementing is_nan and warp_shfl_down
     // we can convert halves to float and do all the operations in float
     argmin_kernel_cuda_impl<at::Half, float>(iter);
+  } else if (iter.dtype(1) == kBFloat16) {
+    argmin_kernel_cuda_impl<at::BFloat16, float>(iter);
   } else {
     AT_DISPATCH_ALL_TYPES(iter.dtype(1), "argmin_cuda", [&]() {
       argmin_kernel_cuda_impl<scalar_t>(iter);

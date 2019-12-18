@@ -8,6 +8,3 @@
 
 #include <THC/generic/THCTensorMathBlas.cu>
 #include <THC/THCGenerateAllTypes.h>
-
-#include <THC/generic/THCTensorMathBlas.cu>
-#include <THC/THCGenerateBFloat16Type.h>

@@ -176,7 +176,7 @@ void avg_pool2d_out_cuda_template(
   const uint32_t num_blocks = cuda::ATenCeilDiv<uint32_t>(count, num_threads);
 
   if (divisor_override.has_value()) {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "avg_pool2d_out_cuda_frame",
       [&] {
         using accscalar_t = acc_type<scalar_t, true>;
@@ -201,7 +201,7 @@ void avg_pool2d_out_cuda_template(
     );
   } else {
     if (count_include_pad) {
-      AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+      AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
         "avg_pool2d_out_cuda_frame",
         [&] {
           using accscalar_t = acc_type<scalar_t, true>;
@@ -225,7 +225,7 @@ void avg_pool2d_out_cuda_template(
       );
     }
     else {
-      AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+      AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
         "avg_pool2d_out_cuda_frame",
         [&] {
           using accscalar_t = acc_type<scalar_t, true>;
@@ -326,7 +326,7 @@ Tensor& avg_pool2d_backward_out_cuda_template(
   const uint32_t num_blocks = cuda::ATenCeilDiv<uint32_t>(count, num_threads);
 
   if (divisor_override.has_value()) {
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+    AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
       "avg_pool2d_backward_out_cuda_frame",
       [&] {
         using accscalar_t = acc_type<scalar_t, true>;
@@ -351,7 +351,7 @@ Tensor& avg_pool2d_backward_out_cuda_template(
     );
   } else {
     if (count_include_pad) {
-      AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+      AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
         "avg_pool2d_backward_out_cuda_frame",
         [&] {
           using accscalar_t = acc_type<scalar_t, true>;
@@ -375,7 +375,7 @@ Tensor& avg_pool2d_backward_out_cuda_template(
       );
     }
     else {
-      AT_DISPATCH_FLOATING_TYPES_AND_HALF(input.scalar_type(),
+      AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, input.scalar_type(),
         "avg_pool2d_backward_out_cuda_frame",
         [&] {
           using accscalar_t = acc_type<scalar_t, true>;

@@ -42,7 +42,7 @@ void smooth_l1_backward_cuda_kernel(TensorIterator& iter, Scalar norm) {
 }
 
 void mse_backward_cuda_kernel(TensorIterator& iter, Scalar value) {
-  AT_DISPATCH_FLOATING_TYPES_AND_HALF(iter.dtype(), "mse_backward_cuda", [&]() {
+  AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, iter.dtype(), "mse_backward_cuda", [&]() {
     auto alpha = value.to<scalar_t>();
     gpu_kernel(iter, [alpha]GPU_LAMBDA(scalar_t a, scalar_t b, scalar_t c) -> scalar_t {
       return alpha * (a - b) * c;

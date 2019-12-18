@@ -509,7 +509,7 @@ namespace {
         // we will need to restrict out shared memory usage and adjust the launch
         // config;
         AT_ASSERT(input_.numel() < std::numeric_limits<int32_t>::max());
-        AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+        AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
             input_.scalar_type(), "adaptive_avg_pool2d_nhwc_cuda", [&] {
               size_t shmem_size = (kernel_size_C * block_x * block_y * block_z) * sizeof(scalar_t);
               AT_ASSERT(shmem_size <= sharedMemPerBlock);
@@ -546,7 +546,7 @@ namespace {
         } else {
            output.resize_({sizeD, osizeH, osizeW});
         }
-        AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+        AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
             input_.scalar_type(), "adaptive_avg_pool2d_cuda", [&] {
               scalar_t *input_data = input_.data_ptr<scalar_t>();
               scalar_t *output_data = output.data_ptr<scalar_t>();
@@ -654,7 +654,7 @@ namespace {
         // we will need to restrict out shared memory usage and adjust the launch
         // config;
         AT_ASSERT(input.numel() < std::numeric_limits<int32_t>::max());
-        AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+        AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
             input.scalar_type(), "adaptive_avg_pool2d_backward_nhwc_cuda", [&] {
               size_t shmem_size = (kernel_size_C * block_x * block_y * block_z + osizeH + osizeW) * sizeof(scalar_t) + 2 * isizeW * sizeof(int32_t);
               AT_ASSERT(shmem_size <= sharedMemPerBlock);
@@ -684,7 +684,7 @@ namespace {
         if (input.ndimension() == 4) grid_x *= input.size(-4);
 
           //bool atomic = (isizeW%osizeW != 0) || (isizeH%osizeH != 0);
-        AT_DISPATCH_FLOATING_TYPES_AND_HALF(
+        AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16,
             input.scalar_type(), "adaptive_avg_pool2d_backward_cuda", [&] {
               scalar_t *gradOutput_data = gradOutput.data_ptr<scalar_t>();
               scalar_t *gradInput_data = gradInput.data_ptr<scalar_t>();
