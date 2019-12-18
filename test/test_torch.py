@@ -6695,12 +6695,6 @@ class TestTorchDeviceType(TestCase):
             a = torch.tensor(a_, dtype=dtype, device=device)
             for other_dtype in torch.testing.get_all_dtypes():
                 b = torch.tensor(b_, dtype=other_dtype, device=device)
-
-                # Skip bfloat16 on CUDA. Remove this after bfloat16 is supported on CUDA.
-                if device.startswith('cuda') and torch.bfloat16 in (dtype, other_dtype):
-                    with self.assertRaises(RuntimeError):
-                        getattr(a, op)(b)
-                    continue
                 # TODO Remove this skipping after bfloat16 can be handled nicely with other dtypes.
                 # Skip only if either dtype or other_dtype is bfloat16.
                 if (dtype == torch.bfloat16) != (other_dtype == torch.bfloat16):
