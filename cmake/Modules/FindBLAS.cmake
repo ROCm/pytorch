@@ -62,7 +62,7 @@ MACRO(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list)
       if ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
           NAMES ${_library}
-	  PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib /usr/lib/aarch64-linux-gnu
+          PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib /usr/lib/aarch64-linux-gnu
           ENV DYLD_LIBRARY_PATH )
       else ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
