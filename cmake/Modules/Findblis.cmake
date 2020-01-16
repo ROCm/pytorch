@@ -1,13 +1,13 @@
 SET(BLIS_INCLUDE_SEARCH_PATHS
-	~/amd-blis-mt/include/blis
+	/usr/local/include/blis
 )
 
 SET(BLIS_LIB_SEARCH_PATHS
-	~/amd-blis-mt/lib
+	/usr/local/lib
 )
 
 FIND_PATH(BLIS_INCLUDE_DIR NAMES cblas.h blis.h PATHS ${BLIS_INCLUDE_SEARCH_PATHS})
-FIND_LIBRARY(BLIS_LIB NAMES libblis.so.2 PATHS ${BLIS_LIB_SEARCH_PATHS})
+FIND_LIBRARY(BLIS_LIB NAMES libblis.so PATHS ${BLIS_LIB_SEARCH_PATHS})
 
 SET(BLIS_FOUND ON)
 

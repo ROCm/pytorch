@@ -62,12 +62,12 @@ MACRO(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list)
       if ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
           NAMES ${_library}
-	  PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib $HOME/amd-blis-mt/lib /usr/lib/aarch64-linux-gnu
+	  PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib /usr/lib/aarch64-linux-gnu
           ENV DYLD_LIBRARY_PATH )
       else ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
           NAMES ${_library}
-          PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib $HOME/amd-blis-mt/lib /usr/lib/aarch64-linux-gnu
+          PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /opt/OpenBLAS/lib /usr/lib/aarch64-linux-gnu
           ENV LD_LIBRARY_PATH )
       endif( APPLE )
       mark_as_advanced(${_prefix}_${_library}_LIBRARY)
@@ -161,19 +161,6 @@ if((NOT BLAS_LIBRARIES)
 endif()
 
 if((NOT BLAS_LIBRARIES)
-    AND ((NOT WITH_BLAS) OR (WITH_BLAS STREQUAL "blis")))
-  check_fortran_libraries(
-  BLAS_LIBRARIES
-  BLAS
-  sgemm
-  ""
-  "blis;pthread")
-  if(BLAS_LIBRARIES)
-    set(BLAS_INFO "blis")
-  endif(BLAS_LIBRARIES)
-endif()
-
-if((NOT BLAS_LIBRARIES)
     AND ((NOT WITH_BLAS) OR (WITH_BLAS STREQUAL "open")))
   check_fortran_libraries(
   BLAS_LIBRARIES
@@ -196,19 +183,6 @@ if((NOT BLAS_LIBRARIES) AND (WIN32)
   "libopenblas")
   if(BLAS_LIBRARIES)
     set(BLAS_INFO "open")
-  endif(BLAS_LIBRARIES)
-endif()
-
-if((NOT BLAS_LIBRARIES) AND (WIN32)
-    AND ((NOT WITH_BLAS) OR (WITH_BLAS STREQUAL "blis")))
-  check_fortran_libraries(
-  BLAS_LIBRARIES
-  BLAS
-  sgemm
-  ""
-  "blis")
-  if(BLAS_LIBRARIES)
-    set(BLAS_INFO "blis")
   endif(BLAS_LIBRARIES)
 endif()
 
