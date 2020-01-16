@@ -1,9 +1,9 @@
 SET(BLIS_INCLUDE_SEARCH_PATHS
-	/usr/local/include/blis
+       /usr/local/include/blis
 )
 
 SET(BLIS_LIB_SEARCH_PATHS
-	/usr/local/lib
+       /usr/local/lib
 )
 
 FIND_PATH(BLIS_INCLUDE_DIR NAMES cblas.h blis.h PATHS ${BLIS_INCLUDE_SEARCH_PATHS})
