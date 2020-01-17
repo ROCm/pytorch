@@ -302,23 +302,12 @@ inline void deprecated_AT_DISPATCH_ALL_TYPES_AND_HALF_AND_COMPLEX() {}
   }()
 
 #ifdef __HIP_PLATFORM_HCC__
-#define AT_DISPATCH_ALL_TYPES_AND_ROCM_BFLOAT16_AND(SCALARTYPE, TYPE, NAME, ...)                             \
-[&] {                                                                                                        \
-  switch (TYPE) {                                                                                            \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Byte, uint8_t, __VA_ARGS__)                                         \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Char, int8_t, __VA_ARGS__)                                          \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Double, double, __VA_ARGS__)                                        \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Float, float, __VA_ARGS__)                                          \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Int, int32_t, __VA_ARGS__)                                          \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Long, int64_t, __VA_ARGS__)                                         \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::Short, int16_t, __VA_ARGS__)                                        \
-    AT_PRIVATE_CASE_TYPE(at::ScalarType::BFloat16, at::BFloat16, __VA_ARGS__)                                \
-    AT_PRIVATE_CASE_TYPE(SCALARTYPE, decltype(c10::impl::ScalarTypeToCPPType<SCALARTYPE>::t), __VA_ARGS__)   \
-    default:                                                                                                 \
-      AT_ERROR(#NAME, " not implemented for '", toString(TYPE), "'");                                        \
-  }                                                                                                          \
-}()
+#define BFLOAT16_DISPATCH(...)  AT_PRIVATE_CASE_TYPE(at::ScalarType::BFloat16, at::BFloat16, __VA_ARGS__)
 #else
+#define BFLOAT16_DISPATCH(...)
+#endif
+
+// this macro is used to dispatch bfloat16 only on ROCm
 #define AT_DISPATCH_ALL_TYPES_AND_ROCM_BFLOAT16_AND(SCALARTYPE, TYPE, NAME, ...)                             \
 [&] {                                                                                                        \
   switch (TYPE) {                                                                                            \
@@ -330,11 +319,11 @@ inline void deprecated_AT_DISPATCH_ALL_TYPES_AND_HALF_AND_COMPLEX() {}
     AT_PRIVATE_CASE_TYPE(at::ScalarType::Long, int64_t, __VA_ARGS__)                                         \
     AT_PRIVATE_CASE_TYPE(at::ScalarType::Short, int16_t, __VA_ARGS__)                                        \
     AT_PRIVATE_CASE_TYPE(SCALARTYPE, decltype(c10::impl::ScalarTypeToCPPType<SCALARTYPE>::t), __VA_ARGS__)   \
+    BFLOAT16_DISPATCH(__VA_ARGS__)                                                                                      \
     default:                                                                                                 \
       AT_ERROR(#NAME, " not implemented for '", toString(TYPE), "'");                                        \
   }                                                                                                          \
 }()
-#endif
 
 #define AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND(SCALARTYPE, TYPE, NAME, ...)                                     \
   [&] {                                                                                                        \
