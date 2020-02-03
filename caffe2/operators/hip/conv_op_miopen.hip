@@ -689,7 +689,6 @@ bool MIOPENConvGradientOp::DoRunWithType() {
       bwdWeiAlgo_ = perf.bwd_weights_algo;
     }
   }
-
   if (doBwdDataComputation) {
     miopen_wrapper_.with_miopen_state(miopen_state_, [&](MIOPENState* state) {
       MIOPEN_ENFORCE(miopenConvolutionBackwardData(
@@ -774,8 +773,6 @@ bool MIOPENConvGradientOp::RunOnDevice() {
 
 REGISTER_MIOPEN_OPERATOR(Conv, MIOPENConvOp);
 REGISTER_MIOPEN_OPERATOR(ConvGradient, MIOPENConvGradientOp);
-
-// 3-D Convolutions.
 REGISTER_MIOPEN_OPERATOR(Conv3D, MIOPENConvOp);
 REGISTER_MIOPEN_OPERATOR(Conv3DGradient, MIOPENConvGradientOp);
 
