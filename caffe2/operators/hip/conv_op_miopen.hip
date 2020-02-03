@@ -257,8 +257,9 @@ bool MIOPENConvOp::DoRunWithType() {
         MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
             bottom_desc_, miopenTypeWrapper<T_X>::type, N, C, H, W));
       } else {
+        vector<int> input_dims (begin(mio_input_dims_), end(mio_input_dims_));
         MIOPEN_ENFORCE(miopenSetTensorDescriptor(
-            bottom_desc_, miopenTypeWrapper<T_X>::type, mio_input_dims_.size(), (int *) mio_input_dims_.data(), nullptr));
+            bottom_desc_, miopenTypeWrapper<T_X>::type, input_dims.size(), input_dims.data(), nullptr));
       }
     }
 
@@ -296,15 +297,20 @@ bool MIOPENConvOp::DoRunWithType() {
             kernel_h(),
             kernel_w()));
       } else {
+        vector<int> weight_dims (begin(mio_weight_dims_), end(mio_weight_dims_));
         MIOPEN_ENFORCE(miopenSetTensorDescriptor(
             weight_desc_,
             miopenTypeWrapper<T_W>::type,
             mio_weight_dims_.size(),
-            (int *) mio_weight_dims_.data(),
+            weight_dims.data(),
             nullptr));
       }
     }
 
+    
+    mio_output_dims_ = Y->sizes().vec();
+    int output_dim_size = mio_input_dims_.size(); 
+    vector<int> output_dims (begin(mio_output_dims_), end(mio_output_dims_));
     if (mio_input_dims_.size() == 4) {
       MIOPEN_ENFORCE(miopenGetConvolutionForwardOutputDim(
           conv_desc_,
@@ -314,22 +320,22 @@ bool MIOPENConvOp::DoRunWithType() {
           &C_out,
           &H_out,
           &W_out));
-    } else {
-      int output_dim = mio_input_dims_.size();
+    } 
+    else {
       MIOPEN_ENFORCE(miopenGetConvolutionNdForwardOutputDim(
           conv_desc_,
           bottom_desc_,
           weight_desc_,
-          &output_dim,
-          (int *) mio_output_dims_.data()));
+          &output_dim_size,
+          output_dims.data()));
     }
 
-    if (mio_output_dims_.size() == 4) {
+    if (mio_input_dims_.size() == 4) {
       MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
           top_desc_, miopenTypeWrapper<T_X>::type, N_out, C_out, H_out, W_out));
     } else {
       MIOPEN_ENFORCE(miopenSetTensorDescriptor(
-          top_desc_, miopenTypeWrapper<T_X>::type, mio_output_dims_.size(), (int *) mio_output_dims_.data(), nullptr));
+          top_desc_, miopenTypeWrapper<T_X>::type, output_dims.size(), output_dims.data(), nullptr));
     }
 
     if (InputSize() == 3) {
@@ -520,8 +526,9 @@ bool MIOPENConvGradientOp::DoRunWithType() {
         MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
             bottom_desc_, miopenTypeWrapper<T_X>::type, N, C, H, W));
       } else {
+        vector<int> input_dims (begin(mio_input_dims_), end(mio_input_dims_));
         MIOPEN_ENFORCE(miopenSetTensorDescriptor(
-            bottom_desc_, miopenTypeWrapper<T_X>::type, mio_input_dims_.size(), (int *) mio_input_dims_.data(), nullptr));
+            bottom_desc_, miopenTypeWrapper<T_X>::type, input_dims.size(), input_dims.data(), nullptr));
       }
     }
 
@@ -559,15 +566,18 @@ bool MIOPENConvGradientOp::DoRunWithType() {
             kernel_h(),
             kernel_w()));
       } else {
+        vector<int> weight_dims (begin(mio_weight_dims_), end(mio_weight_dims_));
         MIOPEN_ENFORCE(miopenSetTensorDescriptor(
             weight_desc_,
             miopenTypeWrapper<T_X>::type,
-            mio_weight_dims_.size(),
-            (int *) mio_weight_dims_.data(),
+            weight_dims.size(),
+            weight_dims.data(),
             nullptr));
       }
     }
 
+    mio_output_dims_ = dY.sizes().vec();
+    vector<int> output_dims (begin(mio_output_dims_), end(mio_output_dims_));
     if (mio_input_dims_.size() == 4) {
       MIOPEN_ENFORCE(miopenGetConvolutionForwardOutputDim(
           conv_desc_,
@@ -577,22 +587,23 @@ bool MIOPENConvGradientOp::DoRunWithType() {
           &C_out,
           &H_out,
           &W_out));
-    } else {
-      int output_dim = mio_input_dims_.size();
+    }
+    else {
+      int output_dim_size = mio_input_dims_.size();
       MIOPEN_ENFORCE(miopenGetConvolutionNdForwardOutputDim(
           conv_desc_,
           bottom_desc_,
           weight_desc_,
-          &output_dim,
-          (int *) mio_output_dims_.data()));
+          &output_dim_size,
+          output_dims.data()));
     }
 
-    if (mio_output_dims_.size() == 4) {
+    if (mio_input_dims_.size() == 4) {
       MIOPEN_ENFORCE(miopenSet4dTensorDescriptor(
           top_desc_, miopenTypeWrapper<T_X>::type, N_out, C_out, H_out, W_out));
     } else {
       MIOPEN_ENFORCE(miopenSetTensorDescriptor(
-          top_desc_, miopenTypeWrapper<T_X>::type, mio_output_dims_.size(), (int *) mio_output_dims_.data(), nullptr));
+          top_desc_, miopenTypeWrapper<T_X>::type, output_dims.size(), output_dims.data(), nullptr));
     }
 
     if (!no_bias_) {
@@ -678,6 +689,7 @@ bool MIOPENConvGradientOp::DoRunWithType() {
       bwdWeiAlgo_ = perf.bwd_weights_algo;
     }
   }
+
   if (doBwdDataComputation) {
     miopen_wrapper_.with_miopen_state(miopen_state_, [&](MIOPENState* state) {
       MIOPEN_ENFORCE(miopenConvolutionBackwardData(
@@ -762,4 +774,9 @@ bool MIOPENConvGradientOp::RunOnDevice() {
 
 REGISTER_MIOPEN_OPERATOR(Conv, MIOPENConvOp);
 REGISTER_MIOPEN_OPERATOR(ConvGradient, MIOPENConvGradientOp);
+
+// 3-D Convolutions.
+REGISTER_MIOPEN_OPERATOR(Conv3D, MIOPENConvOp);
+REGISTER_MIOPEN_OPERATOR(Conv3DGradient, MIOPENConvGradientOp);
+
 } // namespace caffe2
