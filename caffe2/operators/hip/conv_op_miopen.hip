@@ -512,6 +512,7 @@ bool MIOPENConvGradientOp::DoRunWithType() {
 
     if (!no_bias_) {
       std::vector<int> bias_dims(X.dim(), 1);
+      bias_dims[1] = M;
       MIOPEN_ENFORCE(miopenSetTensorDescriptor(
             bias_desc_, miopenTypeWrapper<T_B>::type, bias_dims.size(), bias_dims.data(), nullptr));
     }
