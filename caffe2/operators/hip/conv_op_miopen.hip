@@ -415,7 +415,7 @@ bool MIOPENConvGradientOp::DoRunWithType() {
   CAFFE_ENFORCE(X.ndim() >= 3 && X.ndim() <= 5);
   CAFFE_ENFORCE(
       Weight.ndim() == 4 || Weight.ndim() == 5,
-      "ConvGradient op with MIOpen engine is supported only for 2D convolutions");
+      "ConvGradient op with MIOpen engine is supported only for 2D and 3D convolutions");
 
   const int M = Weight.dim32(0);
   int N = 0, C = 0, H = 0, W = 0, D = 0, N_out = 0, C_out = 0, H_out = 0,
