@@ -42,18 +42,18 @@ RUN curl -v -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3
     /opt/conda/bin/conda clean -ya
 
 ARG BLIS_URL=https://github.com/flame/blis.git
-#Download BLIS and place the necessary library and include files at /usr/local/lib and /usr/local/include respectively
+# Download BLIS and place the necessary library and include files at /usr/local/lib and /usr/local/include respectively
 RUN cd ~ && git clone ${BLIS_URL} &&\
     cd ~/blis && ./configure --prefix=~/BLISBuild --enable-cblas --enable-threading=openmp auto && make -j && make install && \
     cp ~/BLISBuild/lib/* /usr/local/lib/ && cp -r ~/BLISBuild/include/blis /usr/local/include/ && \
     if [ ! -e /usr/local/lib/libblis.so ] ; then cp /usr/local/lib/libblis*.so /usr/local/lib/libblis.so ; fi
 
-#Build PyTorch with MKLDNN+BLIS (CPU only)
+# Build PyTorch with MKLDNN+BLIS (CPU only)
 RUN cd ~ && git clone https://github.com/ROCmSoftwarePlatform/pytorch.git
 RUN cd ~/pytorch && git submodule update --init --recursive
 RUN cd ~/pytorch && export BLAS=blis USE_MKLDNN_CBLAS=ON WITH_BLAS=blis && USE_ROCM=0 python setup.py install
 
-#Build Torchvision for CPU only
+# Build Torchvision for CPU only
 RUN cd ~ && git clone https://github.com/pytorch/vision.git
 RUN cd ~/vision && USE_ROCM=0 python setup.py install
 
