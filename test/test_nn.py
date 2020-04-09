@@ -9711,7 +9711,6 @@ class TestNNDeviceType(NNTestCase):
 
     # test is flaky on ROCm CI
     @onlyCUDA
-    @skipCUDAIfRocm
     @dtypes(torch.half, torch.float)
     def test_softmax(self, device, dtype):
         input = torch.rand(32, 100, device=device, dtype=dtype, requires_grad=True)
