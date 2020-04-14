@@ -543,9 +543,9 @@ void addInputs(Node* n, const char* name, const std::string& value) {
 void addInputs(Node* n, const char* name, const at::Tensor& value) {
   n->addInput(getValueTrace(value));
 }
-void addInputs(Node* n, const char* name, const at::Generator& value) {
-  if (value.defined()) {
-    detail::badArgType(value);
+void addInputs(Node* n, const char* name, const c10::optional<at::Generator>& value) {
+  if (value.has_value() && value->defined()) {
+    detail::badArgType(*value);
   }
   Graph* g = n->owningGraph();
   Value* undef_gen = g->insertNode(g->createNone())->output();
@@ -701,7 +701,7 @@ void addOutput(Node* node, const at::Tensor& output) {
 void setOutput(Value* value, const at::Tensor& output) {
   if (output.defined()) {
     value->inferTypeFrom(output);
-    setValueTrace(autograd::as_variable_ref(output), value);
+    setValueTrace(output, value);
   }
 }
 
