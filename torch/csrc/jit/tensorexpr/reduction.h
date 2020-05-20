@@ -4,6 +4,7 @@
 #include <torch/csrc/jit/tensorexpr/dim_arg.h>
 #include <torch/csrc/jit/tensorexpr/expr.h>
 #include <torch/csrc/jit/tensorexpr/ir.h>
+#include <torch/csrc/jit/tensorexpr/ir_printer.h>
 #include <torch/csrc/jit/tensorexpr/types.h>
 
 #include <functional>
@@ -24,26 +25,28 @@ using ReduceInteraction = std::function<ExprHandle(ExprHandle, ExprHandle)>;
 class ReduceOp : public ExprNode<ReduceOp> {
  public:
   ReduceOp(
-      ExprHandle accum,
-      Stmt* init,
+      const Buf* accum,
+      const Expr* init,
       ExprHandle body,
       ReduceInteraction c,
+      const std::vector<const Expr*>& output_args,
       const std::vector<const Var*>& reduce_args)
       : ExprNodeBase(body.dtype()),
         accumulator_(accum),
         initializer_(init),
         body_(body),
         interaction_(c),
+        output_args_(output_args),
         reduce_args_(reduce_args) {}
 
   // return the accumulation load expression.
-  ExprHandle accumulator() const {
+  const Buf* accumulator() const {
     return accumulator_;
   }
 
   // return a Statement which stores the initializer into the accumulation
   // buffer.
-  Stmt* initializer() const {
+  const Expr* initializer() const {
     return initializer_;
   }
 
@@ -58,6 +61,11 @@ class ReduceOp : public ExprNode<ReduceOp> {
     return interaction_;
   }
 
+  // returns variables associated with the output Tensor.
+  const std::vector<const Expr*>& output_args() const {
+    return output_args_;
+  }
+
   // returns variables associated with the axes of reduction.
   const std::vector<const Var*>& reduce_args() const {
     return reduce_args_;
@@ -66,14 +74,19 @@ class ReduceOp : public ExprNode<ReduceOp> {
   // Completes the reduction operator by applying the interaction function to
   // the accumulation and the body expression.
   ExprHandle complete() const {
-    return interaction_(accumulator_, body_);
+    std::vector<const Expr*> indices(output_args_.begin(), output_args_.end());
+    ExprHandle accum = ExprHandle(
+        new Load(body_.dtype(), accumulator_, indices, new IntImm(1)));
+    auto e = interaction_(accum, body_);
+    return e;
   }
 
  private:
-  ExprHandle accumulator_;
-  Stmt* initializer_;
+  const Buf* accumulator_;
+  const Expr* initializer_;
   ExprHandle body_;
   ReduceInteraction interaction_;
+  std::vector<const Expr*> output_args_;
   std::vector<const Var*> reduce_args_;
 };
 
@@ -97,19 +110,15 @@ class Reducer {
   ReduceOp* operator()(
       Buf* result_buf,
       ExprHandle body,
-      std::vector<const Var*> outer,
+      std::vector<const Expr*> output,
       std::vector<const Var*> inner) const {
-    std::vector<const Expr*> indices;
-    for (size_t i = 0; i < outer.size(); i++) {
-      indices.push_back(outer[i]);
-    }
-
-    ExprHandle accum =
-        ExprHandle(new Load(body.dtype(), result_buf, indices, new IntImm(1)));
-    Stmt* init = new Store(
-        result_buf, indices, new Cast(body.dtype(), init_), new IntImm(1));
-
-    return new ReduceOp(accum, init, body, interaction_, inner);
+    return new ReduceOp(
+        result_buf,
+        new Cast(body.dtype(), init_),
+        body,
+        interaction_,
+        output,
+        inner);
   }
 
   // Polymorphic handling of Body functions with a variety of parameters.
@@ -226,6 +235,109 @@ class Minimum : public Reducer {
       : Reducer(initializer, [](ExprHandle a, ExprHandle b) {
           return Min::make(a, b, true);
         }) {}
+};
+
+class ReductionInitCleaner : public IRMutator {
+ public:
+  Stmt* clean(Stmt* s) {
+    return s->accept_mutator(this);
+  }
+
+  const Expr* mutate(const ReduceOp* v) override {
+    if (v->initializer()->dtype() == kVoid) {
+      return v;
+    }
+
+    return new ReduceOp(
+        v->accumulator(),
+        new NoOp(),
+        v->body(),
+        v->interaction(),
+        v->output_args(),
+        v->reduce_args());
+    return v->complete().node();
+  }
+};
+
+class ReductionExpander : public IRMutator {
+ public:
+  Stmt* expand(Stmt* s) {
+    Stmt* s_new = s->accept_mutator(this);
+    if (!initializers_.empty()) {
+      throw std::runtime_error("failed to initialize all reductions");
+    }
+
+    return s_new;
+  }
+
+  Stmt* mutate(const For* v) override {
+    Stmt* body_new = v->body()->accept_mutator(this);
+    if (body_new == v->body()) {
+      body_new = Stmt::clone(v->body());
+    }
+
+    Stmt* ret = v->cloneWithNewBody(body_new);
+
+    for (size_t i = 0; i < initializers_.size();) {
+      InitializerInfo& info = initializers_[i];
+
+      auto end = std::remove(info.vars.begin(), info.vars.end(), v->var());
+      if (end == info.vars.end()) {
+        info.skipped_loops.push_back(v);
+        i++;
+        continue;
+      }
+
+      info.vars.erase(end);
+      if (info.vars.empty()) {
+        const ReduceOp* op = info.op;
+        std::vector<const Expr*> indices(
+            op->output_args().begin(), op->output_args().end());
+
+        Stmt* init = new Store(
+            op->accumulator(), indices, op->initializer(), new IntImm(1));
+
+        for (auto it = info.skipped_loops.rbegin();
+             it != info.skipped_loops.rend();
+             it++) {
+          const For* old_for = *it;
+          init = old_for->cloneWithNewBody(init);
+        }
+        info.skipped_loops.clear();
+
+        if (Block* b = dynamic_cast<Block*>(ret)) {
+          b->prepend_stmt(init);
+        } else {
+          ret = new Block({init, ret});
+        }
+        initializers_.erase(initializers_.begin() + i);
+        continue;
+      }
+
+      i++;
+    }
+    return ret;
+  }
+
+  const Expr* mutate(const ReduceOp* v) override {
+    if (v->initializer()->dtype() != kVoid) {
+      const std::vector<const Var*>& reduce_vars(v->reduce_args());
+      initializers_.emplace_back(InitializerInfo(v, reduce_vars));
+    }
+
+    return v->complete().node();
+  }
+
+ private:
+  struct InitializerInfo {
+    InitializerInfo(const ReduceOp* o, std::vector<const Var*> v)
+        : op(o), vars(std::move(v)) {}
+    const ReduceOp* op;
+    std::vector<const Var*> vars;
+    std::vector<const For*> skipped_loops;
+  };
+
+  std::vector<InitializerInfo> initializers_;
 };
 
 } // namespace tensorexpr

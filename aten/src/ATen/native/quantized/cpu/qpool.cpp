@@ -1,7 +1,7 @@
 #include <ATen/ATen.h>
 #include <ATen/NativeFunctions.h>
 #include <ATen/Parallel.h>
-#include <ATen/core/op_registration/op_registration.h>
+#include <torch/library.h>
 #include <ATen/native/Pool.h>
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/cpu/Loops.h>
@@ -124,7 +124,7 @@ Tensor q_maxpool_2d(
   int64_t iW = qx.size(dimw);
   TORCH_CHECK(iC > 0 && iH > 0 && iW > 0, "input dimensions must be non-zero.");
   TORCH_CHECK(
-      qx.numel() > 0 && (ndim == 3 || ndim == 4),
+      (ndim == 3 || ndim == 4),
       "non-empty 3D or 4D input tensor is expected.");
   TORCH_CHECK(
       kH / 2 >= pH && kW / 2 >= pW,
@@ -268,10 +268,10 @@ Tensor quantized_max_pool2d(
 
 // Keep the registry in the anonymous namespace.
 namespace {
-class QMaxPool2D_arr_args final : public torch::OperatorKernel {
+class QMaxPool2D_arr_args final {
  public:
   #ifdef USE_PYTORCH_QNNPACK
-   Tensor qnnpack_maxpool(
+   static Tensor qnnpack_maxpool(
        Tensor input,
        IntArrayRef kernel_size,
        IntArrayRef stride,
@@ -396,7 +396,7 @@ class QMaxPool2D_arr_args final : public torch::OperatorKernel {
      return qy.permute({0, 3, 1, 2});
    }
    #endif
-  Tensor operator()(
+  static Tensor run(
       Tensor qx,
       std::vector<int64_t> kernel_size,
       std::vector<int64_t> stride,
@@ -412,15 +412,9 @@ class QMaxPool2D_arr_args final : public torch::OperatorKernel {
   }
 };
 
-static auto registry = torch::RegisterOperators().op(
-    "quantized::max_pool2d(Tensor qx, "
-    "int[] kernel_size, "
-    "int[] stride, "
-    "int[] padding, "
-    "int[] dilation,"
-    "bool ceil_mode) -> Tensor",
-    torch::RegisterOperators::options().kernel<QMaxPool2D_arr_args>(
-        DispatchKey::QuantizedCPUTensorId));
+TORCH_LIBRARY_IMPL(quantized, QuantizedCPU, m) {
+  m.impl("max_pool2d", QMaxPool2D_arr_args::run);
+}
 
 } // namespace
 } // namespace native

@@ -47,6 +47,8 @@ class TORCH_API Future final {
     return value_;
   }
 
+  // These constValue/moveValue accessors should only be used if
+  // we know that the future is completed() with no error.
   const T& constValue() const {
     std::unique_lock<std::mutex> lock(mutex_);
     AT_ASSERT(completed_);
@@ -124,17 +126,16 @@ class TORCH_API Future final {
     if (completed_) {
       lock.unlock();
       cb();
+      return;
     }
     callbacks_.emplace_back(std::move(cb));
   }
 
-  // Remove this once we've migrated underlying use-cases.
-  void addCallback(const std::function<
-                   void(const T&, const c10::optional<torch::utils::FutureError>&)>& cb) {
-    addCallback([cb,this]() { cb(value_, error_); });
+  void addCallback(std::function<void(const Future<T>& future)> cb) {
+    addCallback([this, cb = std::move(cb)]() { cb(*this); });
   }
 
-  private:
+ private:
   void setErrorInternal(
       FutureError error,
       std::unique_lock<std::mutex>& lock) {
