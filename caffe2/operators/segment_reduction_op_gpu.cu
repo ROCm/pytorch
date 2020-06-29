@@ -9,7 +9,7 @@
 #include "caffe2/utils/math.h"
 
 #ifdef __HIP_PLATFORM_HCC__
-#define SEGREDUCE_MINBLOCKS 8
+#define SEGREDUCE_MINBLOCKS 4
 #else
 #define SEGREDUCE_MINBLOCKS 16
 #endif
@@ -290,18 +290,59 @@ __global__ void sparse_length_sum_kernel(
     T sum = (T)0;
 
     in += threadIdx.x;
+#ifdef __HIP_PLATFORM_HCC__
+    int line = start + threadIdx.y;
+    int c1 = (end-line)/blockDim.y;
+    while(c1 >= 4){
+        const T sum1 = in[indices[line             ] * post];
+        const T sum2 = in[indices[line+1*blockDim.y] * post];
+        const T sum3 = in[indices[line+2*blockDim.y] * post];
+        const T sum4 = in[indices[line+3*blockDim.y] * post];
+        sum += sum1 + sum2 + sum3 + sum4;
+        line += 4*blockDim.y;
+        c1 -= 4;
+    }
+
+    switch(c1){
+        case 3: sum += in[indices[line+2*blockDim.y] * post];
+        case 2: sum += in[indices[line+  blockDim.y] * post];
+        case 1: sum += in[indices[line] * post];
+    }
+#else
     for (int line = start + threadIdx.y; line < end; line += blockDim.y) {
       sum += in[indices[line] * post];
     }
+#endif
 
     reduceVals[threadIdx.y * blockDim.x + threadIdx.x] = sum;
     __syncthreads();
 
     if (threadIdx.y == 0) {
       sum = (T)0;
+#ifdef __HIP_PLATFORM_HCC__
+      int c2 = blockDim.y;
+      const int idx_x = threadIdx.x;
+      int i = 0;
+      while(c2 >= 4){
+          const T sum1 = reduceVals[i     * blockDim.x + idx_x];
+          const T sum2 = reduceVals[(i+1) * blockDim.x + idx_x];
+          const T sum3 = reduceVals[(i+2) * blockDim.x + idx_x];
+          const T sum4 = reduceVals[(i+3) * blockDim.x + idx_x];
+          sum += sum1 + sum2 + sum3 + sum4;
+          c2 -= 4;
+          i += 4;
+      }
+
+      switch(c2){
+          case 3: sum += reduceVals[(i+2) * blockDim.x + idx_x];
+          case 2: sum += reduceVals[(i+1) * blockDim.x + idx_x];
+          case 1: sum += reduceVals[i     * blockDim.x + idx_x];
+       }
+#else
       for (int i = 0; i < blockDim.y; ++i) {
         sum += reduceVals[i * blockDim.x + threadIdx.x];
       }
+#endif
       if (Average && (end - start) > 1) {
         sum /= (end - start);
       }
