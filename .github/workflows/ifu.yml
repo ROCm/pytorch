@@ -1,23 +1,19 @@
-# This is a basic workflow to help you get started with Actions
-
 name: IntegrateFromUpstream
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   schedule:
-    - cron: 0 0 * * *
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+    # verified via crontab.guru website. “At 01:00 on Monday.”
+    - cron: '0 1 * * 1'
 jobs:
-  # This workflow contains a single job called "IFU"
-  IFU:
-    # The type of runner that the job will run on
+  IntegrateFromUpstream:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: 
+      - name: Get Current Date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Fetch and Merge
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -27,4 +23,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          branch-suffix: timestamp
+          branch: IFU-master-${{ steps.date.outputs.date }}
+          title: IFU-master-${{ steps.date.outputs.date }}
+          assignees: jeffdaily
+          reviewers: jeffdaily
