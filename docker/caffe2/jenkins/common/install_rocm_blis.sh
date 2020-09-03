@@ -5,7 +5,26 @@ set -ex
 install_ubuntu() {
     apt-get update
     apt-get install -y wget
-    apt-get install -y libopenblas-dev
+    
+    # AMD's official BLAS library is BLIS (https://github.com/flame/blis) from UT Austin's FLAME group)
+    wget https://github.com/flame/blis/archive/0.7.0.tar.gz
+    tar xzf 0.7.0.tar.gz
+    pushd blis-0.7.0
+    ./configure --enable-blas --enable-shared --enable-static -t openmp x86_64
+    make -j
+    make install
+    popd
+
+    # we need an accompanying LAPACK
+    wget https://github.com/flame/libflame/archive/5.2.0.tar.gz
+    tar xzf 5.2.0.tar.gz
+    pushd libflame-5.2.0
+    ./configure --enable-dynamic-build --enable-lapack2flame --enable-max-arg-list-hack --enable-supermatrix \
+    --disable-ldim-alignment --enable-multithreading=openmp --disable-autodetect-f77-ldflags \
+    --disable-autodetect-f77-name-mangling
+    make -j
+    make install
+    popd
 
     # Need the libc++1 and libc++abi1 libraries to allow torch._C to load at runtime
     apt-get install -y libc++1
@@ -37,7 +56,26 @@ install_centos() {
 
   yum update -y
   yum install -y wget
-  yum install -y openblas-devel
+
+  # AMD's official BLAS library is BLIS (https://github.com/flame/blis) from UT Austin's FLAME group)
+  wget https://github.com/flame/blis/archive/0.7.0.tar.gz
+  tar xzf 0.7.0.tar.gz
+  pushd blis-0.7.0
+  ./configure --enable-blas --enable-shared --enable-static -t openmp x86_64
+  make -j
+  make install
+  popd
+
+  # we need an accompanying LAPACK
+  wget https://github.com/flame/libflame/archive/5.2.0.tar.gz
+  tar xzf 5.2.0.tar.gz
+  pushd libflame-5.2.0
+  ./configure --enable-dynamic-build --enable-lapack2flame --enable-max-arg-list-hack --enable-supermatrix \
+  --disable-ldim-alignment --enable-multithreading=openmp --disable-autodetect-f77-ldflags \
+  --disable-autodetect-f77-name-mangling
+  make -j
+  make install
+  popd
 
   # Need the libc++1 and libc++abi1 libraries to allow torch._C to load at runtime
   yum install -y libc++1
