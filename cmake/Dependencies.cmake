@@ -1222,7 +1222,7 @@ if(USE_ROCM)
     # TODO: There is a bug in rocblas's & rocfft's cmake files that exports the wrong targets name in ${rocblas_LIBRARIES}
     # If you get this wrong, you'll get a complaint like 'ld: cannot find -lrocblas-targets'
     list(APPEND Caffe2_HIP_DEPENDENCY_LIBS
-      roc::rocblas roc::rocfft hip::hiprand roc::hipsparse)
+      roc::rocblas hip::hipfft roc::rocfft hip::hiprand roc::hipsparse)
   else()
     caffe2_update_option(USE_ROCM OFF)
   endif()
@@ -1234,6 +1234,7 @@ if(USE_ROCM)
   # in the if above
   include_directories(SYSTEM ${HIP_PATH}/include)
   include_directories(SYSTEM ${ROCBLAS_PATH}/include)
+  include_directories(SYSTEM ${HIPFFT_PATH}/include)
   include_directories(SYSTEM ${ROCFFT_PATH}/include)
   include_directories(SYSTEM ${HIPSPARSE_PATH}/include)
   include_directories(SYSTEM ${HIPRAND_PATH}/include)
