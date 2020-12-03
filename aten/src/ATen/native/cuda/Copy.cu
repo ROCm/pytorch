@@ -93,6 +93,54 @@ void copy_device_to_device(TensorIterator& iter, bool non_blocking) {
   AT_CUDA_CHECK(cudaGetLastError());
 }
 
+void copy_alias_tensor(TensorIterator& iter, bool non_blocking)
+{
+  int64_t numel = iter.numel();
+
+  // We can memcpy the memory if both tensors have the same type AND both
+  // tensors are contiguous after dimension coalescing and reordering.
+  bool same_type = iter.dtype(0) == iter.dtype(1);
+  bool memcpy_eligible = same_type && iter.is_contiguous();
+
+  Device dst_device = iter.device(0);
+  Device src_device = iter.device(1);
+
+  CUDAGuard device_guard(Device(DeviceType::CUDA, src_device.index()));
+
+  // We always perform the copy on the source device, using the current stream
+  // on the source device, and we fully synchronize on both src and dst's
+  // current streams for completion of the copy. We have to explicitly do this
+  // for non-contig copies. This mimics the behavior of cross-device
+  // cudaMemcpyAsync on the default stream.
+  CUDAStream copy_stream = getCurrentCUDAStream(src_device.index());
+
+  if (memcpy_eligible) {
+    void *dst = iter.data_ptr(0);
+    void *src = iter.data_ptr(1);
+    size_t size = numel * iter.element_size(0);
+    if (src != dst || src_device != dst_device) {
+      // Perform the copy
+      AT_CUDA_CHECK(cudaMemcpyAsync(
+          dst, src, size,
+          cudaMemcpyDeviceToDevice,
+          copy_stream));
+    }
+  } else {
+    auto dtype = iter.dtype(0);
+    if (isQIntType(dtype)) {
+      AT_DISPATCH_QINT_TYPES(dtype, "copy_", [&] {
+        gpu_kernel(iter, [] GPU_LAMBDA(scalar_t x) { return x; });
+      });
+    } else {
+      AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND3(
+          kHalf, kBool, kBFloat16, dtype, "copy_", [&] {
+            gpu_kernel(iter, [] GPU_LAMBDA(scalar_t x) { return x; });
+          });
+    }
+  }
+  AT_CUDA_CHECK(cudaGetLastError());
+}
+
 static bool copy_requires_temporaries(TensorIterator& iter, bool p2p_enabled) {
   Device dst_device = iter.device(0);
   Device src_device = iter.device(1);
@@ -131,6 +179,11 @@ static void copy_kernel_cuda(TensorIterator& iter, bool non_blocking) {
   Device dst_device = iter.device(0);
   Device src_device = iter.device(1);
 
+  if((dst_device.is_cuda() && src_device.is_hip()) || dst_device.is_hip() && src_device.is_cuda()) {
+    copy_alias_tensor(iter, non_blocking);
+    return;
+  }
+
   // Enable p2p access between devices. (No-op if it involves the CPU)
   bool p2p_enabled = maybe_enable_p2p_access(dst_device, src_device);
 
@@ -168,6 +221,9 @@ static void copy_kernel_cuda(TensorIterator& iter, bool non_blocking) {
   // Copy on GPU (or between GPUs)
   if (dst_device.is_cuda() && src_device.is_cuda()) {
     copy_device_to_device(iter, non_blocking);
+    return;
+  } else if((dst_device.is_cuda() && src_device.is_hip()) || dst_device.is_hip() && src_device.is_cuda()) {
+    copy_alias_tensor(iter, non_blocking);
     return;
   }
 

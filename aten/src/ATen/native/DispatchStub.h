@@ -80,8 +80,8 @@ struct CAFFE2_API DispatchStub<rT (*)(Args...), T> {
       AT_ASSERTM(cuda_dispatch_ptr, "DispatchStub: missing CUDA kernel");
       return (*cuda_dispatch_ptr)(std::forward<ArgTypes>(args)...);
     } else if (device_type == DeviceType::HIP) {
-      AT_ASSERTM(hip_dispatch_ptr, "DispatchStub: missing HIP kernel");
-      return (*hip_dispatch_ptr)(std::forward<ArgTypes>(args)...);
+      AT_ASSERTM(cuda_dispatch_ptr, "DispatchStub: missing HIP kernel");
+      return (*cuda_dispatch_ptr)(std::forward<ArgTypes>(args)...);
     } else {
       AT_ERROR("DispatchStub: unsupported device type", device_type);
     }

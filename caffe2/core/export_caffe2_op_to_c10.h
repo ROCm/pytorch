@@ -88,6 +88,13 @@ inline void _call_caffe2_op_from_c10(
       }
     }
   }
+  // Convert HIP Tensors to CUDA Tensors
+  for (size_t i = 0; i < outputs.size(); i++) {
+    at::Tensor tmp = outputs[i];
+    if (tmp.device().type() == c10::DeviceType::HIP) {
+      outputs[i] = std::move(tmp.to(tmp.options().device(c10::DeviceType::CUDA)));
+    }
+  }
   if (return_tensor_list) {
     // We should not unwrap the list if we expect tensor list in the schema.
     torch::jit::push(*stack, outputs);
@@ -232,7 +239,7 @@ inline FunctionSchema make_function_schema_for_c10(const char* schema_str) {
               .options()                                                     \
               .kernel<&::caffe2::detail::call_caffe2_op_from_c10<            \
                   ::caffe2::_c10_ops::schema_##OperatorName,                 \
-                  OperatorClass>>(::c10::DispatchKey::HIP));
+                  OperatorClass>>(::c10::DispatchKey::CUDA));
 
 #else
 // Don't use c10 dispatcher on mobile because of binary size
