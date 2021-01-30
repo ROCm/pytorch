@@ -257,7 +257,7 @@ public:
     // input = input.clone();
 
 #ifdef __HIP_PLATFORM_HCC__
-    // hipfft clobers input
+    // clone input to avoid issues with hipfft clobering the input and failing tests
     clone_input = true; 
 #else
     clone_input = false;
