@@ -10,7 +10,7 @@ void THCStorage_(copyCPU)(THCState *state, THCStorage *self, struct THStorage *s
 {
   THArgCheck(self->nbytes() == src->nbytes(), 2, "size does not match");
   cudaStream_t stream = c10::cuda::getCurrentCUDAStream();
-#if HIP_VERSION >= 301
+#if TORCH_HIP_VERSION >= 301
   THCudaCheck(hipMemcpyWithStream(
       THCStorage_(data)(state, self),
       THStorage_(data)(src),
@@ -61,7 +61,7 @@ void THStorage_(copyCuda)(THCState *state, THStorage *self, struct THCStorage *s
 {
   THArgCheck(self->nbytes() == src->nbytes(), 2, "size does not match");
   cudaStream_t stream = c10::cuda::getCurrentCUDAStream();
-#if HIP_VERSION >= 301
+#if TORCH_HIP_VERSION >= 301
   THCudaCheck(hipMemcpyWithStream(
       THStorage_(data)(self),
       THCStorage_(data)(state, src),
