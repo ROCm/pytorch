@@ -11,7 +11,7 @@ from torch.testing._internal.common_utils import \
     (TestCase, run_tests, TEST_NUMPY, TEST_LIBROSA, TEST_MKL)
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, ops, dtypes, onlyOnCPUAndCUDA,
-     skipCPUIfNoFFT, deviceCountAtLeast, onlyCUDA, OpDTypes, skipIf)
+     skipCPUIfNoFFT, deviceCountAtLeast, onlyCUDA, OpDTypes, skipIf, skipIfRocm)
 from torch.testing._internal.common_methods_invocations import spectral_funcs, SpectralFuncInfo
 
 from setuptools import distutils
@@ -258,6 +258,7 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.float, torch.double, torch.complex64, torch.complex128)
     def test_fft_round_trip(self, device, dtype):
         # Test that round trip through ifft(fft(x)) is the identity
@@ -319,6 +320,7 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.int8, torch.float, torch.double, torch.complex64, torch.complex128)
     def test_fft_type_promotion(self, device, dtype):
         if dtype.is_complex or dtype.is_floating_point:
@@ -401,6 +403,7 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.float, torch.double, torch.complex64, torch.complex128)
     def test_fftn_round_trip(self, device, dtype):
         norm_modes = (None, "forward", "backward", "ortho")
@@ -466,6 +469,7 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.double, torch.complex128)
     def test_fft2_numpy(self, device, dtype):
         norm_modes = ((None, "forward", "backward", "ortho")
@@ -521,6 +525,7 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.float, torch.complex64)
     def test_fft2_fftn_equivalence(self, device, dtype):
         norm_modes = (None, "forward", "backward", "ortho")
@@ -727,12 +732,14 @@ class TestFFT(TestCase):
 
     @skipCPUIfNoFFT
     @onlyOnCPUAndCUDA
+    @skipIfRocm
     @dtypes(torch.double)
     def test_fft_ifft_rfft_irfft(self, device, dtype):
         self._test_fft_ifft_rfft_irfft(device, dtype)
 
     @deviceCountAtLeast(1)
     @onlyCUDA
+    @skipIfRocm
     @dtypes(torch.double)
     def test_cufft_plan_cache(self, devices, dtype):
         @contextmanager
@@ -805,6 +812,7 @@ class TestFFT(TestCase):
 
     # passes on ROCm w/ python 2.7, fails w/ python 3.6
     @skipCPUIfNoFFT
+    @skipIfRocm
     @onlyOnCPUAndCUDA
     @dtypes(torch.double)
     def test_stft(self, device, dtype):
@@ -872,6 +880,7 @@ class TestFFT(TestCase):
 
     @onlyOnCPUAndCUDA
     @skipCPUIfNoFFT
+    @skipIfRocm
     @dtypes(torch.double, torch.cdouble)
     def test_complex_stft_roundtrip(self, device, dtype):
         test_args = list(product(
@@ -974,6 +983,7 @@ class TestFFT(TestCase):
 
     @onlyOnCPUAndCUDA
     @skipCPUIfNoFFT
+    @skipIfRocm
     @dtypes(torch.cdouble)
     def test_complex_stft_real_equiv(self, device, dtype):
         test_args = list(product(
@@ -1033,6 +1043,7 @@ class TestFFT(TestCase):
             self.assertEqual(expected, actual)
 
     @skipCPUIfNoFFT
+    @skipIfRocm
     def test_complex_stft_onesided(self, device):
         # stft of complex input cannot be onesided
         for x_dtype, window_dtype in product((torch.double, torch.cdouble), repeat=2):
@@ -1083,6 +1094,7 @@ class TestFFT(TestCase):
 
     @onlyOnCPUAndCUDA
     @skipCPUIfNoFFT
+    @skipIfRocm
     def test_fft_plan_repeatable(self, device):
         # Regression test for gh-58724 and gh-63152
         for n in [2048, 3199, 5999]:
@@ -1098,6 +1110,7 @@ class TestFFT(TestCase):
 
     @onlyOnCPUAndCUDA
     @skipCPUIfNoFFT
+    @skipIfRocm
     @dtypes(torch.double)
     def test_istft_round_trip_simple_cases(self, device, dtype):
         """stft -> istft should recover the original signale"""
@@ -1111,6 +1124,7 @@ class TestFFT(TestCase):
 
     @onlyOnCPUAndCUDA
     @skipCPUIfNoFFT
+    @skipIfRocm
     @dtypes(torch.double)
     def test_istft_round_trip_various_params(self, device, dtype):
         """stft -> istft should recover the original signale"""
