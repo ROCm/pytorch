@@ -2,8 +2,8 @@
 
 #include <ATen/native/cuda/Loops.cuh>
 #include <ATen/cuda/detail/OffsetCalculator.cuh>
+#include <ATen/cuda/Atomic.cuh>
 #include <ATen/cuda/CUDAContext.h>
-#include <THC/THCAtomics.cuh>
 
 namespace at { namespace native {
 
@@ -92,7 +92,7 @@ void _compute_linear_combination_internal_kernel(
     }
   };
 
-  _launch_kernel(iter.numel(), loop);
+  _lauch_kernel<num_threads(), thread_work_size()>(iter.numel(), loop);
 }
 
 void _compute_linear_combination_cuda_kernel(
