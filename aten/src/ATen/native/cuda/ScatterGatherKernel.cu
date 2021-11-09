@@ -71,20 +71,29 @@ static void _launch_scatter_gather_kernel(int64_t N, const func_t& f) {
   if (N == 0) {
     return;
   }
+  
+#if defined(USE_ROCM)
+  int nt = num_threads_dynamic();
+#else
+  constexpr int nt = num_threads();
+#endif
 
-  const int nt = at::cuda::warp_size() * 2;
-  constexpr  int vt = 4;
+  constexpr int vt = thread_work_size();
   const dim3 block(nt);
-  const dim3 grid((N + nt * vt - 1) / (nt * vt));
+  const dim3 grid((N + block.x * vt - 1) / (block.x * vt));
   const auto stream = at::cuda::getCurrentCUDAStream();
 
-  if (nt == 64) {
-    _scatter_gather_elementwise_kernel<64, vt, func_t>
-        <<<grid, block, 0, stream>>>(N, f);
-  } else if (nt == 128) {
+#if defined(USE_ROCM)
+  if (nt == 128) {
     _scatter_gather_elementwise_kernel<128, vt, func_t>
         <<<grid, block, 0, stream>>>(N, f);
+  } else if (nt == 256) {
+    _scatter_gather_elementwise_kernel<256, vt, func_t>
+        <<<grid, block, 0, stream>>>(N, f);
   }
+#else
+  _scatter_gather_elementwise_kernel<nt, vt, func_t><<<grid, block, 0, stream>>>(N, f);
+#endif
 
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 }

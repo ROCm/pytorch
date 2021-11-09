@@ -38,20 +38,31 @@ static void _launch_unfold_backward_kernel(int total_n_elems, func_t f) {
     total_n_elems >= 0 && total_n_elems <= std::numeric_limits<int32_t>::max()
   );
 
-  const int n_threads = at::cuda::warp_size() * 2;
-  constexpr int n_elems_per_thread = 4;
+ #if defined(USE_ROCM)
+  int n_threads = num_threads_dynamic();
+#else
+  constexpr int n_threads = num_threads();
+#endif
+  constexpr int n_elems_per_thread = thread_work_size();
   dim3 block(n_threads);
-  const int total_work_block = n_threads * n_elems_per_thread;
+  int total_work_block = n_threads * n_elems_per_thread;
   dim3 grid((total_n_elems + total_work_block - 1) / total_work_block);
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  if (n_threads == 64) {
-    _unfold_backward_elementwise_kernel<64, n_elems_per_thread, func_t>
-        <<<grid, block, 0, stream>>>(total_n_elems, f);
-  } else if (n_threads == 128) {
-    _unfold_backward_elementwise_kernel<128, n_elems_per_thread, func_t>
-        <<<grid, block, 0, stream>>>(total_n_elems, f);
+
+#if defined(USE_ROCM)
+  if (n_threads == 128) {
+      _unfold_backward_elementwise_kernel<128, n_elems_per_thread, func_t>
+          <<<grid, block, 0, stream>>>(total_n_elems, f);
+    } else if (n_threads == 256) {
+      _unfold_backward_elementwise_kernel<256, n_elems_per_thread, func_t>
+          <<<grid, block, 0, stream>>>(total_n_elems, f);
   }
+#else
+  _unfold_backward_elementwise_kernel<n_threads, n_elems_per_thread, func_t>
+    <<<grid, block, 0, stream>>>(total_n_elems, f);
+#endif
+
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
