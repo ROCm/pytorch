@@ -243,6 +243,7 @@ Tensor embedding_dense_backward_cuda(const Tensor & grad_, const Tensor & indice
     auto indices_contig = indices.contiguous();
     auto grad_weight = at::zeros({num_weights, grad_.size(-1)}, grad_.options());
     int64_t stride = grad_weight.stride(0);
+    int warp_size = at::cuda::warp_size(); 
     dim3 grid(ceil_div(stride, (int64_t)C10_WARP_SIZE));
     dim3 block(C10_WARP_SIZE, BLOCKDIMY);
 
@@ -315,6 +316,7 @@ Tensor & embedding_renorm_cuda_(Tensor & self, const Tensor & indices,
       num_indices
     );
 
+    int warp_size = at::cuda::warp_size();
     constexpr int num_threads = 128;
     static_assert(num_threads % C10_WARP_SIZE == 0 &&
                   num_threads <= cuda_utils::kCUDABlockReduceMaxThreads,

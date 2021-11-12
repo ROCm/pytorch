@@ -268,6 +268,7 @@ void index_put_with_sort_kernel(Tensor & self, const c10::List<c10::optional<Ten
           linearIndex.numel()*sliceSize*nElemBefore, " vs ", expandedValue.numel());
       const int UNROLL = 4;
       const int indices_per_block = 4;
+      const int warp_size = at::cuda::warp_size();
       dim3 grid(ceil_div(num_indices, (int64_t) indices_per_block),
            std::min<int>(at::cuda::getCurrentDeviceProperties()->maxGridSize[1], ceil_div(sliceSize, (int64_t) (C10_WARP_SIZE*UNROLL))),
            std::min(std::max<int>(1,nElemBefore), at::cuda::getCurrentDeviceProperties()->maxGridSize[2]));

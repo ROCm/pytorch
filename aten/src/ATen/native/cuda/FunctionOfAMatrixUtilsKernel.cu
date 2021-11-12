@@ -92,7 +92,7 @@ void _compute_linear_combination_internal_kernel(
     }
   };
 
-  _lauch_kernel<num_threads(), thread_work_size()>(iter.numel(), loop);
+  _launch_kernel(iter.numel(), loop);
 }
 
 void _compute_linear_combination_cuda_kernel(
