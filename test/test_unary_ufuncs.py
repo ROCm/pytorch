@@ -489,7 +489,10 @@ class TestUnaryUfuncs(TestCase):
         else:
             res = op(input, out=output, **kwargs)
             self.assertTrue(res is output)
-            self.assertEqual(output, expected.to(output.dtype))
+            if op.name == "sinc":
+                self.assertEqual(output, expected.to(output.dtype), atol = 1e-6, rtol = 1e-6)
+            else:
+                self.assertEqual(output, expected.to(output.dtype))
 
     @ops(unary_ufuncs, dtypes=OpDTypes.supported)
     def test_out_arg_all_dtypes(self, device, dtype, op):
