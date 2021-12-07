@@ -501,7 +501,7 @@ class TestUnaryUfuncs(TestCase):
         else:
             res = op(input, out=output, **kwargs)
             self.assertTrue(res is output)
-            if op.name == "sinc":
+            if op.name == "sinc" and expected.dtype == torch.complex64 and output.dtype == torch.complex128:
                 self.assertEqual(output, expected.to(output.dtype), atol = 1e-6, rtol = 1e-6)
             else:
                 self.assertEqual(output, expected.to(output.dtype))
