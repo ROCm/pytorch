@@ -179,14 +179,12 @@ class MultivariateNormal(Distribution):
     @lazy_property
     def covariance_matrix(self):
         return (torch.matmul(self._unbroadcasted_scale_tril,
-                             self._unbroadcasted_scale_tril.transpose(-1, -2))
+                             self._unbroadcasted_scale_tril.mT)
                 .expand(self._batch_shape + self._event_shape + self._event_shape))
 
     @lazy_property
     def precision_matrix(self):
-        identity = torch.eye(self.loc.size(-1), device=self.loc.device, dtype=self.loc.dtype)
-        # TODO: use cholesky_inverse when its batching is supported
-        return torch.cholesky_solve(identity, self._unbroadcasted_scale_tril).expand(
+        return torch.cholesky_inverse(self._unbroadcasted_scale_tril).expand(
             self._batch_shape + self._event_shape + self._event_shape)
 
     @property

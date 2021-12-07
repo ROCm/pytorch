@@ -320,7 +320,7 @@ def _kl_lowrankmultivariatenormal_lowrankmultivariatenormal(p, q):
     # Expands term2 according to
     # inv(qcov) @ pcov = [inv(qD) - inv(qD) @ qW @ inv(qC) @ qW.T @ inv(qD)] @ (pW @ pW.T + pD)
     #                  = [inv(qD) - A.T @ A] @ (pD + pW @ pW.T)
-    qWt_qDinv = (q._unbroadcasted_cov_factor.transpose(-1, -2) /
+    qWt_qDinv = (q._unbroadcasted_cov_factor.mT /
                  q._unbroadcasted_cov_diag.unsqueeze(-2))
     A = torch.triangular_solve(qWt_qDinv, q._capacitance_tril, upper=False)[0]
     term21 = (p._unbroadcasted_cov_diag / q._unbroadcasted_cov_diag).sum(-1)
@@ -347,7 +347,7 @@ def _kl_multivariatenormal_lowrankmultivariatenormal(p, q):
     # Expands term2 according to
     # inv(qcov) @ pcov = [inv(qD) - inv(qD) @ qW @ inv(qC) @ qW.T @ inv(qD)] @ p_tril @ p_tril.T
     #                  = [inv(qD) - A.T @ A] @ p_tril @ p_tril.T
-    qWt_qDinv = (q._unbroadcasted_cov_factor.transpose(-1, -2) /
+    qWt_qDinv = (q._unbroadcasted_cov_factor.mT /
                  q._unbroadcasted_cov_diag.unsqueeze(-2))
     A = torch.triangular_solve(qWt_qDinv, q._capacitance_tril, upper=False)[0]
     term21 = _batch_trace_XXT(p._unbroadcasted_scale_tril *
@@ -665,7 +665,16 @@ def _kl_normal_gumbel(p, q):
     t3 = torch.exp(-mean_scale_ratio + 0.5 * var_scale_sqr_ratio + loc_scale_ratio)
     return -t1 + t2 + t3 - (0.5 * (1 + math.log(2 * math.pi)))
 
-# TODO: Add Normal-Laplace KL Divergence
+
+@register_kl(Normal, Laplace)
+def _kl_normal_laplace(p, q):
+    loc_diff = p.loc - q.loc
+    scale_ratio = p.scale / q.scale
+    loc_diff_scale_ratio = loc_diff / p.scale
+    t1 = torch.log(scale_ratio)
+    t2 = math.sqrt(2 / math.pi) * p.scale * torch.exp(-0.5 * loc_diff_scale_ratio.pow(2))
+    t3 = loc_diff * torch.erf(math.sqrt(0.5) * loc_diff_scale_ratio)
+    return -t1 + (t2 + t3) / q.scale - (0.5 * (1 + math.log(0.5 * math.pi)))
 
 
 @register_kl(Pareto, Beta)
