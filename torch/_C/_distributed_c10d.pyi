@@ -86,7 +86,8 @@ class ReduceOptions:
     rootTensor: int
     timeout: timedelta
 
-class AllGatherOptions:
+class AllgatherOptions:
+    noCopy: bool
     timeout: timedelta
 
 class GatherOptions:
@@ -98,6 +99,7 @@ class ScatterOptions:
     timeout: timedelta
 
 class ReduceScatterOptions:
+    noCopy: bool
     reduceOp: ReduceOp
     timeout: timedelta
 
@@ -211,7 +213,7 @@ class ProcessGroup:
         self,
         output_tensors: List[List[Tensor]],
         input_tensors: List[Tensor],
-        opts=AllGatherOptions(),
+        opts=AllgatherOptions(),
     ) -> Work: ...
     @overload
     def allgather(
@@ -223,13 +225,13 @@ class ProcessGroup:
         self,
         output: Tensor,
         input: Tensor,
-        opts = AllGatherOptions(),
+        opts = AllgatherOptions(),
     ) -> Work: ...
     def allgather_coalesced(
         self,
         output_lists: List[List[Tensor]],
         input_list: List[Tensor],
-        opts=AllGatherOptions(),
+        opts=AllgatherOptions(),
     ) -> Work: ...
     @overload
     def gather(
