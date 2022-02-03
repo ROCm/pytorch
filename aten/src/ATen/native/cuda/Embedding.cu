@@ -15,12 +15,6 @@ namespace at { namespace native {
 
 namespace {
 
-#ifdef __HIP_PLATFORM_HCC__
-static const int BLOCKDIMY = 16;
-#else
-static const int BLOCKDIMY = 32;
-#endif
-
 template
   <typename scalar_t,
    typename accscalar_t,
@@ -238,8 +232,10 @@ Tensor embedding_dense_backward_cuda(const Tensor & grad_, const Tensor & indice
     auto indices_contig = indices.contiguous();
     auto grad_weight = at::zeros({num_weights, grad_.size(-1)}, grad_.options());
     int64_t stride = grad_weight.stride(0);
-    dim3 grid(THCCeilDiv(stride, (int64_t)C10_WARP_SIZE));
-    dim3 block(C10_WARP_SIZE, BLOCKDIMY);
+    int warp_size = at::cuda::warp_size();
+    int block_dim_y = 1024 / warp_size;
+    dim3 grid(THCCeilDiv(stride, (int64_t)warp_size));
+    dim3 block(warp_size, block_dim_y);
 
     AT_DISPATCH_FLOATING_TYPES_AND2(
       at::ScalarType::Half, at::ScalarType::BFloat16,
@@ -252,7 +248,7 @@ Tensor embedding_dense_backward_cuda(const Tensor & grad_, const Tensor & indice
           embedding_backward_feature_kernel<scalar_t, accscalar_t, index_t>
             <<<grid,
                 block,
-                sizeof(accscalar_t)*C10_WARP_SIZE*BLOCKDIMY + sizeof(int)*C10_WARP_SIZE*BLOCKDIMY,
+                sizeof(accscalar_t)*warp_size*block_dim_y + sizeof(int)*warp_size*block_dim_y,
                 stream>>>
             (indices_contig.data_ptr<index_t>(),
               grad.data_ptr<scalar_t>(),
@@ -310,9 +306,10 @@ Tensor & embedding_renorm_cuda_(Tensor & self, const Tensor & indices,
       num_indices
     );
 
+    int warp_size = at::cuda::warp_size();
     constexpr int num_threads = 128;
-    static_assert(num_threads % C10_WARP_SIZE == 0 &&
-                  num_threads <= cuda_utils::kCUDABlockReduceMaxThreads,
+    TORCH_INTERNAL_ASSERT(num_threads % warp_size == 0);
+    static_assert(num_threads <= cuda_utils::kCUDABlockReduceMaxThreads,
                   "BlockReduceSum requires all warps be active");
     dim3 grid = num_unique_indices.item<int64_t>();
     dim3 block = num_threads;
@@ -320,7 +317,7 @@ Tensor & embedding_renorm_cuda_(Tensor & self, const Tensor & indices,
 
     AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, self.scalar_type(), "embedding_renorm_cuda_", [&] {
       using accscalar_t = acc_type<scalar_t, true>;
-      renorm_kernel<<<grid, block, (block.x / C10_WARP_SIZE) * sizeof(accscalar_t), stream>>>(
+      renorm_kernel<<<grid, block, (block.x / warp_size) * sizeof(accscalar_t), stream>>>(
         self.data_ptr<scalar_t>(),
         unique_indices.data_ptr<index_t>(),
         static_cast<accscalar_t>(max_norm),
