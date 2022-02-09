@@ -941,7 +941,6 @@ def CUDAExtension(name, sources, *args, **kwargs):
             output_directory=build_dir,
             header_include_dirs=include_dirs,
             includes=[os.path.join(build_dir, '*')], # limit scope to build_dir only
-            #ignores=[os.path.join(ROCM_HOME, '*'), os.path.join(_TORCH_PATH, '*')],
             extra_files=[os.path.abspath(s) for s in sources],
             show_detailed=True,
             is_pytorch_extension=True,
@@ -951,7 +950,7 @@ def CUDAExtension(name, sources, *args, **kwargs):
         hipified_sources = set()
         for source in sources:
             s_abs = os.path.abspath(source)
-            hipified_sources.add(hipify_result[s_abs]["hipified_path"] if (s_abs in hipify_result and 
+            hipified_sources.add(hipify_result[s_abs]["hipified_path"] if (s_abs in hipify_result and
                 hipify_result[s_abs]["hipified_path"] is not None) else s_abs)
 
         sources = list(hipified_sources)
