@@ -117,15 +117,16 @@ def match_extensions(filename: str, extensions: Iterable) -> bool:
     """Helper method to see if filename ends with certain extension"""
     return any(filename.endswith(e) for e in extensions)
 
+def _fnmatch(filepath, patterns):
+    return any(fnmatch.fnmatch(filepath, pattern) for pattern in patterns)
+
 def matched_files_iter(
         root_path: str,
-        includes: Iterable = ('*',),
+        includes: Iterable = (),
         ignores: Iterable = (),
         extensions: Iterable = (),
         out_of_place_only: bool = False,
         is_pytorch_extension: bool = False) -> Iterator[str]:
-    def _fnmatch(filepath, patterns):
-        return any(fnmatch.fnmatch(filepath, pattern) for pattern in patterns)
 
     exact_matches = set(includes)
 
@@ -145,7 +146,7 @@ def matched_files_iter(
             if "third_party" in dirs:
                 dirs.remove("third_party")
         for filename in filenames:
-            filepath = os.path.join(rel_dirpath, filename)
+            filepath = os.path.join(abs_dirpath, filename)
             # We respect extensions, UNLESS you wrote the entire
             # filename verbatim, in which case we always accept it
             if (
@@ -165,59 +166,23 @@ def preprocess_file_and_save_result(
         output_directory: str,
         filepath: str,
         all_files: Iterable,
-        includes: Iterable,
+        header_include_dirs: Iterable,
         stats: Dict[str, List],
         hip_clang_launch: bool,
         is_pytorch_extension: bool,
         clean_ctx: GeneratedFileCleaner,
         show_progress: bool) -> None:
-    result = preprocessor(output_directory, filepath, all_files, includes, stats,
+    result = preprocessor(output_directory, filepath, all_files, header_include_dirs, stats,
                           hip_clang_launch, is_pytorch_extension, clean_ctx, show_progress)
 
     fin_path = os.path.abspath(os.path.join(output_directory, filepath))
     # Show what happened
-    if show_progress:
+    if show_progress and "ignored" not in result["status"]:
         print(
             fin_path, "->",
-            result["hipified_path"], result["status"])
+            result["hipified_path"], result["status"], flush=True)
 
-    if result["hipified_path"] is not None:
-        HIPIFY_FINAL_RESULT[fin_path] = result
-
-
-def preprocess(
-        output_directory: str,
-        all_files: Iterable,
-        includes: Iterable,
-        show_detailed: bool = False,
-        show_progress: bool = True,
-        hip_clang_launch: bool = False,
-        is_pytorch_extension: bool = False,
-        clean_ctx: GeneratedFileCleaner = None) -> HipifyFinalResult:
-    """
-    Call preprocessor on selected files.
-
-    Arguments)
-        show_detailed - Show a detailed summary of the transpilation process.
-    """
-
-    if clean_ctx is None:
-        clean_ctx = GeneratedFileCleaner(keep_intermediates=True)
-
-    # Preprocessing statistics.
-    stats: Dict[str, List] = {"unsupported_calls": [], "kernel_launches": []}
-
-    for filepath in all_files:
-        preprocess_file_and_save_result(output_directory, filepath, all_files, includes, stats,
-                                        hip_clang_launch, is_pytorch_extension, clean_ctx, show_progress)
-
-    print(bcolors.OKGREEN + "Successfully preprocessed all matching files." + bcolors.ENDC, file=sys.stderr)
-
-    # Show detailed summary
-    if show_detailed:
-        compute_stats(stats)
-
-    return HIPIFY_FINAL_RESULT
+    HIPIFY_FINAL_RESULT[fin_path] = result
 
 
 def compute_stats(stats):
@@ -562,6 +527,7 @@ def get_hip_file_path(filepath, is_pytorch_extension=False):
     orig_dirpath = dirpath
 
     dirpath = dirpath.replace('cuda', 'hip')
+    dirpath = dirpath.replace('CUDA', 'HIP')
     dirpath = dirpath.replace('THC', 'THH')
 
     root = root.replace('cuda', 'hip')
@@ -697,25 +663,28 @@ RE_CU_SUFFIX = re.compile(r'\.cu\b')  # be careful not to pick up .cuh
 Returns a dict with the following keys:
     "hipified_path" : absolute path of hipified source file
     "status"        : "ok"      if hipified file was written out
-                      "skipped" if an identical hipified file already existed
-                      "ignored" if the source file was a hipified file itself
+                      "skipped" if an identical hipified file already existed or hipified file couldn't be written out
+                      "ignored" if the source file was a hipified file itself or not meant to be hipified
 """
 def preprocessor(
         output_directory: str,
         filepath: str,
         all_files: Iterable,
-        includes: Iterable,
+        header_include_dirs: Iterable,
         stats: Dict[str, List],
         hip_clang_launch: bool,
         is_pytorch_extension: bool,
         clean_ctx: GeneratedFileCleaner,
         show_progress: bool) -> HipifyResult:
     """ Executes the CUDA -> HIP conversion on the specified file. """
+    if filepath not in all_files:
+        return {"hipified_path": None, "status": "[ignored, not to be hipified]"}
+
     fin_path = os.path.abspath(os.path.join(output_directory, filepath))
 
     with open(fin_path, 'r', encoding='utf-8') as fin:
         if fin.readline() == HIPIFY_C_BREADCRUMB:
-            return {"hipified_path": None, "status": "ignored"}
+            return {"hipified_path": None, "status": "[ignored, input is hipified output]"}
         fin.seek(0)
         output_source = fin.read()
 
@@ -766,8 +735,8 @@ def preprocessor(
                         header_filepath = header_path_to_check
                 # If not found, look in include dirs one by one and first match wins
                 if header_filepath is None:
-                    for include in includes:
-                        header_dir_to_check = os.path.join(output_directory, os.path.dirname(include))
+                    for header_include_dir in header_include_dirs:
+                        header_dir_to_check = os.path.join(output_directory, header_include_dir)
                         header_path_to_check = os.path.abspath(os.path.join(header_dir_to_check, f))
                         if os.path.exists(header_path_to_check):
                             header_dir = header_dir_to_check
@@ -778,12 +747,11 @@ def preprocessor(
                 # Hipify header file first if needed
                 if header_filepath not in HIPIFY_FINAL_RESULT:
                     preprocess_file_and_save_result(output_directory,
-                                                    os.path.relpath(header_filepath, output_directory),
-                                                    all_files, includes, stats, hip_clang_launch, is_pytorch_extension,
-                                                    clean_ctx, show_progress)
-                value = HIPIFY_FINAL_RESULT[header_filepath]["hipified_path"]
-                assert value is not None
-                return templ.format(os.path.relpath(value, header_dir))
+                                                    header_filepath,
+                                                    all_files, header_include_dirs, stats, hip_clang_launch,
+                                                    is_pytorch_extension, clean_ctx, show_progress)
+                hipified_header_filepath = HIPIFY_FINAL_RESULT[header_filepath]["hipified_path"]
+                return templ.format(os.path.relpath(hipified_header_filepath if hipified_header_filepath is not None else header_filepath, header_dir))
 
             return m.group(0)
         return repl
@@ -817,7 +785,7 @@ def preprocessor(
         and orig_output_source == output_source
         and os.path.dirname(fin_path) == os.path.dirname(fout_path)
     ):
-        return {"hipified_path": fin_path, "status": "ok"}
+        return {"hipified_path": fin_path, "status": "[skipped, no changes]"}
 
     # Add hipify breadcrumb for C-style files to avoid re-hipification
     if fin_path != fout_path and match_extensions(fin_path, (".cu", ".cuh", ".c", ".cc", ".cpp", ".h", ".hpp")):
@@ -831,13 +799,13 @@ def preprocessor(
         try:
             with clean_ctx.open(fout_path, 'w', encoding='utf-8') as fout:
                 fout.write(output_source)
-            return {"hipified_path": fout_path, "status": "ok"}
+            return {"hipified_path": fout_path, "status": "[ok]"}
         except PermissionError as e:
             print(f"{bcolors.WARNING}Failed to save {fout_path} with \"{e.strerror}\", leaving {fin_path} unchanged.{bcolors.ENDC}",
                   file=sys.stderr)
-            return {"hipified_path": fin_path, "status": "skipped"}
+            return {"hipified_path": fin_path, "status": "[skipped, no permissions]"}
     else:
-        return {"hipified_path": fout_path, "status": "skipped"}
+        return {"hipified_path": fout_path, "status": "[skipped, already hipified]"}
 
 def file_specific_replacement(filepath, search_string, replace_string, strict=False):
     with openf(filepath, "r+") as f:
@@ -932,14 +900,17 @@ def hipify(
     project_directory: str,
     show_detailed: bool = False,
     extensions: Iterable = (".cu", ".cuh", ".c", ".cc", ".cpp", ".h", ".in", ".hpp"),
+    header_extensions: Iterable = (".cuh", ".h", ".hpp"),
     output_directory: str = "",
-    includes: Iterable = (),
+    header_include_dirs: Iterable = (),
+    includes: Iterable = ('*',),
     extra_files: Iterable = (),
     out_of_place_only: bool = False,
     ignores: Iterable = (),
     show_progress: bool = True,
     hip_clang_launch: bool = False,
     is_pytorch_extension: bool = False,
+    hipify_extra_files_only: bool = False,
     clean_ctx: GeneratedFileCleaner = None
 ) -> HipifyFinalResult:
     if project_directory == "":
@@ -964,19 +935,45 @@ def hipify(
                                         out_of_place_only=out_of_place_only,
                                         is_pytorch_extension=is_pytorch_extension))
     all_files_set = set(all_files)
-    # Convert extra_files to relative paths since all_files has all relative paths
     for f in extra_files:
-        f_rel = os.path.relpath(f, output_directory)
-        if f_rel not in all_files_set:
-            all_files.append(f_rel)
+        if not os.path.isabs(f):
+            f = os.path.join(output_directory, f)
+        if f not in all_files_set:
+            all_files.append(f)
 
-    # Start Preprocessor
-    return preprocess(
-        output_directory,
-        all_files,
-        includes,
-        show_detailed=show_detailed,
-        show_progress=show_progress,
-        hip_clang_launch=hip_clang_launch,
-        is_pytorch_extension=is_pytorch_extension,
-        clean_ctx=clean_ctx)
+    # List all files in header_include_paths to ensure they are hipified
+    from pathlib import Path
+    for header_include_dir in header_include_dirs:
+        if os.path.isabs(header_include_dir):
+            header_include_dir_path = Path(header_include_dir)
+        else:
+            header_include_dir_path = Path(os.path.join(output_directory, header_include_dir))
+        for path in header_include_dir_path.rglob('*'):
+            if (
+                path.is_file()
+                and _fnmatch(str(path), includes)
+                and (not _fnmatch(str(path), ignores))
+                and match_extensions(path.name, header_extensions)
+            ):
+                #all_files.append(os.path.relpath(os.path.abspath(path), output_directory))
+                all_files.append(str(path))
+
+    if clean_ctx is None:
+        clean_ctx = GeneratedFileCleaner(keep_intermediates=True)
+
+    # Preprocessing statistics.
+    stats: Dict[str, List] = {"unsupported_calls": [], "kernel_launches": []}
+
+    for filepath in (all_files if not hipify_extra_files_only else extra_files):
+        #preprocess_file_and_save_result(output_directory, filepath, all_files, includes, ignores, header_include_dirs,
+        preprocess_file_and_save_result(output_directory, filepath, all_files, header_include_dirs,
+                                        stats, hip_clang_launch, is_pytorch_extension, clean_ctx, show_progress)
+
+    print(bcolors.OKGREEN + "Successfully preprocessed all matching files." + bcolors.ENDC, file=sys.stderr)
+
+    # Show detailed summary
+    if show_detailed:
+        compute_stats(stats)
+
+    return HIPIFY_FINAL_RESULT
+
