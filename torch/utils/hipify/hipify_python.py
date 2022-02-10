@@ -751,7 +751,8 @@ def preprocessor(
                                                     all_files, header_include_dirs, stats, hip_clang_launch,
                                                     is_pytorch_extension, clean_ctx, show_progress)
                 hipified_header_filepath = HIPIFY_FINAL_RESULT[header_filepath]["hipified_path"]
-                return templ.format(os.path.relpath(hipified_header_filepath if hipified_header_filepath is not None else header_filepath, header_dir))
+                return templ.format(os.path.relpath(hipified_header_filepath if hipified_header_filepath is not None 
+                                                    else header_filepath, header_dir))
 
             return m.group(0)
         return repl
@@ -955,7 +956,6 @@ def hipify(
                 and (not _fnmatch(str(path), ignores))
                 and match_extensions(path.name, header_extensions)
             ):
-                #all_files.append(os.path.relpath(os.path.abspath(path), output_directory))
                 all_files.append(str(path))
 
     if clean_ctx is None:
@@ -965,7 +965,6 @@ def hipify(
     stats: Dict[str, List] = {"unsupported_calls": [], "kernel_launches": []}
 
     for filepath in (all_files if not hipify_extra_files_only else extra_files):
-        #preprocess_file_and_save_result(output_directory, filepath, all_files, includes, ignores, header_include_dirs,
         preprocess_file_and_save_result(output_directory, filepath, all_files, header_include_dirs,
                                         stats, hip_clang_launch, is_pytorch_extension, clean_ctx, show_progress)
 
@@ -976,4 +975,3 @@ def hipify(
         compute_stats(stats)
 
     return HIPIFY_FINAL_RESULT
-

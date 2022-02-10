@@ -16,7 +16,7 @@ import torch._appdirs
 from .file_baton import FileBaton
 from ._cpp_extension_versioner import ExtensionVersioner
 from .hipify import hipify_python
-from .hipify.hipify_python import get_hip_file_path, GeneratedFileCleaner
+from .hipify.hipify_python import GeneratedFileCleaner
 from typing import List, Optional, Union
 
 from setuptools.command.build_ext import build_ext
@@ -940,18 +940,18 @@ def CUDAExtension(name, sources, *args, **kwargs):
             project_directory=build_dir,
             output_directory=build_dir,
             header_include_dirs=include_dirs,
-            includes=[os.path.join(build_dir, '*')], # limit scope to build_dir only
+            includes=[os.path.join(build_dir, '*')],  # limit scope to build_dir only
             extra_files=[os.path.abspath(s) for s in sources],
             show_detailed=True,
             is_pytorch_extension=True,
-            hipify_extra_files_only=True, # don't hipify everything in includes path
+            hipify_extra_files_only=True,  # don't hipify everything in includes path
         )
 
         hipified_sources = set()
         for source in sources:
             s_abs = os.path.abspath(source)
             hipified_sources.add(hipify_result[s_abs]["hipified_path"] if (s_abs in hipify_result and
-                hipify_result[s_abs]["hipified_path"] is not None) else s_abs)
+                                 hipify_result[s_abs]["hipified_path"] is not None) else s_abs)
 
         sources = list(hipified_sources)
 
@@ -1333,7 +1333,7 @@ def _jit_compile(name,
                             output_directory=build_directory,
                             header_include_dirs=extra_include_paths,
                             extra_files=[os.path.abspath(s) for s in sources],
-                            ignores=[os.path.join(ROCM_HOME, '*'), os.path.join(_TORCH_PATH, '*')], # no need to hipify ROCm or PyTorch headers
+                            ignores=[os.path.join(ROCM_HOME, '*'), os.path.join(_TORCH_PATH, '*')],  # no need to hipify ROCm or PyTorch headers
                             show_detailed=verbose,
                             show_progress=verbose,
                             is_pytorch_extension=True,
