@@ -147,6 +147,7 @@ def matched_files_iter(
                 dirs.remove("third_party")
         for filename in filenames:
             filepath = os.path.join(abs_dirpath, filename)
+            rel_filepath = os.path.join(rel_dirpath, filename)
             # We respect extensions, UNLESS you wrote the entire
             # filename verbatim, in which case we always accept it
             if (
@@ -155,9 +156,9 @@ def matched_files_iter(
                 and (match_extensions(filepath, extensions) or filepath in exact_matches)
             ):
                 if not is_pytorch_extension:  # for pytorch extensions, consider all files
-                    if not is_pytorch_file(filepath) and not is_caffe2_gpu_file(filepath):
+                    if not is_pytorch_file(rel_filepath) and not is_caffe2_gpu_file(rel_filepath):
                         continue
-                    if out_of_place_only and not is_out_of_place(filepath):
+                    if out_of_place_only and not is_out_of_place(rel_filepath):
                         continue
                 yield filepath
 
@@ -474,16 +475,17 @@ def replace_extern_shared(input_string):
     return output_string
 
 
-def get_hip_file_path(filepath, is_pytorch_extension=False):
+def get_hip_file_path(rel_filepath, is_pytorch_extension=False):
     """
     Returns the new name of the hipified file
     """
     # At the moment, some PyTorch source files are HIPified in place.  The predicate
     # is_out_of_place tells us if this is the case or not.
-    if not is_pytorch_extension and not is_out_of_place(filepath):
-        return filepath
+    assert(not os.path.isabs(rel_filepath))
+    if not is_pytorch_extension and not is_out_of_place(rel_filepath):
+        return rel_filepath
 
-    dirpath, filename = os.path.split(filepath)
+    dirpath, filename = os.path.split(rel_filepath)
     root, ext = os.path.splitext(filename)
 
     # Here's the plan:
@@ -545,31 +547,34 @@ def get_hip_file_path(filepath, is_pytorch_extension=False):
     return os.path.join(dirpath, root + ext)
 
 
-def is_out_of_place(filepath):
-    if filepath.startswith("torch/"):
+def is_out_of_place(rel_filepath):
+    assert(not os.path.isabs(rel_filepath))
+    if rel_filepath.startswith("torch/"):
         return False
-    if filepath.startswith("tools/autograd/templates/"):
+    if rel_filepath.startswith("tools/autograd/templates/"):
         return False
     return True
 
 
 # Keep this synchronized with includes/ignores in build_amd.py
-def is_pytorch_file(filepath):
-    if filepath.startswith("aten/"):
-        if filepath.startswith("aten/src/ATen/core/"):
+def is_pytorch_file(rel_filepath):
+    assert(not os.path.isabs(rel_filepath))
+    if rel_filepath.startswith("aten/"):
+        if rel_filepath.startswith("aten/src/ATen/core/"):
             return False
         return True
-    if filepath.startswith("torch/"):
+    if rel_filepath.startswith("torch/"):
         return True
-    if filepath.startswith("tools/autograd/templates/"):
+    if rel_filepath.startswith("tools/autograd/templates/"):
         return True
     return False
 
 
-def is_caffe2_gpu_file(filepath):
-    if filepath.startswith("c10/cuda"):
+def is_caffe2_gpu_file(rel_filepath):
+    assert(not os.path.isabs(rel_filepath))
+    if rel_filepath.startswith("c10/cuda"):
         return True
-    filename = os.path.basename(filepath)
+    filename = os.path.basename(rel_filepath)
     _, ext = os.path.splitext(filename)
     return ('gpu' in filename or ext in ['.cu', '.cuh']) and ('cudnn' not in filename)
 
@@ -681,6 +686,7 @@ def preprocessor(
         return {"hipified_path": None, "status": "[ignored, not to be hipified]"}
 
     fin_path = os.path.abspath(os.path.join(output_directory, filepath))
+    rel_filepath = os.path.relpath(filepath, output_directory)
 
     with open(fin_path, 'r', encoding='utf-8') as fin:
         if fin.readline() == HIPIFY_C_BREADCRUMB:
@@ -690,7 +696,8 @@ def preprocessor(
 
     orig_output_source = output_source
 
-    fout_path = os.path.abspath(os.path.join(output_directory, get_hip_file_path(filepath, is_pytorch_extension)))
+    # get_hip_file_path needs a relative path to work correctly
+    fout_path = os.path.abspath(os.path.join(output_directory, get_hip_file_path(rel_filepath, is_pytorch_extension)))
     if not os.path.exists(os.path.dirname(fout_path)):
         clean_ctx.makedirs(os.path.dirname(fout_path))
 
@@ -701,7 +708,7 @@ def preprocessor(
     if is_pytorch_extension:
         output_source = RE_PYTORCH_PREPROCESSOR.sub(pt_repl, output_source)
     else:
-        if is_pytorch_file(filepath):
+        if is_pytorch_file(rel_filepath):
             output_source = RE_PYTORCH_PREPROCESSOR.sub(pt_repl, output_source)
         else:
             def c2_repl(m):
@@ -926,6 +933,10 @@ def hipify(
     if not output_directory:
         project_directory.rstrip("/")
         output_directory = project_directory + "_amd"
+
+    if project_directory != output_directory:
+        includes = [include.replace(project_directory, output_directory) for include in includes]
+        ignores = [ignore.replace(project_directory, output_directory) for ignore in ignores]
 
     # Copy from project directory to output directory if not done already.
     if not os.path.exists(output_directory):
