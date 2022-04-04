@@ -181,8 +181,13 @@ void hip_parallel_cat(Tensor &out, const TensorList &inputs, int64_t dimension,
   // Kernel Parameter
   long tensorMetadataSize =
     sizeof(CatArrInputTensor<scalar_t, unsigned int>) * CAT_ARRAY_BATCH_SIZE;
+#ifdef __HIP_PLATFORM_HCC__
+  auto d_inputs_storage = at::empty(
+    {tensorMetadataSize}, out.options().dtype(at::kByte).device(at::kCPU).pinned_memory(true));
+#else
   auto d_inputs_storage = at::empty(
     {tensorMetadataSize}, out.options().dtype(at::kByte));
+#endif
   auto d_inputs = static_cast<CatArrInputTensor<scalar_t, unsigned int> *>(
     d_inputs_storage.data_ptr());
 
@@ -217,11 +222,15 @@ void hip_parallel_cat(Tensor &out, const TensorList &inputs, int64_t dimension,
   for (int i = 0; i < inputs.size() ; i += CAT_ARRAY_BATCH_SIZE) {
     // Re-allocate stackInputs every iteration to avoid read-after-write hazard
     {
+#ifdef __HIP_PLATFORM_HCC__
+      auto& stackInputs = d_inputs;
+#else
       auto stackInputs_storage = at::empty({tensorMetadataSize},
           out.options().dtype(at::kByte).device(at::kCPU).pinned_memory(true));
       auto stackInputs =
         static_cast<CatArrInputTensor<scalar_t, unsigned int> *>(
           stackInputs_storage.data_ptr());
+#endif
       for (batchCounter = 0;
            batchCounter < CAT_ARRAY_BATCH_SIZE &&
              (i+batchCounter) < inputs.size();
@@ -242,8 +251,13 @@ void hip_parallel_cat(Tensor &out, const TensorList &inputs, int64_t dimension,
         // update offset
         offset += dimSize;
       }
+#ifdef __HIP_PLATFORM_HCC__
+      /* HIP does not need H2D copy, but we must still indicate the memory is in use */
+      AT_CUDA_CHECK(THCCachingHostAllocator_recordEvent(d_inputs_storage.data_ptr(), stream));
+#else
       at::native::copy_(d_inputs_storage, stackInputs_storage,
                         /* non_blocking= */ true);
+#endif
     }
 
     // Next, let's consider how we set our kernel launch parameters.
