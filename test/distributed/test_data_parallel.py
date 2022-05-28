@@ -18,6 +18,7 @@ from torch.testing._internal.common_utils import _assertGradAndGradgradChecks, g
 from torch.testing._internal.common_utils import dtype2prec_DONTUSE
 from torch.testing._internal.common_utils import sandcastle_skip_if
 from torch.testing._internal.common_utils import TEST_WITH_ROCM
+from torch.testing._internal.common_utils import repeat_test_for_types, ALL_TENSORTYPES
 import torch.nn.functional as F
 
 torch.set_default_dtype(torch.double)
@@ -783,11 +784,10 @@ class TestDataParallel(TestCase):
 
 class TestDataParallelDeviceType(TestCase):
 
-    @onlyCUDA
-    @skipMeta
-    @sandcastle_skip_if(TEST_WITH_ROCM, "Failing on few archs, temporarily skipped")
-    @dtypes(torch.float, torch.double, torch.half)
-    def test_data_parallel_module(self, device, dtype):
+    @sandcastle_skip_if(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types(ALL_TENSORTYPES)
+    def test_data_parallel_module(self, dtype):
+        device = "cuda"
         l = nn.Linear(10, 5).to(device, dtype)
         i = torch.randn(20, 10, device=device, dtype=dtype)
         expected_out = l(i)
@@ -796,11 +796,10 @@ class TestDataParallelDeviceType(TestCase):
         self.assertEqual(out.get_device(), 0)
         self.assertEqual(out, expected_out, atol=dtype2prec_DONTUSE[dtype], rtol=0)
 
-    @onlyCUDA
-    @skipMeta
-    @sandcastle_skip_if(TEST_WITH_ROCM, "Failing on few archs, temporarily skipped")
-    @dtypes(torch.float, torch.double, torch.half)
-    def test_data_parallel_module_kwargs_only(self, device, dtype):
+    @sandcastle_skip_if(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types(ALL_TENSORTYPES)
+    def test_data_parallel_module_kwargs_only(self, dtype):
+        device = "cuda"
         class Net(nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -817,11 +816,10 @@ class TestDataParallelDeviceType(TestCase):
         self.assertEqual(out.get_device(), 0)
         self.assertEqual(out, expected_out, atol=dtype2prec_DONTUSE[dtype], rtol=0)
 
-    @onlyCUDA
-    @skipMeta
-    @sandcastle_skip_if(TEST_WITH_ROCM, "Failing on few archs, temporarily skipped")
-    @dtypes(torch.float, torch.double, torch.half)
-    def test_data_parallel_module_kwargs_only_empty_list(self, device, dtype):
+    @sandcastle_skip_if(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types(ALL_TENSORTYPES)
+    def test_data_parallel_module_kwargs_only_empty_list(self, dtype):
+        device = "cuda"
         class Net(nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -838,11 +836,10 @@ class TestDataParallelDeviceType(TestCase):
         self.assertEqual(out.get_device(), 0)
         self.assertEqual(out, expected_out, atol=dtype2prec_DONTUSE[dtype], rtol=0)
 
-    @onlyCUDA
-    @skipMeta
-    @sandcastle_skip_if(TEST_WITH_ROCM, "Failing on few archs, temporarily skipped")
-    @dtypes(torch.float, torch.double, torch.half)
-    def test_data_parallel_module_kwargs_only_empty_dict(self, device, dtype):
+    @sandcastle_skip_if(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types(ALL_TENSORTYPES)
+    def test_data_parallel_module_kwargs_only_empty_dict(self, dtype):
+        device = "cuda"
         class Net(nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -859,11 +856,10 @@ class TestDataParallelDeviceType(TestCase):
         self.assertEqual(out.get_device(), 0)
         self.assertEqual(out, expected_out, atol=dtype2prec_DONTUSE[dtype], rtol=0)
 
-    @onlyCUDA
-    @skipMeta
-    @sandcastle_skip_if(TEST_WITH_ROCM, "Failing on few archs, temporarily skipped")
-    @dtypes(torch.float, torch.double, torch.half)
-    def test_data_parallel_module_kwargs_only_empty_tuple(self, device, dtype):
+    @sandcastle_skip_if(not TEST_CUDA, "CUDA unavailable")
+    @repeat_test_for_types(ALL_TENSORTYPES)
+    def test_data_parallel_module_kwargs_only_empty_tuple(self, dtype):
+        device = "cuda"
         class Net(nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -881,7 +877,7 @@ class TestDataParallelDeviceType(TestCase):
         self.assertEqual(out, expected_out, atol=dtype2prec_DONTUSE[dtype], rtol=0)
 
 
-instantiate_device_type_tests(TestDataParallelDeviceType, globals())
+#instantiate_device_type_tests(TestDataParallelDeviceType, globals())
 
 if __name__ == '__main__':
     run_tests()
