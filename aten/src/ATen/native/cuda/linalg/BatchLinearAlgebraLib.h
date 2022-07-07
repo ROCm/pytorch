@@ -12,6 +12,10 @@
 #define USE_CUSOLVER
 #endif
 
+#if defined(USE_ROCM) && ROCM_VERSION >= 50200
+#define USE_HIPSOLVER
+#endif
+
 // cusolverDn<T>potrfBatched may have numerical issue before cuda 11.3 release,
 // (which is cusolver version 11101 in the header), so we only use cusolver potrf batched
 // if cuda version is >= 11.3
@@ -56,7 +60,7 @@ void ldl_solve_cusolver(
     const Tensor& B,
     bool upper);
 
-#ifdef USE_CUSOLVER
+#if defined(USE_CUSOLVER) || defined(USE_HIPSOLVER)
 
 // entrance of calculations of `inverse` using cusolver getrf + getrs, cublas getrfBatched + getriBatched
 Tensor _inverse_helper_cuda_lib(const Tensor& self);
@@ -80,7 +84,7 @@ void lu_solve_looped_cusolver(const Tensor& b, const Tensor& lu, const Tensor& p
 
 void lu_factor_looped_cusolver(const Tensor& self, const Tensor& pivots, const Tensor& infos, bool get_pivots, const bool use_magma_);
 
-#endif  // USE_CUSOLVER
+#endif  // USE_CUSOLVER || USE_HIPSOLVER
 
 #if defined(BUILD_LAZY_CUDA_LINALG)
 namespace cuda { namespace detail {
