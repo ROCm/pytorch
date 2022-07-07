@@ -7,7 +7,14 @@
 #define USE_CUSOLVER_64_BIT
 #endif
 
+#if defined(CUDART_VERSION) || defined(ROCM_VERSION) && ROCM_VERSION >= 50200
+
 #ifdef CUDART_VERSION
+#define CONST_QUALIFIER const
+#else
+// hipSOLVER functions in current ROCM (5.2) miss CONST_QUALIFIER qualifiers
+#define CONST_QUALIFIER
+#endif
 
 namespace at {
 namespace cuda {

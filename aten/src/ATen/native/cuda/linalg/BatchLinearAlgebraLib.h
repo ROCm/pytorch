@@ -10,6 +10,8 @@
 
 #if defined(CUDART_VERSION) && defined(CUSOLVER_VERSION)
 #define USE_CUSOLVER
+#elif defined(USE_ROCM) && USE_ROCM && ROCM_VERSION >= 50200
+#define USE_CUSOLVER
 #endif
 
 // cusolverDn<T>potrfBatched may have numerical issue before cuda 11.3 release,
