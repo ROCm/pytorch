@@ -15,7 +15,8 @@ from torch.testing._internal.common_utils import TestCase, TEST_WITH_ROCM, TEST_
     IS_SANDCASTLE, IS_FBCODE, IS_REMOTE_GPU, IS_WINDOWS, DeterministicGuard, \
     _TestParametrizer, compose_parametrize_fns, dtype_name, \
     TEST_WITH_MIOPEN_SUGGEST_NHWC, NATIVE_DEVICES
-from torch.testing._internal.common_cuda import _get_torch_cuda_version, TEST_CUSPARSE_GENERIC
+from torch.testing._internal.common_cuda import _get_torch_cuda_version, TEST_CUSPARSE_GENERIC, \
+        _get_torch_rocm_version
 from torch.testing._internal.common_dtype import get_all_dtypes
 
 # The implementation should be moved here as soon as the deprecation period is over.
@@ -1223,9 +1224,11 @@ def skipCUDAIfNoMagma(fn):
     return skipCUDAIf('no_magma', "no MAGMA library detected")(skipCUDANonDefaultStreamIf(True)(fn))
 
 def has_cusolver():
-    version = _get_torch_cuda_version()
+    cuda_version = _get_torch_cuda_version()
+    rocm_version = _get_torch_rocm_version()
     # cuSolver is disabled on cuda < 10.1.243
-    return version >= (10, 2)
+    # hipSOLVER is disabled on ROCM < 5.2
+    return cuda_version >= (10, 2) or rocm_version >= (5, 2)
 
 # Skips a test on CUDA if cuSOLVER is not available
 def skipCUDAIfNoCusolver(fn):
@@ -1257,9 +1260,7 @@ def skipCUDAIfRocmVersionLessThan(version=None):
                 if not TEST_WITH_ROCM:
                     reason = "ROCm not available"
                     raise unittest.SkipTest(reason)
-                rocm_version = str(torch.version.hip)
-                rocm_version = rocm_version.split("-")[0]    # ignore git sha
-                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+                rocm_version_tuple = _get_torch_rocm_version()
                 if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
                     reason = "ROCm {0} is available but {1} required".format(rocm_version_tuple, version)
                     raise unittest.SkipTest(reason)
