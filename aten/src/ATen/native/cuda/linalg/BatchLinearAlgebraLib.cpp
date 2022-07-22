@@ -939,6 +939,11 @@ void svd_cusolver(const Tensor& A,
 
   static const char* check_svd_doc = "Check doc at https://pytorch.org/docs/stable/generated/torch.linalg.svd.html";
 
+#ifdef ROCM_VERSION
+  // ROCM only supports gesvd
+  svd_cusolver_gesvd(A, U, S, V, info, full_matrices, compute_uv);
+
+#else
   // The default heuristic is to use gesvdj driver
   const auto driver_v = driver.value_or("gesvdj");
 
@@ -981,6 +986,7 @@ void svd_cusolver(const Tensor& A,
       }
     }
   }
+#endif
 
   // `info` will be checked later at `TORCH_IMPL_FUNC(_linalg_svd_out)` function.
 }
