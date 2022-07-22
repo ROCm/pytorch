@@ -1225,13 +1225,22 @@ def skipCUDAIfNoMagma(fn):
 
 def has_cusolver():
     cuda_version = _get_torch_cuda_version()
-    rocm_version = _get_torch_rocm_version()
     # cuSolver is disabled on cuda < 10.1.243
+    return cuda_version >= (10, 2)
+
+def has_hipsolver():
+    rocm_version = _get_torch_rocm_version()
     # hipSOLVER is disabled on ROCM < 5.2
-    return cuda_version >= (10, 2) or rocm_version >= (5, 2)
+    return rocm_version >= (5, 2)
 
 # Skips a test on CUDA if cuSOLVER is not available
 def skipCUDAIfNoCusolver(fn):
+    return skipCUDAIf(not has_cusolver(), "cuSOLVER not available")(fn)
+
+# Skips a test on CUDA if both cuSOLVER and hipSOLVER are not available
+def skipCUDAIfNoCusolverAndNoHipsolver(fn):
+    if has_hipsolver():
+        return skipCUDAIf(not has_hipsolver(), "no hipSOLVER library detected on ROCM")(fn)
     return skipCUDAIf(not has_cusolver(), "cuSOLVER not available")(fn)
 
 # Skips a test if both cuSOLVER and MAGMA are not available

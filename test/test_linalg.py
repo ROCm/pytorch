@@ -19,10 +19,12 @@ from torch.testing._internal.common_utils import \
      TEST_WITH_ASAN, TEST_WITH_ROCM, IS_FBCODE, IS_REMOTE_GPU, iter_indices,
      make_fullrank_matrices_with_distinct_singular_values)
 from torch.testing._internal.common_device_type import \
-    (instantiate_device_type_tests, dtypes, has_cusolver,
+    (instantiate_device_type_tests, dtypes, has_cusolver, has_hipsolver,
      onlyCPU, skipCUDAIf, skipCUDAIfNoMagma, skipCPUIfNoLapack, precisionOverride,
-     skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
-     onlyCUDA, skipCUDAVersionIn, skipMeta, skipCUDAIfNoCusolver, dtypesIfMPS)
+     skipCUDAIfNoMagmaAndNoCusolver,
+     skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
+     onlyCUDA, skipCUDAVersionIn, skipMeta, skipCUDAIfNoCusolver,
+     skipCUDAIfNoCusolverAndNoHipsolver, dtypesIfMPS)
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import (
     all_types, all_types_and_complex_and, floating_and_complex_types, integral_types,
@@ -4764,7 +4766,7 @@ class TestLinalg(TestCase):
         self.assertEqual(m3.norm(2, 0), m2.norm(2, 0))
 
     @skipCPUIfNoLapack
-    @skipCUDAIfNoCusolver
+    @skipCUDAIfNoCusolverAndNoHipsolver
     @dtypes(*floating_and_complex_types())
     def test_ormqr(self, device, dtype):
 
@@ -5029,7 +5031,7 @@ class TestLinalg(TestCase):
             self.assertEqual(res, expected, msg="renorm failed for {}-norm".format(p))
 
     @skipCPUIfNoLapack
-    @skipCUDAIfNoCusolver
+    @skipCUDAIfNoCusolverAndNoHipsolver
     @dtypes(*floating_and_complex_types())
     def test_householder_product(self, device, dtype):
         def generate_reflectors_and_tau(A):
@@ -5089,7 +5091,7 @@ class TestLinalg(TestCase):
             run_test(shape)
 
     @skipCPUIfNoLapack
-    @skipCUDAIfNoCusolver
+    @skipCUDAIfNoCusolverAndNoHipsolver
     def test_householder_product_errors_and_warnings(self, device):
         test_cases = [
             # input1 size, input2 size, error regex
