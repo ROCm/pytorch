@@ -2851,7 +2851,7 @@ void svd_kernel(const Tensor& A,
                 const Tensor& S,
                 const Tensor& Vh,
                 const Tensor& info) {
-#ifdef USE_CUSOLVER
+#if defined(USE_CUSOLVER) || defined(USE_HIPSOLVER)
   // We always use cuSOLVER unless the user has specified they want to use MAGMA
   if (at::globalContext().linalgPreferredBackend() == at::LinalgBackend::Magma) {
     svd_magma(A, full_matrices, compute_uv, U, S, Vh, info);
