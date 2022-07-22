@@ -6,8 +6,6 @@
 
 #ifdef CUDART_VERSION
 #include <cusolver_common.h>
-#elif defined(ROCM_VERSION) && ROCM_VERSION >= 50200
-#include <hipsolver/hipsolver.h>
 #endif
 
 #include <ATen/Context.h>
@@ -96,30 +94,7 @@ C10_EXPORT const char* cusolverGetErrorMessage(cusolverStatus_t status);
           ", when calling `" #EXPR "`");                                \
     }                                                                   \
   } while (0)
-#elif defined(ROCM_VERSION) && ROCM_VERSION >= 50200
 
-namespace at { namespace cuda { namespace solver {
-C10_EXPORT const char* cusolverGetErrorMessage(hipsolverStatus_t status);
-}}} // namespace at::cuda::solver
-
-#define TORCH_CUSOLVER_CHECK(EXPR)                                      \
-  do {                                                                  \
-    hipsolverStatus_t __err = EXPR;                                     \
-    if (__err == HIPSOLVER_STATUS_INVALID_VALUE) {                      \
-      TORCH_CHECK_LINALG(                                               \
-          false,                                                        \
-          "cusolver error: ",                                           \
-          at::cuda::solver::cusolverGetErrorMessage(__err),             \
-          ", when calling `" #EXPR "`",                                 \
-          ". This error may appear if the input matrix contains NaN."); \
-    } else {                                                            \
-      TORCH_CHECK(                                                      \
-          __err == HIPSOLVER_STATUS_SUCCESS,                            \
-          "cusolver error: ",                                           \
-          at::cuda::solver::cusolverGetErrorMessage(__err),             \
-          ", when calling `" #EXPR "`");                                \
-    }                                                                   \
-  } while (0)
 #else
 #define TORCH_CUSOLVER_CHECK(EXPR) EXPR
 #endif
