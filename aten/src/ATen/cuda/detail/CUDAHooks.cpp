@@ -134,8 +134,6 @@ bool CUDAHooks::hasCuDNN() const {
 bool CUDAHooks::hasCuSOLVER() const {
 #if defined(CUDART_VERSION) && defined(CUSOLVER_VERSION)
   return true;
-#elif defined(ROCM_VERSION) && ROCM_VERSION >= 50200
-  return true;
 #else
   return false;
 #endif
