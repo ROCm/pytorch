@@ -4810,7 +4810,7 @@ class TestLinalg(TestCase):
             run_test(batch, m, n, fortran_contiguous)
 
     @skipCPUIfNoLapack
-    @skipCUDAIfNoCusolver
+    @skipCUDAIfNoCusolverAndNoHipsolver
     @dtypes(*floating_and_complex_types())
     def test_ormqr_errors_and_warnings(self, device, dtype):
         test_cases = [
