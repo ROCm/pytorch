@@ -75,6 +75,10 @@ install_ubuntu() {
                    rocprofiler-dev \
                    roctracer-dev
 
+    if [[ $(ver $ROCM_VERSION) -ge $(ver 5.1) ]]; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated rocm-hip-runtime-dev
+    fi
+
     # precompiled miopen kernels added in ROCm 3.5; search for all unversioned packages
     # if search fails it will abort this script; use true to avoid case where search fails
     MIOPENKERNELS=$(apt-cache search --names-only miopenkernels | awk '{print $1}' | grep -F -v . || true)
