@@ -450,7 +450,6 @@ instantiate_device_type_tests(TestTesting, globals())
 
 class TestFrameworkUtils(TestCase):
 
-    @skipIfRocm
     @unittest.skipIf(IS_WINDOWS, "Skipping because doesn't work for windows")
     @unittest.skipIf(IS_SANDCASTLE, "Skipping because doesn't work on sandcastle")
     def test_filtering_env_var(self):
