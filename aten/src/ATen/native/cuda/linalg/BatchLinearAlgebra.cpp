@@ -2820,12 +2820,23 @@ void svd_magma(const Tensor& A,
                    .mT();
   // U, S, Vh, info are the right size and strides, but are on GPU
   // We copy them into CPU in pinned_memory
-  const auto empty_like_cpu = [](const Tensor& t) {
-    return at::empty_like(t, t.options().device(kCPU).pinned_memory(true));
+  const auto empty_like_cpu = [](const Tensor& t, bool make_contiguous = false) {
+    if (!make_contiguous) {
+      return at::empty_like(t,
+                            t.options()
+                            .device(kCPU)
+                            .pinned_memory(true));
+    } else {
+      return at::empty_like(t.mT(),
+                            t.options()
+                            .device(kCPU)
+                            .memory_format(at::MemoryFormat::Contiguous)
+                            .pinned_memory(true)).mT();
+    }
   };
   auto U_ = compute_uv ? empty_like_cpu(U) : Tensor{};
   auto S_ = empty_like_cpu(S);
-  auto Vh_ = compute_uv ? empty_like_cpu(Vh) : Tensor{};
+  auto Vh_ = compute_uv ? empty_like_cpu(Vh, true) : Tensor{};
   auto info_ = empty_like_cpu(info);
 
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(A.scalar_type(), "svd_cuda", [&] {
@@ -2851,9 +2862,22 @@ void svd_kernel(const Tensor& A,
                 const Tensor& S,
                 const Tensor& Vh,
                 const Tensor& info) {
-#if defined(USE_CUSOLVER) || defined(USE_HIPSOLVER)
+#ifdef USE_CUSOLVER
   // We always use cuSOLVER unless the user has specified they want to use MAGMA
   if (at::globalContext().linalgPreferredBackend() == at::LinalgBackend::Magma) {
+    svd_magma(A, full_matrices, compute_uv, U, S, Vh, info);
+  } else {
+    // svd_cusolver computes V rather than Vh, so we pass a view of Vh.mT
+    // and then conjugate Vh in-place
+    svd_cusolver(A, full_matrices, compute_uv, driver, U, S, compute_uv ? Vh.mT() : Vh, info);
+    if (compute_uv && Vh.is_complex()) {
+      Vh._set_conj(!Vh.is_conj());
+    }
+  }
+#elif defined(USE_HIPSOLVER)
+  bool use_magma = at::globalContext().linalgPreferredBackend() == at::LinalgBackend::Magma;
+  use_magma = use_magma || (A.size(-1) >= 50 && A.size(-2) >= 50);
+  if (use_magma) {
     svd_magma(A, full_matrices, compute_uv, U, S, Vh, info);
   } else {
     // svd_cusolver computes V rather than Vh, so we pass a view of Vh.mT
