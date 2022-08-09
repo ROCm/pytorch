@@ -649,7 +649,10 @@ inline static void svd_cusolver_gesvd(const Tensor& A, const Tensor& U, const Te
   Tensor Vcopy = V; // Shallow copy
 #ifdef ROCM_VERSION
   if (!not_A_H) {
-    Vcopy = copyBatchedColumnMajor(V);
+    Vcopy =  at::empty_like(V.mT(),
+                            V.options()
+                            .device(V.device())
+                            .memory_format(at::MemoryFormat::Contiguous)).mT();
   }
 #endif
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(A.scalar_type(), "svd_cuda_gesvd", [&] {
