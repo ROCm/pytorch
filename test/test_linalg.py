@@ -2197,6 +2197,30 @@ class TestLinalg(TestCase):
             return "norm failed for input size %s, p=%s, keepdim=%s, dim=%s" % (
                 input_size, p, keepdim, dim)
 
+        # 'nuc' norm uses SVD, and thus its precsion is much lower than other norms.
+        # test_svd takes @precisionOverride({torch.float: 1e-4, torch.cfloat: 2e-4}),
+        # and here we are doing the same thing for nuc norm.
+        class PrecisionContext(object):
+            def __init__(self, test, norm):
+                self.norm = norm
+                self.saved_overrides = getattr(test, 'precision_overrides', None)
+                self.target_test = test
+
+            def __enter__(self):
+                if 'nuc' != self.norm:
+                    return None
+                self.target_test.precision_overrides = {torch.float: 1e-4, torch.cfloat: 2e-4}
+                return self.target_test.precision_overrides
+
+            def __exit__(self, type, value, tb) -> bool:
+                if 'nuc' != self.norm:
+                    return True
+                if self.saved_overrides is None:
+                    delattr(self.target_test, 'precision_overrides')
+                else:
+                    self.target_test.precision_overrides = self.saved_overrides
+                return True
+
         for keepdim in [False, True]:
             # full reduction
             x = torch.randn(25, device=device)
@@ -2222,8 +2246,9 @@ class TestLinalg(TestCase):
                 res = x.norm(p, keepdim=keepdim).cpu()
                 expected = np.linalg.norm(xn, p, keepdims=keepdim)
                 msg = gen_error_message(x.size(), p, keepdim)
-                self.assertEqual(res.shape, expected.shape, msg=msg)
-                self.assertEqual(res, expected, msg=msg)
+                with PrecisionContext(self, p):
+                    self.assertEqual(res.shape, expected.shape, msg=msg)
+                    self.assertEqual(res, expected, msg=msg)
 
             # zero dimensions
             x = torch.randn((), device=device)
@@ -2249,8 +2274,9 @@ class TestLinalg(TestCase):
                     res = x.norm(p=p, dim=dim, keepdim=keepdim).cpu()
                     expected = np.linalg.norm(xn, ord=p, axis=dim, keepdims=keepdim)
                     msg = gen_error_message(x.size(), p, keepdim, dim)
-                    self.assertEqual(res.shape, expected.shape, msg=msg)
-                    self.assertEqual(res, expected, msg=msg)
+                    with PrecisionContext(self, p):
+                        self.assertEqual(res.shape, expected.shape, msg=msg)
+                        self.assertEqual(res, expected, msg=msg)
 
     # Test that torch.norm with p=+/-inf propagates NaN
     def test_norm_old_nan_propagation(self, device):
