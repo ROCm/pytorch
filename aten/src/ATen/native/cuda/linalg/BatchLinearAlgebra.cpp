@@ -2836,7 +2836,13 @@ void svd_magma(const Tensor& A,
   };
   auto U_ = compute_uv ? empty_like_cpu(U) : Tensor{};
   auto S_ = empty_like_cpu(S);
+#ifdef USE_HIPSOLVER
+  // However, on ROCM platform, Vh is not guaranteed to have correct storage
+  // order, so processing similar to A matrix is essential
   auto Vh_ = compute_uv ? empty_like_cpu(Vh, true) : Tensor{};
+#else
+  auto Vh_ = compute_uv ? empty_like_cpu(Vh) : Tensor{};
+#endif
   auto info_ = empty_like_cpu(info);
 
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(A.scalar_type(), "svd_cuda", [&] {
@@ -2862,21 +2868,22 @@ void svd_kernel(const Tensor& A,
                 const Tensor& S,
                 const Tensor& Vh,
                 const Tensor& info) {
-#ifdef USE_CUSOLVER
+#if defined(USE_CUSOLVER) || defined(USE_HIPSOLVER)
   // We always use cuSOLVER unless the user has specified they want to use MAGMA
-  if (at::globalContext().linalgPreferredBackend() == at::LinalgBackend::Magma) {
-    svd_magma(A, full_matrices, compute_uv, U, S, Vh, info);
-  } else {
-    // svd_cusolver computes V rather than Vh, so we pass a view of Vh.mT
-    // and then conjugate Vh in-place
-    svd_cusolver(A, full_matrices, compute_uv, driver, U, S, compute_uv ? Vh.mT() : Vh, info);
-    if (compute_uv && Vh.is_complex()) {
-      Vh._set_conj(!Vh.is_conj());
-    }
-  }
-#elif defined(USE_HIPSOLVER)
   bool use_magma = at::globalContext().linalgPreferredBackend() == at::LinalgBackend::Magma;
+#ifdef USE_HIPSOLVER
+  // However for current hipSOLVER, MAGMA is preferred for larger matrices due to
+  // performance. Here are a few performance numbers on MI200, ROCM 5.3.22000:
+  //    Size       MAGMA     hipSOLVER
+  //  100x100      0.127s      0.428s
+  //  200x200      0.113s      3.35s
+  //  300x300      0.111s      10.9s
+  //  400x400      0.126s      25.9s
+  //  500x500      0.146s      > 10 minutes, have to kill with SIGTERM
+  //
+  // TODO: Fix this when hipSOLVER has better performance numbers
   use_magma = use_magma || (A.size(-1) >= 50 && A.size(-2) >= 50);
+#endif
   if (use_magma) {
     svd_magma(A, full_matrices, compute_uv, U, S, Vh, info);
   } else {

@@ -648,11 +648,14 @@ inline static void svd_cusolver_gesvd(const Tensor& A, const Tensor& U, const Te
   const auto not_A_H = A.size(-2) >= A.size(-1);
   Tensor Vcopy = V; // Shallow copy
 #ifdef ROCM_VERSION
+  // Similar to the case in svd_magma(), experiments have shown Vh tensor is
+  // not guaranteed to be column major on ROCM, we have to create a copy to
+  // deal with this
   if (!not_A_H) {
-    Vcopy =  at::empty_like(V.mT(),
-                            V.options()
-                            .device(V.device())
-                            .memory_format(at::MemoryFormat::Contiguous)).mT();
+    Vcopy = at::empty_like(V.mT(),
+                           V.options()
+                           .device(V.device())
+                           .memory_format(at::MemoryFormat::Contiguous)).mT();
   }
 #endif
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(A.scalar_type(), "svd_cuda_gesvd", [&] {
