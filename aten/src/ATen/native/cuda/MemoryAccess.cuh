@@ -161,30 +161,23 @@ struct alignas(sizeof(scalar_t) * vec_size) aligned_vector {
   scalar_t val[vec_size];
 };
 
-template <typename scalar_t>
-struct LoadVector {
-  template <int vec_size>
-  static __device__ aligned_vector<scalar_t, vec_size> load(const scalar_t *base_ptr, uint32_t offset) {
-    using vec_t = aligned_vector<scalar_t, vec_size>;
-    auto *from = reinterpret_cast<const vec_t *>(base_ptr);
-    return from[offset];
-  }
-};
+template <int vec_size, typename scalar_t>
+__device__ aligned_vector<scalar_t, vec_size> load_vector(const scalar_t *base_ptr, uint32_t offset) {
+  using vec_t = aligned_vector<scalar_t, vec_size>;
+  auto *from = reinterpret_cast<const vec_t *>(base_ptr);
+  return from[offset];
+}
 
-template <>
-struct LoadVector<bool> {
-  template <int vec_size>
-  static __device__ aligned_vector<bool, vec_size> load(const bool *base_ptr, uint32_t offset) {
-    // See NOTE [Loading boolean values]
-    auto tmp = LoadVector<uint8_t>::load<vec_size>(
-        reinterpret_cast<const uint8_t*>(base_ptr), offset);
-    aligned_vector<bool, vec_size> ret;
-    for (int i = 0; i < vec_size; ++i) {
-      ret.val[i] = bool(tmp.val[i]);
-    }
-    return ret;
+template <int vec_size>
+__device__ aligned_vector<bool, vec_size> load_vector(const bool *base_ptr, uint32_t offset) {
+  // See NOTE [Loading boolean values]
+  auto tmp = load_vector<vec_size>(reinterpret_cast<const uint8_t*>(base_ptr), offset);
+  aligned_vector<bool, vec_size> ret;
+  for (int i = 0; i < vec_size; ++i) {
+    ret.val[i] = bool(tmp.val[i]);
   }
-};
+  return ret;
+}
 
 namespace policies {
 
@@ -265,7 +258,7 @@ struct vectorized {
     #pragma unroll
     for (int i = 0; i < loop_size; i++) {
       int index = thread_idx + i * num_threads();
-      auto v = LoadVector<scalar_t>::load<vec_size>(from, index);
+      auto v = load_vector<vec_size>(from, index);
       #pragma unroll
       for (int j = 0; j < vec_size; j++) {
         to(vec_size * i + j) = v.val[j];
@@ -386,21 +379,6 @@ inline int can_vectorize_up_to(array_t pointers) {
   // We need to get the type for each argument of `func_t`, this can only
   // be done at compile time.
   detail::static_unroll<can_vectorize_up_to_helper, arity>::with_args(result, pointers, traits());
-  return result;
-}
-
-// jitted version of the above
-// See Note [Jiterator], this relies on the assumptions enumerated there
-template<typename result_type, typename common_type, int arity, typename array_t>
-inline int jitted_can_vectorize_up_to(array_t pointers) {
-  // Deals with output
-  int result = can_vectorize_up_to<result_type>(pointers[0]);
-
-  // Incorporates input(s)
-  for (auto i = decltype(arity){1}; i < (arity + 1); ++i) {
-    result = std::min<int>(result, can_vectorize_up_to<common_type>(pointers[i]));
-  }
-
   return result;
 }
 

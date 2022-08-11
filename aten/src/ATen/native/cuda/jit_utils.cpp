@@ -8,6 +8,7 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/cuda/detail/OffsetCalculator.cuh>
 #include <ATen/code_template.h>
+#include <ATen/OpMathType.h>
 #include <ATen/native/cuda/jit_utils.h>
 #include <ATen/cuda/llvm_jit_strings.h>
 #include <ATen/native/cuda/reduction_template.cuh>
@@ -560,29 +561,23 @@ const std::string jit_vectorized_code_template = R"ESCAPE(
     scalar_t val[vec_size];
   };
 
-  template <typename scalar_t>
-  struct LoadVector {
-    using vec_t = aligned_vector<scalar_t, ${vec_size}>;
-    static __device__ vec_t load(const scalar_t *base_ptr, uint32_t offset) {
-      auto *from = reinterpret_cast<const vec_t *>(base_ptr);
-      return from[offset];
-    }
-  };
+  template <int vec_size, typename scalar_t>
+  __device__ aligned_vector<scalar_t, vec_size> load_vector(const scalar_t *base_ptr, uint32_t offset) {
+    using vec_t = aligned_vector<scalar_t, vec_size>;
+    auto *from = reinterpret_cast<const vec_t *>(base_ptr);
+    return from[offset];
+  }
 
-  template <>
-  struct LoadVector<bool> {
-    using vec_t = aligned_vector<bool, ${vec_size}>;
-    static __device__ vec_t load(const bool *base_ptr, uint32_t offset) {
-      // See NOTE [Loading boolean values]
-      auto tmp = LoadVector<uint8_t>::load(
-          reinterpret_cast<const uint8_t*>(base_ptr), offset);
-      vec_t ret;
-      for (int i = 0; i < ${vec_size}; ++i) {
-        ret.val[i] = bool(tmp.val[i]);
-      }
-      return ret;
+  template <int vec_size>
+  __device__ aligned_vector<bool, vec_size> load_vector(const bool *base_ptr, uint32_t offset) {
+    // See NOTE [Loading boolean values]
+    auto tmp = load_vector<vec_size>(reinterpret_cast<const uint8_t*>(base_ptr), offset);
+    aligned_vector<bool, vec_size> ret;
+    for (int i = 0; i < vec_size; ++i) {
+      ret.val[i] = bool(tmp.val[i]);
     }
-  };
+    return ret;
+  }
 
   ${functor}
 
@@ -730,6 +725,36 @@ void __inline__ initializeCudaContext() {
         *(c10::cuda::CUDACachingAllocator::getFreeMutex()));
     cudaFree(nullptr);
   }
+}
+
+std::string generate_code(
+    const KernelDescriptor &desc,
+    bool contiguous,
+    bool dynamic_casting,
+    BinaryFuncVariant scalar_pos,
+    bool vectorized,
+    int vec_size,
+    bool return_by_ref) {
+  c10::SmallVector<std::string> extra_args_typenames(desc.extra_args_types.size());
+  for (auto i : c10::irange(extra_args_typenames.size())) {
+    extra_args_typenames[i] = typeName(desc.extra_args_types[i]);
+  }
+
+  return generate_code(
+      desc.nInputs,
+      desc.nOutputs,
+      desc.f,
+      desc.name,
+      typeName(desc.f_inputs_type),
+      typeName(toOpMathType(desc.f_inputs_type)),
+      typeName(desc.result_type),
+      contiguous,
+      dynamic_casting,
+      scalar_pos,
+      extra_args_typenames,
+      vectorized,
+      vec_size,
+      return_by_ref);
 }
 
 //FIXME - this are defined in Loops.cuh, but including Loops.cuh here would lead to circular includes Loops.cuh -> CUDALoops.cuh -> jit_utils.h -> Loops.cuh
@@ -953,8 +978,8 @@ std::string generate_code(
   std::stringstream load_vectorized_inputs;
   for (const auto i : c10::irange(nInputs)) {
     auto i_string = std::to_string(i);
-    load_vectorized_inputs << "const auto vec" << i_string << " = LoadVector<scalar_t>::load(input"
-                           << i_string << ", thread_idx);\n";
+    load_vectorized_inputs << "const auto vec" << i_string << " = load_vector<vec_size>("
+                           << "input" << i_string << ", thread_idx);\n";
     load_vectorized_inputs << "#pragma unroll\n";
     load_vectorized_inputs << "for (int j=0; j < vec_size; j++){\n";
     load_vectorized_inputs << "  arg" << i_string << "[vec_size * i + j] = vec" << i_string << ".val[j];\n";
@@ -1060,6 +1085,31 @@ std::string load_code_template(const std::string& path) {
     std::istreambuf_iterator<char>(ifs),
     std::istreambuf_iterator<char>()};
   return s;
+}
+
+std::string generate_reduction_code(
+    const KernelDescriptor &desc,
+    int vt0,
+    bool contiguous,
+    bool vectorized,
+    int vec_size,
+    int max_threads_codegen) {
+  TORCH_INTERNAL_ASSERT(desc.nInputs == 1);
+  TORCH_INTERNAL_ASSERT(desc.extra_args_types.size() == 0);
+
+  return generate_reduction_code(
+      desc.nOutputs,
+      desc.f,
+      desc.name,
+      vt0,
+      typeName(desc.f_inputs_type),
+      typeName(toOpMathType(desc.f_inputs_type)),
+      typeName(desc.result_type),
+      contiguous,
+      vectorized,
+      vec_size,
+      max_threads_codegen
+    );
 }
 
 std::string generate_reduction_code(
