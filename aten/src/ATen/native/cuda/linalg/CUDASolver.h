@@ -9,10 +9,10 @@
 
 #if defined(CUDART_VERSION) || defined(ROCM_VERSION) && ROCM_VERSION >= 50200
 
-#ifdef CUDART_VERSION
-#define CONST_QUALIFIER const
+#if defined(CUDART_VERSION) || defined(ROCM_VERSION) && ROCM_VERSION >= 50300
+#define CONST_QUALIFIER CONST_QUALIFIER
 #else
-// hipSOLVER functions in current ROCM (5.2) miss CONST_QUALIFIER qualifiers
+// hipSOLVER functions in ROCM(5.2) do not support CONST_QUALIFIER qualifier
 #define CONST_QUALIFIER
 #endif
 
