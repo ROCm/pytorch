@@ -4,8 +4,6 @@ set -ex
 
 install_ubuntu() {
   apt-get update
-  apt-get install -y --no-install-recommends \
-          libopencv-dev
 
   # Cleanup
   apt-get autoclean && apt-get clean
@@ -19,9 +17,18 @@ install_centos() {
       yum install -y epel-release
   else
       yum --enablerepo=extras install -y epel-release
+  fi
+
+  yum install -y \
+      hiredis-devel \
+      leveldb-devel
+
+  if [[ $OS_VERSION == 9 ]]; then
+      dnf --enablerepo=crb -y install lmdb-devel snappy-devel
+  else
       yum install -y \
-          opencv-devel \
-          ffmpeg-devel
+          lmdb-devel \
+          snappy-devel
   fi
 
   # Cleanup
@@ -47,6 +54,3 @@ case "$ID" in
     exit 1
     ;;
 esac
-
-# Cache vision models used by the test
-source "$(dirname "${BASH_SOURCE[0]}")/cache_vision_models.sh"
