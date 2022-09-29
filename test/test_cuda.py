@@ -3607,6 +3607,7 @@ torch.cuda.synchronize()
             torch.cuda.synchronize()
             torch.cuda.empty_cache()
 
+    @skipIfRocm
     @unittest.skipIf((not TEST_GRAPH), "CUDA >= 11.0 or ROCM >= 5.3 required for graphs")
     def test_graph_record_stream(self):
         # Makes sure graph capture defers attempting to reclaim allocations used across streams. See
@@ -3698,9 +3699,11 @@ torch.cuda.synchronize()
         opt.zero_grad(set_to_none=True)
 
         # capture
-        with torch.cuda.graph(g):
+        with torch.cuda.stream(s):
+            g.capture_begin()
             loss = (weight.half() * static_input).sum()
             scaler.scale(loss).backward()
+            g.capture_end()
 
         input_vals = [5, 20000, 5, 40000]
         # If the scale gets updated properly, these are the scale, growth tracker,
