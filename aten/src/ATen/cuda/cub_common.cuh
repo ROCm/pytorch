@@ -45,22 +45,8 @@ void radix_sort_pairs_impl(
       OpaqueType<value_size> *values_out,                               \
       int64_t n, bool descending, int64_t begin_bit, int64_t end_bit);
 
-AT_INSTANTIATE_SORT_PAIRS(int32_t, 1)
-AT_INSTANTIATE_SORT_PAIRS(int32_t, 2)
-AT_INSTANTIATE_SORT_PAIRS(int32_t, 4)
-AT_INSTANTIATE_SORT_PAIRS(int64_t, 1)
-AT_INSTANTIATE_SORT_PAIRS(int64_t, 2)
-AT_INSTANTIATE_SORT_PAIRS(int64_t, 4)
-
 #define AT_INSTANTIATE_SORT_PAIRS_8(scalar_t, ScalarType)   \
   AT_INSTANTIATE_SORT_PAIRS(scalar_t, 8)
-
-AT_FORALL_SCALAR_TYPES_AND2(Bool, Half, AT_INSTANTIATE_SORT_PAIRS_8)
-
-// BFloat16 Radix sort is supported from ROCm 4.5 onwards
-#if !AT_ROCM_ENABLED() || (AT_ROCM_ENABLED() && ROCM_VERSION >= 40500)
-AT_INSTANTIATE_SORT_PAIRS(c10::BFloat16, 8)
-#endif
 
 }  // namespace detail
 
@@ -105,18 +91,20 @@ void run_length_encode(const scalar_t *input, scalar_t *output, int64_t *counts_
       at::cuda::getCurrentCUDAStream());
 }
 
-#define AT_INSTATIATE_CUB_TEMPLATES(scalar_t, ScalarType)           \
+#define AT_INSTATIATE_CUB_TEMPLATE_1(scalar_t, ScalarType)          \
   template void radix_sort_keys(                                    \
       const scalar_t *keys_in, scalar_t *keys_out, int64_t n,       \
-      bool descending, int64_t begin_bit, int64_t end_bit);         \
+      bool descending, int64_t begin_bit, int64_t end_bit);
+
+#define AT_INSTATIATE_CUB_TEMPLATE_2(scalar_t, ScalarType)          \
   template void unique(                                             \
       const scalar_t *input, scalar_t *output,                      \
-      int64_t *num_selected_out, int64_t num_items);                \
+      int64_t *num_selected_out, int64_t num_items);
+
+#define AT_INSTATIATE_CUB_TEMPLATE_3(scalar_t, ScalarType)          \
   template void run_length_encode(                                  \
       const scalar_t *input, scalar_t *output, int64_t *counts_out, \
       int64_t *length_out, int64_t n);
-
-AT_FORALL_SCALAR_TYPES_AND2(Bool, Half, AT_INSTATIATE_CUB_TEMPLATES)
 
 namespace {
 template <typename scalar_t>
@@ -133,19 +121,10 @@ void inclusive_sum_truncating(const input_t *input, output_t *output, int64_t nu
   inclusive_scan(input, output, Sum{}, num_items);
 }
 
-template void inclusive_sum_truncating(const int32_t *input, int32_t *output, int64_t num_items);
-template void inclusive_sum_truncating(const int64_t *input, int64_t *output, int64_t num_items);
-template void inclusive_sum_truncating(const int32_t *input, int64_t *output, int64_t num_items);
-
 template <typename input_t, typename output_t>
 void exclusive_sum_in_common_type(const input_t *input, output_t *output, int64_t num_items) {
   using scalar_t = std::common_type_t<input_t, output_t>;
   exclusive_scan(input, output, SumOp<scalar_t>{}, scalar_t(0), num_items);
 }
-
-template void exclusive_sum_in_common_type(const int32_t *input, int32_t *output, int64_t num_items);
-template void exclusive_sum_in_common_type(const int64_t *input, int64_t *output, int64_t num_items);
-template void exclusive_sum_in_common_type(const bool *input, int64_t *output, int64_t num_items);
-template void exclusive_sum_in_common_type(const uint8_t *input, int64_t *output, int64_t num_items);
 
 }}}  // namespace at::cuda::cub
