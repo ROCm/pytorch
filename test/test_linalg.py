@@ -6387,7 +6387,7 @@ scipy_lobpcg  | {:10.2e}  | {:10.2e}  | {:6} | N/A
     # FIXME One of the backends of lu_factor fails in windows. I haven't investigated which or why
     # https://github.com/pytorch/pytorch/issues/75225
     @unittest.skipIf(IS_WINDOWS, "Skipped on Windows!")
-    @skipCUDAIfNoCusolver
+    @skipCUDAIfNoCusolverAndNoHipsolver
     @skipCPUIfNoLapack
     @dtypes(torch.double)
     def test_det_logdet_slogdet(self, device, dtype):
