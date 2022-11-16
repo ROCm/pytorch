@@ -107,6 +107,15 @@ _LinalgBackends = {
 }
 _LinalgBackends_str = ', '.join(_LinalgBackends.keys())
 
+def get_preferred_linalg_library():
+    backend = torch._C._get_linalg_preferred_backend()
+    keys = list(_LinalgBackends.keys())
+    vals = list(_LinalgBackends.values())
+    pos = vals.index(backend)
+    return keys[pos]
+
+
+
 def preferred_linalg_library(backend: Union[None, str, torch._C._LinalgBackend] = None) -> torch._C._LinalgBackend:
     r'''
     .. warning:: This flag is experimental and subject to change.

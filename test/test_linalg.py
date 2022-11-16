@@ -7350,7 +7350,6 @@ scipy_lobpcg  | {:10.2e}  | {:10.2e}  | {:6} | N/A
         an = torch.from_numpy(np.tensordot(np.zeros((), dtype=np.float32), np.zeros((), dtype=np.float32), 0))
         self.assertEqual(a, an)
 
-    @skipCUDAIfNoCusolver
     @skipCUDAIfNoMagma
     @skipCPUIfNoLapack
     @skipCUDAIfRocm
@@ -7359,6 +7358,7 @@ scipy_lobpcg  | {:10.2e}  | {:10.2e}  | {:6} | N/A
         from torch.testing._internal.common_utils import random_hermitian_pd_matrix
 
         def run_test(shape, batch, hermitian):
+            torch.backends.cuda.preferred_linalg_library('cusolver')
             A = random_hermitian_pd_matrix(shape, *batch, dtype=dtype, device=device)
             actual_factors, actual_pivots, info = torch.linalg.ldl_factor_ex(A, hermitian=hermitian)
             actual_L = torch.tril(actual_factors, diagonal=-1)
@@ -7409,7 +7409,7 @@ scipy_lobpcg  | {:10.2e}  | {:10.2e}  | {:6} | N/A
                 self.assertEqual(info.shape, A.shape[:-2])
 
         # hermitian=True for complex inputs on CUDA is supported only with MAGMA 2.5.4+
-        magma_254_available = self.device_type == 'cuda' and _get_magma_version() >= (2, 5, 4)
+        magma_254_available = self.device_type == 'cuda' and _get_magma_version() >= (2, 5, 4) and (torch.backends.cuda.get_preferred_linalg_library() == "magma")
         hermitians = (True, False) if dtype.is_complex and (self.device_type == 'cpu' or magma_254_available) else (False,)
 
         shapes = (5,)
