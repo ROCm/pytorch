@@ -328,13 +328,7 @@ static inline __device__ void gpuAtomicAddNoReturn(bool *address, bool val) { gp
 static inline __device__ void gpuAtomicAddNoReturn(at::Half *address, at::Half val) { gpuAtomicAdd(address, val); }
 static inline __device__ void gpuAtomicAddNoReturn(at::BFloat16 *address, at::BFloat16 val) { gpuAtomicAdd(address, val); }
 static inline __device__ void gpuAtomicAddNoReturn(double *address, double val) { gpuAtomicAdd(address, val); }
-
-/* Special case fp32 atomic. */
-#if defined(USE_ROCM)
-static inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { atomicAddNoRet(address, val); }
-#else
 static inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { gpuAtomicAdd(address, val); }
-#endif
 
 // Atomic multiplication implementation.
 
