@@ -802,6 +802,14 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     }
   }
 
+  bool is_grad() const {
+    return is_grad_;
+  }
+
+  void set_is_grad(bool value) {
+    is_grad_ = value;
+  }
+
   /**
    * Whether or not a tensor is laid out in contiguous memory.
    *
@@ -2874,6 +2882,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
   // default member initializers for bit-fields only available with -std=c++2a
   // or -std=gnu++2a
   inline void init_bitfields() {
+    is_grad_ = false;
     is_contiguous_ = true;
     is_channels_last_ = false;
     is_channels_last_contiguous_ = false;
@@ -2896,6 +2905,9 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     storage_access_should_throw_ = false;
     has_symbolic_sizes_strides_ = false;
   }
+
+  // Tensor is gradient
+  bool is_grad_ : 1; // use 1 bit
 
   // Tensor is contiguous
   bool is_contiguous_ : 1;

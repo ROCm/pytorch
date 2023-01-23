@@ -8,6 +8,10 @@
 
 namespace at { namespace native {
 
+
+std::string miopenTypeToString(miopenDataType_t dtype);
+
+
 inline int dataSize(miopenDataType_t dataType)
 {
   switch (dataType) {

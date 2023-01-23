@@ -16,6 +16,13 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/OpMathType.h>
 
+#ifdef USE_ROCM
+#include <hipblas/hipblas.h>
+#include <hipsolver/hipsolver.h>
+#endif
+
+#include <iostream>
+
 namespace at::cuda::blas {
 
 // RAII guard that sets the CuBLAS pointer mode and restores it to
@@ -46,7 +53,17 @@ private:
 
 template <typename Dtype>
 inline void gemm(CUDABLAS_GEMM_ARGTYPES(Dtype)) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "gemm<" << typeid(Dtype).name() << ">(...)" << std::endl;
+  }
   AT_ERROR("at::cuda::blas::gemm: not implemented for ", typeid(Dtype).name());
+}
+template <typename Dtype>
+inline void gemm(CUDABLAS_GEMM_ARGTYPES(Dtype), int grad_flags) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "gemm<" << typeid(Dtype).name() << ">(..., int grad_flags)" << std::endl;
+  }
+  AT_ERROR("at::cuda::blas::gemm(grad_flags): not implemented for ", typeid(Dtype).name());
 }
 
 template <>
@@ -54,13 +71,32 @@ void gemm<double>(CUDABLAS_GEMM_ARGTYPES(double));
 template <>
 void gemm<float>(CUDABLAS_GEMM_ARGTYPES(float));
 template <>
-void gemm<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>));
-template <>
-void gemm<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>));
+void gemm<float>(CUDABLAS_GEMM_ARGTYPES(float), int grad_flags);
+template<>
+void gemm<double>(CUDABLAS_GEMM_ARGTYPES(double), int grad_flags);
+#if !defined(USE_ROCM) || (defined(USE_ROCM) && ROCM_VERSION >= 21000)
+  template <>
+  void gemm<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>));
+  template <>
+  void gemm<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>), int grad_flags);
+#endif
+#if !defined(USE_ROCM) || (defined(USE_ROCM) && ROCM_VERSION >= 21000)
+  template <>
+  void gemm<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>));
+  template <>
+  void gemm<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>), int grad_flags);
+#endif
 template <>
 void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half));
 template <>
+void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags);
+#if defined(USE_ROCM) || defined(CUDA_VERSION) && CUDA_VERSION >= 11000
+template <>
 void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16));
+template<>
+void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16), int grad_flags);
+
+#endif
 
 #if (!defined(USE_ROCM) && !defined(_MSC_VER)) || (defined(USE_ROCM) && ROCM_VERSION >= 50700)
 enum GEMMAndBiasActivationEpilogue {

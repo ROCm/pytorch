@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <ciso646>
 #include <functional>
+#include <iostream>
 #include <numeric>
 #include <utility>
 
@@ -121,6 +122,9 @@ std::vector<Tensor> not_implemented_list(const char* name, const char* reason) {
 }
 
 Tensor maybe_multiply(const Tensor& t, const Scalar& s) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "FunctionsManual.cpp: maybe_multiply(const Tensor& t, const Scalar& s)" << std::endl;
+  }
   bool is_one = false;
   if (s.isFloatingPoint()) {
     is_one = s.toSymFloat() == 1;
@@ -1418,16 +1422,44 @@ Tensor mm_mat1_backward(
     at::SymIntArrayRef mat1_strides,
     c10::Layout mat1_layout,
     const Scalar& alpha) {
-  if (grad.layout() == c10::kStrided && mat2.layout() == c10::kStrided &&
+
+  at::Tensor grad_copy = grad.clone();
+  at::Tensor mat2_copy = mat2.clone();
+  
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "FunctionalsManual.cpp: mm_mat1_backward(const Tensor& grad, const Tensor& mat2,...)" << std::endl;
+    std::cout << "\tgrad: " << &grad << std::endl;
+    std::cout << "\tmat2: " << &mat2 << std::endl;
+    std::cout << "\tgrad_copy: " << &grad_copy << std::endl;
+    std::cout << "\tmat2_copy: " << &mat2_copy << std::endl;
+    std::cout << "\tgrad_copy.is_grad(): before: " << std::boolalpha << grad_copy.is_grad() << std::endl;
+    std::cout << "\tmat2_copy.is_grad(): before: " << std::boolalpha << mat2_copy.is_grad() << std::endl;
+  }
+
+  grad_copy.set_is_grad(true); 
+  mat2_copy.set_is_grad(false);
+
+  if (at::globalContext().allowF8ROCMLOG()) { 
+    std::cout << "\tgrad_copy.is_grad(): after: " << std::boolalpha << grad_copy.is_grad() << std::endl;
+    std::cout << "\tmat2_copy.is_grad(): after: " << std::boolalpha << mat2_copy.is_grad() << std::endl;
+  }
+
+  if (grad_copy.layout() == c10::kStrided && mat2_copy.layout() == c10::kStrided &&
       mat1_layout == c10::kStrided) {
     // if input was column-major, return grad as column-order for efficiency
     if (mat1_strides[0] == 1 && mat1_strides[1] == mat1_sizes[0]) {
-      return maybe_multiply(mat2.conj().mm(grad.t()).t(), alpha.conj());
+      if (at::globalContext().allowF8ROCMLOG()) {
+        std::cout << "\tmaybe_multiply(mat2_copy.conj().mm(grad_copy.t()).t(), alpha.conj())" << std::endl;
+      }
+      return maybe_multiply(mat2_copy.conj().mm(grad_copy.t()).t(), alpha.conj());
     }
   }
 
   // General fallback, should work for any layout
-  return maybe_multiply(grad.mm(mat2.t().conj()), alpha.conj());
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "\tmaybe_multiply(grad_copy.mm(mat2_copy.t().conj()), alpha.conj())" << std::endl;
+  }
+  return maybe_multiply(grad_copy.mm(mat2_copy.t().conj()), alpha.conj());
 }
 
 Tensor mm_mat2_backward(
@@ -1437,16 +1469,44 @@ Tensor mm_mat2_backward(
     at::SymIntArrayRef mat2_strides,
     c10::Layout mat2_layout,
     const Scalar& alpha) {
-  if (grad.layout() == c10::kStrided && mat1.layout() == c10::kStrided &&
+  at::Tensor grad_copy = grad.clone();
+  at::Tensor mat1_copy = mat1.clone();
+  
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "FunctionalsManual.cpp: mm_mat2_backward(const Tensor& grad, const Tensor& mat1,...)" << std::endl;
+    std::cout << "\tgrad: " << &grad << std::endl;
+    std::cout << "\tmat1: " << &mat1 << std::endl;
+    std::cout << "\tgrad_copy: " << &grad_copy << std::endl;
+    std::cout << "\tmat1_copy: " << &mat1_copy << std::endl;
+    std::cout << "\tgrad_copy.is_grad(): before: " << std::boolalpha << grad_copy.is_grad() << std::endl;
+    std::cout << "\tmat1_copy.is_grad(): before: " << std::boolalpha << mat1_copy.is_grad() << std::endl;
+  }
+
+  grad_copy.set_is_grad(true);
+  mat1_copy.set_is_grad(false);
+
+  if (at::globalContext().allowF8ROCMLOG()) { 
+    std::cout << "\tgrad_copy.is_grad(): after: " << std::boolalpha << grad_copy.is_grad() << std::endl;
+    std::cout << "\tmat1_copy.is_grad(): after: " << std::boolalpha << mat1_copy.is_grad() << std::endl;
+  }
+
+
+  if (grad_copy.layout() == c10::kStrided && mat1_copy.layout() == c10::kStrided &&
       mat2_layout == c10::kStrided) {
     // if input was column-major, return grad as column-order for efficiency
     if (mat2_strides[0] == 1 && mat2_strides[1] == mat2_sizes[0]) {
-      return maybe_multiply(grad.t().mm(mat1.conj()).t(), alpha.conj());
+      if (at::globalContext().allowF8ROCMLOG()) { 
+        std::cout << "\tmaybe_multiply(grad_copy.t().mm(mat1_copy.conj()).t(), alpha.conj())" << std::endl;
+      }
+      return maybe_multiply(grad_copy.t().mm(mat1_copy.conj()).t(), alpha.conj());
     }
   }
 
-  // General fallback, should work for any layout
-  return maybe_multiply(mat1.t().conj().mm(grad), alpha.conj());
+  // General fallback, should work for any 
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "\tmaybe_multiply(mat1_copy.t().conj().mm(grad_copy), alpha.conj())" << std::endl;
+  }
+  return maybe_multiply(mat1_copy.t().conj().mm(grad_copy), alpha.conj());
 }
 
 Tensor mm_mat1_sparse_backward(

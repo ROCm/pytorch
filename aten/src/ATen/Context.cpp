@@ -195,6 +195,40 @@ bool Context::allowTF32CuBLAS() const {
   return float32_matmul_precision != at::Float32MatmulPrecision::HIGHEST;
 }
 
+bool Context::f8Confirm() const {
+  bool ret = c10::utils::check_env("F8_CONFIRM") == true;
+  if( ret == true ) {
+	TORCH_WARN_ONCE("F8 CONFIRMATION TRACES ON");
+  }
+  return ret;
+}
+
+bool Context::allowF8ROCMConv() const {
+  bool ret = c10::utils::check_env("ENABLE_F8_CONV") == true;
+  if (ret == true) {
+    TORCH_WARN_ONCE("F8 ROCM CONV enabled!");
+  }
+  return ret;
+}
+
+
+bool Context::allowF8ROCMGemm() const {
+  bool ret = c10::utils::check_env("ENABLE_F8_GEMM") == true;
+  if (ret == true) {
+    TORCH_WARN_ONCE("F8 ROCM GEMM enabled!");
+  }
+  return ret;
+}
+
+bool Context::allowF8ROCMLOG() const {
+  bool ret = (this->allowF8ROCMConv() || this->allowF8ROCMGemm()) &&
+     (c10::utils::check_env("ENABLE_F8_LOG") == true);
+  if (ret == true) {
+    TORCH_WARN_ONCE("F8 ROCM LOGGING enabled!");
+  }
+  return ret;
+}
+
 void Context::setAllowTF32CuBLAS(bool b) {
   float32_matmul_precision = b ? at::Float32MatmulPrecision::HIGH : at::Float32MatmulPrecision::HIGHEST;
 }

@@ -1,12 +1,9 @@
 #pragma once
 
-#include <ATen/ATen.h>
-#include <ATen/NativeFunctions.h>
-#include <ATen/Operators.h>
-#include <torch/library.h>
+#include <ATen/core/Scalar.h>
+#include <ATen/Tensor.h>
+#include <ATen/TensorIndexing.h>
 
-#include <c10/core/impl/LocalDispatchKeySet.h>
-#include <c10/util/intrusive_ptr.h>
 
 namespace at::autocast {
 
@@ -15,6 +12,10 @@ TORCH_API void set_enabled(bool enabled);
 TORCH_API void clear_cache();
 TORCH_API int increment_nesting();
 TORCH_API int decrement_nesting();
+TORCH_API bool is_autocast_on();
+TORCH_API void set_autocast_on(bool mode);
+TORCH_API bool was_amp_used();
+TORCH_API void set_was_amp_used();
 TORCH_API bool is_cpu_enabled();
 TORCH_API void set_cpu_enabled(bool enabled);
 TORCH_API at::ScalarType get_autocast_gpu_dtype();

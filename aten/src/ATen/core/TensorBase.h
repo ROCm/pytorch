@@ -82,6 +82,14 @@ class TORCH_API TensorBase {
  public:
   struct unsafe_borrow_t { explicit unsafe_borrow_t() = default; };
 
+  bool is_grad() const{
+    return impl_->is_grad();
+  }
+
+  void set_is_grad(bool value) {
+    impl_->set_is_grad(value);
+  }
+
  protected:
   // Create a Tensor with a +0 reference count. Special care must be
   // taken to avoid decrementing this reference count at destruction

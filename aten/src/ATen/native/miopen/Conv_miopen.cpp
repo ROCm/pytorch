@@ -8,6 +8,8 @@
 #include <ATen/NativeFunctions.h>
 #else
 #include <ATen/ops/empty.h>
+
+#include <ATen/autocast_mode.h>
 #include <ATen/ops/empty_like.h>
 #include <ATen/ops/empty_native.h>
 #include <ATen/ops/miopen_convolution_add_relu_native.h>
@@ -23,6 +25,17 @@
 // TODO: Remove the condition on AT_ROCM_ENABLED entirely,
 // don't build this file as part of CPU build.
 #include <ATen/cuda/CUDAConfig.h>
+
+
+// quantize functions
+#include <hip/hip_runtime.h>
+#include <hip/hip_fp16.h>
+#include <hip/hip_bfloat16.h>
+#include <ATen/native/cuda/f8_hip_impl.cuh>
+
+#include <iostream>
+
+#include <c10/core/GradMode.h>
 
 #if !AT_ROCM_ENABLED()
 
@@ -782,7 +795,35 @@ Tensor miopen_convolution_forward(
   Tensor input_contig = input->contiguous(memory_format);
   input_contig.resize_(input_contig.sizes(), memory_format);
 
+  if (at::globalContext().allowF8ROCMConv() &&
+      (getMiopenDataType(input_contig) == miopenHalf) &&
+	  (at::autocast::is_autocast_on())) {
 
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - conv forward - autocast" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(input_contig.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(weight_contig.data_ptr()));
+    int sz1 = input_contig.numel();
+    int sz2 = weight_contig.numel();
+
+    uint32_t seed = random_seed();
+
+
+    if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - CONV FORWARD" << std::endl;
+	}
+
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+    Quant8_inplace_host(p1, sz1, seed, stream, false);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
 
   raw_miopen_convolution_forward_out(
       *output, input_contig, weight_contig,
@@ -884,6 +925,34 @@ Tensor miopen_depthwise_convolution_forward(
   weight_contig.resize_(weight_contig.sizes(), memory_format);
   Tensor input_contig = input->contiguous(memory_format);
   input_contig.resize_(input_contig.sizes(), memory_format);
+
+  if (at::globalContext().allowF8ROCMConv() &&
+      (getMiopenDataType(input_contig) == miopenHalf) &&
+	  (at::autocast::is_autocast_on())) {
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - depthwise conv forward - autocast" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(input_contig.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(weight_contig.data_ptr()));
+
+
+	if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - DEPTHWISE CONV FORWARD" << std::endl;
+	}
+
+    uint32_t seed = random_seed();
+    int sz1 = input_contig.numel();
+    int sz2 = weight_contig.numel();
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+    Quant8_inplace_host(p1, sz1, seed, stream, false);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
 
   raw_miopen_depthwise_convolution_forward_out(
       *output, input_contig, weight_contig,
@@ -1086,6 +1155,36 @@ Tensor miopen_depthwise_convolution_backward_weight(
   TensorArg grad_weight{ grad_weight_t, "result", 0 };
   convolution_shape_check(c, input, grad_weight, grad_output_contig, padding, stride, dilation, groups);
 
+  if (at::globalContext().allowF8ROCMConv() &&
+      (getMiopenDataType(input_contig_t) == miopenHalf) &&
+	  (at::autocast::is_autocast_on())) {
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - depthwise conv back" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(grad_output_contig_t.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(input_contig_t.data_ptr()));
+
+    int sz1 = grad_output_contig_t.numel();
+
+    int sz2 = input_contig_t.numel();
+
+    uint32_t seed = random_seed();
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+
+	if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - DEPTHWISE CONV BACK" << std::endl;
+	}
+
+    Quant8_inplace_host(p1, sz1, seed, stream, true);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
+
   raw_miopen_depthwise_convolution_backward_weight_out(
       *grad_weight, *grad_output_contig, *input_contig,
       padding, stride, dilation, groups, benchmark, deterministic);
@@ -1138,6 +1237,38 @@ Tensor miopen_convolution_backward_weight(
   // would be unambiguous too.
   TensorArg grad_weight{ grad_weight_t, "result", 0 };
   convolution_shape_check(c, input, grad_weight, grad_output_contig, padding, stride, dilation, groups);
+
+  if (at::globalContext().allowF8ROCMConv() &&
+  	 (getMiopenDataType(input_contig_t) == miopenHalf) &&
+	 (at::autocast::is_autocast_on())){
+
+
+
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - conv back weight" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(grad_output_contig_t.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(input_contig_t.data_ptr()));
+
+    int sz1 = grad_output_contig_t.numel();
+    int sz2 = input_contig_t.numel();
+
+    uint32_t seed = random_seed();
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+
+	if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - CONV BACK WEIGHT" << std::endl;
+	}
+
+    Quant8_inplace_host(p1, sz1, seed, stream, true);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
 
   raw_miopen_convolution_backward_weight_out(
       *grad_weight, *grad_output_contig, *input_contig,
@@ -1291,6 +1422,34 @@ Tensor miopen_convolution_backward_input(
   Tensor grad_output_contig = grad_output->contiguous(memory_format);
   grad_output_contig.resize_(grad_output_contig.sizes(), memory_format);
 
+  if (at::globalContext().allowF8ROCMConv() &&
+      (getMiopenDataType(weight_contig) == miopenHalf)&&
+	  (at::autocast::is_autocast_on())) {
+
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - conv back input" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(grad_output_contig.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(weight_contig.data_ptr()));
+
+    int sz1 = grad_output_contig.numel();
+    int sz2 = weight_contig.numel();
+
+    uint32_t seed = random_seed();
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+	if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - CONV BACK INPUT" << std::endl;
+	}
+    Quant8_inplace_host(p1, sz1, seed, stream, true);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
+
   raw_miopen_convolution_backward_input_out(
       *grad_input, grad_output_contig, weight_contig,
       padding, stride, dilation, groups, benchmark, deterministic);
@@ -1396,6 +1555,34 @@ Tensor miopen_depthwise_convolution_backward_input(
 
   Tensor grad_output_contig = grad_output->contiguous(memory_format);
   grad_output_contig.resize_(grad_output_contig.sizes(), memory_format);
+
+  if (at::globalContext().allowF8ROCMConv() &&
+      (getMiopenDataType(weight_contig) == miopenHalf) &&
+	  (at::autocast::is_autocast_on())) {
+
+    if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "F8 - Conv_miopen.cpp - depthwise conv back input" << std::endl;
+	}
+    __half* p1 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(grad_output_contig.data_ptr()));
+    __half* p2 = const_cast<__half*>(
+        reinterpret_cast<const __half*>(weight_contig.data_ptr()));
+
+    int sz1 = grad_output_contig.numel();
+    int sz2 = weight_contig.numel();
+
+    uint32_t seed = random_seed();
+
+    hipStream_t stream = at::hip::getCurrentHIPStream();
+	if(at::globalContext().f8Confirm())
+	{
+		std::cout << "EYECATCHER - DEPTHWISE CONV BACK INPUT" << std::endl;
+	}
+    Quant8_inplace_host(p1, sz1, seed, stream, true);
+    seed = random_seed();
+    Quant8_inplace_host(p2, sz2, seed, stream, false);
+  }
 
   raw_miopen_depthwise_convolution_backward_input_out(
       *grad_input, grad_output_contig, weight_contig,

@@ -11,8 +11,8 @@
 #include <c10/util/Optional.h>
 #include <c10/util/accumulate.h>
 #include <c10/util/irange.h>
-
 #include <utility>
+#include <iostream>
 
 C10_DEFINE_bool(
     caffe2_keep_on_shrink,
@@ -587,6 +587,7 @@ void TensorImpl::copy_generic_tensor_metadata(
   dest_impl->refresh_sizes_strides_policy();
   dest_impl->refresh_layout_policy();
   dest_impl->refresh_device_policy();
+  dest_impl->is_grad_ = src_impl->is_grad_;
 }
 
 void TensorImpl::copy_tensor_metadata_except_version_counter(
@@ -607,6 +608,7 @@ void TensorImpl::copy_tensor_metadata_except_version_counter(
   dest_impl->set_allow_tensor_metadata_change(allow_tensor_metadata_change);
   dest_impl->storage_access_should_throw_ =
       src_impl->storage_access_should_throw_;
+  dest_impl->is_grad_ = src_impl->is_grad_;
 }
 
 void TensorImpl::copy_tensor_metadata(
@@ -622,6 +624,7 @@ void TensorImpl::copy_tensor_metadata(
   if (!dest_impl->is_inference()) {
     dest_impl->set_version_counter(version_counter);
   }
+  dest_impl->is_grad_ = src_impl->is_grad_;
 }
 
 void TensorImpl::copy_tensor_metadata(
@@ -634,6 +637,7 @@ void TensorImpl::copy_tensor_metadata(
   if (!dest_impl->is_inference()) {
     dest_impl->set_version_counter(std::move(version_counter));
   }
+  dest_impl->is_grad_ = src_impl->is_grad_;
 }
 
 // Legacy Caffe2 operations

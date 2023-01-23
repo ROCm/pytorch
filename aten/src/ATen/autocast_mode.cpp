@@ -1,4 +1,11 @@
+#include <ATen/ATen.h>
+#include <torch/library.h>
+#include <ATen/NativeFunctions.h>
 #include <ATen/autocast_mode.h>
+#include <ATen/Operators.h>
+
+#include <c10/util/intrusive_ptr.h>
+#include <c10/core/impl/LocalDispatchKeySet.h>
 
 #include <mutex>
 #include <ATen/CachedTensorUtils.h>
@@ -6,13 +13,21 @@
 
 namespace at::autocast {
 
+
+
 bool is_enabled() {
   return !c10::impl::tls_is_dispatch_key_excluded(DispatchKey::AutocastCUDA);
 }
 
 void set_enabled(bool new_enabled) {
+  set_autocast_on(new_enabled);
+  if( new_enabled == true )
+  {
+  	 set_was_amp_used();
+  }
   c10::impl::tls_set_dispatch_key_excluded(DispatchKey::AutocastCUDA, !new_enabled);
 }
+
 
 bool is_cpu_enabled() {
   return !c10::impl::tls_is_dispatch_key_excluded(DispatchKey::AutocastCPU);
@@ -85,6 +100,9 @@ ska::flat_hash_map<TensorImpl*, val_type> cached_casts;
 std::mutex cached_casts_mutex;
 
 
+thread_local bool is_amp_on;
+bool amp_was_used = false;
+
 // nesting tracks the nesting depth of the Python-side context manager.
 // When the autocast context manager exits to a nesting level that's outside
 // any instance of autocast (which should occur at the end of each forward pass)
@@ -119,6 +137,31 @@ thread_local at::ScalarType autocast_privateuseone_dtype = at::kHalf;
 void clear_cache() {
   const std::lock_guard<std::mutex> lock(cached_casts_mutex);
   cached_casts.clear();
+}
+
+bool is_autocast_on() {
+  return is_amp_on || was_amp_used();
+}
+
+bool was_amp_used() {
+	if( std::getenv("APEX_AMP_ENABLED")){
+		amp_was_used = true;
+		return amp_was_used;
+	}
+	else {
+		return amp_was_used;
+	}
+}
+
+
+
+void set_was_amp_used() {
+  amp_was_used = true;
+}
+
+
+void set_autocast_on(bool mode) {
+  is_amp_on = mode;
 }
 
 int increment_nesting() {

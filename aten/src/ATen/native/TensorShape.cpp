@@ -3117,6 +3117,7 @@ Tensor transpose(const Tensor & self, int64_t dim0, int64_t dim1) {
   std::swap(strides[dim0], strides[dim1]);
   auto result = self.as_strided_symint(sizes, strides);
   propagate_transposed_names(result, self, dim0, dim1);
+  result.set_is_grad(self.is_grad()); // propgate is_grad information when transposing
   return result;
 }
 

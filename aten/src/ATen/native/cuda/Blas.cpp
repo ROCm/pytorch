@@ -32,6 +32,9 @@
 #include <ATen/ops/vdot_native.h>
 #endif
 
+#include <iostream>
+#include <bitset>
+
 namespace at::native {
 
 namespace {
@@ -206,6 +209,43 @@ static bool isSupportedHipLtROCmArch(int index) {
 #endif
 
 Tensor& addmm_out_cuda_impl(Tensor& result, const Tensor& self, const Tensor& mat1, const Tensor& mat2, const Scalar& beta, const Scalar& alpha, Activation activation=Activation::None) {
+
+  // set bit flags
+  uint8_t grad_flags = 0x00;
+  if (mat1.is_grad() == false && mat2.is_grad() == true) {
+    grad_flags = 0x02;
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "grad_flags set to " << std::bitset<8>(grad_flags) << std::endl;
+	}
+  } else if (mat1.is_grad() == true && mat2.is_grad() == false) {
+    grad_flags = 0x01; 
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "grad_flags set to " << std::bitset<8>(grad_flags) << std::endl;
+	}
+  } else if (mat1.is_grad() == true && mat2.is_grad() == true) {
+    grad_flags = 0x03;
+	if(at::globalContext().allowF8ROCMLOG())
+	{
+		std::cout << "grad_flags set to " << std::bitset<8>(grad_flags) << std::endl;
+	}
+  }
+
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "Blas.cpp: addmm_out_cuda_impl" << std::endl;
+    std::cout << "\tresult : " << &result << std::endl;
+    std::cout << "\tself: " << &self << std::endl;
+    std::cout << "\tmat1: " << &mat1 << std::endl;
+    std::cout << "\tmat2: " << &mat2 << std::endl;
+    std::cout << "\tresult.is_grad(): " << std::boolalpha << result.is_grad() << std::endl;
+    std::cout << "\tself.is_grad(): " << std::boolalpha << self.is_grad() << std::endl;
+    std::cout << "\tmat1.is_grad(): " << std::boolalpha << mat1.is_grad() << std::endl;
+    std::cout << "\tmat2.is_grad(): " << std::boolalpha << mat2.is_grad() << std::endl;
+    std::cout << "\tgrad_flags: " << unsigned(grad_flags) << "(" << std::bitset<8>(grad_flags)
+            << ")" << std::endl;
+  }
+
   // Make sure to keep addmm_cuda below in sync with this code; it
   // preflights a check to try to avoid actually needing to call
   // expand().
@@ -390,6 +430,7 @@ Tensor& addmm_out_cuda_impl(Tensor& result, const Tensor& self, const Tensor& ma
               beta_val,
               result_ptr,
               args.result_ld);
+              grad_flags);
         });
     switch (activation) {
       case Activation::RELU:
@@ -419,6 +460,11 @@ Tensor& addmm_out_cuda_impl(Tensor& result, const Tensor& self, const Tensor& ma
 }
 
 const Tensor& baddbmm_out_cuda_impl(const Tensor& result, const Tensor& self, const Tensor& batch1, const Tensor& batch2, const Scalar& beta, const Scalar& alpha) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "baddbmm_out_cuda_impl" << std::endl;
+  }
+  IntArrayRef batch1_sizes = batch1.sizes();
+
   // handle pathological cases that blas may not like
   if (result.numel() == 0) {
     return result;
@@ -503,14 +549,38 @@ const Tensor& baddbmm_out_cuda_impl(const Tensor& result, const Tensor& self, co
 } // anonymous namespace
 
 TORCH_IMPL_FUNC(addmm_out_cuda)(const Tensor& self, const Tensor& mat1, const Tensor& mat2, const Scalar& beta, const Scalar& alpha, const Tensor& result) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "Blas.cpp: addmm_out_cuda" << std::endl;
+    std::cout << "\tself.is_grad(): " << &self << std::endl;
+    std::cout << "\tmat1.is_grad(): " << &mat1 << std::endl;
+    std::cout << "\tmat2.is_grad(): " << &mat2 << std::endl;
+    std::cout << "\tresult.is_grad(): " << &result << std::endl;
+    std::cout << "\tself.is_grad(): " << std::boolalpha << self.is_grad() << std::endl;
+    std::cout << "\tmat1.is_grad(): " << std::boolalpha << mat1.is_grad() << std::endl;
+    std::cout << "\tmat2.is_grad(): " << std::boolalpha << mat2.is_grad() << std::endl;
+    std::cout << "\tresult.is_grad(): " << std::boolalpha << result.is_grad()
+              << std::endl;
+  }
   addmm_out_cuda_impl(const_cast<Tensor&>(result), self, mat1, mat2, beta, alpha);
 }
 
 TORCH_IMPL_FUNC(addmm_activation_out_cuda)(const Tensor& self, const Tensor& mat1, const Tensor& mat2, const Scalar& beta, const Scalar& alpha, bool use_gelu, const Tensor& result) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "Blas.cpp: addmm_activation_out_cuda" << std::endl;
+  }
   addmm_out_cuda_impl(const_cast<Tensor&>(result), self, mat1, mat2, beta, alpha, use_gelu ? Activation::GELU : Activation::RELU);
 }
 
 TORCH_IMPL_FUNC(mm_out_cuda)(const Tensor& self, const Tensor& mat2, const Tensor& result) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "Blas.cpp: mm_out_cuda(const Tensor& self, const Tensor& mat2, const Tensor& result)" << std::endl;
+    std::cout << "\tself: " << &self << std::endl;
+    std::cout << "\tmat2: " << &mat2 << std::endl;
+    std::cout << "\tresult: " << &result << std::endl;
+    std::cout << "\tresult.is_grad(): " << result.is_grad()<< std::endl;
+    std::cout << "\tself.is_grad(): " << self.is_grad()<< std::endl;
+    std::cout << "\tmat2.is_grad(): " << mat2.is_grad() << std::endl;
+  }
   addmm_out_cuda_impl(const_cast<Tensor&>(result), result, self, mat2, 0, 1);
 }
 

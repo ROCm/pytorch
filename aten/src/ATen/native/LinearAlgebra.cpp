@@ -145,6 +145,7 @@
 #if !defined(__s390x__) && !defined(__powerpc__)
 #include <cpuinfo.h>
 #endif
+#include <iostream>
 
 namespace at {
 
@@ -187,6 +188,13 @@ TORCH_META_FUNC(_addmm_activation)(const Tensor& self, const Tensor& mat1, const
 }
 
 TORCH_META_FUNC(mm)(const Tensor & self, const Tensor & mat2) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "LinearAlgebra.cpp: mm(const Tensor & self, const Tensor & mat2)" << std::endl;
+    std::cout << "\tself: " << &self << std::endl;
+    std::cout << "\tmat2: " << &mat2 << std::endl;
+    std::cout << "\tself.is_grad(): " << std::boolalpha << self.is_grad() << std::endl;
+    std::cout << "\tmat2.is_grad(): " << std::boolalpha << mat2.is_grad() << std::endl;
+  }
   TORCH_CHECK(self.dim() == 2, "self must be a matrix");
   TORCH_CHECK(mat2.dim() == 2, "mat2 must be a matrix");
   TORCH_CHECK(
@@ -1982,6 +1990,9 @@ static Tensor _matmul_impl(
     Tensor& out,
     const Tensor& tensor1,
     const Tensor& tensor2) {
+  if (at::globalContext().allowF8ROCMLOG()) {
+    std::cout << "LinearAlgebra.cpp: _matmul_impl" << std::endl;
+  }
   NoNamesGuard guard;
   const auto dim_tensor1 = tensor1.dim();
   const auto dim_tensor2 = tensor2.dim();
