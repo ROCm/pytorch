@@ -261,7 +261,113 @@ static void copy_kernel_cuda(TensorIterator& iter, bool non_blocking) {
   }
 }
 
+int64_t uvm_get_guard_index(Tensor& t) {
+  int cuda_device_index;
+  if (t.is_cpu()) {
+    // TODO: We can to do more here once we have
+    // indirect contexts in place
+    cuda_device_index = -1;
+  } else {
+    TORCH_CHECK(t.is_cuda());
+    cuda_device_index = t.get_device();
+  }
+  return cuda_device_index;
+}
+
+void uvm_cuda_mem_advise_preferred_location(Tensor t) {
+  // Call cudaMemAdvise on a managed tensor
+  at::cuda::OptionalCUDAGuard device_guard;
+  int64_t cuda_device_index = uvm_get_guard_index(t);
+  int hint_device;
+  if (t.is_cpu()) {
+    hint_device = -1 /*cudaCpuDeviceId*/;
+  } else {
+    hint_device = static_cast<int>(cuda_device_index);
+  }
+
+  void* ptr = t.data_ptr();
+  size_t size_bytes = at::detail::computeStorageNbytes(
+      t.sizes(), t.strides(), t.dtype().itemsize());
+
+  device_guard.set_index(cuda_device_index);
+  AT_CUDA_CHECK(cudaMemAdvise(
+      ptr,
+      size_bytes,
+      cudaMemAdviseSetPreferredLocation,
+      hint_device));
+  return;
+}
+
+
+void uvm_cuda_mem_prefetch_async(Tensor t, CUDAStream stream) {
+  // Call cudaMemPrefetchAsync on Tensor
+  at::cuda::OptionalCUDAGuard device_guard;
+  //TORCH_CHECK(t.is_cuda() || (t.is_cpu() && device_t.has_value()));
+
+  int prefetch_device =
+      (t.is_cpu()) ? -1/*cudaCpuDeviceId*/ : static_cast<int>(t.get_device());
+
+  void* ptr = t.data_ptr();
+  size_t size_bytes = at::detail::computeStorageNbytes(
+      t.sizes(), t.strides(), t.dtype().itemsize());
+
+  device_guard.set_index(t.get_device());
+
+  AT_CUDA_CHECK(cudaMemPrefetchAsync(ptr, size_bytes, prefetch_device, stream));
+
+  return;
+}
+
+static void move_kernel_cuda(TensorIterator& iter, c10::optional<Device> destination, bool non_blocking) {
+  //AT_ASSERT(iter.ntensors() == 1);
+
+  Device dst_device = destination.value();
+  Device src_device = iter.device(0);
+
+  // Copy between CPU and GPU
+  cuda::OptionalCUDAGuard device_guard;
+  cudaMemcpyKind kind;
+  if (dst_device.is_cuda() && src_device.is_cpu()) {
+    device_guard.set_device(dst_device);
+    kind = cudaMemcpyHostToDevice;
+  } else if (dst_device.is_cpu() && src_device.is_cuda()) {
+    device_guard.set_device(src_device);
+    kind = cudaMemcpyDeviceToHost;
+  }
+
+  CUDAStream stream = getCurrentCUDAStream();
+
+  // At this point we are setting up a memcopy between a
+  // CPU and GPU of a contiguous, same-type tensor. Since this is
+  // purely for device transfer, when UVM is enabled,
+  // we can skip the explicit copy as we have managed memory.
+
+  // We do, however, need to call _set_new_device() which will:
+  // - change the device of the tensor's storage object to destination device
+  // - change the device of the tensor to destination
+  // - Edit the Tensor's dispatchKeySet
+  // TODO: D2D may need 2way event barrier
+  iter.tensor(0)._set_new_device(dst_device);
+
+  // set device hint
+  // TODO: Enable memadvise after tuning
+  //uvm_cuda_mem_advise_preferred_location(self);
+
+  // request a prefetch to new device
+  uvm_cuda_mem_prefetch_async(iter.tensor(0), stream);
+
+  // An explicit sync is always needed when copying back to CPU
+  if (kind == cudaMemcpyDeviceToHost) {
+    AT_CUDA_CHECK(cudaStreamSynchronize(stream));
+  }
+  // TODO: Sync both directions for now
+  AT_CUDA_CHECK(cudaDeviceSynchronize());
+  AT_CUDA_CHECK(cudaStreamSynchronize(stream));
+
+}
+
 REGISTER_DISPATCH(copy_stub, &copy_kernel_cuda);
+REGISTER_CUDA_DISPATCH(move_stub, &move_kernel_cuda);
 
 } // namespace native
 } // namespace at

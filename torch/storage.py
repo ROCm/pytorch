@@ -176,6 +176,15 @@ class _StorageBase(object):
         allocator = torch.cuda.memory._host_allocator()  # type: ignore[attr-defined]
         return type(self)(self.size(), allocator=allocator).copy_(self)
 
+    def manage_memory(self):
+        """Copies the storage to manage memory, if it's not already manage."""
+        import torch.cuda
+        if self.is_cuda:
+            allocator = torch.cuda._manage_allocator()  # type: ignore[attr-defined]
+        else:
+            allocator = torch.cuda._manage_cpu_allocator()  # type: ignore[attr-defined]
+        return type(self)(self.size(), allocator=allocator).copy_(self)
+
     def share_memory_(self):
         """Moves the storage to shared memory.
 

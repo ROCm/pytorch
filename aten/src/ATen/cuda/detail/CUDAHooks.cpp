@@ -10,6 +10,7 @@
 #include <ATen/cuda/Exceptions.h>
 #include <ATen/cuda/PeerToPeerAccess.h>
 #include <ATen/cuda/PinnedMemoryAllocator.h>
+#include <ATen/cuda/UvmMemoryAllocator.h>
 #include <ATen/cuda/nvrtc_stub/ATenNVRTC.h>
 #include <ATen/detail/CUDAHooksInterface.h>
 #include <ATen/native/cuda/CuFFTPlanCache.h>
@@ -108,10 +109,52 @@ bool CUDAHooks::isPinnedPtr(void* data) const {
     return false;
   }
 #endif
+#if defined(USE_ROCM)
+  return attr.isManaged == cudaMemoryTypeHost;
+#endif
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 10000
   return attr.type == cudaMemoryTypeHost;
 #else
   return attr.memoryType == cudaMemoryTypeHost;
+#endif
+}
+
+bool CUDAHooks::isManagedPtr(void* data) const {
+  // First check if driver is broken/missing, in which case PyTorch CPU
+  // functionalities should still work, we should report `false` here.
+  if (!at::cuda::is_available()) {
+    return false;
+  }
+  // cudaPointerGetAttributes grabs context on the current device, so we set
+  // device to one that already has context, if exists.
+  at::OptionalDeviceGuard device_guard;
+  auto primary_ctx_device_index = getDeviceIndexWithPrimaryContext();
+  if (primary_ctx_device_index.has_value()) {
+    device_guard.reset_device(at::Device(at::DeviceType::CUDA, *primary_ctx_device_index));
+  }
+  cudaPointerAttributes attr;
+  cudaError_t err = cudaPointerGetAttributes(&attr, data);
+#if !defined(USE_ROCM)
+  if (err == cudaErrorInvalidValue) {
+    cudaGetLastError();
+    return false;
+  }
+  AT_CUDA_CHECK(err);
+#else
+  // HIP throws hipErrorUnknown here
+  if (err != cudaSuccess) {
+    cudaGetLastError();
+    return false;
+  }
+#endif
+// NB: Potential temporary hack until we see a change in setting the "isManaged" attribute like CUDA does
+#if defined(USE_ROCM)
+  return attr.isManaged;
+#endif
+#if defined(CUDA_VERSION) && CUDA_VERSION >= 10000
+  return attr.type == cudaMemoryTypeManaged;
+#else
+  return attr.memoryType == cudaMemoryTypeManaged;
 #endif
 }
 
@@ -232,6 +275,14 @@ Allocator* CUDAHooks::getPinnedMemoryAllocator() const {
 
 Allocator* CUDAHooks::getCUDADeviceAllocator() const {
   return at::cuda::getCUDADeviceAllocator();
+}
+
+Allocator* CUDAHooks::getUnifiedDeviceAllocator() const {
+  return at::cuda::getUnifiedDeviceAllocator();
+}
+
+Allocator* CUDAHooks::getUnifiedDeviceAllocatorCpu() const {
+  return at::cuda::getUnifiedDeviceAllocatorCpu();
 }
 
 bool CUDAHooks::compiledWithCuDNN() const {

@@ -117,6 +117,7 @@ std::tuple<at::Tensor,at::Tensor,at::Tensor> miopen_depthwise_convolution_backwa
 #include <c10/util/irange.h>
 
 #include <c10/hip/HIPCachingAllocator.h>
+#include <ATen/hip/CachingManagedAllocator.h>
 
 #include <functional>
 #include <iterator>
@@ -259,14 +260,17 @@ BenchmarkCache<size_t> bwd_filter_wssizes;
 
 struct Workspace {
   Workspace(size_t size) : size(size), data(NULL) {
-    data = c10::hip::HIPCachingAllocator::raw_alloc(size);
+    data = at::globalContext().userEnabledUVM() ? at::cuda::CachingManagedAllocator::raw_alloc(size) : c10::hip::HIPCachingAllocator::raw_alloc(size);
   }
   Workspace(const Workspace&) = delete;
   Workspace(Workspace&&) = default;
   Workspace& operator=(Workspace&&) = default;
   ~Workspace() {
     if (data) {
-      c10::hip::HIPCachingAllocator::raw_delete(data);
+      if (at::globalContext().userEnabledUVM())
+        at::cuda::CachingManagedAllocator::raw_delete(data);
+      else
+        c10::hip::HIPCachingAllocator::raw_delete(data);
     }
   }
 

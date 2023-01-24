@@ -4,6 +4,7 @@
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <ATen/cuda/CachingHostAllocator.h>
+#include <ATen/cuda/UvmMemoryAllocator.h>
 #include <ATen/cuda/CUDAGraphsUtils.cuh>
 #include <ATen/cuda/Sleep.h>
 #include <ATen/cuda/detail/CUDAHooks.h>
@@ -216,6 +217,22 @@ PyObject * THCPModule_cudaCachingAllocator_raw_alloc(PyObject *_unused, PyObject
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   void* mem = c10::cuda::CUDACachingAllocator::raw_alloc_with_stream(size, stream);
   return PyLong_FromVoidPtr(mem);
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_cudaUnifiedDeviceAllocator(PyObject *_unused, PyObject *noargs)
+{
+  HANDLE_TH_ERRORS
+  c10::Allocator* allocator = at::cuda::getUnifiedDeviceAllocator();
+  return PyLong_FromVoidPtr(allocator);
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_cudaUnifiedDeviceAllocatorCpu(PyObject *_unused, PyObject *noargs)
+{
+  HANDLE_TH_ERRORS
+  c10::Allocator* allocator = at::cuda::getUnifiedDeviceAllocatorCpu();
+  return PyLong_FromVoidPtr(allocator);
   END_HANDLE_TH_ERRORS
 }
 
@@ -450,6 +467,59 @@ PyObject * THCPModule_memoryStats(PyObject *_unused, PyObject *arg)
   END_HANDLE_TH_ERRORS
 }
 
+PyObject * THCPModule_managedMemoryStats(PyObject *_unused, PyObject *arg)
+{
+  HANDLE_TH_ERRORS
+  THPUtils_assert(THPUtils_checkLong(arg), "invalid argument to memory_allocated");
+  const int device = (int) THPUtils_unpackLong(arg);
+
+  using at::cuda::CachingManagedAllocator::StatType;
+  using at::cuda::CachingManagedAllocator::Stat;
+  using at::cuda::CachingManagedAllocator::StatArray;
+  using at::cuda::CachingManagedAllocator::DeviceStats;
+
+  const auto statToDict = [](const Stat& stat) {
+    py::dict dict;
+
+    dict["current"] = stat.current;
+    dict["peak"] = stat.peak;
+    dict["allocated"] = stat.allocated;
+    dict["freed"] = stat.freed;
+    return dict;
+  };
+
+  const auto statArrayToDict = [=](const StatArray& statArray) {
+    const std::array<const char*, static_cast<size_t>(StatType::NUM_TYPES)> statTypeNames = {
+      "all", "small_pool", "large_pool"
+    };
+    py::dict dict;
+    for (const auto i : c10::irange(statTypeNames.size())) {
+      dict[statTypeNames[i]] = statToDict(statArray[i]);
+    }
+    return dict;
+  };
+
+  const DeviceStats stats = at::cuda::CachingManagedAllocator::getDeviceStats();
+
+  py::dict result;
+  result["num_alloc_retries"] = stats.num_alloc_retries;
+  result["num_ooms"] = stats.num_ooms;
+  result["max_split_size"] = stats.max_split_size;
+  result["allocation"] = statArrayToDict(stats.allocation);
+  result["segment"] = statArrayToDict(stats.segment);
+  result["active"] = statArrayToDict(stats.active);
+  result["inactive_split"] = statArrayToDict(stats.inactive_split);
+  result["allocated_bytes"] = statArrayToDict(stats.allocated_bytes);
+  result["reserved_bytes"] = statArrayToDict(stats.reserved_bytes);
+  result["active_bytes"] = statArrayToDict(stats.active_bytes);
+  result["inactive_split_bytes"] = statArrayToDict(stats.inactive_split_bytes);
+  result["oversize_allocations"] = statToDict(stats.oversize_allocations);
+  result["oversize_segments"] = statToDict(stats.oversize_segments);
+
+  return result.release().ptr();
+  END_HANDLE_TH_ERRORS
+}
+
 PyObject * THCPModule_resetAccumulatedMemoryStats(PyObject *_unused, PyObject *arg)
 {
   HANDLE_TH_ERRORS
@@ -506,6 +576,42 @@ PyObject * THCPModule_memorySnapshot(PyObject *_unused, PyObject *noargs)
   }
 
   return result.release().ptr();
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_setUserEnabledUVM(PyObject *_unused, PyObject *arg)
+{
+  HANDLE_TH_ERRORS
+  THPUtils_assert(PyBool_Check(arg), "set_enabled_uvm expects a bool, "
+          "but got %s", THPUtils_typename(arg));
+  at::globalContext().setUserEnabledUVM(arg == Py_True);
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_userEnabledUVM(PyObject *_unused, PyObject *noargs)
+{
+  HANDLE_TH_ERRORS
+  if (at::globalContext().userEnabledUVM()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_setUserEnabledMove(PyObject *_unused, PyObject *arg)
+{
+  HANDLE_TH_ERRORS
+  THPUtils_assert(PyBool_Check(arg), "set_enabled_move expects a bool, "
+          "but got %s", THPUtils_typename(arg));
+  at::globalContext().setUserEnabledMove(arg == Py_True);
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject * THCPModule_userEnabledMove(PyObject *_unused, PyObject *noargs)
+{
+  HANDLE_TH_ERRORS
+  if (at::globalContext().userEnabledMove()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
   END_HANDLE_TH_ERRORS
 }
 
@@ -678,9 +784,14 @@ static struct PyMethodDef _THCPModule_methods[] = {
   {"_cuda_setMemoryFraction", THCPModule_setMemoryFraction, METH_VARARGS,  nullptr},
   {"_cuda_emptyCache", THCPModule_emptyCache, METH_NOARGS, nullptr},
   {"_cuda_memoryStats", THCPModule_memoryStats, METH_O, nullptr},
+  {"_cuda_managedMemoryStats", THCPModule_managedMemoryStats, METH_O, nullptr},
   {"_cuda_resetAccumulatedMemoryStats", THCPModule_resetAccumulatedMemoryStats, METH_O, nullptr},
   {"_cuda_resetPeakMemoryStats", THCPModule_resetPeakMemoryStats, METH_O,  nullptr},
   {"_cuda_memorySnapshot", THCPModule_memorySnapshot, METH_NOARGS, nullptr},
+  {"_cuda_getEnabledUVM", THCPModule_userEnabledUVM, METH_NOARGS, nullptr},
+  {"_cuda_setEnabledUVM", THCPModule_setUserEnabledUVM, METH_O,   nullptr},
+  {"_cuda_getEnabledMove", THCPModule_userEnabledMove, METH_NOARGS, nullptr},
+  {"_cuda_setEnabledMove", THCPModule_setUserEnabledMove, METH_O,   nullptr},
   {"_cuda_cudaHostAllocator", THCPModule_cudaHostAllocator, METH_NOARGS, nullptr},
   {"_cuda_cudaCachingAllocator_raw_alloc", THCPModule_cudaCachingAllocator_raw_alloc, METH_VARARGS, nullptr},
   {"_cuda_cudaCachingAllocator_raw_delete", THCPModule_cudaCachingAllocator_raw_delete, METH_O, nullptr},

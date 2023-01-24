@@ -14,9 +14,25 @@ __all__ = ["caching_allocator_alloc", "caching_allocator_delete", "set_per_proce
            "memory_cached", "max_memory_cached", "memory_snapshot", "memory_summary", "list_gpu_processes",
            "mem_get_info"]
 
+from os import environ
+if 'PYTORCH_UVM_ENABLE' in environ:
+    torch._C._cuda_setEnabledUVM(True)
+
+if 'PYTORCH_MOVE_ENABLE' in environ:
+    torch._C._cuda_setEnabledMove(True)
+
 def _host_allocator():
     _lazy_init()
     return torch._C._cuda_cudaHostAllocator()
+
+def _manage_allocator():
+    _lazy_init()
+    return torch._C._cuda_cudaUnifiedDeviceAllocator()
+
+
+def _manage_cpu_allocator():
+    _lazy_init()
+    return torch._C._cuda_cudaUnifiedDeviceAllocatorCpu()
 
 
 @contextlib.contextmanager
@@ -590,3 +606,110 @@ def mem_get_info(device: Union[Device, int] = None) -> int:
         device = torch.cuda.current_device()
     device = _get_device_index(device)
     return torch.cuda.cudart().cudaMemGetInfo(device)
+
+
+def set_enabled_uvm(enable):
+    r"""Enable/disable Unified Virtual Memory.
+    Arguments:
+        enable (bool): desired UVM setting.
+    """
+    torch._C._cuda_setEnabledUVM(enable)
+
+
+def get_enabled_uvm():
+    r"""Returns a bool indicating if Unified Virtual Memory is currently enabled."""
+    return torch._C._cuda_getEnabledUVM()
+
+
+def set_enabled_move(enable):
+    r"""Enable/disable Unified Virtual Memory.
+    Arguments:
+        enable (bool): desired UVM setting.
+    """
+    torch._C._cuda_setEnabledMove(enable)
+
+
+def get_enabled_move():
+    r"""Returns a bool indicating if Unified Virtual Memory is currently enabled."""
+    return torch._C._cuda_getEnabledMove()
+
+def managed_memory_stats(device: Union[Device, int] = None) -> Dict[str, Any]:
+    r"""Returns a dictionary of Managed memory allocator statistics for a
+    given device.
+    The return value of this function is a dictionary of statistics, each of
+    which is a non-negative integer.
+    Core statistics:
+    - ``"allocated.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      number of allocation requests received by the memory allocator.
+    - ``"allocated_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      amount of allocated memory.
+    - ``"segment.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      number of reserved segments from ``cudaMalloc()``.
+    - ``"reserved_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      amount of reserved memory.
+    - ``"active.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      number of active memory blocks.
+    - ``"active_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      amount of active memory.
+    - ``"inactive_split.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      number of inactive, non-releasable memory blocks.
+    - ``"inactive_split_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
+      amount of inactive, non-releasable memory.
+    For these core statistics, values are broken down as follows.
+    Pool type:
+    - ``all``: combined statistics across all memory pools.
+    - ``large_pool``: statistics for the large allocation pool
+      (as of October 2019, for size >= 1MB allocations).
+    - ``small_pool``: statistics for the small allocation pool
+      (as of October 2019, for size < 1MB allocations).
+    Metric type:
+    - ``current``: current value of this metric.
+    - ``peak``: maximum value of this metric.
+    - ``allocated``: historical total increase in this metric.
+    - ``freed``: historical total decrease in this metric.
+    In addition to the core statistics, we also provide some simple event
+    counters:
+    - ``"num_alloc_retries"``: number of failed ``cudaMalloc`` calls that
+      result in a cache flush and retry.
+    - ``"num_ooms"``: number of out-of-memory errors thrown.
+    The caching allocator can be configured via ENV to not split blocks larger than a
+    defined size (see Memory Management section of the Cuda Semantics documentation).
+    This helps avoid memory framentation but may have a performance
+    penalty. Additional outputs to assist with tuning and evaluating impact:
+    - ``"max_split_size"``: blocks above this size will not be split.
+    - ``"oversize_allocations.{current,peak,allocated,freed}"``:
+      number of over-size allocation requests received by the memory allocator.
+    - ``"oversize_segments.{current,peak,allocated,freed}"``:
+      number of over-size reserved segments from ``cudaMalloc()``.
+    Args:
+        device (torch.device or int, optional): selected device. Returns
+            statistics for the current device, given by :func:`~torch.cuda.current_device`,
+            if :attr:`device` is ``None`` (default).
+    .. note::
+        See :ref:`cuda-memory-management` for more details about GPU memory
+        management.
+    """
+    result = []
+
+    def _recurse_add_to_result(prefix, obj):
+        if isinstance(obj, dict):
+            if len(prefix) > 0:
+                prefix += "."
+            for k, v in obj.items():
+                _recurse_add_to_result(prefix + k, v)
+        else:
+            result.append((prefix, obj))
+
+    stats = managed_memory_stats_as_nested_dict(device=device)
+    _recurse_add_to_result("", stats)
+    result.sort()
+
+    return collections.OrderedDict(result)
+
+
+def managed_memory_stats_as_nested_dict(device: Union[Device, int] = None) -> Dict[str, Any]:
+    r"""Returns the result of :func:`~torch.cuda.managed_memory_stats` as a nested dictionary."""
+    if not is_initialized():
+        return {}
+    device = _get_device_index(device, optional=True)
+    return torch._C._cuda_managedMemoryStats(device)

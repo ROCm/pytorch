@@ -55,6 +55,22 @@ void Context::setUserEnabledMkldnn(bool e) {
   enabled_mkldnn = e;
 }
 
+bool Context::userEnabledUVM() const {
+  return enabled_uvm;
+}
+
+void Context::setUserEnabledUVM(bool e) {
+  enabled_uvm = e;
+}
+
+bool Context::userEnabledMove() const {
+  return enabled_move;
+}
+
+void Context::setUserEnabledMove(bool e) {
+  enabled_move = e;
+}
+
 bool Context::deterministicCuDNN() const {
   return deterministic_cudnn;
 }

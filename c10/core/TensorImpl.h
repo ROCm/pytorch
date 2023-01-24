@@ -904,6 +904,59 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return *device_opt_;
   }
 
+  void _set_new_device(Device dst_device) {
+    // This should only be called from the
+    // move kernel which is used when UVM is enabled
+    // TODO: enforce this
+
+    // 1) set the device in the storage object
+    storage_.data_ptr().unsafe_set_device(dst_device);
+
+    // 2) set the local device_opt
+    device_opt_ = storage_.device();
+
+    // 3) update dispatch key set
+    auto ks_iter = key_set_.begin();
+    DispatchKeySet new_ks;
+    if (dst_device.is_cuda())
+    {
+      TORCH_CHECK(!(key_set_.has(DispatchKey::MkldnnCPU)))
+      for (ks_iter = key_set_.begin(); ks_iter != key_set_.end(); ++ks_iter)
+      {
+        if (*ks_iter == DispatchKey::CPU)
+          new_ks = new_ks.add(DispatchKey::CUDA);
+        else if (*ks_iter == DispatchKey::SparseCPU)
+          new_ks = new_ks.add(DispatchKey::SparseCUDA);
+        else if (*ks_iter == DispatchKey::SparseCsrCPU)
+          new_ks = new_ks.add(DispatchKey::SparseCsrCUDA);
+        else if (*ks_iter == DispatchKey::QuantizedCPU)
+          new_ks = new_ks.add(DispatchKey::QuantizedCUDA);
+        else
+          new_ks = new_ks.add(*ks_iter);
+      }
+    } else if (dst_device.is_cpu()) {
+      for (ks_iter = key_set_.begin(); ks_iter != key_set_.end(); ++ks_iter)
+      {
+        if (*ks_iter == DispatchKey::CUDA)
+          new_ks = new_ks.add(DispatchKey::CPU);
+        else if (*ks_iter == DispatchKey::SparseCUDA)
+          new_ks = new_ks.add(DispatchKey::SparseCPU);
+        else if (*ks_iter == DispatchKey::SparseCsrCUDA)
+          new_ks = new_ks.add(DispatchKey::SparseCsrCPU);
+        else if (*ks_iter == DispatchKey::QuantizedCUDA)
+          new_ks = new_ks.add(DispatchKey::QuantizedCPU);
+        else
+          new_ks = new_ks.add(*ks_iter);
+      }
+    } else {
+      for (ks_iter = key_set_.begin(); ks_iter != key_set_.end(); ++ks_iter)
+      {
+          new_ks = new_ks.add(*ks_iter);
+      }
+    }
+    key_set_ = new_ks;
+  }
+
   Layout layout() const {
     // NB: This method is not virtual and avoid dispatches for perf.
     // strided is also the most common layout type, so we check for

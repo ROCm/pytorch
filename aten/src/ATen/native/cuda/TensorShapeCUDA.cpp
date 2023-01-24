@@ -1,6 +1,7 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAContext.h>
+#include <ATen/cuda/UvmMemoryAllocator.h>
 #include <ATen/native/Resize.h>
 #include <ATen/native/cuda/Resize.h>
 
@@ -18,10 +19,16 @@ namespace native {
 // the same as at::cuda::getCUDADeviceAllocator().
 Tensor& set_cuda_(Tensor& result) {
   caffe2::TypeMeta dtype = result.dtype();
+  at::Allocator* allocator;
+  if (at::globalContext().userEnabledUVM()) {
+    allocator = at::cuda::getUnifiedDeviceAllocator();
+  } else {
+    allocator = at::cuda::getCUDADeviceAllocator();
+  }
   Storage storage(
       Storage::use_byte_size_t(),
       0,
-      at::cuda::getCUDADeviceAllocator(),
+      allocator,
       true);
   result.set_(storage, 0, {0}, {});
   TORCH_INTERNAL_ASSERT(dtype == result.dtype());

@@ -1,6 +1,7 @@
 #define TORCH_ASSERT_NO_OPERATORS
 #include <ATen/cuda/EmptyTensor.h>
 #include <ATen/cuda/CUDAContext.h>
+#include <ATen/cuda/UvmMemoryAllocator.h>
 #include <ATen/EmptyTensor.h>
 
 namespace at {
@@ -15,7 +16,12 @@ TensorBase empty_cuda(
   const auto device = device_or_default(device_opt);
   TORCH_INTERNAL_ASSERT(device.is_cuda());
   const DeviceGuard device_guard(device);
-  auto* allocator = at::cuda::getCUDADeviceAllocator();
+  at::Allocator* allocator;
+  if (at::globalContext().userEnabledUVM()) {
+    allocator = at::cuda::getUnifiedDeviceAllocator();
+  } else {
+    allocator = at::cuda::getCUDADeviceAllocator();
+  }
   constexpr c10::DispatchKeySet cuda_dks(c10::DispatchKey::CUDA);
   return at::detail::empty_generic(
       size, allocator, cuda_dks, dtype, memory_format_opt);
@@ -55,7 +61,12 @@ TensorBase empty_strided_cuda(
   const auto device = device_or_default(device_opt);
   TORCH_INTERNAL_ASSERT(device.is_cuda());
   const DeviceGuard device_guard(device);
-  auto* allocator = at::cuda::getCUDADeviceAllocator();
+  at::Allocator* allocator;
+  if (at::globalContext().userEnabledUVM()) {
+    allocator = at::cuda::getUnifiedDeviceAllocator();
+  } else {
+    allocator = at::cuda::getCUDADeviceAllocator();
+  }
   constexpr c10::DispatchKeySet cuda_dks(c10::DispatchKey::CUDA);
   return at::detail::empty_strided_generic(
       size, stride, allocator, cuda_dks, dtype);

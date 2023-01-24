@@ -1434,6 +1434,14 @@
     SparseCsrCPU, SparseCsrCUDA: copy_sparse_compressed_
   autogen: copy.out
 
+- func: move_(Tensor(a!) self, Device? dst_device=None, bool non_blocking=False) -> Tensor(a!)
+  variants: method
+  device_check: NoCheck
+  device_guard: False
+  dispatch:
+    CompositeExplicitAutograd: move_
+  autogen: move.functional, move.out
+
 - func: _copy_from(Tensor self, Tensor dst, bool non_blocking=False) -> Tensor
   dispatch:
     MPS: _copy_from_mps
@@ -3660,6 +3668,20 @@
   dispatch:
     CUDA: _pin_memory_cuda
     MPS: _pin_memory_mps
+
+- func: is_managed(Tensor self, Device? device=None) -> bool
+  variants: method
+  dispatch:
+    CUDA: is_managed_cuda
+    CompositeExplicitAutograd: is_managed_default
+
+- func: manage_memory(Tensor(a) self, Device? device=None) -> Tensor(a)
+  variants: method
+
+# Unlike manage_memory, this is guaranteed to give a new non-aliasing tensor
+- func: _manage_memory(Tensor self, Device? device=None) -> Tensor
+  dispatch:
+    CUDA: _manage_memory_cuda
 
 - func: pinverse(Tensor self, float rcond=1e-15) -> Tensor
   variants: function, method
@@ -6071,6 +6093,12 @@
   device_guard: False
   dispatch:
     CompositeExplicitAutograd: _to_copy
+
+- func: _to_move(Tensor self, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None, bool non_blocking=False, MemoryFormat? memory_format=None) -> Tensor
+  device_check: NoCheck
+  device_guard: False
+  dispatch:
+    CompositeExplicitAutograd: _to_move
 
 # to(Device) must not exist because all constructors of Device also works for
 # TensorOptions. Otherwise, an ambiguity error is thrown.

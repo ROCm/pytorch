@@ -111,9 +111,14 @@ inline Tensor new_qtensor(
     const TensorOptions& options,
     QuantizerPtr quantizer) {
   auto memory_format = options.memory_format_opt().value_or(MemoryFormat::Contiguous);
-  at::Allocator* allocator = options.device().is_cuda()
-    ? at::detail::getCUDAHooks().getCUDADeviceAllocator()
-    : at::getCPUAllocator();
+  at::Allocator* allocator;
+  if (at::globalContext().userEnabledUVM()) {
+    allocator = at::detail::getCUDAHooks().getUnifiedDeviceAllocator();
+  } else {
+    allocator = options.device().is_cuda()
+      ? at::detail::getCUDAHooks().getCUDADeviceAllocator()
+      : at::getCPUAllocator();
+  }
 
 #ifdef USE_PYTORCH_QNNPACK
   if (at::globalContext().qEngine() == at::QEngine::QNNPACK) {

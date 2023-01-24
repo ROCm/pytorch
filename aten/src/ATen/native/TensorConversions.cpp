@@ -150,6 +150,22 @@ Tensor _to_copy(
   return r;
 }
 
+Tensor _to_move(
+    const Tensor& self,
+    c10::optional<ScalarType> dtype,
+    c10::optional<Layout> layout,
+    c10::optional<Device> device,
+    c10::optional<bool> pin_memory,
+    bool non_blocking,
+    c10::optional<c10::MemoryFormat> optional_memory_format) {
+  TORCH_CHECK(!layout.has_value() || self.layout() == layout.value(),
+           "to(options) doesn't support converting to a different layout, "
+           "but got self.layout being ", self.layout(),
+           " and options.layout set as ", layout.value());
+
+  return self.move_(device, non_blocking);
+}
+
 template <typename T>
 static inline bool is_null_or_equal_to(const c10::optional<T>& test, const T& value) {
   if (!test.has_value()) {
@@ -178,12 +194,43 @@ bool to_will_alias(
      self.suggest_memory_format() == memory_format);
 }
 
+bool to_will_move(
+    const Tensor& self,
+    c10::optional<ScalarType> dtype,
+    c10::optional<Layout> layout,
+    c10::optional<Device> device,
+    bool copy,
+    c10::optional<c10::MemoryFormat> optional_memory_format) {
+  auto memory_format = optional_memory_format.value_or(MemoryFormat::Preserve);
+
+  if (!globalContext().userEnabledMove()) {
+    return false;
+  }
+
+  // Let copy kernel handle meta tensor targets
+  if (device.has_value() && (device.value().type() == DeviceType::Meta)) {
+    return false;
+  }
+
+  // Now check that we can "move" instead of copy if UVM is
+  // enabled, we have a manged tensor and the dtype and layout
+  // are the same. Device also needs to be changing (good enough?)
+  return is_null_or_equal_to(dtype, self.dtype().toScalarType()) &&
+    is_null_or_equal_to(layout, self.layout()) &&
+    (device != self.device()) &&
+    !copy && globalContext().userEnabledUVM() &&
+    self.is_managed() &&
+    (memory_format == MemoryFormat::Preserve ||
+     self.suggest_memory_format() == memory_format);
+}
+
 static inline Tensor to_impl(
     const Tensor& self,
     c10::optional<ScalarType> dtype,
     c10::optional<Layout> layout,
     c10::optional<Device> device,
     c10::optional<bool> pin_memory,
+     c10::optional<bool> managed_memory,
     bool non_blocking,
     bool copy,
     c10::optional<c10::MemoryFormat> optional_memory_format) {
@@ -191,6 +238,10 @@ static inline Tensor to_impl(
   // fast path
   if (to_will_alias(self, dtype, layout, device, copy, optional_memory_format)) {
     return self;
+  }
+  if (to_will_move(self, dtype, layout, device, copy, optional_memory_format)) {
+    return at::_to_move(
+      self, dtype, layout, device, pin_memory, non_blocking, optional_memory_format);
   }
   return at::_to_copy(
       self, dtype, layout, device, pin_memory, non_blocking, optional_memory_format);
@@ -213,7 +264,7 @@ Tensor _autocast_to_reduced_precision(const Tensor& self, bool cuda_enabled, boo
     TORCH_INTERNAL_ASSERT(target != at::ScalarType::Undefined, "_autocast_to_reduced_precision requires legit ScalarType argument for given device");
 
     return to_impl(
-        self, target, c10::nullopt, c10::nullopt, c10::nullopt, false, false, c10::nullopt);
+        self, target, c10::nullopt, c10::nullopt, c10::nullopt, c10::nullopt, false, false, c10::nullopt);
   } else {
     return self;
   }
@@ -227,7 +278,7 @@ Tensor _autocast_to_full_precision(const Tensor& self, bool cuda_enabled, bool c
       (self.device().is_cpu() && cpu_enabled))
       ) {
     return to_impl(
-        self, at::ScalarType::Float, c10::nullopt, c10::nullopt, c10::nullopt, false, false, c10::nullopt);
+        self, at::ScalarType::Float, c10::nullopt, c10::nullopt, c10::nullopt, c10::nullopt, false, false, c10::nullopt);
   } else {
     return self;
   }
@@ -249,6 +300,7 @@ Tensor to(
       layout,
       ensure_has_index(device),
       pin_memory,
+      nullopt,
       non_blocking,
       copy,
       optional_memory_format);
@@ -261,6 +313,7 @@ Tensor to(const Tensor& self, Device device, ScalarType dtype, bool non_blocking
       nullopt,
       ensure_has_index(device),
       nullopt,
+      nullopt,
       non_blocking,
       copy,
       optional_memory_format);
@@ -270,6 +323,7 @@ Tensor to(const Tensor& self, ScalarType dtype, bool non_blocking, bool copy, c1
   return to_impl(
       self,
       dtype,
+      nullopt,
       nullopt,
       nullopt,
       nullopt,
@@ -286,6 +340,7 @@ Tensor to(const Tensor& self, const Tensor& other, bool non_blocking, bool copy,
       options.layout(),
       options.device(),
       options.pinned_memory(),
+      options.managed_memory(),
       non_blocking,
       copy,
       optional_memory_format);

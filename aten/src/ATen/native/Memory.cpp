@@ -26,5 +26,16 @@ Tensor pin_memory(const Tensor& self, c10::optional<Device> device) {
   return at::_pin_memory(self, device);
 }
 
+bool is_managed_default(const Tensor& self, c10::optional<Device> device) {
+  return false;
 }
+
+Tensor manage_memory(const Tensor& self, c10::optional<Device> device) {
+  if (self.is_managed(device)) {
+    return self;
+  }
+  return at::_manage_memory(self, device);
 }
+
+} // namespace native
+} // namespace at

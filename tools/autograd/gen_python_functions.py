@@ -127,9 +127,9 @@ _SKIP_PYTHON_BINDINGS = [
     "item",
     "_local_scalar_dense",
     "to",
-    "_to_copy",
+    "_to_copy", "_to_move",
     "copy_sparse_to_sparse_",
-    "copy_",
+    "copy_", "move_",
     "numpy_T",
     "matrix_H",
     "mT",
@@ -152,6 +152,7 @@ _SKIP_PYTHON_BINDINGS = [
     "_reshape_alias",
     "replace_",  # only used by the functionalization pass, doesn't need to be exposed to python
     "copy",  # only used by the functionalization pass
+    "move",  # only used by the functionalization pass
     "fill.Tensor",  # only used by the functionalization pass
     "fill.Scalar",  # only used by the functionalization pass
     "lift",

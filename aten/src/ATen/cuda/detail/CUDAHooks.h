@@ -24,6 +24,7 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   void initCUDA() const override;
   Device getDeviceFromPtr(void* data) const override;
   bool isPinnedPtr(void* data) const override;
+  bool isManagedPtr(void* data) const override;
   const Generator& getDefaultCUDAGenerator(DeviceIndex device_index = -1) const override;
   bool hasCUDA() const override;
   bool hasMAGMA() const override;
@@ -35,6 +36,8 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   bool hasPrimaryContext(int64_t device_index) const override;
   Allocator* getCUDADeviceAllocator() const override;
   Allocator* getPinnedMemoryAllocator() const override;
+  Allocator* getUnifiedDeviceAllocator() const override;
+  Allocator* getUnifiedDeviceAllocatorCpu() const override;
   bool compiledWithCuDNN() const override;
   bool compiledWithMIOpen() const override;
   bool supportsDilatedConvolutionWithCuDNN() const override;

@@ -45,6 +45,10 @@ inline bool pinned_memory_or_default(c10::optional<bool> pinned_memory) {
   return pinned_memory.value_or(false);
 }
 
+inline bool managed_memory_or_default(c10::optional<bool> managed_memory) {
+  return managed_memory.value_or(false);
+}
+
 /// A class to encapsulate construction axes of an Tensor.  TensorOptions was
 /// designed to support the Python style API for specifying construction options
 /// on factory functions, e.g.,
@@ -136,11 +140,13 @@ struct C10_API TensorOptions {
   TensorOptions()
       : requires_grad_(false),
         pinned_memory_(false),
+	managed_memory_(false),
         has_device_(false),
         has_dtype_(false),
         has_layout_(false),
         has_requires_grad_(false),
         has_pinned_memory_(false),
+	has_managed_memory_(false),
         has_memory_format_(false) {}
 
   /// Constructs a `TensorOptions` object with the given layout.
@@ -263,6 +269,14 @@ struct C10_API TensorOptions {
     return r;
   }
 
+  /// Sets the `managed_memory` property on the `TensorOptions`.
+  C10_NODISCARD TensorOptions
+  managed_memory(c10::optional<bool> managed_memory) const noexcept {
+    TensorOptions r = *this;
+    r.set_managed_memory(managed_memory);
+    return r;
+  }
+
   /// Sets the `memory_format` property on `TensorOptions`.
   C10_NODISCARD TensorOptions
   memory_format(c10::optional<MemoryFormat> memory_format) const noexcept {
@@ -351,6 +365,14 @@ struct C10_API TensorOptions {
     return has_pinned_memory_;
   }
 
+  bool managed_memory() const noexcept {
+    return managed_memory_or_default(managed_memory_opt());
+  }
+
+  bool has_managed_memory() const noexcept {
+    return has_managed_memory_;
+  }
+
   /// Returns if the layout is sparse
   bool is_sparse() const {
     return layout_ == c10::Layout::Sparse;
@@ -370,6 +392,11 @@ struct C10_API TensorOptions {
   /// `c10::nullopt` if `pinned_memory` is not specified.
   c10::optional<bool> pinned_memory_opt() const noexcept {
     return has_pinned_memory_ ? c10::make_optional(pinned_memory_)
+                              : c10::nullopt;
+  }
+
+  c10::optional<bool> managed_memory_opt() const noexcept {
+    return has_managed_memory_ ? c10::make_optional(managed_memory_)
                               : c10::nullopt;
   }
 
@@ -417,6 +444,8 @@ struct C10_API TensorOptions {
       merged.set_requires_grad(options.requires_grad_opt());
     if (options.has_pinned_memory())
       merged.set_pinned_memory(options.pinned_memory_opt());
+    if (options.has_managed_memory())
+      merged.set_managed_memory(options.managed_memory_opt());
     if (options.has_memory_format())
       merged.set_memory_format(options.memory_format_opt());
     return merged;
@@ -514,6 +543,16 @@ struct C10_API TensorOptions {
     }
   }
 
+  /// Mutably set the `managed_memory` property of `TensorOptions`.
+  void set_managed_memory(c10::optional<bool> managed_memory) & noexcept {
+    if (managed_memory) {
+      managed_memory_ = *managed_memory;
+      has_managed_memory_ = true;
+    } else {
+      has_managed_memory_ = false;
+    }
+  }
+
   /// Mutably set the `memory_Format` property of `TensorOptions`.
   void set_memory_format(c10::optional<MemoryFormat> memory_format) & noexcept {
     if (memory_format) {
@@ -546,12 +585,14 @@ struct C10_API TensorOptions {
 
   bool requires_grad_ : 1;
   bool pinned_memory_ : 1;
+  bool managed_memory_ : 1;
 
   bool has_device_ : 1;
   bool has_dtype_ : 1;
   bool has_layout_ : 1;
   bool has_requires_grad_ : 1;
   bool has_pinned_memory_ : 1;
+  bool has_managed_memory_ : 1;
   bool has_memory_format_ : 1;
 };
 

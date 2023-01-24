@@ -3,6 +3,7 @@
 #include <ATen/detail/CUDAHooksInterface.h>
 #include <c10/core/CPUAllocator.h>
 #include <c10/util/safe_numerics.h>
+#include <ATen/Context.h>
 
 #include <limits>
 
@@ -10,10 +11,17 @@ namespace at {
 namespace detail {
 namespace {
 c10::Allocator* GetCPUAllocatorMaybePinned(bool pin_memory) {
-  if (pin_memory) {
-    return at::detail::getCUDAHooks().getPinnedMemoryAllocator();
+  if (at::globalContext().userEnabledUVM()) {
+    // When UVM is enabled, we only use a single allocator
+    // for all allocations.
+    return detail::getCUDAHooks().getUnifiedDeviceAllocatorCpu();
   }
-  return c10::GetCPUAllocator();
+  else {
+    if (pin_memory) {
+      return at::detail::getCUDAHooks().getPinnedMemoryAllocator();
+    }
+    return c10::GetCPUAllocator();
+  }
 }
 
 constexpr uint64_t storage_max() {

@@ -370,6 +370,10 @@ class TORCH_API TensorBase {
     return impl_->is_cpu();
   }
 
+  inline void _set_new_device(Device dst_device) const {
+    impl_->_set_new_device(dst_device);
+  }
+
   /// Returns if a `Tensor` has CUDA backend.
   bool is_cuda() const {
     // NB: this is not a native function to avoid dispatching overhead.

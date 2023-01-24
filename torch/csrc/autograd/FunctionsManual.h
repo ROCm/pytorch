@@ -497,6 +497,7 @@ std::tuple<Tensor, Tensor> scatter_reduce_backward(
 );
 
 Tensor _to_copy_backward(const Tensor &grad, const c10::TensorOptions &self_options);
+Tensor _to_move_backward(const Tensor &grad, const c10::TensorOptions &self_options);
 
 std::tuple<Tensor, Tensor> index_reduce_backward(
   const Tensor& grad,

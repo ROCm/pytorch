@@ -3,6 +3,7 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/Dispatch.h>
 #include <ATen/ExpandUtils.h>
+#include <ATen/cuda/UvmMemoryAllocator.h>
 #include <ATen/cuda/PinnedMemoryAllocator.h>
 #include <ATen/cuda/CUDABlas.h>
 #include <ATen/cuda/CUDAEvent.h>
@@ -865,11 +866,15 @@ inline static void apply_cholesky_cusolver_potrf_looped(const Tensor& self_worki
   at::cuda::solver::xpotrf_buffersize(handle, params, uplo, n, datatype, nullptr, lda, datatype, &worksize_device, &worksize_host);
 
   // allocate workspace storage
-  auto& device_allocator = *at::cuda::getCUDADeviceAllocator();
+  auto& device_allocator = (at::globalContext().userEnabledUVM()) ?
+	                                 *at::cuda::getUnifiedDeviceAllocator() :
+					 *at::cuda::getCUDADeviceAllocator();
+  auto& host_allocator = (at::globalContext().userEnabledUVM()) ?
+	                                 *at::cuda::getUnifiedDeviceAllocator() :
+					 *at::getCPUAllocator();
   auto workdata_device = device_allocator.allocate(worksize_device * batch_size);
   void* workdata_device_ptr = workdata_device.get();
 
-  auto& host_allocator = *at::getCPUAllocator();
   auto workdata_host = host_allocator.allocate(worksize_host * batch_size);
   void* workdata_host_ptr = workdata_host.get();
 
@@ -893,7 +898,9 @@ inline static void apply_cholesky_cusolver_potrf_looped(const Tensor& self_worki
     handle, uplo, n_32, nullptr, lda_32, &lwork);
 
    // allocate workspace storage
-  auto& allocator = *at::cuda::getCUDADeviceAllocator();
+  auto& allocator = (at::globalContext().userEnabledUVM()) ?
+	                          *at::cuda::getUnifiedDeviceAllocator() :
+		                  *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t)*lwork * batch_size);
   scalar_t* work_data_ptr = static_cast<scalar_t*>(work_data.get());
 
@@ -1140,9 +1147,13 @@ static void apply_geqrf(const Tensor& A, const Tensor& tau) {
 
 #ifdef USE_CUSOLVER_64_BIT
     // allocate workspace storage on device and host
-    auto& device_allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& device_allocator = (at::globalContext().userEnabledUVM()) ?
+                                           *at::cuda::getUnifiedDeviceAllocator() :
+                                           *at::cuda::getCUDADeviceAllocator();
+    auto& host_allocator = (at::globalContext().userEnabledUVM()) ?
+                                           *at::cuda::getUnifiedDeviceAllocator() :
+                                           *at::getCPUAllocator();
     auto work_device_data = device_allocator.allocate(worksize_device);
-    auto& host_allocator = *at::getCPUAllocator();
     auto work_host_data = host_allocator.allocate(worksize_host);
     at::cuda::solver::xgeqrf<scalar_t>(
         handle,
@@ -1159,7 +1170,12 @@ static void apply_geqrf(const Tensor& A, const Tensor& tau) {
         infos_data);
 #else
     // allocate workspace storage on device
-    auto& allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& device_allocator = (at::globalContext().userEnabledUVM()) ?
+                                  *at::cuda::getUnifiedDeviceAllocator() :
+                                  *at::cuda::getCUDADeviceAllocator();
+    auto& host_allocator = (at::globalContext().userEnabledUVM()) ?
+                                *at::cuda::getUnifiedDeviceAllocator() :
+                                *at::getCPUAllocator();
     auto work_data = allocator.allocate(sizeof(scalar_t) * std::max<int>(1, lwork));
     at::cuda::solver::geqrf<scalar_t>(
         handle,
@@ -1236,7 +1252,9 @@ static void apply_ormqr(const Tensor& input, const Tensor& tau, const Tensor& ot
     auto handle = at::cuda::getCurrentCUDASolverDnHandle();
 
     // allocate workspace storage
-    auto& allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& allocator = (at::globalContext().userEnabledUVM()) ?
+                           *at::cuda::getUnifiedDeviceAllocator() :
+                           *at::cuda::getCUDADeviceAllocator();
     auto work_data = allocator.allocate(sizeof(scalar_t)*lwork);
 
     at::cuda::solver::ormqr<scalar_t>(
@@ -1313,7 +1331,9 @@ inline static void apply_orgqr(Tensor& self, const Tensor& tau) {
     auto handle = at::cuda::getCurrentCUDASolverDnHandle();
 
     // allocate workspace storage
-    auto& allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& allocator = (at::globalContext().userEnabledUVM()) ?
+                           *at::cuda::getUnifiedDeviceAllocator() :
+                           *at::cuda::getCUDADeviceAllocator();
     auto work_data = allocator.allocate(sizeof(scalar_t)*lwork);
 
     at::cuda::solver::orgqr<scalar_t>(
@@ -1390,9 +1410,13 @@ static void apply_syevd(const Tensor& values, const Tensor& vectors, const Tenso
 
 #ifdef USE_CUSOLVER_64_BIT
     // allocate workspace storage on device and host
-    auto& device_allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& device_allocator = (at::globalContext().userEnabledUVM()) ?
+                                  *at::cuda::getUnifiedDeviceAllocator() :
+                                  *at::cuda::getCUDADeviceAllocator();
+    auto& host_allocator = (at::globalContext().userEnabledUVM()) ?
+                                *at::cuda::getUnifiedDeviceAllocator() :
+                                *at::getCPUAllocator();
     auto work_device_data = device_allocator.allocate(worksize_device);
-    auto& host_allocator = *at::getCPUAllocator();
     auto work_host_data = host_allocator.allocate(worksize_host);
     at::cuda::solver::xsyevd<scalar_t>(
         handle,
@@ -1410,7 +1434,9 @@ static void apply_syevd(const Tensor& values, const Tensor& vectors, const Tenso
         info_working_ptr);
 #else
     // allocate workspace storage on device
-    auto& allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& allocator = (at::globalContext().userEnabledUVM()) ?
+                           *at::cuda::getUnifiedDeviceAllocator() :
+                           *at::cuda::getCUDADeviceAllocator();
     auto work_data = allocator.allocate(sizeof(scalar_t) * lwork);
     at::cuda::solver::syevd<scalar_t>(
         handle,
@@ -1466,7 +1492,9 @@ static void apply_syevj(const Tensor& values, const Tensor& vectors, const Tenso
     auto handle = at::cuda::getCurrentCUDASolverDnHandle();
 
     // allocate workspace storage on device
-    auto& allocator = *at::cuda::getCUDADeviceAllocator();
+    auto& allocator = (at::globalContext().userEnabledUVM()) ?
+                           *at::cuda::getUnifiedDeviceAllocator() :
+                           *at::cuda::getCUDADeviceAllocator();
     auto work_data = allocator.allocate(sizeof(scalar_t) * lwork);
     at::cuda::solver::syevj<scalar_t>(
         handle,
@@ -1526,7 +1554,9 @@ static void apply_syevj_batched(const Tensor& values, const Tensor& vectors, con
       batch_size);
 
   // allocate workspace storage on device
-  auto& allocator = *at::cuda::getCUDADeviceAllocator();
+  auto& allocator = (at::globalContext().userEnabledUVM()) ?
+                         *at::cuda::getUnifiedDeviceAllocator() :
+                         *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t) * lwork);
   at::cuda::solver::syevjBatched<scalar_t>(
       handle,

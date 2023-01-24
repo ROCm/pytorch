@@ -303,7 +303,43 @@ void copy_ignoring_overlaps(const TensorBase &dst, const TensorBase &src) {
   copy_stub(iter.device_type(), iter, /*non_blocking=*/false);
 }
 
+static Tensor & move_impl(Tensor & self, c10::optional<Device> dst_device, bool non_blocking) {
+  // TODO: this should be handled during dispatch, but that's missing...
+  TORCH_CHECK(self.defined(), "self is undefined");
+
+  // We'll create a tensor iterator with just an output
+  // Chagne the device up front so the iterator has
+  // the correct device
+  self._set_new_device(dst_device.value());
+
+  auto iter = TensorIteratorConfig()
+   .add_output(self)
+   .resize_outputs(false)
+   .set_check_mem_overlap(false)
+   .check_all_same_dtype(false)
+   .check_all_same_device(false)
+   .build();
+
+  move_stub(kCUDA, iter, dst_device, non_blocking);
+  return self;
+}
+
+Tensor& move_(Tensor& self, c10::optional<Device> dst_device, bool non_blocking) {
+  // auto maybe_outnames = namedinference::compute_broadcast_outnames(self, src);
+  {
+    NoNamesGuard guard;  //check if needed
+    if (self._is_zerotensor()) {
+     TORCH_CHECK(false, "ZeroTensors are immutable. Please materialize the tensor using `.clone()`, if you want a mutable zero tensor.");
+    }
+    move_impl(self, dst_device, non_blocking);
+  }
+  // namedinference::propagate_names_if_nonempty(self, maybe_outnames);
+  return self;
+}
+
 DEFINE_DISPATCH(copy_stub);
+DEFINE_DISPATCH(move_stub);
+REGISTER_NO_CPU_DISPATCH(move_stub);
 
 } // namespace native
 } // namespace at
