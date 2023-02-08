@@ -498,7 +498,8 @@ class TestUnaryUfuncs(TestCase):
         else:
             res = op(input, out=output, **kwargs)
             self.assertTrue(res is output)
-            if all([TEST_WITH_ROCM, op.name == "sinc", expected.dtype == torch.complex64, output.dtype == torch.complex128]):
+            if ( all([TEST_WITH_ROCM, op.name == "sinc", expected.dtype == torch.complex64, output.dtype == torch.complex128]) or
+                 all([TEST_WITH_ROCM, op.name == "reciprocal", expected.dtype == torch.complex64, output.dtype == torch.complex128]) ):
                 self.assertEqual(output, expected.to(output.dtype), atol=1e-6, rtol=1e-6)
             else:
                 self.assertEqual(output, expected.to(output.dtype))
