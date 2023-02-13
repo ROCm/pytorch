@@ -74,6 +74,9 @@ echo "Testing pytorch"
 
 export LANG=C.UTF-8
 
+#Set python to required version
+alias python=`which python`
+
 PR_NUMBER=${PR_NUMBER:-${CIRCLE_PR_NUMBER:-}}
 
 if [[ "$TEST_CONFIG" == 'default' ]]; then
