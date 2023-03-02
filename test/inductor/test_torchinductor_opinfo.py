@@ -210,11 +210,6 @@ inductor_skips_rocm["cuda"] = {
     "linalg.matrix_rank.hermitian": {f16, f32, f64, c64, b8, i32, i64},
     # FIXME: Tensors are not alike https://github.com/ROCmSoftwarePlatform/frameworks-internal/issues/3462
     "logcumsumexp": {f32},
-    # FIXME: Unexpected success - https://github.com/ROCmSoftwarePlatform/frameworks-internal/issues/3481
-    "tanh": {f16}, 
-    "linalg.cond": {f32, f64},
-    "linalg.svdvals": {f32, f64},
-    "norm.nuc": {f32, f64},
     # FIXME: MIOpen batch norm failure
     "nn.functional.batch_norm": {f32},
     "nn.functional.instance_norm": {f32},
@@ -374,16 +369,19 @@ inductor_expected_failures_single_sample["cuda"] = {
     "unique_consecutive": {b8, f16, f32, f64, i32, i64},
     # AssertionError: Tensor-likes are not close!
     "nn.functional.triplet_margin_loss": {f16},
+    # AssertionError: Scalars are not close!
+    "nn.functional.soft_margin_loss": {f16},
+}
+
+if not TEST_WITH_ROCM:
     # The following 3 tests fail on CUDA with AssertionError: expected size 5==5, stride 5==1 at dim=0
     # linalg._svd's return value has different strides on CUDA vs CPU which causes this
     # In test_meta.py there is a mechanism to skipping strides checks for some ops
     # (including _linalg_svd), possibly we should have something similar here
-    "linalg.cond": {f32, f64},
-    "linalg.svdvals": {f32, f64},
-    "norm.nuc": {f32, f64},
-    # AssertionError: Scalars are not close!
-    "nn.functional.soft_margin_loss": {f16},
-}
+    inductor_expected_failures_single_sample["cuda"]["linalg.cond"] = {f32, f64}
+    inductor_expected_failures_single_sample["cuda"]["linalg.svdvals"] = {f32, f64}
+    inductor_expected_failures_single_sample["cuda"]["norm.nuc"] = {f32, f64}
+
 
 inductor_gradient_expected_failures_single_sample = defaultdict(dict)
 
@@ -403,8 +401,11 @@ inductor_gradient_expected_failures_single_sample["cuda"] = {
     "nn.functional.local_response_norm": {f16},
     "outer": {f16},
     "quantile": {f32, f64},
-    "tanh": {f16},
 }
+
+# Passes on ROCm
+if not TEST_WITH_ROCM:
+    inductor_gradient_expected_failures_single_sample["cuda"]["tanh"] = {f16}
 
 inductor_should_fail_with_exception = defaultdict(dict)
 
