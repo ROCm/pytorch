@@ -1403,6 +1403,9 @@ make_fallback(aten._linalg_eigh)
 make_fallback(aten.zeros.names)
 
 
+# ROCm specific
+make_fallback(aten.miopen_batch_norm, warn=False)
+
 add_layout_constraint(aten.convolution, constrain_to_fx_strides)
 
 
