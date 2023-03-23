@@ -185,6 +185,9 @@ ROCM_BLOCKLIST = [
     "distributed/_tensor/test_attention",
 ]
 
+if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor <= 9):
+    ROCM_BLOCKLIST.append("test_typing")
+
 XPU_BLOCKLIST = [
     "test_autograd",
     "profiler/test_cpp_thread",
