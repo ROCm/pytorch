@@ -529,10 +529,6 @@ class TestInductorOpInfo(TestCase):
             # with open("test_output.txt", "a") as f:
             #     print(f"SKIPPING OP {op_name} on {device_type}", flush=True, file=f)
             #     print(f"SKIPPING OP {op_name} on {device_type}", flush=True)
-        elif TEST_WITH_ROCM and dtype in inductor_skips_rocm[device_type].get(
-            op_name, set()
-        ):
-            test_expect = ExpectedTestResult.SKIP
         elif dtype in inductor_expected_failures_single_sample[device_type].get(
             op_name, set()
         ) or dtype in inductor_gradient_expected_failures_single_sample[
