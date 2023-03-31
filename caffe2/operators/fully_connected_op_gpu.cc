@@ -112,6 +112,12 @@ bool RunFullyConnectedGradientOpOnCUDADevice(
 
 // The RunFullyConnectedOpOnCUDADevice Function will use the pointer of current
 // op and the DoRunWithType will make sure to run the correct things.
+#ifdef __HIP_PLATFORM_HCC__
+template <>
+bool FullyConnectedOp<CUDAContext, DefaultEngine, true, true>::RunOnDevice() {
+  return RunFullyConnectedOpOnCUDADevice(float16_compute_, this);
+}
+#endif
 template <>
 bool FullyConnectedOp<CUDAContext>::RunOnDevice() {
   return RunFullyConnectedOpOnCUDADevice(float16_compute_, this);
@@ -175,7 +181,11 @@ bool FullyConnectedGradientOp<
 
 #endif
 
+#ifdef __HIP_PLATFORM_HCC__
+REGISTER_CUDA_OPERATOR(FC, FullyConnectedOp<CUDAContext, DefaultEngine, true, true>);
+#else
 REGISTER_CUDA_OPERATOR(FC, FullyConnectedOp<CUDAContext>);
+#endif
 REGISTER_CUDA_OPERATOR(FCGradient, FullyConnectedGradientOp<CUDAContext>);
 
 REGISTER_CUDA_OPERATOR(

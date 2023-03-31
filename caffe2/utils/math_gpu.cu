@@ -539,6 +539,106 @@ DELEGATE_REDUCTION_FUNCTION(int64_t, ReduceMax, Max)
 
 #undef DELEGATE_REDUCTION_FUNCTION
 
+#ifdef __HIP_PLATFORM_HCC__
+template<>
+CAFFE2_CUDA_EXPORT void Gemm<float, CUDAContext, DefaultEngine, true>(
+    const CBLAS_TRANSPOSE trans_A,
+    const CBLAS_TRANSPOSE trans_B,
+    const int M,
+    const int N,
+    const int K,
+    const float alpha,
+    const float* A,
+    const float* B,
+    const float beta,
+    const float* C,
+    float* D,
+    CUDAContext* context) {
+    const int row_stride_A = (trans_A == CblasNoTrans) ? 1 : K;
+    const int col_stride_A = (trans_A == CblasNoTrans) ? K : 1;
+    const int row_stride_B = (trans_B == CblasNoTrans) ? 1 : N;
+    const int col_stride_B = (trans_B == CblasNoTrans) ? N : 1;
+    ROCBLAS_ENFORCE(rocblas_gemm_ext2(
+        context->rocblashandle(),
+        N,
+        M,
+        K,
+        &alpha,
+        B,
+        rocblas_datatype_f32_r,
+        row_stride_B,
+        col_stride_B,
+        A,
+        rocblas_datatype_f32_r,
+        row_stride_A,
+        col_stride_A,
+        &beta,
+        C,
+        rocblas_datatype_f32_r,
+        1,
+        0,
+        D,
+        rocblas_datatype_f32_r,
+        1,
+        N,
+        rocblas_datatype_f32_r,
+        rocblas_gemm_algo_standard,
+        0,
+        0));
+  
+
+}
+
+template<>
+CAFFE2_CUDA_EXPORT void Gemm<at::Half, CUDAContext, DefaultEngine, true>(
+    const CBLAS_TRANSPOSE trans_A,
+    const CBLAS_TRANSPOSE trans_B,
+    const int M,
+    const int N,
+    const int K,
+    const float alpha,
+    const at::Half* A,
+    const at::Half* B,
+    const float beta,
+    const at::Half* C,
+    at::Half* D,
+    CUDAContext* context) {
+    const int row_stride_A = (trans_A == CblasNoTrans) ? 1 : K;
+    const int col_stride_A = (trans_A == CblasNoTrans) ? K : 1;
+    const int row_stride_B = (trans_B == CblasNoTrans) ? 1 : N;
+    const int col_stride_B = (trans_B == CblasNoTrans) ? N : 1;
+    ROCBLAS_ENFORCE(rocblas_gemm_ext2(
+        context->rocblashandle(),
+        N,
+        M,
+        K,
+        &alpha,
+        B,
+        rocblas_datatype_f16_r,
+        row_stride_B,
+        col_stride_B,
+        A,
+        rocblas_datatype_f16_r,
+        row_stride_A,
+        col_stride_A,
+        &beta,
+        C,
+        rocblas_datatype_f16_r,
+        1,
+        0,
+        D,
+        rocblas_datatype_f16_r,
+        1,
+        N,
+        rocblas_datatype_f32_r,
+        rocblas_gemm_algo_standard,
+        0,
+        0));
+  
+
+}
+#endif
+
 // Caffe2 gemm provides a simpler interface to the gemm functions, with the
 // limitation that the data has to be contiguous in memory.
 template <>

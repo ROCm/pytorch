@@ -40,7 +40,7 @@ class TestFcOperator(serial.SerializedTestCase):
             else:
                 W = np.random.rand(n, k).astype(dtype) - 0.5
         b = np.random.rand(n).astype(dtype) - 0.5
-
+        
         def fc_op(X, W, b):
             return [np.dot(X, W.reshape(n, k).transpose()) + b.reshape(n)]
 

@@ -13,7 +13,8 @@ namespace caffe2 {
 template <
     class Context,
     class Engine = DefaultEngine,
-    bool TransposeWeight = true>
+    bool TransposeWeight = true,
+    bool FuseBiasAdd = false>
 class FullyConnectedOp final : public Operator<Context> {
  public:
   USE_OPERATOR_CONTEXT_FUNCTIONS;
@@ -90,8 +91,23 @@ class FullyConnectedOp final : public Operator<Context> {
     if (fp16_type<MATH>()) {
       math_type = TensorProto_DataType_FLOAT16;
     }
-
-    // W * x
+    
+    if(FuseBiasAdd && X.template IsType<float>()) {
+    math::Gemm<T_X, Context, Engine, FuseBiasAdd>(
+        CblasNoTrans,
+        TransposeWeight ? CblasTrans : CblasNoTrans,
+        M,
+        N,
+        K,
+        1,
+        X.template data<T_X>(),
+        W.template data<T_W>(),
+        1,
+        b.template data<T_B>(),
+        Y->template mutable_data<T_Y>(),
+        &context_
+    ); 
+    } else {
     math::Gemm<T_X, Context, Engine>(
         CblasNoTrans,
         TransposeWeight ? CblasTrans : CblasNoTrans,
@@ -138,6 +154,7 @@ class FullyConnectedOp final : public Operator<Context> {
         &context_,
         math_type);
 
+    }
     return true;
   }
 

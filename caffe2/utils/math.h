@@ -166,6 +166,23 @@ template <typename T, class Context>
 TORCH_API void
 Maximum(const int N, const float alpha, const T* x, T* y, Context* context);
 
+#ifdef __HIP_PLATFORM_HCC__
+template <typename T, class Context, class Engine = DefaultEngine, bool FuseBiasAdd = false>
+CAFFE2_API void Gemm(
+    const CBLAS_TRANSPOSE trans_A,
+    const CBLAS_TRANSPOSE trans_B,
+    const int M,
+    const int N,
+    const int K,
+    const float alpha,
+    const T* A,
+    const T* B,
+    const float beta,
+    const T* C,
+    T* D,
+    Context* context);
+#endif
+
 // Decaf gemm provides a simpler interface to the gemm functions, with the
 // limitation that the data has to be contiguous in memory.
 template <typename T, class Context, class Engine = DefaultEngine>
