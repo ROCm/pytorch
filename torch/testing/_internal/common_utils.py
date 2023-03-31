@@ -1066,14 +1066,15 @@ torch_to_numpy_dtype_dict.update({
     torch.complex32: np.complex64
 })
 
-def skipIfRocm(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        if TEST_WITH_ROCM:
-            raise unittest.SkipTest("test doesn't currently work on the ROCm stack")
-        else:
-            fn(*args, **kwargs)
-    return wrapper
+def skipIfRocm(msg="test doesn't currently work on the ROCm stack"):
+    def dec_fn(fn):
+        @wraps(fn)
+        def wrap_fn(self, *args, **kwargs):
+            if TEST_WITH_ROCM:
+                raise unittest.SkipTest(f"skipIfRocm: {msg}")
+            return fn(self, *args, **kwargs)
+        return wrap_fn
+    return dec_fn
 
 def skipIfMps(fn):
     @wraps(fn)
