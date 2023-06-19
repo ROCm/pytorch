@@ -285,8 +285,21 @@ T cast_from_f8(uint8_t x) {
     fNeg0 = reinterpret_cast<const T&>(ifNeg0);
   }
 
-  if(x==0)
-    return reinterpret_cast<const T&>(x);
+  if(x==0){
+  
+    if(is_half){
+		const uint16_t retval = 0x0000;
+		return reinterpret_cast<const T&>(retval);
+	}
+	else if(is_float)
+	{
+		const uint32_t retval = 0x00000000;
+		return reinterpret_cast<const T&>(retval);
+	}
+
+  }
+  //	return 0;
+  //  return static_cast<const T&>(x);
 
   uint32_t sign = x>>7;
   uint32_t mantissa = x & ((1<<wm)-1);
@@ -369,7 +382,7 @@ __global__ void Quant8_inplace(T* _p, int32_t count, bool stoch, uint32_t seed) 
     drop_bits = ((drop_bits & 31)<<11) | (drop_bits>>5);
     drop_bits *= 0x7000149;
     uint32_t rng = (drop_bits ^ 0x13371337 ^ (i*229791) ^ seed);
-    y = hip_f8_impl::cast_to_f8<wm,we,FT,false,true,PRINT_KERNEL_INFO>(fp[i], false, rng);
+    y = hip_f8_impl::cast_to_f8<wm,we,FT,false,true,PRINT_KERNEL_INFO>(fp[i], true, rng);
   }
   fp[i] = hip_f8_impl::cast_from_f8<wm,we,FT,false,PRINT_KERNEL_INFO>(y);
 }

@@ -271,6 +271,7 @@ class TORCH_API Context {
   bool allowTF32CuDNN() const;
   void setAllowTF32CuDNN(bool);
   bool allowTF32CuBLAS() const;
+  bool f8Sim() const;
   bool f8Confirm() const;
   bool allowF8ROCMConv() const;
   bool allowF8ROCMGemm() const;

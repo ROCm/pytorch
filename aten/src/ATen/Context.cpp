@@ -195,6 +195,17 @@ bool Context::allowTF32CuBLAS() const {
   return float32_matmul_precision != at::Float32MatmulPrecision::HIGHEST;
 }
 
+
+bool Context::f8Sim() const {
+  bool ret = c10::utils::check_env("F8_SIM") == true;
+  if( ret == true) {
+    TORCH_WARN_ONCE("F8 SIMULATION LOGIC TRIGGERED");
+  }
+  return ret;
+}
+
+
+
 bool Context::f8Confirm() const {
   bool ret = c10::utils::check_env("F8_CONFIRM") == true;
   if( ret == true ) {

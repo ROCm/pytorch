@@ -90,7 +90,7 @@ template <>
 void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half));
 template <>
 void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags);
-#if defined(USE_ROCM) || defined(CUDA_VERSION) && CUDA_VERSION >= 11000
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50600) || (defined(CUDA_VERSION) && CUDA_VERSION >= 11000)
 template <>
 void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16));
 template<>
