@@ -110,6 +110,8 @@ _ops_and_refs_with_no_numpy_ref = [op for op in _ops_and_refs if op.ref is None]
 
 aten = torch.ops.aten
 
+exit(1)
+
 # Tests that apply to all operators and aren't related to any particular
 #   system
 class TestCommon(TestCase):
