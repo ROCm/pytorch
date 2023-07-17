@@ -1038,6 +1038,9 @@ if(USE_ROCM)
       # Suppress warnings about dllexport.
       list(APPEND HIP_CXX_FLAGS -Wno-ignored-attributes)
     endif()
+    # can't add this flag since HIP_CXX_FLAGS become HIP_CLANG_FLAGS
+    # which is also used with C source files when using hip-clang compiler for all sources, e.g. ASAN builds
+    list(APPEND HIP_HIPCC_FLAGS -std=c++17)
     add_definitions(-DROCM_VERSION=${ROCM_VERSION_DEV_INT})
     add_definitions(-DTORCH_HIP_VERSION=${TORCH_HIP_VERSION})
     message("TORCH_HIP_VERSION=${TORCH_HIP_VERSION} is added as a compiler defines")
