@@ -474,6 +474,10 @@ if [[ -n "${CI:-}" ]]; then
   progress_flag="--progress=plain"
 fi
 
+if [[ "${DOCKER_BUILDKIT}" == 0 ]]; then
+  progress_flag=""
+fi
+
 # Build image
 docker build \
        ${no_cache_flag} \
