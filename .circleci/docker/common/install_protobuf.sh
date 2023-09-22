@@ -4,6 +4,7 @@ set -ex
 
 # This function installs protobuf 3.17
 install_protobuf_317() {
+  pip uninstall -y protobuf
   pb_dir="/usr/temp_pb_install_dir"
   mkdir -p $pb_dir
 
