@@ -10,18 +10,17 @@
 #include <ATen/cuda/Exceptions.h>
 #include <ATen/cuda/CUDADataType.h>
 #include <c10/cuda/CUDACachingAllocator.h>
+#include <ATen/native/ParamUtils.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/macros/Export.h>
 #include <c10/util/irange.h>
+
 
 // quantize functions
 #include <hip/hip_runtime.h>
 #include <hip/hip_fp16.h>
 #include <hip/hip_bfloat16.h>
 #include <ATen/native/cuda/f8_hip_impl.cuh>
-// for random_seed
-//#include <ATen/native/ConvUtils.h>
-
 
 
 // cublasLT was introduced in CUDA 10.1 but we enable only for 11.1 that also
@@ -497,84 +496,93 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
   flag = at::ROCmBackwardPassGuard::is_backward_pass() ? rocblas_gemm_flags_fp16_alt_impl : 0;
 #endif
 
-// Debug print statements
-  if (at::globalContext().allowF8ROCMLOG()) {
-	std::cout << "BEFORE:" << *a << std::endl;
-	std::cout << "AMP ON: " << at::autocast::is_autocast_on() << std::endl;
-	std::cout << "grad_flags: "<< unsigned(grad_flags) << std::endl;
-	std::cout << "A: " << a << std::endl;
-	std::cout << "ALPHA: WAS_amp_used: " << at::autocast::was_amp_used() << std::endl;
-    std::cout << "Half: is bwd pass: " << at::ROCmBackwardPassGuard::is_backward_pass() << " is_grad_flags: " << grad_flags << std::endl;
-  }
-
-
   // if f8 is enabled
-  if (at::globalContext().allowF8ROCMGemm() && 
-  ( at::autocast::is_autocast_on() || (at::autocast::was_amp_used() && at::ROCmBackwardPassGuard::is_backward_pass())) ) {
-  //		run quant
+  if(!at::globalContext().f8Sim() &&
+    (at::globalContext().allowF8ROCMGemm() &&
+    (at::autocast::is_autocast_on() || (at::autocast::was_amp_used() && at::ROCmBackwardPassGuard::is_backward_pass()))))
+  {
+    //When F8 is enabled, need to force flag option to enable stochastic rounding
+    flag = rocblas_gemm_flags_stochastic_rounding;
+
+    rocblas_computetype f8_compute_type;
+
+    switch(grad_flags) {
+      case 0x00:
+        f8_compute_type = rocblas_compute_type_f8_f8_f32;
+        break;
+      case 0x01:
+        f8_compute_type = rocblas_compute_type_bf8_f8_f32;
+        break;
+      case 0x02:
+        f8_compute_type = rocblas_compute_type_f8_bf8_f32;
+        break;
+      case 0x03:
+        f8_compute_type = rocblas_compute_type_bf8_bf8_f32;
+        break;
+      default:
+        AT_ERROR("Unexpected grad_flags for GEMM: ", grad_flags);
+     }
 
 
-	//When F8 is enabled, need to force flag option to enable stochastic rounding
-	flag = rocblas_gemm_flags_stochastic_rounding;
 
-	rocblas_computetype f8_compute_type;
+     if(at::globalContext().f8Confirm())
+     {
+       std::cout << "F8 PATH Calling rocblas_gemm_ex3" << std::endl;
+     }
+     TORCH_CUDABLAS_CHECK(rocblas_gemm_ex3(
+       handle,
+       opa,
+       opb,
+       m,
+       n,
+       k,
+       &falpha,
+       a,
+       rocblas_datatype_f16_r,
+       lda,
+       b,
+       rocblas_datatype_f16_r,
+       ldb,
+       &fbeta,
+       c,
+       rocblas_datatype_f16_r,
+       ldc,
+       c,
+       rocblas_datatype_f16_r,
+       ldc,
+       f8_compute_type,
+       rocblas_gemm_algo_standard,
+       0,
+       flag));
 
-	switch(grad_flags) {
-	  case 0x00:
-	  	f8_compute_type = rocblas_compute_type_f8_f8_f32;
-		break;
-	  case 0x01:
-	  	f8_compute_type = rocblas_compute_type_bf8_f8_f32;
-		break;
-	  case 0x02:
-	    f8_compute_type = rocblas_compute_type_f8_bf8_f32;
-		break;
-	  case 0x03:
-	  	f8_compute_type = rocblas_compute_type_bf8_bf8_f32;
-		break;
-	  default:
-	  	AT_ERROR("Unexpected grad_flags for GEMM: ", grad_flags);
-	}
-
-
-
-	if(at::globalContext().f8Confirm())
-	{
-		std::cout << "F8 PATH Calling rocblas_gemm_ex3" << std::endl;
-	}
-    TORCH_CUDABLAS_CHECK(rocblas_gemm_ex3(
-      handle,
-      opa,
-      opb,
-      m,
-      n,
-      k,
-      &falpha,
-      a,
-      rocblas_datatype_f16_r,
-      lda,
-      b,
-      rocblas_datatype_f16_r,
-      ldb,
-      &fbeta,
-      c,
-      rocblas_datatype_f16_r,
-      ldc,
-      c,
-      rocblas_datatype_f16_r,
-      ldc,
-	  f8_compute_type,
-      rocblas_gemm_algo_standard,
-      0,
-      flag));
-	 
   }
   else {
 
-    if(at::globalContext().f8Confirm())
-	{
-		std::cout << "NON F8 PATH Calling rocblas_gemm_ex" << std::endl;
-	}
+    // If F8 sim, run fake quant
+    if(at::globalContext().f8Sim())
+    {
+
+      __half* a_buf = const_cast<__half*>(reinterpret_cast<const __half*>(a));
+      __half* b_buf = const_cast<__half*>(reinterpret_cast<const __half*>(b));
+
+      int a_size = m * k;
+      int b_size = n * k;
+
+
+
+      hipStream_t stream = at::hip::getCurrentHIPStream();
+
+
+      uint32_t seed = at::native::random_seed();
+      Quant8_inplace_host(a_buf, a_size, seed, stream, (grad_flags & 0x01));
+	  seed = at::native::random_seed();
+	  Quant8_inplace_host(b_buf, b_size, seed, stream, (grad_flags >> 1) & 0x01);
+
+
+      
+
+
+    }
 
     TORCH_CUDABLAS_CHECK(rocblas_gemm_ex(
       handle,

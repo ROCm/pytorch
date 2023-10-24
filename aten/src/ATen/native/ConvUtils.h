@@ -5,7 +5,7 @@
 #include <ATen/native/DispatchStub.h>
 #include <c10/util/env.h>
 #include <c10/util/irange.h>
-#include <random>
+//#include <random>
 
 namespace at::native {
 
@@ -142,6 +142,8 @@ constexpr int weight_input_channels_dim = 1;
 // Often written as 2 + max_dim (extra dims for batch size and channels)
 constexpr int max_dim = 3;
 
+
+/*
 static inline uint32_t random_seed()
 {
 	std::random_device rd;
@@ -149,6 +151,7 @@ static inline uint32_t random_seed()
 	std::uniform_int_distribution<uint32_t> distribution(0,0xFFFFFFFF);
 	return distribution(gen);
 }
+*/
 
 // ---------------------------------------------------------------------
 //

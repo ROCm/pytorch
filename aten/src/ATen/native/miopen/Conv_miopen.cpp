@@ -1,6 +1,7 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/Config.h>
 #include <ATen/native/ConvUtils.h>
+#include <ATen/native/ParamUtils.h>
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
 #include <ATen/NativeFunctions.h>
@@ -747,11 +748,11 @@ void raw_miopen_convolution_forward_out(
 		int input_size = input.numel();
 		int weight_size = weight.numel();
 
-		uint32_t seed = random_seed();
+		uint32_t seed = at::native::random_seed();
 
 		hipStream_t stream = at::hip::getCurrentHIPStream();
 		Quant8_inplace_host(input_buf, input_size, seed, stream, false);
-		seed = random_seed();
+		seed = at::native::random_seed();
 		Quant8_inplace_host(weight_buf, weight_size, seed, stream, false);
     }
   }

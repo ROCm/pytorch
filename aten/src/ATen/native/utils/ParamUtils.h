@@ -2,6 +2,7 @@
 
 #include <c10/util/ArrayRef.h>
 #include <vector>
+#include <random>
 
 namespace at {
 namespace native {
@@ -37,6 +38,16 @@ inline std::vector<c10::SymInt> expand_param_if_needed(
     int64_t expected_dim) {
   return _expand_param_if_needed(list_param, param_name, expected_dim);
 }
+
+static inline uint32_t random_seed()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<uint32_t> distribution(0, 0xFFFFFFFF);
+    return distribution(gen);
+}
+
+
 
 } // namespace native
 } // namespace at
