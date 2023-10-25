@@ -1,7 +1,7 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/Config.h>
 #include <ATen/native/ConvUtils.h>
-#include <ATen/native/ParamUtils.h>
+#include <ATen/native/utils/ParamUtils.h>
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
 #include <ATen/NativeFunctions.h>

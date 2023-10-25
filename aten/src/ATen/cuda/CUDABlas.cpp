@@ -10,7 +10,7 @@
 #include <ATen/cuda/Exceptions.h>
 #include <ATen/cuda/CUDADataType.h>
 #include <c10/cuda/CUDACachingAllocator.h>
-#include <ATen/native/ParamUtils.h>
+#include <ATen/native/utils/ParamUtils.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/macros/Export.h>
 #include <c10/util/irange.h>
