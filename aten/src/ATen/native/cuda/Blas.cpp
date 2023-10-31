@@ -429,7 +429,7 @@ Tensor& addmm_out_cuda_impl(Tensor& result, const Tensor& self, const Tensor& ma
               args.ldb,
               beta_val,
               result_ptr,
-              args.result_ld);
+              args.result_ld,
               grad_flags);
         });
     switch (activation) {

@@ -32,6 +32,11 @@
 #include <hip/hip_bfloat16.h>
 #include <ATen/native/cuda/f8_hip_impl.cuh>
 
+// Turn on F8 MIOpen
+#define MIOPEN_BETA_API
+
+
+
 #include <iostream>
 
 #include <c10/core/GradMode.h>

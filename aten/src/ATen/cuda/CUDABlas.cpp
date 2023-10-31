@@ -16,6 +16,10 @@
 #include <c10/util/irange.h>
 
 
+
+
+
+
 // quantize functions
 #include <hip/hip_runtime.h>
 #include <hip/hip_fp16.h>
@@ -425,7 +429,6 @@ void gemm<double>(CUDABLAS_GEMM_ARGTYPES(double), int grad_flags) {
 }
 
 
-#if !defined(USE_ROCM) || (defined(USE_ROCM) && ROCM_VERSION >= 21000)
   template <>
   void gemm<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>)) {
     // See Note [Writing Nondeterministic Operations]
@@ -444,9 +447,7 @@ void gemm<double>(CUDABLAS_GEMM_ARGTYPES(double), int grad_flags) {
   void gemm<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>), int grad_flags) {
     gemm<c10::complex<double>>(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
   }
-#endif
 
-#if !defined(USE_ROCM) || (defined(USE_ROCM) && ROCM_VERSION >= 21000)
   template <>
   void gemm<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>)) {
     // See Note [Writing Nondeterministic Operations]
@@ -465,7 +466,6 @@ void gemm<double>(CUDABLAS_GEMM_ARGTYPES(double), int grad_flags) {
   void gemm<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>), int grad_flags) {
     gemm<c10::complex<float>>(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
   }
-#endif
 
 template <>
 void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half)) {
@@ -529,10 +529,10 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
      {
        std::cout << "F8 PATH Calling rocblas_gemm_ex3" << std::endl;
      }
-     TORCH_CUDABLAS_CHECK(rocblas_gemm_ex3(
-       handle,
-       opa,
-       opb,
+     TORCH_CUDABLAS_CHECK(rocBLASStatusToHIPStatus(rocblas_gemm_ex3(
+       (rocblas_handle)handle,
+       hipOperationToRocOperation(opa),
+       hipOperationToRocOperation(opb),
        m,
        n,
        k,
@@ -553,7 +553,7 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
        f8_compute_type,
        rocblas_gemm_algo_standard,
        0,
-       flag));
+       flag)));
 
   }
   else {
@@ -584,10 +584,10 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
 
     }
 
-    TORCH_CUDABLAS_CHECK(rocblas_gemm_ex(
-      handle,
-      opa,
-      opb,
+    TORCH_CUDABLAS_CHECK(rocBLASStatusToHIPStatus(rocblas_gemm_ex(
+      (rocblas_handle)handle,
+      hipOperationToRocOperation(opa),
+      hipOperationToRocOperation(opb),
       m,
       n,
       k,
@@ -608,7 +608,7 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
       rocblas_datatype_f32_r,
       rocblas_gemm_algo_standard,
       0,
-      flag));
+      flag)));
 	}
 #else
   cudaDeviceProp* prop = at::cuda::getCurrentDeviceProperties();
@@ -665,51 +665,13 @@ void gemm<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half), int grad_flags) {
 #endif
 }
 
-#ifdef USE_ROCM
-template <>
-void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16)) {
-  cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
-  cublasOperation_t opa = _cublasOpFromChar(transa);
-  cublasOperation_t opb = _cublasOpFromChar(transb);
-  float falpha = alpha;
-  float fbeta = beta;
-  _cublasAdjustLdLevel3(transa, transb, m, n, k, &lda, &ldb, &ldc);
-  GEMM_CHECK_ARGVALUES(at::BFloat16);
-  TORCH_CUDABLAS_CHECK(rocblas_gemm_ex(
-      handle,
-      opa,
-      opb,
-      m,
-      n,
-      k,
-      &falpha,
-      a,
-      rocblas_datatype_bf16_r,
-      lda,
-      b,
-      rocblas_datatype_bf16_r,
-      ldb,
-      &fbeta,
-      c,
-      rocblas_datatype_bf16_r,
-      ldc,
-      c,
-      rocblas_datatype_bf16_r,
-      ldc,
-      rocblas_datatype_f32_r,
-      rocblas_gemm_algo_standard,
-      0,
-      0));
-}
 
 template <>
 void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16), int grad_flags)
 {
   gemm<at::BFloat16>(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
-#endif
 
-#if defined(CUDA_VERSION) && CUDA_VERSION >= 11000
 template <>
 void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16)) {
   globalContext().alertCuBLASConfigNotDeterministic();
