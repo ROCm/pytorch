@@ -470,8 +470,8 @@ void gesvdjBatched<c10::complex<double>>(
 }
 
 
-// ROCM does not implement gesdva yet
-#ifdef CUDART_VERSION
+// ROCM does not implement gesdva before 5.7
+#ifdef CUDART_VERSION || defined(ROCM_VERSION) && ROCM_VERSION >= 50700
 template<>
 void gesvdaStridedBatched_buffersize<float>(
     cusolverDnHandle_t handle, cusolverEigMode_t jobz, int rank, int m, int n, float *A, int lda, long long int strideA,
