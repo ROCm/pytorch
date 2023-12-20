@@ -328,11 +328,11 @@ inline static void svd_cusolver_gesvd(const Tensor& A, const Tensor& U, const Te
   // gesvd just knows how to handle m >= n, so in the other case we need to transpose A
   const auto not_A_H = A.size(-2) >= A.size(-1);
   Tensor Vcopy = V; // Shallow copy
-#ifdef USE_ROCM
+#ifdef ROCM_VERSION
   // Similar to the case in svd_magma(), experiments have shown Vh tensor is
   // not guaranteed to be column major on ROCM, we have to create a copy to
   // deal with this
-  if (!not_A_H) {
+  if (compute_uv && !not_A_H) {
     Vcopy = at::empty_like(V.mT(),
                            V.options()
                            .device(V.device())
@@ -347,8 +347,8 @@ inline static void svd_cusolver_gesvd(const Tensor& A, const Tensor& U, const Te
                                        infos,
                                        full_matrices, compute_uv, calculate_all_batches, batches);
   });
-#ifdef USE_ROCM
-  if (!not_A_H) {
+#ifdef ROCM_VERSION
+  if (compute_uv && !not_A_H) {
     V.copy_(Vcopy);
   }
 #endif
@@ -522,8 +522,8 @@ inline static void svd_cusolver_gesvdjBatched(const Tensor& A, const Tensor& U, 
 template<typename scalar_t>
 inline static void apply_svd_cusolver_gesvdaStridedBatched(const Tensor& A, const Tensor& U, const Tensor& S, const Tensor& V,
     const Tensor& infos, bool full_matrices, bool compute_uv) {
-#ifndef CUDART_VERSION
-  TORCH_CHECK(false, "gesvda: Batched version is supported only with cuBLAS backend.")
+#if defined(CUDART_VERSION) || defined(USE_ROCM) && ROCM_VERSION < 60100
+  TORCH_CHECK(false, "gesvda: Batched version is supported only with cuBLAS backend or ROCM >= 5.7.0.")
 #else
   using value_t = typename c10::scalar_value_type<scalar_t>::type;
   int m = cuda_int_cast(A.size(-2), "m");
@@ -648,7 +648,7 @@ std::string _format_non_converging_batches(const std::vector<int64_t>& batches) 
 void svd_cusolver(const Tensor& A,
                   const bool full_matrices,
                   const bool compute_uv,
-                  const std::optional<c10::string_view>& driver,
+                  const c10::optional<c10::string_view>& driver,
                   const Tensor& U,
                   const Tensor& S,
                   const Tensor& V,
@@ -661,7 +661,7 @@ void svd_cusolver(const Tensor& A,
   static const char* check_svd_doc = "Check doc at https://pytorch.org/docs/stable/generated/torch.linalg.svd.html";
 
   // The default heuristic is to use gesvdj driver
-#ifdef USE_ROCM
+#if defined(ROCM_VERSION) && ROCM_VERSION < 60100
   const auto driver_v = c10::string_view("gesvdj");
 #else
   const auto driver_v = driver.value_or("gesvdj");
