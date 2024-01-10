@@ -62,6 +62,7 @@ from torch.testing._internal.common_utils import (
     NO_MULTIPROCESSING_SPAWN,
     sandcastle_skip,
     sandcastle_skip_if,
+    TEST_WITH_ROCM
 )
 
 from torch.distributed.optim import functional_optim_map
@@ -5712,6 +5713,7 @@ class DistributedTest:
             IS_MACOS or IS_WINDOWS,
             "torch.profiler not enabled for mac/windows: https://github.com/pytorch/pytorch/pull/56124",
         )
+        @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing this test failure on an older version of pytorch")
         def test_ddp_profiling_torch_profiler(self):
             cpu_act = torch.profiler.ProfilerActivity.CPU
             cuda_act = torch.profiler.ProfilerActivity.CUDA
