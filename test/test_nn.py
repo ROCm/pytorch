@@ -6371,6 +6371,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
     # For https://github.com/pytorch/pytorch/pull/1273
     # Almost identical to the above `test_Conv2d_naive_groups`
+    @unittest.skipIf(TEST_WITH_ROCM, "Skipping these tests as they are skipped in upstream")
     @torch.backends.cudnn.flags(enabled=True, benchmark=False)
     def test_Conv2d_groups_nobias(self):
         dev_dtypes = [("cpu", torch.float)]
@@ -6409,6 +6410,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
     # Covering special case when group > 1, input-channel / group < 16 and output-channel is multiple of 16
     # See also https://github.com/pytorch/pytorch/pull/18463#issuecomment-476563686
     # and https://github.com/pytorch/pytorch/pull/18463#issuecomment-477001024
+    @unittest.skipIf(TEST_WITH_ROCM, "Skipping these tests as they are skipped in upstream") 
     @torch.backends.cudnn.flags(enabled=True, benchmark=False)
     def test_Conv2d_groups_nobias_v2(self):
         torch.manual_seed(123)
@@ -12719,6 +12721,7 @@ class TestNNDeviceType(NNTestCase):
         actual = F.conv1d(x, y, padding='same', dilation=3)
         self.assertEqual(expect, actual)
 
+    @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing test_conv2d_same_padding_cuda_complex64 and test_conv2d_same_padding_cuda_float32 on old version of pytorch")
     @dtypes(torch.float, torch.cfloat)
     def test_conv2d_same_padding(self, device, dtype):
         if dtype is torch.cfloat:
@@ -15763,6 +15766,7 @@ class TestNNDeviceType(NNTestCase):
                 self.assertEqual(q.size(), out[0].size())
                 self.assertEqual(dtype, out[0].dtype)
 
+    @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing test_Conv2d_naive_groups_cuda_float16 on old version of pytorch")
     @dtypesIfCUDA(*floating_types_and(torch.half, *[torch.bfloat16] if AMPERE_OR_ROCM else []))
     @dtypes(torch.float)
     @torch.backends.cudnn.flags(enabled=True, benchmark=False)

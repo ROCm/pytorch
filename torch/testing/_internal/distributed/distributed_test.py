@@ -76,6 +76,7 @@ from torch.testing._internal.common_utils import (
     parametrize,
     sandcastle_skip,
     sandcastle_skip_if,
+    TEST_WITH_ROCM,
 )
 
 import torch.distributed.optim.post_localSGD_optimizer as post_localSGD_optimizer
@@ -4245,6 +4246,7 @@ class DistributedTest:
                     all([param.requires_grad for param in ddp_model.parameters()])
                 )
 
+        @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing this on old version of pytorch")
         @sandcastle_skip_if(
             BACKEND not in DistTestCases.backend_feature["ddp"],
             f"The {BACKEND} backend does not support DistributedDataParallel"
@@ -4485,6 +4487,7 @@ class DistributedTest:
             "Failing with gloo backend + torchvision due to ongoing issue https://github.com/pytorch/pytorch/issues/111834",
         )
         @skip_if_lt_x_gpu(2)
+        @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing this on old version of pytorch")
         @parametrize("grad_as_bucket_view", [True, False])
         @parametrize("static_graph", [True, False])
         @parametrize("optimize_subset", [True, False])
@@ -4516,6 +4519,7 @@ class DistributedTest:
             "Failing with gloo backend + torchvision due to ongoing issue https://github.com/pytorch/pytorch/issues/111834",
         )
         @skip_if_lt_x_gpu(2)
+        @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing this on old version of pytorch")
         @parametrize("optimize_subset", [True, False])
         def test_ddp_hook_with_optimizer_parity_adam(self, optimize_subset):
             adam_lr = 1e-2
@@ -4540,6 +4544,7 @@ class DistributedTest:
             "Failing with gloo backend + torchvision due to ongoing issue https://github.com/pytorch/pytorch/issues/111834",
         )
         @skip_if_lt_x_gpu(2)
+        @unittest.skipIf(TEST_WITH_ROCM, "Skipping as we won't be fixing this on old version of pytorch")
         @parametrize("optimize_subset", [True, False])
         def test_ddp_hook_with_optimizer_parity_sgd(self, optimize_subset):
             sgd_lr = 1e-2
