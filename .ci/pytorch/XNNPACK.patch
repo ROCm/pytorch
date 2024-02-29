@@ -1,0 +1,15 @@
+diff --git a/cmake/gen/avx2_microkernels.cmake b/cmake/gen/avx2_microkernels.cmake
+index 2a42a5ee2..553f47323 100644
+--- a/cmake/gen/avx2_microkernels.cmake
++++ b/cmake/gen/avx2_microkernels.cmake
+@@ -464,3 +464,10 @@ SET(NON_PROD_AVX2_MICROKERNEL_SRCS
+   src/x16-transposec/gen/x16-transposec-16x16-reuse-mov-avx2.c)
+
+ SET(ALL_AVX2_MICROKERNEL_SRCS ${PROD_AVX2_MICROKERNEL_SRCS} + ${NON_PROD_AVX2_MICROKERNEL_SRCS})
++
++set_source_files_properties(
++  src/x16-packw/gen/x16-packw-x8-gemm-goi-avx2-u16-prfm.c
++  src/x16-packw/gen/x16-packw-x8-gemm-goi-avx2-u16.c
++  src/x16-packw/gen/x16-packw-x16-gemm-goi-avx2-u16-prfm.c
++  src/x16-packw/gen/x16-packw-x16-gemm-goi-avx2-u16.c
++  PROPERTIES COMPILE_FLAGS "-O0 -g0")
