@@ -16,11 +16,23 @@ echo "Clang version:"
 python tools/amd_build/build_amd.py
 
 # sccache somehow forces gfx906 -x hip, remove it all
-rm -rf /opt/cache
+pushd /opt/rocm/llvm/bin
+if [[ -d original ]]; then
+  sudo mv original/clang .
+  sudo mv original/clang++ .
+fi
+sudo rm -rf original
+popd
+sudo rm -rf /opt/cache
 
 # patch fbgemm to work around build failure
 pushd third_party/fbgemm
 patch -p1 -i ../../.ci/pytorch/fbgemm.patch || true
+popd
+
+# patch XNNPACK to work around build failure
+pushd third_party/XNNPACK
+patch -p1 -i ../../.ci/pytorch/XNNPACK.patch || true
 popd
 
 python tools/stats/export_test_times.py
