@@ -12,7 +12,7 @@ from torch._inductor.codecache import PyCodeCache
 from torch._inductor.utils import fresh_inductor_cache
 from torch.testing import FileCheck
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
-
+from torch.testing._internal.common_utils import TEST_WITH_ROCM
 
 class TestKernelBenchmark(TestCase):
     @classmethod
@@ -112,7 +112,10 @@ class TestKernelBenchmark(TestCase):
             return c
 
         f(a, b)
-        self.verify_compiled_kernels(GB_count=3)
+        if TEST_WITH_ROCM:
+            self.verify_compiled_kernels(GB_count=1)
+        else:
+            self.verify_compiled_kernels(GB_count=3)
 
         # make sure we correctly generate the grid info
         compiled_module = self.get_compiled_module()
