@@ -573,7 +573,7 @@ def set_stream(stream: Stream):
 def _parse_visible_devices() -> Union[List[int], List[str]]:
     r"""Parse CUDA_VISIBLE_DEVICES environment variable."""
     var = os.getenv(
-        "CUDA_VISIBLE_DEVICES" if not torch.version.hip else "HIP_VISIBLE_DEVICES"
+        "CUDA_VISIBLE_DEVICES" if not torch.version.hip else "ROCR_VISIBLE_DEVICES"
     )
     if var is None:
         return list(range(64))
@@ -670,11 +670,11 @@ def _raw_device_uuid_amdsmi() -> Optional[List[str]]:
             warnings.warn("Cannot get amd device handler")
             return None
         try:
-            uuid = amdsmi.amdsmi_get_gpu_device_uuid(handler)
+            uuid = amdsmi.amdsmi_get_gpu_asic_info(handler)["asic_serial"][2:]
         except amdsmi.AmdSmiException:
             warnings.warn("Cannot get uuid for amd device")
             return None
-        uuids.append(str(uuid))
+        uuids.append(str(uuid).lower())
     return uuids
 
 
@@ -997,17 +997,31 @@ def _get_amdsmi_handler(device: Optional[Union[Device, int]] = None):
 
 
 def _get_amdsmi_device_index(device: Optional[Union[int, Device]]) -> int:
-    r"""Return the amdsmi index of the device, taking HIP_VISIBLE_DEVICES into account."""
+    r"""Return the amdsmi index of the device, taking ROCR_VISIBLE_DEVICES into account."""
     idx = _get_device_index(device, optional=True)
     visible_devices = _parse_visible_devices()
+
+    # UUID support requires rocm6.1
+    rocm_version = str(torch.version.hip)
+    maj_version = int(rocm_version.split(".")[0])
+    min_version = int(rocm_version.split(".")[1])
     if type(visible_devices[0]) is str:
-        raise RuntimeError("HIP_VISIBLE_DEVICES should be indices and not strings")
-    idx_map = dict(enumerate(cast(List[int], visible_devices)))
-    if idx not in idx_map:
+        if maj_version > 6 or (maj_version == 6 and min_version >= 1):
+            visible_devices = [str(d).replace("GPU-", "", 1) for d in visible_devices]
+            uuids = _raw_device_uuid_amdsmi()
+            if uuids is None:
+                raise RuntimeError("Can't get device UUIDs")
+            visible_devices = _transform_uuid_to_ordinals(visible_devices, uuids)
+        else:
+            raise RuntimeError(
+                "ROCm 6.1 or greater required for amdsmi_get_gpu_device_uuid. Use integer format instead."
+            )
+    visible_devices = cast(List[int], visible_devices)
+    if idx < 0 or idx >= len(visible_devices):
         raise RuntimeError(
-            f"device {idx} is not visible (HIP_VISIBLE_DEVICES={visible_devices})"
+            f"device {idx} is not visible (ROCR_VISIBLE_DEVICES={visible_devices})"
         )
-    return idx_map[idx]
+    return visible_devices[idx]
 
 
 def _get_amdsmi_memory_usage(device: Optional[Union[Device, int]] = None) -> int:
