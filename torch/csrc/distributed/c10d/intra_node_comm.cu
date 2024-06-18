@@ -4,6 +4,12 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <c10/cuda/CUDAGuard.h>
 
+#if defined(USE_ROCM)
+#include <hip/amd_detail/amd_hip_bf16.h>
+#include <hip/amd_detail/amd_hip_atomic.h>
+#include <hip/amd_detail/hip_ldg.h>
+#endif
+
 namespace c10d {
 namespace intra_node_comm {
 
@@ -17,7 +23,7 @@ static constexpr size_t kOneShotThreshBytes = 256 * 1024;
 static constexpr size_t kTwoShotThreshBytes = 10 * 1024 * 1024;
 
 #if defined(USE_ROCM)
-using __nv_bfloat162 = uint32_t;
+using __nv_bfloat162 = __hip_bfloat162;
 #endif
 
 struct __align__(16) bf16x8 {
@@ -28,10 +34,7 @@ struct __align__(16) bf16x8 {
 
 DEVICE_INLINE __nv_bfloat162
 bf16hadd2(const __nv_bfloat162 x, const __nv_bfloat162 y) {
-#if defined(USE_ROCM)
-  CUDA_KERNEL_ASSERT(false);
-  return 0;
-#elif (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   CUDA_KERNEL_ASSERT(false);
   __nv_bfloat162 res;
   return res;
@@ -70,8 +73,12 @@ DEVICE_INLINE bf16x8 add_bf16x8(bf16x8 a, bf16x8 b) {
  */
 template <typename T>
 DEVICE_INLINE void streamLoad128(bf16x8& val, const T* addr) {
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   CUDA_KERNEL_ASSERT(false);
+#elif defined(USE_ROCM)
+  ulonglong2 l_val = __ldg(reinterpret_cast<const ulonglong2*>(addr));
+  reinterpret_cast<unsigned long long*>(&val)[0] = l_val.data[0];
+  reinterpret_cast<unsigned long long*>(&val)[1] = l_val.data[1];
 #else
   unsigned long long int low, high;
   asm("ld.global.nc.v2.u64 {%0, %1}, [%2];"
@@ -83,8 +90,13 @@ DEVICE_INLINE void streamLoad128(bf16x8& val, const T* addr) {
 }
 
 __device__ inline void streamStore128(at::BFloat16* addr, const bf16x8& val) {
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   CUDA_KERNEL_ASSERT(false);
+#elif defined(USE_ROCM)
+    for (int i = 0; i < 8; i++)
+    {
+        addr[i] = reinterpret_cast<const at::BFloat16*>(&val)[i];
+    }
 #else
   unsigned long long int low, high;
   low = reinterpret_cast<const unsigned long long int*>(&val)[0];
@@ -104,15 +116,16 @@ DEVICE_INLINE void store128(T* addr, const bf16x8& val) {
 }
 
 DEVICE_INLINE void releaseSignal(uint32_t* addr) {
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   CUDA_KERNEL_ASSERT(false);
 #else
   atomicAdd_system(addr, 1);
+  __threadfence_system();
 #endif
 }
 
 DEVICE_INLINE void acquireSignal(uint32_t* addr) {
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   CUDA_KERNEL_ASSERT(false);
 #else
   volatile uint32_t* signal = addr;
@@ -484,7 +497,7 @@ static void getLaunchConfig(
 }
 
 bool isIntraNodeCommSupported() {
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
   return false;
 #else
   return true;
