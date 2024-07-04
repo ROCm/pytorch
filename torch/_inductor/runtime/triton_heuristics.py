@@ -227,7 +227,7 @@ class CachingAutotuner(KernelInterface):
                 and self.heuristic_type == HeuristicType.REDUCTION
                 and self.size_hints is not None
                 # Disable for AMDGPU as Triton is not ready to return n_regs for a compiled_binary.
-                and not self.inductor_meta.get("is_hip")
+                and not torch.version.hip
                 # Disable for Intel GPU as Triton is not ready to return n_regs for a compiled_binary.
                 and self.device_type != "xpu"
                 and device_prop.major >= 8
