@@ -116,6 +116,11 @@ def get_test_message(test_case, status=None):
     else:
       return ""
 
+def get_test_file_running_time(test_suite):
+  if test_suite.__contains__('time'):
+    return test_suite["time"]
+  return 0
+
 def get_test_running_time(test_case):
   if test_case.__contains__('time'):
     return test_case["time"]
@@ -129,9 +134,11 @@ def summarize_xml_files(path, workflow_name):
     TOTAL_XFAIL_NUM = 0
     TOTAL_FAILED_NUM = 0
     TOTAL_ERROR_NUM = 0
+    TOTAL_EXECUTION_TIME = 0
 
     #parse the xml files
     test_cases = parse_xml_reports_as_dict(-1, -1, 'testcase', workflow_name, path)
+    test_suites = parse_xml_reports_as_dict(-1, -1, 'testsuite', workflow_name, path)
     test_file_and_status = namedtuple("test_file_and_status", ["file_name", "status"])
     # results dict
     res = {}
@@ -146,7 +153,14 @@ def summarize_xml_files(path, workflow_name):
                 temp_item = test_file_and_status(file_name, item)
                 res[temp_item] = {}
             temp_item_statistics = test_file_and_status(file_name, "STATISTICS")
-            res[temp_item_statistics] = {'TOTAL': 0, 'PASSED': 0, 'SKIPPED': 0, 'XFAILED': 0, 'FAILED': 0, 'ERROR': 0}
+            res[temp_item_statistics] = {'TOTAL': 0, 'PASSED': 0, 'SKIPPED': 0, 'XFAILED': 0, 'FAILED': 0, 'ERROR': 0, 'EXECUTION_TIME': 0}
+
+    for (k,v) in list(test_suites.items()):
+        file_name = k[0]
+        test_tuple_key_statistics = test_file_and_status(file_name, "STATISTICS")
+        test_running_time = get_test_file_running_time(v)
+        res[test_tuple_key_statistics]["EXECUTION_TIME"] += test_running_time
+        TOTAL_EXECUTION_TIME += test_running_time
 
     for (k,v) in list(test_cases.items()):
         file_name = k[0]
@@ -195,6 +209,7 @@ def summarize_xml_files(path, workflow_name):
     statistics_dict["XFAILED"] = TOTAL_XFAIL_NUM
     statistics_dict["FAILED"] = TOTAL_FAILED_NUM
     statistics_dict["ERROR"] = TOTAL_ERROR_NUM
+    statistics_dict["EXECUTION_TIME"] = TOTAL_EXECUTION_TIME
     aggregate_item = workflow_name + "_aggregate"
     total_item = test_file_and_status(aggregate_item, "STATISTICS")
     res[total_item] = statistics_dict
