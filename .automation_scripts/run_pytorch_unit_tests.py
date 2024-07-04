@@ -202,6 +202,10 @@ def summarize_xml_files(path, workflow_name):
     return res
 
 def run_command_and_capture_output(cmd):
+    if os.environ['TEST_CONFIG'] == 'distributed':
+        p = subprocess.run("rocminfo | grep -cE 'Name:\s+gfx'", shell=True, capture_output=True, text=True)
+        num_gpus_visible = int(p.stdout)
+        assert num_gpus_visible > 1, "Number of visible GPUs should be >1 to run TEST_CONFIG=distributed"
     try:
         print(f"Running command '{cmd}'")
         with open(CONSOLIDATED_LOG_FILE_PATH, "a+") as output_file:
