@@ -214,8 +214,8 @@ void CUDAGraph::capture_end() {
 #else
     AT_CUDA_CHECK(cudaGraphInstantiate(&graph_exec_, graph_, NULL, NULL, 0));
 #endif
-//Since ROCm 6.2, we want to go down this path if we want to auto free cudagraph memory after launch as
-//hipGraphExecDestroy in the destructor will not immediately free the memory. It will wait for the sync operation.
+//Since ROCm 6.2, we want to go down this path as hipGraphExecDestroy in the destructor will not immediately free the memory. 
+//It will wait for the next sync operation. cudaGraphInstantiateFlagAutoFreeOnLaunch will add async frees after graph launch.
 #if ((defined(CUDA_VERSION) && CUDA_VERSION >= 11040) || (defined(ROCM_VERSION) && ROCM_VERSION >= 60200))
   } else {
     AT_CUDA_CHECK(cudaGraphInstantiateWithFlags(&graph_exec_,
@@ -363,8 +363,9 @@ CUDAGraph::~CUDAGraph() {
   reset();
 
 // There are recent HIP changes where hipGraphExecDestroy doesn't immediately free memory.
-//  They wait for next sync point in order to free the memory, this is to ensure that all
-//  hipGraphLaunch are finished before we release any memory. This feature was enabled in rocm6.2.  
+// They wait for next sync point in order to free the memory, this is to ensure that all
+// hipGraphLaunch are finished before we release any memory. This feature was enabled in rocm6.2. 
+// We need to ensure all async opreations finish before deleting the object. 
 #if (defined(ROCM_VERSION) && ROCM_VERSION >= 60200)
   AT_CUDA_CHECK(cudaSetDevice(capture_dev_));
   AT_CUDA_CHECK(cudaDeviceSynchronize());
