@@ -9,7 +9,7 @@ requests
 setuptools
 types-dataclasses
 typing-extensions
-sympy
+sympy<=1.12.1
 filelock
 networkx
 jinja2
