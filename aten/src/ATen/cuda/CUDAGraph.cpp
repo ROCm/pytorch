@@ -366,7 +366,7 @@ CUDAGraph::~CUDAGraph() {
 // They wait for next sync point in order to free the memory, this is to ensure that all
 // hipGraphLaunch are finished before we release any memory. This feature was enabled in rocm6.2. 
 // We need to ensure all async opreations finish before deleting the object. 
-#if (defined(ROCM_VERSION) && ROCM_VERSION >= 60200)
+#if (defined(USE_ROCM) && ROCM_VERSION >= 60200)
   AT_CUDA_CHECK(cudaSetDevice(capture_dev_));
   AT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
