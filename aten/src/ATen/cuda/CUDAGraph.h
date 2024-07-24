@@ -76,6 +76,9 @@ struct TORCH_CUDA_CPP_API CUDAGraph {
   // not CUDA itself.  We can straightforwardly modify CUDAGraph to support multi-device
   // captures if needed.
   int capture_dev_;
+#if (defined(USE_ROCM) && ROCM_VERSION >= 60200)
+  bool device_captured_ = false;
+#endif
 
   // RNG state trackers
   at::Tensor seed_extragraph_;
