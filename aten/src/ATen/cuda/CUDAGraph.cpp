@@ -117,9 +117,6 @@ void CUDAGraph::capture_begin(MempoolId_t pool/*=0*/, cudaStreamCaptureMode capt
   capture_stream_ = stream;
   capture_gen_ = gen;
   capture_dev_ = c10::cuda::current_device();
-  #if (defined(USE_ROCM) && ROCM_VERSION >= 60200)
-    device_captured_ = true;
-  #endif
 
   id_ = capture_sequence_id();
 
@@ -362,7 +359,7 @@ CUDAGraph::~CUDAGraph() {
 // hipGraphLaunch are finished before we release any memory. This feature was enabled in rocm6.2. 
 // We need to ensure all async opreations finish before deleting the object. 
 #if (defined(USE_ROCM) && ROCM_VERSION >= 60200)
-  if (device_captured_)
+  if (capture_dev_ >= 0) // check if capture_dev_ contains the real device id
   {
     AT_CUDA_CHECK(cudaSetDevice(capture_dev_));
     AT_CUDA_CHECK(cudaDeviceSynchronize());
