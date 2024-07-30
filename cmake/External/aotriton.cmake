@@ -22,16 +22,16 @@ if(NOT __AOTRITON_INCLUDED)
       -DAOTRITON_COMPRESS_KERNEL=OFF
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DAOTRITON_NO_PYTHON=ON
-      -DAOTRITON_NO_SHARED=ON
+      -DAOTRITON_NO_SHARED=OFF
       # CONFIGURE_COMMAND ""
       # BUILD_COMMAND ${MAKE_COMMAND}
-      BUILD_BYPRODUCTS "${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.a"
+      BUILD_BYPRODUCTS "${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.so"
       # INSTALL_COMMAND ${MAKE_COMMAND} install
       )
     add_dependencies(__caffe2_aotriton aotriton_external)
     message(STATUS "Using AOTriton compiled from source directory ${__AOTRITON_SOURCE_DIR}")
   endif()
-  target_link_libraries(__caffe2_aotriton INTERFACE ${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.a)
+  target_link_libraries(__caffe2_aotriton INTERFACE ${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.so)
   target_include_directories(__caffe2_aotriton INTERFACE ${__AOTRITON_INSTALL_DIR}/include)
   set(AOTRITON_FOUND TRUE)
 endif() # __AOTRITON_INCLUDED
