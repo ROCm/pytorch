@@ -32,7 +32,6 @@ from torch.testing._internal.common_utils import (
     dtype_abbrs,
     IS_MACOS,
     IS_X86,
-    is_navi_arch,
     skipCUDAMemoryLeakCheckIf,
     skipIfCrossRef,
     skipIfTorchDynamo,
@@ -204,19 +203,6 @@ if TEST_WITH_ROCM:
     # Tensors are not alike
     inductor_skips["cuda"]["logcumsumexp"] = {f32}
     inductor_skips["cuda"]["special.modified_bessel_i1"] = {f64}
-    if is_navi_arch():
-        inductor_skips["cuda"]["aminmax"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["dist"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["kron"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["masked.std"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["masked.var"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"][("max", "reduction_no_dim")] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"][("min", "reduction_no_dim")] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["nn.functional.conv_transpose3d"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["std"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["std_mean"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["var"] = {b8, f16, f32, f64, i32, i64}
-        inductor_skips["cuda"]["var_mean"] = {b8, f16, f32, f64, i32, i64}
 
 inductor_expected_failures_single_sample = defaultdict(dict)
 
