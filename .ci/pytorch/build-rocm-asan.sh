@@ -43,7 +43,8 @@ export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=1:symbolize=1:d
 export CMAKE_PREFIX_PATH=/opt/conda
 
 # otherwise any program run at build time will fail
-export LD_LIBRARY_PATH=/opt/rocm/llvm/lib/clang/17.0.0/lib/linux
+# TODO: Remove hardcoded pytorch version specific paths
+export LD_LIBRARY_PATH=/opt/conda/envs/py_3.12/lib/python3.12/site-packages/_rocm_sdk_devel/llvm/lib/clang/22/lib/linux:/opt/conda/envs/py_3.10/lib/python3.10/site-packages/_rocm_sdk_devel/llvm/lib/clang/22/lib/linux
 export HSA_XNACK=1
 
 # TODO: Make the ASAN flags a centralized env var and unify with USE_ASAN option
@@ -58,4 +59,4 @@ export USE_CUDA=0
 export USE_ROCM=1
 export USE_MKLDNN=0
 python setup.py bdist_wheel
-python -mpip install "$(echo dist/*.whl)[opt-einsum]"
+pip_install_whl "$(echo dist/*.whl)"
