@@ -71,6 +71,7 @@ from torch.testing._internal.common_cuda import (
 from torch.testing._internal.common_device_type import (
     _has_sufficient_memory,
     expectedFailureXPU,
+    get_desired_device_type_test_bases,
 )
 from torch.testing._internal.common_dtype import all_types, get_all_dtypes
 from torch.testing._internal.common_utils import (
