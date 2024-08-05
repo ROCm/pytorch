@@ -6,7 +6,6 @@ numpy<2
 psutil==6.0.0
 pyyaml==6.0.1
 requests==2.32.3
-setuptools==69.5.1
 types-dataclasses==0.6.6
 typing-extensions==4.12.2
 sympy<=1.12.1
