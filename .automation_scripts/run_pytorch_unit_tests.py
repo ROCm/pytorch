@@ -370,13 +370,13 @@ def run_test_and_summarize_results(
     global CONSOLIDATED_LOG_FILE_PATH
     CONSOLIDATED_LOG_FILE_PATH = overall_logs_path_current_run + CONSOLIDATED_LOG_FILE_NAME
 
-    # Install test requirements
-    command = "pip3 install -r requirements.txt && pip3 install -r .ci/docker/requirements-ci.txt"
-    run_command_and_capture_output(command)
-
     # Check multi gpu availability if distributed tests are enabled
     if ("distributed" in args.test_config) or len(args.distributed_list) != 0:
         check_num_gpus_for_distributed();
+
+    # Install test requirements
+    command = "pip3 install -r requirements.txt && pip3 install -r .ci/docker/requirements-ci.txt"
+    run_command_and_capture_output(command)
 
     # Run entire tests for each workflow
     if not priority_tests and not default_list and not distributed_list and not inductor_list:
