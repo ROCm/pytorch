@@ -374,6 +374,10 @@ def run_test_and_summarize_results(
     command = "pip3 install -r requirements.txt && pip3 install -r .ci/docker/requirements-ci.txt"
     run_command_and_capture_output(command)
 
+    # Check multi gpu availability if distributed tests are enabled
+    if ("distributed" in args.test_config) or len(args.distributed_list) != 0:
+        check_num_gpus_for_distributed();
+
     # Run entire tests for each workflow
     if not priority_tests and not default_list and not distributed_list and not inductor_list:
         # run entire tests for default, distributed and inductor workflows → use test.sh
@@ -482,8 +486,6 @@ def check_num_gpus_for_distributed():
 def main():
     global args
     args = parse_args()
-    if ("distributed" in args.test_config) or len(args.distributed_list) != 0:
-        check_num_gpus_for_distributed();
     all_tests_results = run_test_and_summarize_results(args.pytorch_root, args.priority_tests, args.test_config, args.default_list, args.distributed_list, args.inductor_list)
     pprint(dict(all_tests_results))
 
