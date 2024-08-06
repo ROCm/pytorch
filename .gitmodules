@@ -129,3 +129,6 @@
 	path = third_party/tensorpipe
 	url = https://github.com/ROCmSoftwarePlatform/tensorpipe.git
 	branch = tp_rocm_60
+[submodule "third_party/composable_kernel"]
+	path = third_party/composable_kernel
+	url = https://github.com/ROCm/composable_kernel
