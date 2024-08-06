@@ -217,13 +217,12 @@ def summarize_xml_files(path, workflow_name):
     return res
 
 def run_command_and_capture_output(cmd):
-    if os.environ['TEST_CONFIG'] == 'distributed':
-        p = subprocess.run("rocminfo | grep -cE 'Name:\s+gfx'", shell=True, capture_output=True, text=True)
-        num_gpus_visible = int(p.stdout)
-        assert num_gpus_visible > 1, "Number of visible GPUs should be >1 to run TEST_CONFIG=distributed"
     try:
         print(f"Running command '{cmd}'")
         with open(CONSOLIDATED_LOG_FILE_PATH, "a+") as output_file:
+            print(f"========================================", file=output_file, flush=True)
+            print(f"[RUN_PYTORCH_UNIT_TESTS] Running command '{cmd}'", file=output_file, flush=True) # send to consolidated file as well
+            print(f"========================================", file=output_file, flush=True)
             p = subprocess.run(cmd, shell=True, stdout=output_file, stderr=STDOUT, text=True)
     except CalledProcessError as e:
         print(f"ERROR: Cmd {cmd} failed with return code: {e.returncode}!")
@@ -261,7 +260,7 @@ def run_priority_tests(workflow_name, test_run_test_path, overall_logs_path_curr
         copied_logs_path = overall_logs_path_current_run + "default_xml_results_priority_tests/"
         # use run_test.py for tests execution
         default_priority_test_suites = " ".join(DEFAULT_CORE_TESTS)
-        command = "python " + test_run_test_path + " --include " + default_priority_test_suites + " --exclude-jit-executor --exclude-distributed-tests --verbose"
+        command = "python3 " + test_run_test_path + " --include " + default_priority_test_suites + " --exclude-jit-executor --exclude-distributed-tests --verbose"
         run_command_and_capture_output(command)
         del os.environ['HIP_VISIBLE_DEVICES']
     elif workflow_name == "distributed":
@@ -270,7 +269,7 @@ def run_priority_tests(workflow_name, test_run_test_path, overall_logs_path_curr
         copied_logs_path = overall_logs_path_current_run + "distributed_xml_results_priority_tests/"
         # use run_test.py for tests execution
         distributed_priority_test_suites = " ".join(DISTRIBUTED_CORE_TESTS)
-        command = "python " + test_run_test_path + " --include " + distributed_priority_test_suites + " --distributed-tests --verbose"
+        command = "python3 " + test_run_test_path + " --include " + distributed_priority_test_suites + " --distributed-tests --verbose"
         run_command_and_capture_output(command)
         del os.environ['HIP_VISIBLE_DEVICES']
     copied_logs_path_destination = shutil.copytree(test_reports_src, copied_logs_path)
@@ -290,7 +289,7 @@ def run_selected_tests(workflow_name, test_run_test_path, overall_logs_path_curr
         copied_logs_path = overall_logs_path_current_run + "default_xml_results_selected_tests/"
         # use run_test.py for tests execution
         default_selected_test_suites = " ".join(selected_list)
-        command = "python " + test_run_test_path + " --include " + default_selected_test_suites  + " --exclude-jit-executor --exclude-distributed-tests --verbose"
+        command = "python3 " + test_run_test_path + " --include " + default_selected_test_suites  + " --exclude-jit-executor --exclude-distributed-tests --verbose"
         run_command_and_capture_output(command)
         del os.environ['HIP_VISIBLE_DEVICES']
     elif workflow_name == "distributed":
@@ -299,7 +298,7 @@ def run_selected_tests(workflow_name, test_run_test_path, overall_logs_path_curr
         copied_logs_path = overall_logs_path_current_run + "distributed_xml_results_selected_tests/"
         # use run_test.py for tests execution
         distributed_selected_test_suites = " ".join(selected_list)
-        command = "python " + test_run_test_path + " --include " + distributed_selected_test_suites + " --distributed-tests --verbose"
+        command = "python3 " + test_run_test_path + " --include " + distributed_selected_test_suites + " --distributed-tests --verbose"
         run_command_and_capture_output(command)
         del os.environ['HIP_VISIBLE_DEVICES']
     elif workflow_name == "inductor":
@@ -316,11 +315,11 @@ def run_selected_tests(workflow_name, test_run_test_path, overall_logs_path_curr
                 non_inductor_selected_test_suites += " "
         if inductor_selected_test_suites != "":
             inductor_selected_test_suites = inductor_selected_test_suites[:-1]
-            command = "python " + test_run_test_path + " --include " + inductor_selected_test_suites + " --verbose"
+            command = "python3 " + test_run_test_path + " --include " + inductor_selected_test_suites + " --verbose"
             run_command_and_capture_output(command)
         if non_inductor_selected_test_suites != "":
             non_inductor_selected_test_suites = non_inductor_selected_test_suites[:-1]
-            command = "python " + test_run_test_path + " --inductor --include " + non_inductor_selected_test_suites + " --verbose"
+            command = "python3 " + test_run_test_path + " --inductor --include " + non_inductor_selected_test_suites + " --verbose"
             run_command_and_capture_output(command)
     copied_logs_path_destination = shutil.copytree(test_reports_src, copied_logs_path)
     selected_results_dict = summarize_xml_files(copied_logs_path_destination, workflow_name)
@@ -371,10 +370,19 @@ def run_test_and_summarize_results(
     global CONSOLIDATED_LOG_FILE_PATH
     CONSOLIDATED_LOG_FILE_PATH = overall_logs_path_current_run + CONSOLIDATED_LOG_FILE_NAME
 
+    # Check multi gpu availability if distributed tests are enabled
+    if ("distributed" in args.test_config) or len(args.distributed_list) != 0:
+        check_num_gpus_for_distributed();
+
+    # Install test requirements
+    command = "pip3 install -r requirements.txt && pip3 install -r .ci/docker/requirements-ci.txt"
+    run_command_and_capture_output(command)
+
     # Run entire tests for each workflow
     if not priority_tests and not default_list and not distributed_list and not inductor_list:
         # run entire tests for default, distributed and inductor workflows → use test.sh
         if not test_config:
+            check_num_gpus_for_distributed();
             # default test process
             res_default_all = run_entire_tests("default", test_shell_path, overall_logs_path_current_run, test_reports_src)
             res_all_tests_dict["default"] = res_default_all
@@ -465,10 +473,15 @@ def parse_args():
                                                            "  test_file_and_status(file_name='test_file_name_1', status='SKIPPED'): {}, \n"
                                                            "  test_file_and_status(file_name='test_file_name_1', status='STATISTICS'): {} \n"
                                                            "}}\n")
-    parser.add_argument('--example_usages', type=str, help="RUN ALL TESTS: python run_pytorch_unit_tests.py \n"
-                                                            "RUN PRIORITY TESTS: python run_pytorch_unit_tests.py --test_config distributed --priority_test \n"
-                                                            "RUN SELECTED TESTS: python run_pytorch_unit_tests.py --default_list test_weak test_dlpack --inductor_list inductor/test_torchinductor")
+    parser.add_argument('--example_usages', type=str, help="RUN ALL TESTS: python3 run_pytorch_unit_tests.py \n"
+                                                            "RUN PRIORITY TESTS: python3 run_pytorch_unit_tests.py --test_config distributed --priority_test \n"
+                                                            "RUN SELECTED TESTS: python3 run_pytorch_unit_tests.py --default_list test_weak test_dlpack --inductor_list inductor/test_torchinductor")
     return parser.parse_args()
+
+def check_num_gpus_for_distributed():
+    p = subprocess.run("rocminfo | grep -cE 'Name:\s+gfx'", shell=True, capture_output=True, text=True)
+    num_gpus_visible = int(p.stdout)
+    assert num_gpus_visible > 1, "Number of visible GPUs should be >1 to run distributed unit tests"
 
 def main():
     global args
