@@ -312,7 +312,7 @@ bool IntraNodeComm::rendezvous() {
   DevInfo devInfo{};
   gethostname(devInfo.hostname, sizeof(devInfo.hostname));
 
-#if defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
+#if defined(USE_ROCM)
   auto ret = rsmi_init(0);
   if (ret != RSMI_STATUS_SUCCESS) {
     LOG(ERROR) << "IntraNodeComm:: rendezvous failed in rsmi_init, ret=" << ret;
@@ -323,10 +323,10 @@ bool IntraNodeComm::rendezvous() {
   cudaDeviceProp prop{};
   AT_CUDA_CHECK(cudaGetDeviceProperties(&prop, deviceIdx_));
 
-#if defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
-  auto pci_format = "%08X:%02X:%02X.0";
-#else
+#if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
   auto pci_format = NVML_DEVICE_PCI_BUS_ID_FMT;
+#else
+  auto pci_format = "%08X:%02X:%02X.0";
 #endif
 
   snprintf(
