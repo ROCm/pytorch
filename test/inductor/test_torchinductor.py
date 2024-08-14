@@ -5071,7 +5071,6 @@ class CommonTemplate:
 
         self.common(fn, (x,))
 
-<<<<<<< HEAD
     def test_polar(self):
         def fn(dist, angle):
             return torch.polar(dist, angle)
