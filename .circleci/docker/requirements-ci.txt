@@ -129,9 +129,9 @@ opt-einsum==3.3
 #Pinned versions: 3.3
 #test that import: test_linalg.py
 
-#pillow==10.3.0
+pillow==10.3.0
 #Description:  Python Imaging Library fork
-#Pinned versions:
+#Pinned versions: 10.3.0
 #test that import:
 
 protobuf==3.20.2
