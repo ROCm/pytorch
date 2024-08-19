@@ -3688,6 +3688,7 @@ class NCCLTraceTest(NCCLTraceTestBase):
                 pg.allreduce(a).wait()
             e.synchronize()
             # gah ok so now the duration_ms is populated best-effort since it can only happen outside "dump()" api
+            # adding 1 sec delay for NAVI31 GPUs
             time.sleep(1)
             t = pickle.loads(torch._C._distributed_c10d._dump_nccl_trace())
             t = t["entries"]
@@ -3810,6 +3811,7 @@ class NCCLTraceTest(NCCLTraceTestBase):
             time.sleep(1)
 
         # gah ok so now the duration_ms is populated best-effort since it can only happen outside "dump()" api
+        # adding 1 sec delay for NAVI31 GPUs
         time.sleep(1)
 
         t = pickle.loads(torch._C._distributed_c10d._dump_nccl_trace())
