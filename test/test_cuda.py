@@ -26,7 +26,7 @@ from torch.cuda._memory_viz import segment_plot
 from torch import inf, nan
 from torch.utils.checkpoint import checkpoint_sequential
 from torch.testing._internal.common_utils import TestCase, freeze_rng_state, run_tests, \
-    NO_MULTIPROCESSING_SPAWN, skipIfRocm, load_tests, IS_WINDOWS, \
+    NO_MULTIPROCESSING_SPAWN, skipIfRocm, skipIfRocmArch, load_tests, IS_WINDOWS, \
     slowTest, skipCUDANonDefaultStreamIf, skipCUDAMemoryLeakCheckIf, TEST_CUDA, TEST_CUDA_GRAPH, TEST_WITH_ROCM, TEST_NUMPY, \
     get_cycles_per_ms, parametrize, instantiate_parametrized_tests, subtest, IS_JETSON, gcIfJetson, NoTest, IS_LINUX, IS_ARM64
 from torch.testing._internal.common_cuda import TEST_CUDNN, TEST_MULTIGPU, \
@@ -51,6 +51,7 @@ except ImportError:
     HAS_TORCHVISION = False
 skipIfNoTorchVision = unittest.skipIf(not HAS_TORCHVISION, "no torchvision")
 
+MI300_ARCH = ("gfx940", "gfx942") # Used for MI300 exclusive skips on ROCm
 TEST_CUDAMALLOCASYNC = TEST_CUDA and (torch.cuda.get_allocator_backend() == "cudaMallocAsync")
 TEST_LARGE_TENSOR = TEST_CUDA
 TEST_MEDIUM_TENSOR = TEST_CUDA
@@ -1636,7 +1637,7 @@ torch.cuda.synchronize()
     # cudnn RNNs require special backend handling (weights are cast to FP16 and reflattened)
     # so they get a dedicated test.
     # Despite the large number of RNN cases it tries, the test takes < 15 seconds on a Titan V (similar to V100).
-    @skipIfRocm
+    @skipIfRocmArch(MI300_ARCH)
     @unittest.skipIf(not TEST_CUDNN, 'CUDNN not available')
     def test_autocast_rnn(self):
         with torch.backends.cudnn.flags(enabled=True, deterministic=True):
