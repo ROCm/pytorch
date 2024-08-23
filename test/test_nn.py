@@ -8253,12 +8253,13 @@ class TestNNDeviceType(NNTestCase):
             with torch.backends.cudnn.flags(enabled=False): # force to use native nhwc batchnorm
                 ref_out = ref_mod(ref_input)
                 ref_out.backward(ref_grad)
-            failed = False
             self.assertTrue(out.is_contiguous(memory_format=memory_format))
             self.assertTrue(ref_out.is_contiguous(memory_format=memory_format))
             self.assertEqual(out, ref_out)
             self.assertEqual(mod.weight.grad, ref_mod.weight.grad)
             self.assertEqual(mod.bias.grad, ref_mod.bias.grad)
+            self.assertEqual(mod.running_mean, ref_mod.running_mean)
+            self.assertEqual(mod.running_var, ref_mod.running_var)
             self.assertEqual(input.grad, ref_input.grad)
 
         size = (4, 8, 2, 2)
