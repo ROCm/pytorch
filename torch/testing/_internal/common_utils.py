@@ -104,6 +104,9 @@ except ImportError:
     has_pytest = False
 
 
+MI300_ARCH = ("gfx940", "gfx941", "gfx942")
+
+
 def freeze_rng_state(*args, **kwargs):
     return torch.testing._utils.freeze_rng_state(*args, **kwargs)
 
@@ -1780,7 +1783,7 @@ def runOnRocmArch(arch: Tuple[str, ...]):
             if TEST_WITH_ROCM:
                 prop = torch.cuda.get_device_properties(0)
                 if prop.gcnArchName.split(":")[0] not in arch:
-                    reason = f"skipIfRocm: test skipped on {arch}"
+                    reason = f"skipIfRocm: test only runs on {arch}"
                     raise unittest.SkipTest(reason)
             return fn(self, *args, **kwargs)
         return wrap_fn
