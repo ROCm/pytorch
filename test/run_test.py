@@ -187,7 +187,7 @@ ROCM_BLOCKLIST = [
     "distributed/_tensor/test_attention",
 ]
 # Remove test_typing if python version is 3.9.* or less
-if Version(numpy.__version__) < Version('1.21.1'):
+if Version(numpy.__version__) < Version('1.21'):
     ROCM_BLOCKLIST.extend(["test_typing"])
 
 XPU_BLOCKLIST = [
