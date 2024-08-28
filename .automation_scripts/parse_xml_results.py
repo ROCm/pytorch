@@ -108,9 +108,15 @@ def parse_xml_report(
             test_cases[ ( case["invoking_file"], case["classname"], case["name"], case["work_flow_name"] ) ] = case
         elif tag == 'testsuite':
             case["work_flow_name"] = work_flow_name
-            case["invoking_file"] = report.parent.name
             case["invoking_xml"] = report.name
             case["running_time_xml"] = case["time"]
+            case_name = report.parent.name
+            for ind in range(len(BACKENDS_LIST)):
+                if BACKENDS_LIST[ind] in report.parts:
+                    case_name = case_name + "_" + BACKENDS_LIST[ind]
+                    break
+            case["invoking_file"] = case_name
+
             test_cases[ ( case["invoking_file"], case["invoking_xml"], case["work_flow_name"] ) ] = case
 
     return test_cases

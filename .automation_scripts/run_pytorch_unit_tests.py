@@ -144,7 +144,7 @@ def summarize_xml_files(path, workflow_name):
     res = {}
     res_item_list = [ "PASSED", "SKIPPED", "XFAILED", "FAILED", "ERROR" ]
     test_file_items = set()
-    for (k,v) in list(test_cases.items()):
+    for (k,v) in list(test_suites.items()):
         file_name = k[0]
         if not file_name in test_file_items:
             test_file_items.add(file_name)
