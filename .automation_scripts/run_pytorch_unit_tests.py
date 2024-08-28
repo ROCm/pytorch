@@ -326,13 +326,16 @@ def run_selected_tests(workflow_name, test_run_test_path, overall_logs_path_curr
 
     return selected_results_dict
 
-def run_test_and_summarize_results(
-    pytorch_root_dir: str,
-    priority_tests: bool,
-    test_config: List[str],
-    default_list: List[str],
-    distributed_list: List[str],
-    inductor_list: List[str]) -> Dict[str, Any]:
+def run_test_and_summarize_results() -> Dict[str, Any]:
+    # parse args
+    args = parse_args()
+    pytorch_root_dir = str(args.pytorch_root)
+    priority_tests = bool(args.priority_tests)
+    test_config = list[str](args.test_config)
+    default_list = list[str](args.default_list)
+    distributed_list = list[str](args.distributed_list)
+    inductor_list = list[str](args.inductor_list)
+
     # copy current environment variables
     _environ = dict(os.environ)
     
@@ -484,9 +487,7 @@ def check_num_gpus_for_distributed():
     assert num_gpus_visible > 1, "Number of visible GPUs should be >1 to run distributed unit tests"
 
 def main():
-    global args
-    args = parse_args()
-    all_tests_results = run_test_and_summarize_results(args.pytorch_root, args.priority_tests, args.test_config, args.default_list, args.distributed_list, args.inductor_list)
+    all_tests_results = run_test_and_summarize_results()
     pprint(dict(all_tests_results))
 
 if __name__ == "__main__":
