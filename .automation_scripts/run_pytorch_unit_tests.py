@@ -335,6 +335,7 @@ def run_test_and_summarize_results() -> Dict[str, Any]:
     default_list = list[str](args.default_list)
     distributed_list = list[str](args.distributed_list)
     inductor_list = list[str](args.inductor_list)
+    skip_rerun = bool(args.skip_rerun)
 
     # copy current environment variables
     _environ = dict(os.environ)
@@ -361,6 +362,9 @@ def run_test_and_summarize_results() -> Dict[str, Any]:
     os.environ['HSA_FORCE_FINE_GRAIN_PCIE'] = '1'
     os.environ['PYTORCH_TESTING_DEVICE_ONLY_FOR'] = 'cuda'
     os.environ['CONTINUE_THROUGH_ERROR'] = 'True'
+    os.environ['SKIP_RERUN'] = 'False'
+    if skip_rerun:
+        os.environ['SKIP_RERUN'] = 'True'
 
     # Time stamp
     current_datetime = datetime.now().strftime("%Y%m%d_%H-%M-%S")
@@ -468,6 +472,7 @@ def parse_args():
     parser.add_argument('--distributed_list', nargs='+', default=[], help="space-separated list of 'distributed' config test suites/files to be executed eg. 'distributed/test_c10d_common distributed/test_c10d_nccl'")
     parser.add_argument('--inductor_list', nargs='+', default=[], help="space-separated list of 'inductor' config test suites/files to be executed eg. 'inductor/test_torchinductor test_ops'")
     parser.add_argument('--pytorch_root', default='.', type=str, help="PyTorch root directory")
+    parser.add_argument('--skip_rerun', action='store_true', help="skip rerun process")
     parser.add_argument('--example_output', type=str, help="{'workflow_name': {\n"
                                                            "  test_file_and_status(file_name='workflow_aggregate', status='STATISTICS'): {}, \n"
                                                            "  test_file_and_status(file_name='test_file_name_1', status='ERROR'): {}, \n"
