@@ -18,6 +18,7 @@ from torch.nn.attention.flex_attention import (
 )
 from torch.testing import FileCheck
 from torch.testing._internal import common_utils
+from torch.testing._internal.common_utils import skipIfRocm
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_BF16
 from torch.utils._triton import has_triton
 
@@ -264,6 +265,8 @@ class TestFlexDecoding(InductorTestCase):
         KV_D: int = D,
     ):
         assert Q_H % KV_H == 0
+        if TEST_WITH_ROCM and Q_H != KV_H:
+            self.skipTest('enable_gqa=True is unsupported on ROCM, for now')
         q = torch.randn(
             (Q_B, Q_H, Q_S, Q_D),
             dtype=dtype,
@@ -762,6 +765,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
 
         self.run_test(bias_mod)
 
+    @skipIfRocm
     @supported_platform
     def test_windowed_no_mask_vs_sdpa(self):
         score_mod = _generate_windowed(1000)
