@@ -1049,8 +1049,6 @@ def get_pytest_args(options, is_cpp_test=False, is_distributed_test=False):
         # When under the normal mode, retry a failed test 2 more times. -x means stop at the first
         # failure
         rerun_options = ["-x", "--reruns=2"]
-        if (os.getenv('SKIP_RERUN', 'False') == 'True'):
-            rerun_options = ["-x", "--reruns=0"]
 
     pytest_args = [
         "-vv",

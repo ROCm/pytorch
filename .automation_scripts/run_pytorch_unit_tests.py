@@ -154,13 +154,14 @@ def summarize_xml_files(path, workflow_name):
                 res[temp_item] = {}
             temp_item_statistics = test_file_and_status(file_name, "STATISTICS")
             res[temp_item_statistics] = {'TOTAL': 0, 'PASSED': 0, 'SKIPPED': 0, 'XFAILED': 0, 'FAILED': 0, 'ERROR': 0, 'EXECUTION_TIME': 0}
-
-    for (k,v) in list(test_suites.items()):
-        file_name = k[0]
-        test_tuple_key_statistics = test_file_and_status(file_name, "STATISTICS")
-        test_running_time = get_test_file_running_time(v)
-        res[test_tuple_key_statistics]["EXECUTION_TIME"] += test_running_time
-        TOTAL_EXECUTION_TIME += test_running_time
+            test_running_time = get_test_file_running_time(v)
+            res[temp_item_statistics]["EXECUTION_TIME"] += test_running_time
+            TOTAL_EXECUTION_TIME += test_running_time
+        else:
+            test_tuple_key_statistics = test_file_and_status(file_name, "STATISTICS")
+            test_running_time = get_test_file_running_time(v)
+            res[test_tuple_key_statistics]["EXECUTION_TIME"] += test_running_time
+            TOTAL_EXECUTION_TIME += test_running_time
 
     for (k,v) in list(test_cases.items()):
         file_name = k[0]
@@ -345,12 +346,17 @@ def run_test_and_summarize_results() -> Dict[str, Any]:
     test_run_test_path = pytorch_root_dir + "/test/run_test.py"
     repo_test_log_folder_path = pytorch_root_dir + "/.automation_logs/"
     test_reports_src = pytorch_root_dir + "/test/test-reports/"
+    run_test_python_file = pytorch_root_dir + "/test/run_test.py"
 
     # change directory to pytorch root
     os.chdir(pytorch_root_dir)
 
     # all test results dict
     res_all_tests_dict = {}
+
+    # patterns
+    search_text = "--reruns=2"
+    replace_text = "--reruns=0"
 
     # create logs folder
     if not os.path.exists(repo_test_log_folder_path):
@@ -362,9 +368,13 @@ def run_test_and_summarize_results() -> Dict[str, Any]:
     os.environ['HSA_FORCE_FINE_GRAIN_PCIE'] = '1'
     os.environ['PYTORCH_TESTING_DEVICE_ONLY_FOR'] = 'cuda'
     os.environ['CONTINUE_THROUGH_ERROR'] = 'True'
-    os.environ['SKIP_RERUN'] = 'False'
     if skip_rerun:
-        os.environ['SKIP_RERUN'] = 'True'
+        # modify run_test.py in-place
+        with open(run_test_python_file, 'r') as file:
+            data = file.read()
+            data = data.replace(search_text, replace_text)
+        with open(run_test_python_file, 'w') as file:
+            file.write(data)
 
     # Time stamp
     current_datetime = datetime.now().strftime("%Y%m%d_%H-%M-%S")
@@ -461,6 +471,15 @@ def run_test_and_summarize_results() -> Dict[str, Any]:
     # restore environment variables
     os.environ.clear()
     os.environ.update(_environ)
+
+    # restore files
+    if skip_rerun:
+        # modify run_test.py in-place
+        with open(run_test_python_file, 'r') as file:
+            data = file.read()
+            data = data.replace(replace_text, search_text)
+        with open(run_test_python_file, 'w') as file:
+            file.write(data)
 
     return res_all_tests_dict
 
