@@ -45,6 +45,7 @@ from torch.testing._internal.common_utils import (
     run_tests,
     retry_on_connect_failures,
     sandcastle_skip,
+    skipIfRocm,
 )
 
 
@@ -1349,6 +1350,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
 
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
+    @skipIfRocm
     def test_reduce_stress_cuda(self):
         inputs = [torch.tensor([i + self.rank]).cuda() for i in range(1000)]
         self._test_reduce_stress(inputs)
