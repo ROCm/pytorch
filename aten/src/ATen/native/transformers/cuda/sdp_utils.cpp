@@ -22,7 +22,7 @@
 #include <functional>
 
 #if USE_ROCM
-#if defined(USE_FLASH_ATTENTION) || defined(USE_MEM_EFF_ATTENTION)
+#if defined(USE_FLASH_ATTENTION)
 #include <aotriton/flash.h>
 #define USE_AOTRITON 1
 #endif
