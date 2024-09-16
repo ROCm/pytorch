@@ -14,7 +14,6 @@ coverage.xml
 .gradle
 .hypothesis
 .mypy_cache
-.additional_ci_files
 /.extracted_scripts/
 **/.pytorch_specified_test_cases.csv
 **/.pytorch-disabled-tests.json
