@@ -5,15 +5,7 @@ if(NOT __AOTRITON_INCLUDED)
   set(__AOTRITON_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/aotriton/build")
   set(__AOTRITON_INSTALL_DIR "${PROJECT_SOURCE_DIR}/torch")
   add_library(__caffe2_aotriton INTERFACE)
-  # Note it is INSTALL"ED"
-  if(DEFINED ENV{AOTRITON_INSTALLED_PREFIX})
-    install(DIRECTORY
-            $ENV{AOTRITON_INSTALLED_PREFIX}/lib
-            $ENV{AOTRITON_INSTALLED_PREFIX}/include
-            DESTINATION ${__AOTRITON_INSTALL_DIR})
-    set(__AOTRITON_INSTALL_DIR "$ENV{AOTRITON_INSTALLED_PREFIX}")
-    message(STATUS "Using Preinstalled AOTriton at ${__AOTRITON_INSTALL_DIR}")
-  elseif(DEFINED ENV{AOTRITON_INSTALL_FROM_SOURCE})
+  if(DEFINED ENV{AOTRITON_INSTALL_FROM_SOURCE})
     file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/.ci/docker/aotriton_version.txt" __AOTRITON_CI_INFO)
     list(GET __AOTRITON_CI_INFO 3 __AOTRITON_CI_COMMIT)
     ExternalProject_Add(aotriton_external
@@ -40,7 +32,7 @@ if(NOT __AOTRITON_INCLUDED)
   else()
     file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/.ci/docker/aotriton_version.txt" __AOTRITON_CI_INFO)
     list(GET __AOTRITON_CI_INFO 0 __AOTRITON_VER)
-    list(GET __AOTRITON_CI_INFO 1 __AOTRITON_MANY)
+    list(GET __AOTRITON_CI_INFO 1 __AOTRITON_MANYLINUX_LIST)
     list(GET __AOTRITON_CI_INFO 2 __AOTRITON_ROCM_LIST)
     list(GET __AOTRITON_CI_INFO 3 __AOTRITON_COMMIT)
     list(GET __AOTRITON_CI_INFO 4 __AOTRITON_SHA256_LIST)
@@ -58,11 +50,12 @@ if(NOT __AOTRITON_INCLUDED)
     else()
       set(__AOTRITON_ROCM ${__AOTRITON_SYSTEM_ROCM})
     endif()
-    list(FIND __AOTRITON_ROCM_LIST "rocm${__AOTRITON_ROCM}" __AOTRITON_SHA256_INDEX)
-    list(GET __AOTRITON_SHA256_LIST ${__AOTRITON_SHA256_INDEX} __AOTRITON_SHA256)
+    list(FIND __AOTRITON_ROCM_LIST "rocm${__AOTRITON_ROCM}" __AOTRITON_ROCM_INDEX)
+    list(GET __AOTRITON_SHA256_LIST ${__AOTRITON_ROCM_INDEX} __AOTRITON_SHA256)
+    list(GET __AOTRITON_MANYLINUX_LIST ${__AOTRITON_ROCM_INDEX} __AOTRITON_MANYLINUX)
     set(__AOTRITON_ARCH "x86_64")
     string(CONCAT __AOTRITON_FILE "aotriton-"
-                                  "${__AOTRITON_VER}-${__AOTRITON_MANY}"
+                                  "${__AOTRITON_VER}-${__AOTRITON_MANYLINUX}"
                                   "_${__AOTRITON_ARCH}-rocm${__AOTRITON_ROCM}"
                                   "-shared.tar.${__AOTRITON_Z}")
     string(CONCAT __AOTRITON_URL "https://github.com/ROCm/aotriton/releases/download/"
