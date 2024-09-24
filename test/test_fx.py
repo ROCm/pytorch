@@ -4132,7 +4132,6 @@ class TestFXAPIBackwardCompatibility(JitTestCase):
                   f"and subsequently --accept the change."
             raise AssertionError(msg) from e
 
-    @skipIfRocm(msg="TODO: flaky - https://github.com/pytorch/pytorch/issues/104012")
     def test_public_api_surface(self):
         non_back_compat_objects = {}
 
