@@ -5070,7 +5070,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             inp2 = inp1.contiguous(memory_format=torch.channels_last)
             out1 = model(inp1)
             out2 = model(inp2)
-            self.assertTrue(torch.equal(out1, out2))
+            self.assertEqual(out1, out2)
 
     def test_batchnorm_load_state_dict(self):
         bn = torch.nn.BatchNorm2d(3)
