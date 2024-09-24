@@ -5,7 +5,15 @@ if(NOT __AOTRITON_INCLUDED)
   set(__AOTRITON_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/aotriton/build")
   set(__AOTRITON_INSTALL_DIR "${PROJECT_SOURCE_DIR}/torch")
   add_library(__caffe2_aotriton INTERFACE)
-  if(DEFINED ENV{AOTRITON_INSTALL_FROM_SOURCE})
+  # Note it is INSTALL"ED"
+  if(DEFINED ENV{AOTRITON_INSTALLED_PREFIX})
+    install(DIRECTORY
+            $ENV{AOTRITON_INSTALLED_PREFIX}/lib
+            $ENV{AOTRITON_INSTALLED_PREFIX}/include
+            DESTINATION ${__AOTRITON_INSTALL_DIR})
+    set(__AOTRITON_INSTALL_DIR "$ENV{AOTRITON_INSTALLED_PREFIX}")
+    message(STATUS "Using Preinstalled AOTriton at ${__AOTRITON_INSTALL_DIR}")
+  elseif(DEFINED ENV{AOTRITON_INSTALL_FROM_SOURCE})
     file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/.ci/docker/aotriton_version.txt" __AOTRITON_CI_INFO)
     list(GET __AOTRITON_CI_INFO 3 __AOTRITON_CI_COMMIT)
     ExternalProject_Add(aotriton_external
