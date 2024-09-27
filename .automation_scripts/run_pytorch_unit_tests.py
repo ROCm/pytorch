@@ -397,7 +397,7 @@ def run_test_and_summarize_results(
     if not priority_tests and not default_list and not distributed_list and not inductor_list:
         # run entire tests for default, distributed and inductor workflows → use test.sh
         if not test_config:
-            check_num_gpus_for_distributed();
+            check_num_gpus_for_distributed()
             # default test process
             res_default_all = run_entire_tests("default", test_shell_path, overall_logs_path_current_run, test_reports_src)
             res_all_tests_dict["default"] = res_default_all
@@ -423,6 +423,7 @@ def run_test_and_summarize_results(
     # Run priority test for each workflow
     elif priority_tests and not default_list and not distributed_list and not inductor_list:
         if not test_config:
+            check_num_gpus_for_distributed()
             # default test process
             res_default_priority = run_priority_tests("default", test_run_test_path, overall_logs_path_current_run, test_reports_src)
             res_all_tests_dict["default"] = res_default_priority
