@@ -108,7 +108,7 @@ class TestMatmulCuda(TestCase):
         res_cuda = res_cuda.to("cpu")
         # Compare
         if dtype == torch.float16:
-            self.assertEqual(res_cpu, res_cuda, atol=size*2.5e-5, rtol=0.0)
+            self.assertEqual(res_cpu, res_cuda, atol=size * 2.5e-5, rtol=0.0)
         else:
             self.assertEqual(res_cpu, res_cuda)
 
