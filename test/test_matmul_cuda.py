@@ -214,7 +214,7 @@ class TestMatmulCuda(TestCase):
 
 f8_msg = "FP8 is only supported on H100+ and sm_89 and MI300+ devices"
 
-if torch.version.hip:
+if torch.version.hip and 'gfx94' in torch.cuda.get_device_properties(0).gcnArchName:
     e4m3_type = torch.float8_e4m3fnuz
     e5m2_type = torch.float8_e5m2fnuz
     E4M3_MAX_POS = torch.finfo(torch.float8_e4m3fnuz).max
@@ -351,13 +351,9 @@ class TestFP8MatmulCuda(TestCase):
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
     def test_float8_basics(self, device) -> None:
         self._test_tautological_mm(device, e4m3_type, e4m3_type, size=16)
-        if torch.version.hip is None:
-            # According to https://docs.nvidia.com/cuda/cublas/#id99 8F_E5M2 MM is unsupported
-            with self.assertRaises(RuntimeError):
-                self._test_tautological_mm(device, e5m2_type, e5m2_type)
-        else:
+        # According to https://docs.nvidia.com/cuda/cublas/#id99 8F_E5M2 MM is unsupported
+        with self.assertRaises(RuntimeError):
             self._test_tautological_mm(device, e5m2_type, e5m2_type)
-
 
         self._test_tautological_mm(device, e4m3_type, e5m2_type, size=32)
         self._test_tautological_mm(device, e5m2_type, e4m3_type, size=48)
