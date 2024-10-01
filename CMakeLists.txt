@@ -17,6 +17,10 @@ cmake_policy(SET CMP0069 NEW)
 # and it's possible on our Windows configs.
 cmake_policy(SET CMP0092 NEW)
 
+include(CMakePrintHelpers)
+
+
+
 # Prohibit in-source builds
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source build are not supported")
@@ -773,7 +777,7 @@ set(CAFFE2_ALLOWLIST
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Build type not set - defaulting to Release")
   set(CMAKE_BUILD_TYPE
-      "Release"
+      "Debug"
       CACHE
         STRING
         "Choose the type of build from: Debug Release RelWithDebInfo MinSizeRel Coverage."
@@ -851,6 +855,8 @@ endif()
 # aotriton build decision later.
 
 include(cmake/Dependencies.cmake)
+message("BEFORE USE_FLASH ATTENTION IS SUPPOSEDLY CREATED")
+cmake_print_variables(USE_FLASH_ATTENTION)
 
 cmake_dependent_option(
   USE_FLASH_ATTENTION
@@ -859,6 +865,93 @@ cmake_dependent_option(
   ON
   "USE_CUDA OR USE_ROCM;NOT MSVC"
   OFF)
+
+message("AFTER USE_FLASH_ATTENTION IS CREATED")
+
+
+if(USE_FLASH_ATTENTION)
+  message("MADE IT HERE")
+  cmake_print_variables(Python3_EXECUTABLE)
+  execute_process(COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py --api fwd,fwd_splitkv --list_blobs ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/fwd_blob_list.txt --receipt 3
+  )
+  execute_process(COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py --api bwd --list_blobs ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/bwd_blob_list.txt --receipt 3
+  )
+  message("MADE IT PAST EXECUTE_PROCESS")
+  # NOTE: for cmake, the FMHA_FWD_GEN_BLOBS/FMHA_BWD_GEN_BLOBS files must be in the same directory
+  #       as current cmake list, otherwise will not figure out the dependency properly
+  file(STRINGS ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/fwd_blob_list.txt FMHA_FWD_GEN_BLOBS)
+  file(STRINGS ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/bwd_blob_list.txt FMHA_BWD_GEN_BLOBS)
+
+  #add_custom_command(
+  #  OUTPUT ${FMHA_FWD_GEN_BLOBS}
+  #  COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py
+  #  --api fwd,fwd_splitkv --output_dir ${CMAKE_CURRENT_LIST_DIR}
+  #)
+
+  #add_custom_command(
+  #  OUTPUT ${FMHA_BWD_GEN_BLOBS}
+  #  COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py
+  #  --api bwd --output_dir ${CMAKE_CURRENT_LIST_DIR}
+  #)
+  execute_process(COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py --api fwd,fwd_splitkv --output_dir ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/ --receipt 3
+  )
+  execute_process(COMMAND python3 ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/generate.py --api bwd --output_dir ${CMAKE_CURRENT_LIST_DIR}/aten/src/ATen/native/transformers/hip/flash_attn/ --receipt 3
+  )
+
+  execute_process(COMMAND ls ${CMAKE_CURRENT_LIST_DIR})
+
+  
+  set(EXAMPLE_FMHA_FWD "tile_example_fmha_fwd")
+  # not using add_example_executable() to add this target, since we don't want this to have
+  # to be included in "make all/install/check"
+  message("adding example ${EXAMPLE_FMHA_FWD}")
+  add_executable(${EXAMPLE_FMHA_FWD} EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/fmha_fwd.cpp)
+  target_include_directories(${EXAMPLE_FMHA_FWD} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/)
+  target_sources(${EXAMPLE_FMHA_FWD} PRIVATE ${FMHA_FWD_GEN_BLOBS})
+
+  set(EXAMPLE_FMHA_BWD "tile_example_fmha_bwd")
+  # not using add_example_executable() to add this target, since we don't want this to have
+  # to be included in "make all/install/check"
+  message("adding example ${EXAMPLE_FMHA_BWD}")
+  add_executable(${EXAMPLE_FMHA_BWD} EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/01_fmha/fmha_bwd.cpp)
+  target_include_directories(${EXAMPLE_FMHA_BWD} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/composable_kernel/example/ck_tile/)
+  target_sources(${EXAMPLE_FMHA_BWD} PRIVATE ${FMHA_BWD_GEN_BLOBS})
+
+  # NOTE: this is dangerous since will change the whole kernel to flush denormals
+  #       WIP with compiler team for an exp2 intrinsic..., then remove this
+  if(NOT DEFINED FMHA_FWD_FAST_EXP2)
+    set(FMHA_FWD_FAST_EXP2 true)
+  endif()
+
+  set(EXAMPLE_FMHA_FWD_COMPILE_OPTIONS)
+  set(EXAMPLE_FMHA_BWD_COMPILE_OPTIONS)
+
+  # NOTE: we turn off undefined-func-template to let source compile without explicit declare function specializations
+  #       ... because they are auto-generated
+  if(FMHA_FWD_FAST_EXP2)
+    list(APPEND EXAMPLE_FMHA_FWD_COMPILE_OPTIONS -Wno-undefined-func-template -DCK_TILE_FMHA_FWD_FAST_EXP2=1 -fgpu-flush-denormals-to-zero)
+    list(APPEND EXAMPLE_FMHA_BWD_COMPILE_OPTIONS -Wno-undefined-func-template -DCK_TILE_FMHA_FWD_FAST_EXP2=1 -fgpu-flush-denormals-to-zero)
+  else()
+    list(APPEND EXAMPLE_FMHA_FWD_COMPILE_OPTIONS -Wno-undefined-func-template -DCK_TILE_FMHA_FWD_FAST_EXP2=0)
+    list(APPEND EXAMPLE_FMHA_BWD_COMPILE_OPTIONS -Wno-undefined-func-template -DCK_TILE_FMHA_FWD_FAST_EXP2=0)
+  endif()
+
+  # Allow comparing floating points directly in order to check sentinel values
+  list(APPEND EXAMPLE_FMHA_FWD_COMPILE_OPTIONS -Wno-float-equal)
+  list(APPEND EXAMPLE_FMHA_BWD_COMPILE_OPTIONS -Wno-float-equal)
+
+  target_compile_options(${EXAMPLE_FMHA_FWD} PRIVATE ${EXAMPLE_FMHA_FWD_COMPILE_OPTIONS})
+  target_compile_options(${EXAMPLE_FMHA_BWD} PRIVATE ${EXAMPLE_FMHA_BWD_COMPILE_OPTIONS})
+
+  # TODO: we have to turn off this global prop, otherwise the progress bar generated
+  # by cmake will print too many files, execvp: /bin/sh: Argument list too long
+  # however, this property may affect global
+  # TODO: consider codegen a makefile by us
+  set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
+  
+  message("ANDY! WE MADE IT TO THE END OF OUR BLURB!")
+endif()
+
 
 # We are currenlty not using alibi attention for Flash So we disable this
 # feature by default We dont currently document this feature because we don't
@@ -871,7 +964,7 @@ cmake_dependent_option(
   USE_MEM_EFF_ATTENTION
   "Enable memory-efficient attention for scaled dot product attention.\
   Will be disabled if not supported by the platform" ON
-  "USE_CUDA OR USE_ROCM" OFF)
+  "USE_CUDA" OFF)
 
 if(DEBUG_CUDA)
   string(APPEND CMAKE_CUDA_FLAGS_DEBUG " -lineinfo")

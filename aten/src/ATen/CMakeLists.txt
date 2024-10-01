@@ -169,6 +169,7 @@ file(GLOB flash_attention_cuda_cpp "native/transformers/cuda/flash_attn/*.cpp")
 # flash_attention sources
 file(GLOB flash_attention_hip_hip "native/transformers/hip/flash_attn/*.hip")
 file(GLOB flash_attention_src_hip_hip "native/transformers/hip/flash_attn/src/*.hip")
+file(GLOB flash_attention_hip_cpp "native/transformers/hip/flash_attn/*.cpp")
 
 #Mem_eff attention sources
 file(GLOB mem_eff_attention_cuda_cu "native/transformers/cuda/mem_eff_attention/*.cu")
@@ -184,6 +185,14 @@ if(USE_FLASH_ATTENTION)
 
   list(APPEND native_transformers_hip_hip ${flash_attention_hip_hip})
   list(APPEND native_transformers_src_hip_hip ${flash_attention_src_hip_hip})
+  add_subdirectory(native/transformers/hip/flash_attn)
+  set_source_files_properties(
+      ${flash_attention_hip_cpp}
+      DIRECTORY "native/transformers/hip/flash_attn/"
+      PROPERTIES
+      COMPILE_FLAGS "-Wno-undefined-func-template"
+  )
+  list(APPEND native_transformers_hip_cpp ${flash_attention_hip_cpp})
 endif()
 
 if(USE_MEM_EFF_ATTENTION)
@@ -309,6 +318,7 @@ if(USE_ROCM)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/hip)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/include)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/library/include)
+  list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/example/ck_tile/01_fmha/)
   list(APPEND ATen_HIP_SRCS
     ${ATen_HIP_SRCS}
     ${hip_hip}

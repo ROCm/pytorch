@@ -2891,7 +2891,7 @@ class TestSDPACudaOnly(NNTestCase):
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support SDPA or pre-SM80 hardware")
     @unittest.skipIf(IS_JETSON, "causing sigkill on Jetson")
     @parametrize("batch_size", [1, 8])
-    @parametrize("seq_len_q", [4, 8, 64, 143, 256, 512, 1024, 2048])
+    @parametrize("seq_len_q", [4, 8, 64, 128, 143, 256, 512, 1024, 2048])
     @parametrize("seq_len_k", [4, 8, 64, 128, 256, 587, 1024, 2048])
     @parametrize("head_dim", [8, 16, 21, 32, 64, 72, 96, 128, 160, 192, 203, 256])
     @parametrize("is_causal", [True, False])
@@ -2907,6 +2907,10 @@ class TestSDPACudaOnly(NNTestCase):
             self.skipTest("Flash V2 does not accept is_casual when seq_len_q != seq_len_k")
         if TEST_WITH_ROCM and seq_len_q >= 1024 and seq_len_k >= 1024 and batch_size > 1:
             torch.cuda.empty_cache()  # Prevent memory fragmentation
+        if TEST_WITH_ROCM and dropout_p != 0:
+            self.skipTest("CK does not support tensor format dropout masks")
+        if TEST_WITH_ROCM and head_dim > 128:
+            self.skipTest("CK does not support head dims over 128")
 
         scale = scale if scale is None else (1 / head_dim)
         n_heads = 4
