@@ -4,7 +4,6 @@ import argparse
 import copy
 import glob
 import json
-import numpy
 import os
 import pathlib
 import re
@@ -37,6 +36,8 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_ROCM,
     TEST_WITH_SLOW_GRADCHECK,
 )
+
+import numpy
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
