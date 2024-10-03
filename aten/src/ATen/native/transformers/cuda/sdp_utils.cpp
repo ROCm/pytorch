@@ -208,7 +208,6 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
       return false;
     }
   }
-  return true;
 #else
   return false;
 #endif
@@ -253,7 +252,6 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
       return false;
     }
   }
-  return true;
 #else
   return false;
 #endif
@@ -269,9 +267,8 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
     }
     return false;
   }
-  return true;
 #endif
-  return false;
+  return true;
 }
 
 bool check_requires_grad_and_head_dim_gt192_constraints_on_sm86_89(
