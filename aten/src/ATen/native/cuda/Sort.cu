@@ -207,7 +207,7 @@ struct MediumRadixSort {
     TORCH_INTERNAL_ASSERT(ceilPowerOf2 <= 4096);
 #ifdef USE_ROCM
     constexpr int default_ipt = 8;
-else
+#else
     constexpr int default_ipt = 32;
 #endif
     switch (ceilPowerOf2) {
