@@ -64,17 +64,17 @@ if os.path.isfile(rocm_version_h):
 # List of math functions that should be replaced inside device code only.
 MATH_TRANSPILATIONS = collections.OrderedDict(
     [
-        ("std::max", ("::max")),
-        ("std::min", ("::min")),
-        ("std::ceil", ("::ceil")),
-        ("std::floor", ("::floor")),
-        ("std::exp", ("::exp")),
-        ("std::log", ("::log")),
-        ("std::pow", ("::pow")),
-        ("std::fabs", ("::fabs")),
-        ("std::fmod", ("::fmod")),
-        ("std::remainder", ("::remainder")),
-        ("std::frexp", ("::frexp")),
+        ("std::max", ("std::max")),
+        ("std::min", ("std::min")),
+        ("std::ceil", ("std::ceil")),
+        ("std::floor", ("std::floor")),
+        ("std::exp", ("std::exp")),
+        ("std::log", ("std::log")),
+        ("std::pow", ("std::pow")),
+        ("std::fabs", ("std::fabs")),
+        ("std::fmod", ("std::fmod")),
+        ("std::remainder", ("std::remainder")),
+        ("std::frexp", ("std::frexp")),
     ]
 )
 
@@ -7961,6 +7961,7 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cub::ArgIndexInputIterator", ("hipcub::ArgIndexInputIterator", CONV_SPECIAL_FUNC, API_RUNTIME)),
         ("cub::TransformInputIterator", ("hipcub::TransformInputIterator", CONV_SPECIAL_FUNC, API_RUNTIME)),
         ("cub::WarpReduce", ("hipcub::WarpReduce", CONV_SPECIAL_FUNC, API_RUNTIME)),
+        ("cub::BLOCK_LOAD_WARP_TRANSPOSE", ("hipcub::BLOCK_LOAD_WARP_TRANSPOSE", CONV_SPECIAL_FUNC, API_RUNTIME)),
         ("nvtxMark", ("roctxMark", CONV_OTHER, API_ROCTX)),
         ("nvtxMarkA", ("roctxMarkA", CONV_OTHER, API_ROCTX)),
         ("nvtxRangePushA", ("roctxRangePushA", CONV_OTHER, API_ROCTX)),
