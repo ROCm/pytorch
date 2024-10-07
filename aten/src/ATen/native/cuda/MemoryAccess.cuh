@@ -352,7 +352,8 @@ inline C10_HOST_DEVICE int can_vectorize_up_to(const char *pointer) {
   constexpr int vec4_alignment = std::alignment_of<aligned_vector<scalar_t, 4>>::value;
   #if defined(USE_ROCM)
     constexpr int vec8_alignment = std::alignment_of<aligned_vector<scalar_t, 8>>::value;
-    if (address % vec8_alignment == 0) {
+    constexpr bool half_dtype = std::is_same_v<c10::BFloat16, scalar_t> || std::is_same_v<c10::Half, scalar_t>;
+    if (half_dtype && (address % vec8_alignment == 0)) {
       return 8;
     } else if (address % vec4_alignment == 0) {
       return 4;
