@@ -444,6 +444,7 @@ _efficient_attention_backward(
   using sdp::aotriton_adapter::mk_aotensor;
   using sdp::aotriton_adapter::mk_aoscalartensor;
   using sdp::aotriton_adapter::cast_dtype;
+  using sdp::aotriton_adapter::mk_aoscalartensor;
   aotriton::TensorView<4> empty_t4(0, {0, 0, 0, 0}, {0, 0, 0, 0}, cast_dtype(query.dtype()));
   err = attn_bwd(mk_aotensor(q_t, "q"),
                  mk_aotensor(k_t, "k"),
