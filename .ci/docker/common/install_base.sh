@@ -12,7 +12,7 @@ install_ubuntu() {
   if [[ "$UBUNTU_VERSION" == "20.04"* ]]; then
     cmake3="cmake=3.16*"
     maybe_libiomp_dev=""
-  elif [[ "$UBUNTU_VERSION" == "22.04"* ]]; then
+  elif [[ "$UBUNTU_VERSION" == "22.04"* ]] || [[ "$UBUNTU_VERSION" == "24.04"* ]] ; then
     cmake3="cmake=3.22*"
     maybe_libiomp_dev=""
   else
