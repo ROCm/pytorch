@@ -95,7 +95,7 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
         int window_size_left,
         int window_size_right,
         const bool return_softmax,
-        c10::optional<at::Generator> gen_) {
+        std::optional<at::Generator> gen_) {
   // Otherwise the kernel will be launched from cuda:0 device
   // Cast to char to avoid compiler warning about narrowing
   at::hip::HIPGuardMasqueradingAsCUDA device_guard{(char)q.get_device()};
