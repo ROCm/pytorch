@@ -919,6 +919,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         ]
         self._test_scatter_stress(inputs, lambda t: t.clone())
 
+    @skipIfRocm
     @skip_but_pass_in_sandcastle(
         "Test is flaky, see https://github.com/pytorch/pytorch/issues/15963"
     )
