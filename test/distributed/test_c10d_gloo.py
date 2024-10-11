@@ -490,6 +490,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i + self.rank]) for i in range(1000)]
         self._test_allreduce_stress(inputs)
 
+    @skipIfRocm
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     def test_allreduce_stress_cuda(self):
