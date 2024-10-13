@@ -22,7 +22,7 @@ set_target_properties(shm PROPERTIES
   PREFIX "lib"
   IMPORT_PREFIX "lib"
   CXX_STANDARD 17)
-target_link_libraries(shm PRIVATE ${TORCH_CPU_LIB} ${ROCM_HSART_LIB})
+target_link_libraries(shm PRIVATE ${TORCH_CPU_LIB})
 
 if(UNIX AND NOT APPLE)
   include(CheckLibraryExists)
@@ -64,7 +64,7 @@ if(BUILD_LIBTORCHLESS)
   target_link_libraries(torch_shm_manager PRIVATE shm ${C10_LIB})
 else()
   # we need to link directly to c10 here otherwise we miss symbols
-  target_link_libraries(torch_shm_manager PRIVATE shm c10)
+  target_link_libraries(torch_shm_manager PRIVATE shm c10 ${ROCM_HSART_LIB})
 endif()
 set_target_properties(torch_shm_manager PROPERTIES
   INSTALL_RPATH "${_rpath_portable_origin}/../lib")
