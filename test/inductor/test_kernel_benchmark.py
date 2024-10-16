@@ -11,7 +11,7 @@ from torch._dynamo.testing import rand_strided
 from torch._inductor import config
 from torch._inductor.codecache import PyCodeCache
 from torch._inductor.test_case import run_tests, TestCase
-from torch._inductor.utils import fresh_inductor_cache
+from torch._inductor.utils import fresh_inductor_cache, is_big_gpu
 from torch.testing import FileCheck
 from torch.testing._internal.common_device_type import expectedFailureXPU
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
@@ -371,6 +371,8 @@ class TestKernelBenchmark(TestCase):
     @expectedFailureXPU
     @config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     def test_slice_mm_bandwidth_computation(self):
+        if not is_big_gpu(0):
+            return self.skipTest("Need a big GPU to use max_autotune_gemm mode")
         M, N, K = 1000, 2000, 3000
 
         @torch.compile
@@ -410,6 +412,7 @@ class TestKernelBenchmark(TestCase):
         # 20000 * 5000 * 4 = 200MB for a
         self.check_bandwidth(compiled_module, "0.200")
 
+    @skipIfRocm #This seems to be disabled upstream https://github.com/pytorch/pytorch/issues/133228
     def test_split_scan(self):
         @torch.compile
         def f(a):
