@@ -372,7 +372,7 @@ class TestKernelBenchmark(TestCase):
     @config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     def test_slice_mm_bandwidth_computation(self):
         if not is_big_gpu(0):
-            return self.skipTest("Need a big GPU to run max_autotune=True")
+            return self.skipTest("Need a big GPU to use max_autotune_gemm mode")
         M, N, K = 1000, 2000, 3000
 
         @torch.compile
