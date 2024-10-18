@@ -29,6 +29,7 @@ from torch.testing._internal.common_quantized import (
     qengine_is_qnnpack,
     qengine_is_onednn,
 )
+from torch.testing._internal.common_utils import skipIfRocm
 from hypothesis import assume, given
 from hypothesis import strategies as st
 import torch.testing._internal.hypothesis_utils as hu
@@ -1313,6 +1314,7 @@ class TestDynamicQuantizedModule(QuantizationTestCase):
         bidirectional=st.booleans(),
     )
     @override_qengines
+    @skipIfRocm
     def test_lstm_api(self, dtype, bidirectional):
         r"""Test execution and serialization for dynamic quantized lstm modules on int8 and fp16
         """
