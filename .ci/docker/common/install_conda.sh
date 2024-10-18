@@ -123,6 +123,10 @@ fi
     conda_install_through_forge libstdcxx-ng=12
   fi
 
+  if [ "$ANACONDA_PYTHON_VERSION" = "3.12" ] ; then
+    conda_install_through_forge libstdcxx-ng=14
+  fi
+
   # Install some other packages, including those needed for Python test reporting
   pip_install -r /opt/conda/requirements-ci.txt
 
