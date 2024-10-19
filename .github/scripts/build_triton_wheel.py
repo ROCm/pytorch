@@ -95,10 +95,11 @@ def build_triton(
     with TemporaryDirectory() as tmpdir:
         triton_basedir = Path(tmpdir) / "triton"
         triton_pythondir = triton_basedir / "python"
-        triton_repo = "https://github.com/openai/triton"
         if build_rocm:
+            triton_repo = "https://github.com/ROCm/triton"
             triton_pkg_name = "pytorch-triton-rocm"
         else:
+            triton_repo = "https://github.com/openai/triton"
             triton_pkg_name = "pytorch-triton"
         check_call(["git", "clone", triton_repo], cwd=tmpdir)
         if release:
