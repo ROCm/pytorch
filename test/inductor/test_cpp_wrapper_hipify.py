@@ -36,16 +36,16 @@ class TestCppWrapperHipify(TestCase):
     def test_hipify_aoti_driver_header(self) -> None:
         header = cuda_kernel_driver()
         expected = """
-            #define CUDA_DRIVER_CHECK(EXPR)                    \\
-            do {                                               \\
-                hipError_t code = EXPR;                          \\
-                const char *msg;                               \\
-                hipDrvGetErrorString(code, &msg);                  \\
-                if (code != hipSuccess) {                    \\
-                    throw std::runtime_error(                  \\
-                        std::string("CUDA driver error: ") +   \\
-                        std::string(msg));                     \\
-                }                                              \\
+            #define CUDA_DRIVER_CHECK(EXPR)                     \\
+            do {                                                \\
+                hipError_t code = EXPR;                         \\
+                const char *msg;                                \\
+                std::ignore = hipDrvGetErrorString(code, &msg); \\
+                if (code != hipSuccess) {                       \\
+                    throw std::runtime_error(                   \\
+                        std::string("CUDA driver error: ") +    \\
+                        std::string(msg));                      \\
+                }                                               \\
             } while (0);
 
             namespace {
