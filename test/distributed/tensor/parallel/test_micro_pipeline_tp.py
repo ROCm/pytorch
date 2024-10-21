@@ -40,6 +40,11 @@ from torch.testing._internal.distributed.fake_pg import FakeStore
 from torch.utils._triton import has_triton
 
 
+FLOAT8_E4M3FN_DTYPE = (
+    torch.float8_e4m3fn if not torch.version.hip else torch.float8_e4m3fnuz
+)
+
+
 def _make_post_grad_fx(f, *inps):
     gm = make_fx(f, decompositions, tracing_mode="fake")(*inps)
     remove_noop_ops(gm.graph)
@@ -267,8 +272,8 @@ class MicroPipelineTPTest(TestCase):
             raise AssertionError(f"Invalid A_dims: {A_dims}")
 
         A_shard_shape[gather_dim] //= self.world_size
-        A_shard = torch.rand(*A_shard_shape, device="cuda").to(torch.float8_e4m3fn)
-        B = torch.rand(16, 32, device="cuda").to(torch.float8_e4m3fn).T
+        A_shard = torch.rand(*A_shard_shape, device="cuda").to(FLOAT8_E4M3FN_DTYPE)
+        B = torch.rand(16, 32, device="cuda").to(FLOAT8_E4M3FN_DTYPE).T
         A_scale = torch.tensor(0.1, device="cuda")
         B_scale = torch.tensor(0.1, device="cuda")
 
@@ -355,12 +360,12 @@ class MicroPipelineTPTest(TestCase):
             return reduce_scatter_tensor(C, "avg", scatter_dim, group)
 
         if A_dims == 2:
-            A = torch.rand(64, 32, device="cuda").to(torch.float8_e4m3fn)
+            A = torch.rand(64, 32, device="cuda").to(FLOAT8_E4M3FN_DTYPE)
         elif A_dims == 3:
-            A = torch.rand(2, 64, 32, device="cuda").to(torch.float8_e4m3fn)
+            A = torch.rand(2, 64, 32, device="cuda").to(FLOAT8_E4M3FN_DTYPE)
         else:
             raise AssertionError(f"Invalid A_dims: {A_dims}")
-        B = torch.rand(16, 32, device="cuda").to(torch.float8_e4m3fn).T
+        B = torch.rand(16, 32, device="cuda").to(FLOAT8_E4M3FN_DTYPE).T
         A_scale = torch.tensor(0.1, device="cuda")
         B_scale = torch.tensor(0.1, device="cuda")
 
