@@ -103,6 +103,7 @@ try:
 except ImportError:
     has_pytest = False
 
+NAVI_ARCH = ("gfx1100", "gfx1101")
 
 def freeze_rng_state(*args, **kwargs):
     return torch.testing._utils.freeze_rng_state(*args, **kwargs)
