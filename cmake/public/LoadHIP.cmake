@@ -190,6 +190,8 @@ if(HIP_FOUND)
   find_library(ROCM_HIPRTC_LIB hiprtc HINTS ${ROCM_PATH}/lib)
   # roctx is part of roctracer
   find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
+  # HSA runtime lib
+  find_library(ROCM_HSART_LIB hsa-runtime64 HINTS ${ROCM_PATH}/lib)
 
   if(ROCM_VERSION_DEV VERSION_GREATER_EQUAL "5.7.0")
     # check whether hipblaslt is using its own datatype

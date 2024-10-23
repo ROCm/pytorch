@@ -44,7 +44,7 @@ endif()
 # ---[ Dependency of c10_hip
 target_link_libraries(c10_hip PUBLIC c10)
 
-target_link_libraries(c10_hip PUBLIC ${PYTORCH_HIP_LIBRARIES})
+  target_link_libraries(c10_hip PUBLIC ${PYTORCH_HIP_LIBRARIES} ${ROCM_HSART_LIB})
 
 target_include_directories(
     c10_hip PUBLIC
