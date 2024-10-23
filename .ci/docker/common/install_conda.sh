@@ -123,7 +123,7 @@ fi
     conda_install_through_forge libstdcxx-ng=12
   fi
 
-  if [ "$ANACONDA_PYTHON_VERSION" = "3.12" ] ; then
+  if [ "$ANACONDA_PYTHON_VERSION" = "3.12" ] || [ "$UBUNTU_VERSION" == "24.04"* ] ; then
     conda_install_through_forge libstdcxx-ng=14
   fi
 
