@@ -76,8 +76,6 @@ struct ReduceConfig {
   static constexpr int BLOCK_Y = 1;
   static constexpr int CTA = 2;
 
-  static constexpr int input_vec_size = 4;
-
   ReduceConfig(int element_size_bytes, int num_outputs, int num_inputs)
     : element_size_bytes(element_size_bytes)
     , num_inputs(num_inputs)
@@ -287,7 +285,6 @@ struct ReduceJitOp {
   //TODO for now arg_t is always opmath_t of the input, later we'll need to change it
   using arg_t = at::opmath_type<scalar_t>;
 
-  static constexpr int input_vec_size = ReduceConfig::input_vec_size;
   //TODO - ReduceJitOp will probably need to be changed for reductions that need full functor,
   //not just wrapper
   arg_t ident;
@@ -348,8 +345,6 @@ struct ReduceOp {
   static constexpr bool can_accumulate_in_output =
     std::is_convertible<arg_t, out_scalar_t>::value
     && std::is_convertible<out_scalar_t, arg_t>::value;
-
-  static constexpr int input_vec_size = ReduceConfig::input_vec_size;
 
   ops_t ops;
   arg_t ident;
@@ -504,7 +499,7 @@ struct ReduceOp {
 
     // Handle the head of input slice where data is not aligned
     arg_t value = ident;
-    constexpr int align_bytes = alignof(at::native::memory::aligned_vector<scalar_t, input_vec_size>);
+    constexpr int align_bytes = alignof(at::native::memory::aligned_vector<scalar_t, vt0>);
     constexpr int align_elements = align_bytes / sizeof(scalar_t);
     int shift = ((uint64_t)data) % align_bytes / sizeof(scalar_t);
     if (shift > 0) {
@@ -519,31 +514,31 @@ struct ReduceOp {
     }
 
     // Do the vectorized reduction
-    using load_t = at::native::memory::aligned_vector<scalar_t, input_vec_size>;
+    using load_t = at::native::memory::aligned_vector<scalar_t, vt0>;
 
     index_t idx = config.input_idx();
     const index_t stride = config.step_input;
 
     // Multiple accumulators to remove dependency between unrolled loops.
-    arg_t value_list[input_vec_size];
+    arg_t value_list[vt0];
     value_list[0] = value;
 
     #pragma unroll
-    for (int i = 1; i < input_vec_size; i++) {
+    for (int i = 1; i < vt0; i++) {
       value_list[i] = ident;
     }
 
-    while (idx * input_vec_size + input_vec_size - 1 < end) {
-      const auto values_vec = memory::load_vector<input_vec_size>(data, idx);
+    while (idx * vt0 + vt0 - 1 < end) {
+      const auto values_vec = memory::load_vector<vt0>(data, idx);
       #pragma unroll
-      for (index_t i = 0; i < input_vec_size; i++) {
-        value_list[i] = ops.reduce(value_list[i], values_vec.val[i], shift + idx * input_vec_size + i);
+      for (index_t i = 0; i < vt0; i++) {
+        value_list[i] = ops.reduce(value_list[i], values_vec.val[i], shift + idx * vt0 + i);
       }
       idx += stride;
     }
 
     // tail
-    index_t tail_start = end - end % input_vec_size;
+    index_t tail_start = end - end % vt0;
     if (config.should_reduce_tail()) {
       int idx = tail_start + threadIdx.x;
       if (idx < end) {
@@ -554,7 +549,7 @@ struct ReduceOp {
 
     // combine accumulators
     #pragma unroll
-    for (int i = 1; i < input_vec_size; i++) {
+    for (int i = 1; i < vt0; i++) {
       value_list[0] = ops.combine(value_list[0], value_list[i]);
     }
     return value_list[0];
@@ -1062,12 +1057,12 @@ ReduceConfig setReduceConfig(const TensorIterator& iter){
   // threads with different threadIdx.x are independent and will produce results for different outputs.
   // In such case, values in each loaded vector always correspond to different outputs.
   if (fastest_moving_stride == sizeof(scalar_t)) {
-    if (reduction_on_fastest_striding_dimension && dim0 > 128 && iter.num_reduce_dims() == 1 && vt0 >= ReduceConfig::input_vec_size) {
+    if (reduction_on_fastest_striding_dimension && dim0 > 128 && iter.num_reduce_dims() == 1) {
       // Case 1: "vectorize along input"
       // Note that if vt0 < ReduceConfig::vec_size, then this means the register pressure could be high, in such case,
       // we should avoid vectorization.
       config.vectorize_input = true;
-      dim0 /= config.input_vec_size;
+      dim0 /= vt0;
     } else if (!reduction_on_fastest_striding_dimension) {
       // Case 2: "vectorize along output"
       config.output_vec_size = get_output_vec_size<scalar_t>(iter);
