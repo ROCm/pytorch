@@ -10,7 +10,7 @@ def cuda_kernel_driver() -> str:
             do {                                               \\
                 CUresult code = EXPR;                          \\
                 const char *msg;                               \\
-                cuGetErrorString(code, &msg);                  \\
+                std::ignore = cuGetErrorString(code, &msg);    \\
                 if (code != CUDA_SUCCESS) {                    \\
                     throw std::runtime_error(                  \\
                         std::string("CUDA driver error: ") +   \\
