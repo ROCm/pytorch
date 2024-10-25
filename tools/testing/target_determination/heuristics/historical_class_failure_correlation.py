@@ -77,6 +77,8 @@ def _get_ratings_for_tests(
             file, {}
         ).items():
             # qualified_test_class looks like "test_file::test_class"
+            if "::" not in qualified_test_class:
+                continue
             test_file, test_class = qualified_test_class.split("::")
             if test_file in tests_to_run:
                 ratings[qualified_test_class] += score
