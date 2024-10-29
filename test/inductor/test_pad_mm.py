@@ -11,9 +11,6 @@ from torch._inductor.fx_passes.pad_mm import get_alignment_size, get_padded_leng
 from torch._inductor.utils import run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.inductor_utils import HAS_CUDA
-from torch.testing._internal.common_utils import skipIfRocmArch
-
-MI300_ARCH = ("gfx940", "gfx942") # Used for MI300 exclusive skips on ROCm
 
 class PadMMTest(TestCase):
     def test_pad_preserves_output_stride(
@@ -104,13 +101,12 @@ class PadMMTest(TestCase):
                             ), "config.keep_output_stride is being violated by shape padding"
                             # ADDMM outputs are made contiguous, and therefore not aligned in preexisting impl.
 
-    @skipIfRocmArch(MI300_ARCH)
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     @inductor_config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
         shape_padding=True,
         keep_output_stride=False,
+        force_shape_pad=True,
     )
     def test_pad_mm_dyn_m(self):
         M = 40
@@ -183,13 +179,12 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @skipIfRocmArch(MI300_ARCH)
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     @inductor_config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
         shape_padding=True,
         keep_output_stride=False,
+        force_shape_pad=True,
     )
     def test_pad_mm_dyn_n(self):
         M = 20
@@ -217,13 +212,12 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @skipIfRocmArch(MI300_ARCH)
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     @inductor_config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
         shape_padding=True,
         keep_output_stride=False,
+        force_shape_pad=True,
     )
     def test_pad_mm_dyn_k(self):
         M = 21

@@ -320,6 +320,9 @@ def should_pad_bench(
         if m_padded_length == k_padded_length == n_padded_length == 0:
             return False
 
+        if torch._inductor.config.force_shape_pad:
+            return True
+        
         if not is_mm_compute_bound(m, k, n, mat1.dtype):
             return False
 
