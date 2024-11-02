@@ -582,6 +582,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
                && input.dim() <= MIOPEN_DIM_MAX
                && input.scalar_type() != at::kDouble
                && (weight.scalar_type() != at::kHalf)
+               && (weight.scalar_type() != at::kBFloat16)
                && weight.defined() && bias.defined()
                && ((running_mean.defined() && running_var.defined())
                  || (!running_mean.defined() && !running_var.defined() && training))
