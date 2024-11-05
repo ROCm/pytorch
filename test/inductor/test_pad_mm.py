@@ -21,6 +21,7 @@ from torch.testing._internal.common_utils import (
     skipIfRocmArch, 
 )
 
+
 class PadMMTest(TestCase):
     @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     def test_pad_mm_dyn_m(self):
