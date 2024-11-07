@@ -13,15 +13,15 @@ if(NOT __AOTRITON_INCLUDED)
   set(__AOTRITON_MANYLINUX_LIST
       "manylinux_2_17"  # rocm6.1
       "manylinux_2_17"  # rocm6.2
+      "manylinux_2_28"  # rocm6.2
       )
   set(__AOTRITON_ROCM_LIST
       "rocm6.1"
       "rocm6.2"
       )
-  set(__AOTRITON_CI_COMMIT "9be04068c3c0857a4cfd17d7e39e71d0423ebac2")
+  set(__AOTRITON_CI_COMMIT "f6b28a9b7265b69e3df54ea6ba0237e8a8d6f736")
   set(__AOTRITON_SHA256_LIST
-      "006f4d982c9a9c768f31f0095128705fecb792136827e2456241fe79764de7a4"  # rocm6.1
-      "3e9e1959d23b93d78a08fcc5f868125dc3854dece32fd9458be9ef4467982291"  # rocm6.2
+      "df00412ae36fe5732d0a4601802bd3622b5dec12df7ec86027c5147adeb54c25"  # rocm6.2
       )
   set(__AOTRITON_Z "gz")
 
