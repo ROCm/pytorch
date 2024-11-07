@@ -14,10 +14,12 @@ if(NOT __AOTRITON_INCLUDED)
       "manylinux_2_17"  # rocm6.1
       "manylinux_2_17"  # rocm6.2
       "manylinux_2_28"  # rocm6.2
+      "manylinux_2_28"  # rocm6.3
       )
   set(__AOTRITON_ROCM_LIST
       "rocm6.1"
       "rocm6.2"
+      "rocm6.3"
       )
   set(__AOTRITON_CI_COMMIT "f6b28a9b7265b69e3df54ea6ba0237e8a8d6f736")
   set(__AOTRITON_SHA256_LIST
