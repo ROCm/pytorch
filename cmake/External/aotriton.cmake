@@ -9,7 +9,7 @@ if(NOT __AOTRITON_INCLUDED)
   # Replaces .ci/docker/aotriton_version.txt
   # Note packages information may have versions skipped (due to no ABI breaks)
   # But they must be listed from lower version to higher version
-  set(__AOTRITON_VER "0.7b")
+  set(__AOTRITON_VER "0.7.1b")
   set(__AOTRITON_MANYLINUX_LIST
       "manylinux_2_17"  # rocm6.1
       "manylinux_2_17"  # rocm6.2
