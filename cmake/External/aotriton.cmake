@@ -11,13 +11,16 @@ if(NOT __AOTRITON_INCLUDED)
   # But they must be listed from lower version to higher version
   set(__AOTRITON_VER "0.4.2b")
   set(__AOTRITON_MANYLINUX_LIST
+      "manylinux_2_17"  # rocm6.2
       "manylinux_2_28"  # rocm6.2
       )
   set(__AOTRITON_ROCM_LIST
       "rocm6.2"
+      "rocm6.2"
       )
   set(__AOTRITON_CI_COMMIT "99f540a954e80f446ec6980f108e8c25408f1823")
   set(__AOTRITON_SHA256_LIST
+      "c51b23065dd0ef50ad89386524ee423ee0deb3d43aaf6eb27bdb97afdbf5e004"  # rocm6.2
       "50f7d307356bca70928c4b4ac16ad94b0ae130478de51123f018f3588cd0b1f4"  # rocm6.2
       )
   set(__AOTRITON_Z "bz2")
