@@ -19,11 +19,15 @@ if(NOT __AOTRITON_INCLUDED)
   set(__AOTRITON_ROCM_LIST
       "rocm6.1"
       "rocm6.2"
+      "rocm6.2"
       "rocm6.3"
       )
   set(__AOTRITON_CI_COMMIT "f6b28a9b7265b69e3df54ea6ba0237e8a8d6f736")
   set(__AOTRITON_SHA256_LIST
+      "4f73c9271f95d18c1ef0d824bb6ca0ac63fe7795cfe786ffe4964287be5ecff2"  # rocm6.1
       "df00412ae36fe5732d0a4601802bd3622b5dec12df7ec86027c5147adeb54c25"  # rocm6.2
+      "852d0e6e280cee3256fc5c7c3abed657594d7f56081d768ff8616c08bf9098b2"  # rocm6.2
+      "e4e3b06d2431e68e0096fcc8d3668cd5034ca0fd6fe236fb3b96774427d934b8"  # rocm6.3
       )
   set(__AOTRITON_Z "gz")
 
