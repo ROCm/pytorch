@@ -33,28 +33,6 @@ if(NOT __AOTRITON_INCLUDED)
             DESTINATION ${__AOTRITON_INSTALL_DIR})
     set(__AOTRITON_INSTALL_DIR "$ENV{AOTRITON_INSTALLED_PREFIX}")
     message(STATUS "Using Preinstalled AOTriton at ${__AOTRITON_INSTALL_DIR}")
-  elseif(DEFINED ENV{AOTRITON_INSTALL_FROM_SOURCE})
-    ExternalProject_Add(aotriton_external
-      GIT_REPOSITORY https://github.com/ROCm/aotriton.git
-      GIT_TAG ${__AOTRITON_CI_COMMIT}
-      PREFIX ${__AOTRITON_EXTERN_PREFIX}
-      INSTALL_DIR ${__AOTRITON_INSTALL_DIR}
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${__AOTRITON_INSTALL_DIR}
-      -DAOTRITON_COMPRESS_KERNEL=ON
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DAOTRITON_NO_PYTHON=ON
-      -DAOTRITON_NO_SHARED=OFF
-      # CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""  # No build, install command will repeat the build process due to problems in the build system.
-      BUILD_BYPRODUCTS "${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.so"
-      USES_TERMINAL_DOWNLOAD TRUE
-      USES_TERMINAL_CONFIGURE TRUE
-      USES_TERMINAL_BUILD TRUE
-      USES_TERMINAL_INSTALL TRUE
-      # INSTALL_COMMAND ${MAKE_COMMAND} install
-      )
-    add_dependencies(__caffe2_aotriton aotriton_external)
-    message(STATUS "Using AOTriton compiled from source directory ${__AOTRITON_EXTERN_PREFIX}")
   else()
     set(__AOTRITON_SYSTEM_ROCM "${ROCM_VERSION_DEV_MAJOR}.${ROCM_VERSION_DEV_MINOR}")
     list(GET __AOTRITON_ROCM_LIST 0 __AOTRITON_ROCM_DEFAULT_STR)
