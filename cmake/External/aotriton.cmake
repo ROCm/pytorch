@@ -76,8 +76,7 @@ if(NOT __AOTRITON_INCLUDED)
       BUILD_BYPRODUCTS "${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.so"
     )
     add_dependencies(__caffe2_aotriton aotriton_external)
-    message(STATUS "Using AOTriton from pre-compiled binary ${__AOTRITON_URL}.\
-    Set env variables AOTRITON_INSTALL_FROM_SOURCE=1 to build from source.")
+    message(STATUS "Using AOTriton from pre-compiled binary ${__AOTRITON_URL}.")
   endif()
   target_link_libraries(__caffe2_aotriton INTERFACE ${__AOTRITON_INSTALL_DIR}/lib/libaotriton_v2.so)
   target_include_directories(__caffe2_aotriton INTERFACE ${__AOTRITON_INSTALL_DIR}/include)
