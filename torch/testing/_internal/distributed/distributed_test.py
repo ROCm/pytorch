@@ -4864,6 +4864,7 @@ class DistributedTest:
             "Failing with gloo backend + torchvision due to ongoing issue https://github.com/pytorch/pytorch/issues/111834",
         )
         @skip_if_lt_x_gpu(2)
+        @skip_if_odd_worldsize
         def test_ddp_apply_optim_in_backward(self):
             for optim_cls, init_before in itertools.product(
                 [torch.optim.SGD, torch.optim.Adam], [True, False]
@@ -4880,6 +4881,7 @@ class DistributedTest:
             "Failing with gloo backend + torchvision due to ongoing issue https://github.com/pytorch/pytorch/issues/111834",
         )
         @skip_if_lt_x_gpu(2)
+        @skip_if_odd_worldsize
         def test_ddp_apply_optim_in_backward_grad_as_bucket_view_false(self):
             for init_before in [True, False]:
                 self._test_ddp_apply_optim_in_backward(
