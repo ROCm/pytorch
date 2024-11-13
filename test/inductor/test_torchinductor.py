@@ -90,6 +90,7 @@ from torch.testing._internal.common_utils import (
     subtest,
     TEST_WITH_ASAN,
     TEST_WITH_ROCM,
+    HAS_HIPCC,
 )
 from torch.utils import _pytree as pytree
 from torch.utils._python_dispatch import TorchDispatchMode
@@ -126,6 +127,7 @@ _desired_test_bases = get_desired_device_type_test_bases()
 RUN_CPU = any(getattr(x, "device_type", "") == "cpu" for x in _desired_test_bases)
 RUN_GPU = any(getattr(x, "device_type", "") == GPU_TYPE for x in _desired_test_bases)
 NAVI_ARCH = ("gfx1100", "gfx1101") # Used for navi exclusive skips on ROCm
+ROCM_WHEELS_ENV = TEST_WITH_ROCM and not HAS_HIPCC
 
 aten = torch.ops.aten
 
@@ -928,6 +930,7 @@ class CommonTemplate:
                 self.assertEqual(ref_value, res_value)
 
     @skipCUDAIf(not SM80OrLater, "Requires sm80")
+    @skipCUDAIf(ROCM_WHEELS_ENV, "ROCm requires hipcc compiler")
     @skip_if_halide  # aoti
     @skipIfWindows
     def test_aoti_eager_cache_hit(self):
@@ -971,6 +974,7 @@ class CommonTemplate:
                 self.assertEqual(ref_value, res_value)
 
     @skipCUDAIf(not SM80OrLater, "Requires sm80")
+    @skipCUDAIf(ROCM_WHEELS_ENV, "ROCm requires hipcc compiler")
     @skip_if_halide  # aoti
     @skipIfWindows
     def test_aoti_eager_with_persistent_cache(self):
