@@ -12874,7 +12874,87 @@ op_db: List[OpInfo] = [
             DecorateInfo(unittest.skip("Skipped"), 'TestDecomp', 'test_comprehensive'),
             DecorateInfo(unittest.skip('output is non-deterministic (when dropout_p > 0)'), 'TestCommon', 'test_compare_cpu'),
             # TODO skip this for now since we can't skip on runtime arch support
+<<<<<<< HEAD
             DecorateInfo(unittest.skip('This is '), 'TestInductorOpInfo', 'test_comprehensive'),),
+=======
+            DecorateInfo(unittest.skip('This is '), 'TestInductorOpInfo', 'test_comprehensive'),
+            # skip for sm < 80
+            DecorateInfo(unittest.skip("Skipped!"), 'TestSchemaCheckModeOpInfo', 'test_schema_correctness',
+                         device_type='cuda', dtypes=(torch.bfloat16,), active_if=not SM80OrLater),
+            # FIXME
+            DecorateInfo(unittest.skip('test_cow_input does not work with efficient attention on ROCM'),
+                         'TestCompositeCompliance', 'test_cow_input',
+                         device_type='cuda', dtypes=(torch.bfloat16, torch.float16, torch.float32),
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_MEM_EFF_ATTENTION),
+            DecorateInfo(unittest.skip('test_fake_crossref_backward_amp does not work with efficient attention on ROCM'),
+                         'TestFakeTensor', 'test_fake_crossref_backward_amp',
+                         device_type='cuda', dtypes=(torch.bfloat16, torch.float16, torch.float32),
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_MEM_EFF_ATTENTION),
+            DecorateInfo(unittest.skip('test_fake_crossref_backward_no_amp does not work with efficient attention on ROCM'),
+                         'TestFakeTensor', 'test_fake_crossref_backward_no_amp',
+                         device_type='cuda', dtypes=(torch.bfloat16, torch.float16, torch.float32),
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_MEM_EFF_ATTENTION),
+            # for element 1, was torch.Size([4, 4, 0]) but real shape was torch.Size([16, 3, 0])
+            DecorateInfo(unittest.expectedFailure, "TestMeta", "test_dispatch_meta_outplace", device_type="cuda",
+                         dtypes=[torch.float16, torch.bfloat16, torch.float32],
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_FLASH_ATTENTION),
+            DecorateInfo(unittest.expectedFailure, "TestMeta", "test_dispatch_symbolic_meta_outplace", device_type="cuda",
+                         dtypes=[torch.float16, torch.bfloat16, torch.float32],
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_FLASH_ATTENTION),
+            # for element 1, was torch.Size([4, 4, 11]) but real shape was torch.Size([16, 11])
+            DecorateInfo(unittest.expectedFailure, "TestMeta", "test_dispatch_symbolic_meta_outplace_all_strides",
+                         device_type="cuda", dtypes=[torch.float32],
+                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_FLASH_ATTENTION),),
+    ),
+    OpInfo(
+        'torch.ops.aten._flash_attention_forward',
+        sample_inputs_func=sample_inputs_flash_attention_forward,
+        dtypes=empty_types(),
+        dtypesIfCUDA=custom_types(torch.float16)
+        if not SM80OrLater
+        else custom_types(torch.float16, torch.bfloat16),
+        supports_out=False,
+        supports_autograd=True,
+        supports_fwgrad_bwgrad=False,
+        supports_forward_ad=False,
+        check_batched_forward_grad=False,
+        decorators=[skipCUDAIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "This platform doesn't support Flash Attention")],
+        skips=(
+            # Checking the scalar value of the philox seed and offset
+            DecorateInfo(unittest.expectedFailure, 'TestCompositeCompliance', 'test_operator', device_type='cuda'),
+            DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_noncontiguous_samples', device_type='cuda'),
+            DecorateInfo(unittest.expectedFailure, 'TestJit', 'test_variant_consistency_jit', device_type='cuda'),
+            # None Mismatch Tensor
+            DecorateInfo(unittest.expectedFailure, 'TestCompositeCompliance', 'test_backward', device_type='cuda'),
+        )
+    ),
+    OpInfo(
+        'torch.ops.aten._efficient_attention_forward',
+        sample_inputs_func=sample_inputs_efficient_attention_forward,
+        dtypes=empty_types(),
+        dtypesIfCUDA=custom_types(torch.float16, torch.float32)
+        if not SM80OrLater
+        else custom_types(torch.float16, torch.float32, torch.bfloat16),
+        supports_out=False,
+        supports_autograd=True,
+        supports_fwgrad_bwgrad=False,
+        supports_forward_ad=False,
+        check_batched_forward_grad=False,
+        # TODO: Skip because it produces a CUDA illegal memory access for some reason
+        skip_cow_input_backward=True,
+        # FIXME: mask_type == 2 (LowerRight)
+        decorators=[
+            skipCUDAIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "This platform doesn't support efficient attention"),
+            skipCUDAIf(TEST_WITH_ROCM, "Efficient attention on ROCM doesn't support custom_mask_type==2")],
+        skips=(
+            # Checking the scaler value of the philox seed and offset
+            DecorateInfo(unittest.expectedFailure, 'TestCompositeCompliance', 'test_operator', device_type='cuda'),
+            DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_noncontiguous_samples', device_type='cuda'),
+            DecorateInfo(unittest.expectedFailure, 'TestJit', 'test_variant_consistency_jit', device_type='cuda'),
+            # None Mismatch Tensor
+            DecorateInfo(unittest.expectedFailure, 'TestCompositeCompliance', 'test_backward', device_type='cuda'),
+        )
+>>>>>>> 9ba9a760d6 ([SWDEV-495116] Fix the Rank of logsumexp Tensor and mGPU support. (#137717) (#1695))
     ),
     UnaryUfuncInfo(
         'nn.functional.silu',
