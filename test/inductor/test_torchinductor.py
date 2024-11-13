@@ -94,8 +94,6 @@ from torch.utils.weak import WeakTensorKeyDictionary
 
 DO_PERF_TEST = os.environ.get("DO_PERF_TEST") == "1"
 
-ROCM_WHEELS_ENV = TEST_WITH_ROCM and not HAS_HIPCC
-
 if IS_WINDOWS and IS_CI:
     sys.stderr.write(
         "Windows CI does not have necessary dependencies for test_torchinductor yet\n"
@@ -754,7 +752,7 @@ class CommonTemplate:
         )
 
     @skipCUDAIf(not SM80OrLater, "Requires sm80")
-    @skipCUDAIf(ROCM_WHEELS_ENV, "ROCm requires hipcc compiler")
+    @skipCUDAIf(TEST_WITH_ROCM and not HAS_HIPCC, "ROCm requires hipcc compiler")
     def test_eager_aoti_cache_hit(self):
         ns = "aten"
         op_name = "abs"
@@ -807,7 +805,7 @@ class CommonTemplate:
                 self.assertEqual(ref_value, res_value)
 
     @skipCUDAIf(not SM80OrLater, "Requires sm80")
-    @skipCUDAIf(ROCM_WHEELS_ENV, "ROCm requires hipcc compiler")
+    @skipCUDAIf(TEST_WITH_ROCM and not HAS_HIPCC, "ROCm requires hipcc compiler")
     def test_aoti_compile_with_persistent_cache(self):
         def fn(a):
             return torch.abs(a)
@@ -6666,7 +6664,7 @@ class CommonTemplate:
 
         self.common(fn, [torch.randn(64, 64)])
 
-    @unittest.skipIf(ROCM_WHEELS_ENV, "ROCm requires hipcc compiler")
+    @unittest.skipIf(TEST_WITH_ROCM and not HAS_HIPCC, "ROCm requires hipcc compiler")
     def test_new_cpp_build_logical(self):
         from torch._inductor.codecache import validate_new_cpp_commands
 
