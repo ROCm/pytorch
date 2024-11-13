@@ -108,7 +108,7 @@ NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101")
 
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
 
-HAS_HIPCC = torch.version.hip is not None and ROCM_HOME is not None
+HAS_HIPCC = torch.version.hip is not None and ROCM_HOME is not None and shutil.which('hipcc') is not None
 
 
 def freeze_rng_state(*args, **kwargs):
