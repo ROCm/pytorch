@@ -11794,9 +11794,6 @@ if __name__ == '__main__':
     @largeTensorTest("70GB", "cuda")
     @parametrize_test("reduction", ("none", "mean", "sum"))
     def test_cross_entropy_large_tensor(self, device, reduction):
-        if TEST_WITH_ROCM and 'cuda' in device and reduction == 'none':
-            # Skip this test for ROCm 
-            self.skipTest("Test failed on ROCm with reduction='none'")
         logits = torch.randn(int(2 ** 16), int(2 ** 16) + 1, dtype=torch.float32, device='cuda', requires_grad=True)
         labels = torch.zeros(logits.size(0), dtype=torch.long, device='cuda')
         loss = F.cross_entropy(logits, labels, reduction=reduction)
