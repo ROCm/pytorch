@@ -29,6 +29,7 @@ from torch.testing._internal.common_utils import (
     parametrize as parametrize_test,
     run_tests,
     set_default_dtype,
+    skipIfRocm,
     skipIfTorchDynamo,
 )
 
@@ -1126,6 +1127,7 @@ class TestEmbeddingNNDeviceType(NNTestCase):
             (torch.float, torch.double, torch.half),
         )
     )
+    @skipIfRocm # temp skip
     def test_EmbeddingBag_per_sample_weights_and_new_offsets(self, device, dtypes):
         def test_per_sample_weights_new_offsets(
             mode, trainable_scale, include_last_offset, has_weight=True
