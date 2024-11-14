@@ -221,8 +221,6 @@ class TestModule(TestCase):
     def test_save_load(self, device, dtype, module_info, training):
         if device=='cuda' and dtype==torch.float32 and module_info.name =='nn.BatchNorm3d' and TEST_WITH_ROCM:
             self.skipTest("Test is failed on ROCm for nn.BatchNorm3d with float32")
-        if device=='cuda' and dtype==torch.complex32 and module_info.name =='nn.ConvTranspose3d' and TEST_WITH_ROCM:
-            self.skipTest("Test is failed on ROCm for nn.ConvTranspose3d with complex32")
         # Test that module can be pickled and unpickled.
         module_cls = module_info.module_cls
         module_inputs = module_info.module_inputs_func(module_info, device=device, dtype=dtype,
@@ -353,8 +351,6 @@ class TestModule(TestCase):
     def test_non_contiguous_tensors(self, device, dtype, module_info, training):
         if device=='cuda' and dtype==torch.float32 and module_info.name =='nn.BatchNorm3d' and TEST_WITH_ROCM:
             self.skipTest("Test is failed on ROCm for nn.BatchNorm3d with float32")
-        if device=='cuda' and dtype==torch.complex32 and module_info.name =='nn.ConvTranspose3d' and TEST_WITH_ROCM:
-            self.skipTest("Test is failed on ROCm for nn.ConvTranspose3d with complex32")
         # Check modules work with non-contiguous tensors
 
         module_cls = module_info.module_cls
