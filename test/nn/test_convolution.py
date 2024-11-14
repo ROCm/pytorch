@@ -2011,7 +2011,6 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @unittest.skipIf(not TEST_SCIPY, "Scipy required for the test.")
     @dtypes(torch.float, torch.cfloat)
     @parametrize_test("mode", ("valid", "same"))
-    @skipIfRocm # temp skip
     def test_conv3d_vs_scipy(self, device, dtype, mode):
         t = make_tensor((1, 5, 5, 10), device=device, dtype=dtype)
         weight_even = make_tensor((1, 1, 2, 2, 4), device=device, dtype=dtype)
