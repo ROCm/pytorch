@@ -36,16 +36,16 @@ class TestCppWrapperHipify(TestCase):
     def test_hipify_aoti_driver_header(self) -> None:
         header = cuda_kernel_driver()
         expected = """
-            #define CUDA_DRIVER_CHECK(EXPR)                     \\
-            do {                                                \\
-                hipError_t code = EXPR;                         \\
-                const char *msg;                                \\
-                std::ignore = hipDrvGetErrorString(code, &msg); \\
-                if (code != hipSuccess) {                       \\
-                    throw std::runtime_error(                   \\
-                        std::string("CUDA driver error: ") +    \\
-                        std::string(msg));                      \\
-                }                                               \\
+            #define CUDA_DRIVER_CHECK(EXPR)                    \\
+            do {                                               \\
+                hipError_t code = EXPR;                          \\
+                const char *msg;                               \\
+                std::ignore = hipDrvGetErrorString(code, &msg);    \\
+                if (code != hipSuccess) {                    \\
+                    throw std::runtime_error(                  \\
+                        std::string("CUDA driver error: ") +   \\
+                        std::string(msg));                     \\
+                }                                              \\
             } while (0);
 
             namespace {
@@ -104,7 +104,12 @@ class TestCppWrapperHipify(TestCase):
             }
         """
         if torch.version.hip is not None:
-            expected = expected.replace("32*numWarps", "64*numWarps")
+            # Adjusting the warp size to GPU supported wavefront size on AMD GPU
+            prop = torch.cuda.get_device_properties(torch.cuda.current_device())
+
+            expected = expected.replace(
+                "32*numWarps", str(prop.warp_size) + "*numWarps"
+            )
         result = maybe_hipify_code_wrapper(header, True)
         self.assertEqual(result.rstrip(), expected.rstrip())
 
