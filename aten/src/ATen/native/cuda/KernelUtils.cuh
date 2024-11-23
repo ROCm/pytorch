@@ -73,8 +73,12 @@ __device__ inline __half2 preview_unsafeAtomicAdd(__half2* address, __half2 valu
 #define NATIVE_ZERO_BF16 __int2bfloat16_rz(0)
 #endif
 
+<<<<<<< HEAD
 namespace at {
 namespace native {
+=======
+namespace at:: native {
+>>>>>>> c3ba1e8f35 ([release/2.5] [ROCm] fastSpecializedAtomicAdd for MI300 (#135770) (#1746))
 
 __device__ __forceinline__ size_t
 idx(const size_t nc,
@@ -226,5 +230,9 @@ __device__ __forceinline__ void fastAtomicAdd(
 #undef ATOMICADD
 #undef NATIVE_ZERO_BF16
 
+<<<<<<< HEAD
 } // namespace native
 } // namespace at
+=======
+} // namespace at::native
+>>>>>>> c3ba1e8f35 ([release/2.5] [ROCm] fastSpecializedAtomicAdd for MI300 (#135770) (#1746))
