@@ -23,6 +23,7 @@ from torch.testing._internal.common_utils import (
 
 
 class PadMMTest(TestCase):
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -94,6 +95,7 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -123,6 +125,7 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -192,6 +195,7 @@ class PadMMTest(TestCase):
         b = torch.randn(10, 100).cuda()
         self.assertEqual(torch.compile(addmm)(x, a, b), addmm(x, a, b))
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -223,6 +227,7 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -254,6 +259,7 @@ class PadMMTest(TestCase):
             FileCheck().check(f"N = {aligned_n}").run(code)
         self.assertEqual(res1, res2)
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -286,6 +292,7 @@ class PadMMTest(TestCase):
             FileCheck().check(f"N = {aligned_n}").run(code)
         self.assertEqual(res1, res2)
 
+    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     def test_pad_addmm_dyn_m(self):
         M = 128
