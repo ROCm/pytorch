@@ -15,10 +15,7 @@ from torch._inductor.utils import fresh_inductor_cache
 from torch.testing import FileCheck
 from torch.testing._internal.common_device_type import expectedFailureXPU
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
-from torch.testing._internal.common_utils import (
-    NAVI_ARCH,
-    skipIfRocm,
-)
+from torch.testing._internal.common_utils import skipIfRocm
 
 
 class TestKernelBenchmark(TestCase):
