@@ -14,10 +14,6 @@ from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.utils import fresh_inductor_cache, is_big_gpu, run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.inductor_utils import HAS_CUDA
-from torch.testing._internal.common_utils import (
-    NAVI_ARCH,
-    skipIfRocmArch, 
-)
 
 
 class PadMMTest(TestCase):
@@ -59,7 +55,6 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True,
                            max_autotune_gemm_backends="TRITON",
                            force_shape_pad=True)
@@ -318,7 +313,6 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @skipIfRocmArch(NAVI_ARCH)
     @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
     def test_pad_addmm_dyn_mn(self):
         M = 128
