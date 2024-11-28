@@ -289,7 +289,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"N = {aligned_n}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_addmm_dyn_m(self):
         M = 128
         K = 33
@@ -319,7 +321,9 @@ class PadMMTest(TestCase):
         self.assertEqual(res1, res2)
 
     @skipIfRocmArch(NAVI_ARCH)
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_addmm_dyn_mn(self):
         M = 128
         K = 33
