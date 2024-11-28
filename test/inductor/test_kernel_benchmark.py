@@ -369,7 +369,9 @@ class TestKernelBenchmark(TestCase):
         self.check_bandwidth(compiled_module, "0.006")
 
     @expectedFailureXPU
-    @config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_slice_mm_bandwidth_computation(self):
         if not is_big_gpu(0):
             return self.skipTest("Need a big GPU to use max_autotune_gemm mode")
