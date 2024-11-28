@@ -36,6 +36,7 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_CROSSREF,
     TEST_WITH_ROCM,
     TEST_WITH_SLOW_GRADCHECK,
+    HAS_HIPCC,
 )
 
 
@@ -185,6 +186,10 @@ ROCM_BLOCKLIST = [
 
 if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor <= 9):
     ROCM_BLOCKLIST.append("test_typing")
+
+# Remove test_tensorexpr for WHL builds since there is no compiler
+if not HAS_HIPCC:
+    ROCM_BLOCKLIST.append("cpp/test_tensorexpr")
 
 XPU_BLOCKLIST = [
     "test_autograd",
