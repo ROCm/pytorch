@@ -1000,6 +1000,12 @@ if(USE_CUDNN)
   target_include_directories(torch::cudnn INTERFACE ${CUDNN_FRONTEND_INCLUDE_DIR})
 endif()
 
+# Note: This variable also affects CUDA.
+set(PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF
+    $ENV{PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF}
+    CACHE BOOL "Enable native support for half data type within ReduceSum." FORCE)
+
+
 # ---[ HIP
 if(USE_ROCM)
   # This prevents linking in the libtinfo from /opt/conda/lib which conflicts with ROCm libtinfo.
@@ -1042,7 +1048,11 @@ if(USE_ROCM)
     list(APPEND HIP_CXX_FLAGS -D__HIP_PLATFORM_AMD__=1)
     list(APPEND HIP_CXX_FLAGS -DCUDA_HAS_FP16=1)
     list(APPEND HIP_CXX_FLAGS -DUSE_ROCM)
-    list(APPEND HIP_CXX_FLAGS -D__HIP_NO_HALF_OPERATORS__=1)
+    if(NOT PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF)
+      list(APPEND HIP_CXX_FLAGS -D__HIP_NO_HALF_OPERATORS__=1)
+    else()
+      add_definitions(-DPYTORCH_REDUCESUM_ENABLE_NATIVE_HALF)
+    endif()
     list(APPEND HIP_CXX_FLAGS -D__HIP_NO_HALF_CONVERSIONS__=1)
     list(APPEND HIP_CXX_FLAGS -DTORCH_HIP_VERSION=${TORCH_HIP_VERSION})
     list(APPEND HIP_CXX_FLAGS -Wno-shift-count-negative)
@@ -1369,10 +1379,15 @@ if(NOT INTERN_BUILD_MOBILE)
 
   message(STATUS "Found CUDA with FP16 support, compiling with torch.cuda.HalfTensor")
   string(APPEND CMAKE_CUDA_FLAGS " -DCUDA_HAS_FP16=1"
-                                 " -D__CUDA_NO_HALF_OPERATORS__"
                                  " -D__CUDA_NO_HALF_CONVERSIONS__"
                                  " -D__CUDA_NO_HALF2_OPERATORS__"
                                  " -D__CUDA_NO_BFLOAT16_CONVERSIONS__")
+
+  if(NOT PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF)
+    string(APPEND CMAKE_CUDA_FLAGS " -D__CUDA_NO_HALF_OPERATORS__")
+  else()
+    add_definitions(-DPYTORCH_REDUCESUM_ENABLE_NATIVE_HALF)
+  endif()
 
   string(APPEND CMAKE_C_FLAGS_RELEASE " -DNDEBUG")
   string(APPEND CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG")

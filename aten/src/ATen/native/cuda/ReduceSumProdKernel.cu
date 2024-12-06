@@ -172,7 +172,11 @@ template <
     typename GeneralDispatcher>
 static void reduce_dispatch(TensorIterator& iter, GeneralDispatcher op) {
   if (iter.dtype() == kHalf) {
+#ifdef PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF
+    return OpFunctor<at::Half, at::Half>{}(iter);
+#else
     return OpFunctor<at::Half, float>{}(iter);
+#endif
   } else if (iter.dtype(1) == kHalf && iter.dtype() == kFloat) {
     // type promotion that does cast and reduction in a single kernel
     return OpFunctor<at::Half, float, float>{}(iter);

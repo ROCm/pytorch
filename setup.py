@@ -135,6 +135,10 @@
 #   USE_ROCM_KERNEL_ASSERT=1
 #     Enable kernel assert in ROCm platform
 #
+#   PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF
+#      If set to '1' will enable native support for FP16 datatypes in certain functors.
+#      Note: Currently, this is considered experimental and will only affect reductions.
+#
 # Environment variables we respect (these environment variables are
 # conventional and are often understood/set by other software.)
 #
@@ -675,6 +679,11 @@ class build_ext(setuptools.command.build_ext.build_ext):
             report("-- Using ITT")
         else:
             report("-- Not using ITT")
+
+        if cmake_cache_vars["PYTORCH_ENABLE_HALF"]:
+            report("-- Using native FP16 support")
+        else:
+            report("-- Not using native FP16 support")
 
         # Do not use clang to compile extensions if `-fstack-clash-protection` is defined
         # in system CFLAGS

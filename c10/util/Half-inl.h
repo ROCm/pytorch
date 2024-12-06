@@ -105,7 +105,12 @@ inline __device__ Half __ldg(const Half* ptr) {
 /// Arithmetic
 
 inline C10_HOST_DEVICE Half operator+(const Half& a, const Half& b) {
+#if (defined(__CUDACC__) || defined(__HIPCC__)) && \
+    defined(PYTORCH_REDUCESUM_ENABLE_NATIVE_HALF)
+  return __half{a} + __half{b};
+#else
   return static_cast<float>(a) + static_cast<float>(b);
+#endif
 }
 
 inline C10_HOST_DEVICE Half operator-(const Half& a, const Half& b) {
