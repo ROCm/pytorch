@@ -227,6 +227,9 @@ class TORCH_API Context {
   // the math SDP kernel, you can force your code to use flash kernels.
   // The math SDP kernel can be disabled by setting
   // at::globalContext().setUserEnabledMathSDP(false) flag.
+  void setSDPPriorityOrder(const std::vector<int64_t>& order);
+  std::array<at::SDPBackend, at::num_sdp_backends> sDPPriorityOrder();
+
   void setSDPUseFlash(bool);
   bool userEnabledFlashSDP() const;
 
@@ -396,6 +399,11 @@ class TORCH_API Context {
   bool _deterministic_algorithms = false;
   bool _deterministic_algorithms_warn_only = false;
   bool _deterministic_fill_uninitialized_memory = true;
+  std::array<at::SDPBackend, at::num_sdp_backends> sdp_priority_order = {
+      at::SDPBackend::flash_attention,
+      at::SDPBackend::efficient_attention,
+      at::SDPBackend::math,
+      at::SDPBackend::cudnn_attention};
   bool enabled_flashSDP = true;
   bool enabled_mem_efficientSDP = true;
   bool enabled_mathSDP = true;
