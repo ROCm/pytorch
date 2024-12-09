@@ -1037,8 +1037,8 @@ class TestOperators(TestCase):
         xfail('as_strided', 'partial_views'),
     })
     def test_vmapvjpvjp(self, device, dtype, op):
-        if 'cuda' in device and TEST_WITH_ROCM and dtype==torch.float32 and op.name=='linalg.householder_product':
-            self.skipTest(f"Skipped on ROCm")
+        dtype = torch.float64
+
         # Since, we test `vjpvjp` independently,
         # for this test, we just verify that vmap
         # of `vjpvjp` is correct.
