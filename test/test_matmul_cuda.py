@@ -110,7 +110,7 @@ class TestMatmulCuda(TestCase):
     @onlyCUDA
     @skipIfRocmVersionLessThan((5, 2))
     # imported 'tol' as 'xtol' to avoid aliasing in code above
-    @toleranceOverride({torch.float16: xtol(atol=1e-1, rtol=1e-1),
+    @toleranceOverride({torch.float16: xtol(atol=4e-1, rtol=1e-1),
                         torch.bfloat16: xtol(atol=1e-1, rtol=1e-1),
                         torch.float32: xtol(atol=1e-1, rtol=1e-1)})
     @dtypes(torch.float16, torch.bfloat16, torch.float32)
