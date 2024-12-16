@@ -281,6 +281,7 @@ inline void launcher(
 
         if (vec_size > 1) {
           switch (vec_size) {
+#ifdef USE_ROCM
             case 8:
               fused_dropout_kernel_vec<
                   scalar_t,
@@ -297,6 +298,7 @@ inline void launcher(
                       rng_engine_inputs);
               C10_CUDA_KERNEL_LAUNCH_CHECK();
               break;
+#endif
             case 4:
               fused_dropout_kernel_vec<
                   scalar_t,
