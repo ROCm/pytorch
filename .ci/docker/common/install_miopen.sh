@@ -55,7 +55,7 @@ retry () {
 }
 
 # Build custom MIOpen to use comgr for offline compilation.
-ROCM_INSTALL_PATH="/opt/rocm-${ROCM_VERSION}"
+ROCM_INSTALL_PATH="/opt/rocm"
 
 
 # MIOPEN_USE_HIP_KERNELS is a Workaround for COMgr issues
