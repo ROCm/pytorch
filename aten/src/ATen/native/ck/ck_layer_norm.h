@@ -2,7 +2,6 @@
 #define CK_LAYER_NORM_H
 
 #include <ATen/core/Tensor.h>
-//#include <ck_tile/ops/layernorm2d.hpp>
 
 namespace at { namespace native {
     
