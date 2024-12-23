@@ -3273,12 +3273,22 @@
 - func: native_layer_norm(Tensor input, SymInt[] normalized_shape, Tensor? weight, Tensor? bias, float eps) -> (Tensor, Tensor, Tensor)
   dispatch:
     CPU: layer_norm_cpu
-    CUDA: layer_norm_cuda
+    CUDA: layer_norm_cuda_impl
     MPS: layer_norm_mps
     CompositeExplicitAutograd: math_native_layer_norm
     NestedTensorCPU, NestedTensorCUDA: nested_layer_norm
   autogen: native_layer_norm.out
   tags: core
+
+- func: layer_norm_cuda(Tensor input, SymInt[] normalized_shape, Tensor? weight, Tensor? bias, float eps) -> (Tensor, Tensor, Tensor)
+  dispatch:
+    CUDA: layer_norm_cuda
+  autogen: layer_norm_cuda.out
+
+- func: ck_layer_norm(Tensor input, SymInt[] normalized_shape, Tensor? weight, Tensor? bias, float eps) -> (Tensor, Tensor, Tensor)
+  dispatch:
+    CUDA: ck_layer_norm
+  autogen: ck_layer_norm.out
 
 - func: native_layer_norm_backward(Tensor grad_out, Tensor input, SymInt[] normalized_shape, Tensor mean, Tensor rstd, Tensor? weight, Tensor? bias, bool[3] output_mask) -> (Tensor, Tensor, Tensor)
   dispatch:

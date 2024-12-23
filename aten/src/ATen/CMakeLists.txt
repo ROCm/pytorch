@@ -147,6 +147,8 @@ file(GLOB native_hip_hip "native/hip/*.hip")
 file(GLOB native_hip_cpp "native/hip/*.cpp")
 file(GLOB native_hip_linalg_cpp "native/hip/linalg/*.cpp")
 file(GLOB native_miopen_cpp "native/miopen/*.cpp")
+file(GLOB native_ck_hip "native/ck/*.hip")
+file(GLOB native_ck_blob_hip "native/ck/blob/*.hip")
 file(GLOB native_cudnn_hip_cpp "native/cudnn/hip/*.cpp")
 file(GLOB native_nested_hip_hip "native/nested/hip/*.hip")
 file(GLOB native_nested_hip_cpp "native/nested/hip/*.cpp")
@@ -280,6 +282,8 @@ if(USE_CUDA)
     ${native_cuda_cpp}
     ${native_cudnn_cpp}
     ${native_miopen_cpp}
+    ${native_ck_hip}
+    ${native_ck_blob_hip}
     ${native_nested_cuda_cpp}
     ${native_quantized_cuda_cpp}
     ${native_quantized_cudnn_cpp}
@@ -309,6 +313,7 @@ if(USE_ROCM)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/hip)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/include)
   list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/library/include)
+  list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/example/ck_tile/02_layernorm2d/)
   list(APPEND ATen_HIP_SRCS
     ${ATen_HIP_SRCS}
     ${hip_hip}
@@ -331,6 +336,8 @@ if(USE_ROCM)
     ${cuda_generated_sources}
     ${ATen_HIP_SRCS}
     ${native_miopen_cpp}
+    ${native_ck_blob_hip}
+    ${native_ck_hip}
     ${native_cudnn_hip_cpp}
     ${miopen_cpp}
     ${all_hip_cpp}
