@@ -24,6 +24,7 @@
 #include <ATen/ops/rms_norm.h>
 #include <ATen/ops/zeros_like_native.h>
 #include <ATen/ops/layer_norm_cuda.h>
+#include <ATen/ops/ck_layer_norm.h>
 #endif
 
 #include <array>
@@ -185,6 +186,13 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_backward_cpu(
   return std::make_tuple(std::move(dX), std::move(dgamma), std::move(dbeta));
 }
 
+bool use_ck_tile(const Tensor& input)
+{
+    return ((input.scalar_type() == at::kHalf && input.scalar_type() == at::kBFloat16)
+        && detail::getCUDAHooks().hasROCM()
+        && (input.dim() == 3 || input.dim() == 2));
+}
+
 std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
     const Tensor& input,
     IntArrayRef normalized_shape,
@@ -192,6 +200,9 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
     const std::optional<Tensor>& bias_opt /* optional */,
     double eps)
 {
+    if (use_ck_tile(input)) {
+        return at::ck_layer_norm(input, normalized_shape, weight_opt, bias_opt, eps);
+    }
     return at::layer_norm_cuda(input, normalized_shape, weight_opt, bias_opt, eps);
 }
 
