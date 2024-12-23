@@ -369,7 +369,9 @@ class TestKernelBenchmark(TestCase):
         self.check_bandwidth(compiled_module, "0.006")
 
     @expectedFailureXPU
-    @config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_slice_mm_bandwidth_computation(self):
         M, N, K = 1000, 2000, 3000
 
