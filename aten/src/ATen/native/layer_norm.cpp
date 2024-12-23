@@ -186,11 +186,12 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_backward_cpu(
   return std::make_tuple(std::move(dX), std::move(dgamma), std::move(dbeta));
 }
 
-bool use_ck_tile(const Tensor& input)
+bool use_ck_tile(const Tensor& input, int64_t N)
 {
-    return ((input.scalar_type() == at::kHalf && input.scalar_type() == at::kBFloat16)
+    return ((input.scalar_type() == at::kHalf || input.scalar_type() == at::kBFloat16)
         && detail::getCUDAHooks().hasROCM()
-        && (input.dim() == 3 || input.dim() == 2));
+        && N < 2048);
+        //&& (input.dim() == 3 || input.dim() == 2));
 }
 
 std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
@@ -200,7 +201,14 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
     const std::optional<Tensor>& bias_opt /* optional */,
     double eps)
 {
-    if (use_ck_tile(input)) {
+    c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
+    const Tensor& weight = *weight_maybe_owned;
+    c10::MaybeOwned<Tensor> bias_maybe_owned = at::borrow_from_optional_tensor(bias_opt);
+    const Tensor& bias = *bias_maybe_owned;
+    auto M_N = _check_layer_norm_inputs(input, normalized_shape, weight, bias);
+    auto N = M_N.second;
+
+    if (use_ck_tile(input, N)) {
         return at::ck_layer_norm(input, normalized_shape, weight_opt, bias_opt, eps);
     }
     return at::layer_norm_cuda(input, normalized_shape, weight_opt, bias_opt, eps);
