@@ -186,7 +186,6 @@ def _join_sycl_home(*paths) -> str:
     return os.path.join(SYCL_HOME, *paths)
 
 
-
 ABI_INCOMPATIBILITY_WARNING = '''
 
                                !! WARNING !!
@@ -235,7 +234,12 @@ ROCM_VERSION = None
 if torch.version.hip is not None:
     ROCM_VERSION = tuple(int(v) for v in torch.version.hip.split('.')[:2])
 
-CUDA_HOME = _find_cuda_home() if torch.cuda._is_compiled() else None
+CUDA_HOME = (
+    _find_cuda_home()
+    if ((not IS_HIP_EXTENSION) and (torch.cuda._is_compiled()))
+    else None
+)
+
 CUDNN_HOME = os.environ.get('CUDNN_HOME') or os.environ.get('CUDNN_PATH')
 SYCL_HOME = _find_sycl_home() if torch.xpu._is_compiled() else None
 
