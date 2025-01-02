@@ -23,6 +23,8 @@
 #include <ATen/ops/rsqrt.h>
 #include <ATen/ops/rms_norm.h>
 #include <ATen/ops/zeros_like_native.h>
+#include <ATen/ops/layer_norm_cuda.h>
+#include <ATen/ops/ck_layer_norm.h>
 #endif
 
 #include <array>
@@ -182,6 +184,37 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_backward_cpu(
         kCPU, dY, *X, mean, rstd, *gamma, M, N, &dX, &dgamma, &dbeta);
   }
   return std::make_tuple(std::move(dX), std::move(dgamma), std::move(dbeta));
+}
+
+bool use_ck_tile(const Tensor& input, int64_t N)
+{
+    static const char* env_value = std::getenv("PYTORCH_ROCM_CK_LAYERNORM");
+    if (env_value != nullptr && strcmp(env_value, "1") == 0) {
+      return ((input.scalar_type() == at::kHalf || input.scalar_type() == at::kBFloat16)
+                && detail::getCUDAHooks().hasROCM()
+                && N < 2048);
+    }
+    return false;
+}
+
+std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
+    const Tensor& input,
+    IntArrayRef normalized_shape,
+    const std::optional<Tensor>& weight_opt /* optional */,
+    const std::optional<Tensor>& bias_opt /* optional */,
+    double eps)
+{
+    c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
+    const Tensor& weight = *weight_maybe_owned;
+    c10::MaybeOwned<Tensor> bias_maybe_owned = at::borrow_from_optional_tensor(bias_opt);
+    const Tensor& bias = *bias_maybe_owned;
+    auto M_N = _check_layer_norm_inputs(input, normalized_shape, weight, bias);
+    auto N = M_N.second;
+
+    if (use_ck_tile(input, N)) {
+        return at::ck_layer_norm(input, normalized_shape, weight_opt, bias_opt, eps);
+    }
+    return at::layer_norm_cuda(input, normalized_shape, weight_opt, bias_opt, eps);
 }
 
 Tensor layer_norm_symint(
