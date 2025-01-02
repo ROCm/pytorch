@@ -188,10 +188,13 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_backward_cpu(
 
 bool use_ck_tile(const Tensor& input, int64_t N)
 {
-    return ((input.scalar_type() == at::kHalf || input.scalar_type() == at::kBFloat16)
-        && detail::getCUDAHooks().hasROCM()
-        && N < 2048);
-        //&& (input.dim() == 3 || input.dim() == 2));
+    static const char* env_value = std::getenv("PYTORCH_ROCM_CK_LAYERNORM");
+    if (env_value != nullptr && strcmp(env_value, "1") == 0) {
+      return ((input.scalar_type() == at::kHalf || input.scalar_type() == at::kBFloat16)
+                && detail::getCUDAHooks().hasROCM()
+                && N < 2048);
+    }
+    return false;
 }
 
 std::tuple<Tensor, Tensor, Tensor> layer_norm_cuda_impl(
