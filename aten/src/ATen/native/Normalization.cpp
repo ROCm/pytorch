@@ -539,10 +539,9 @@ BatchNormBackend _select_batch_norm_backend(
 
   if (
       input.is_cuda()
-      && input.dim() <= MIOPEN_DIM_MAX
-      && input.scalar_type() != at::kDouble
-      && (weight.scalar_type() != at::kHalf)
-      && (weight.scalar_type() != at::kBFloat16)
+      && (input.dim() <= MIOPEN_DIM_MAX)
+      && (input.scalar_type() != at::kDouble)
+      && (weight.scalar_type() == at::kFloat)
       && weight.defined() && bias.defined()
       && ((running_mean.defined() && running_var.defined())
         || (!running_mean.defined() && !running_var.defined() && training))
@@ -668,6 +667,9 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
              std::tuple<Tensor>(reserve),
              std::make_tuple(2));
   }
+
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std::cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (calling native_batch_norm)" << std::endl;
 
   return std::tuple_cat(
            at::native_batch_norm(
