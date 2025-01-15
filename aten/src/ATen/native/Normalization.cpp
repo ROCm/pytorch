@@ -643,7 +643,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std::cout
             << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (use_miopen)"
-	          << " use_miopen=" << (backend == BatchNormBackend::Miopen)
+            << " use_miopen=" << (backend == BatchNormBackend::Miopen)
             << " cudnn_enabled=" << cudnn_enabled
             << " dim=" << input.dim()
             << " memory_format=" << input.suggest_memory_format()
@@ -657,7 +657,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
 
   if (backend == BatchNormBackend::Miopen) {
     if (PYTORCH_MIOPEN_EXTRA_LOGGING)
-	    std::cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (calling miopen_batch_norm)" << std::endl;
+      std::cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (calling miopen_batch_norm)" << std::endl;
     return std::tuple_cat(
              at::miopen_batch_norm(
                input.contiguous(input.suggest_memory_format()), weight.contiguous(), bias.contiguous(),

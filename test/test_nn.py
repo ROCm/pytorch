@@ -5145,7 +5145,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             self.fail(False, f"unsupported memory layout {layout}")
 
         if mixed and dtype == torch.float:
-            self.skipTest("mixed precision is usless for float32")
+            self.skipTest("mixed precision is useless for float32")
         if not mixed and dtype in (torch.half, torch.bfloat16):
             self.skipTest("pure mode not supported for bf16/fp16")
         # TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC once ROCm officially supports NHWC in MIOpen
