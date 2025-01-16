@@ -5142,7 +5142,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         if TEST_WITH_ROCM and not mixed and dtype in (torch.half, torch.bfloat16):
             self.skipTest("pure mode not supported for bf16/fp16 on ROCm")
         if TEST_WITH_ROCM and layout == "NCHW" and dtype == torch.bfloat16 and mixed:
-            self.skipTest("MIOpen tolerance issue for NCHW BF16 mixed batchnorm SWDEV-509640")
+            self.skipTest("MIOpen tolerance issue for NCHW BF16 mixed batchnorm SWDEV-507600")
 
         memory_format = torch.contiguous_format if layout == "NCHW" else torch.channels_last
         # TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC once ROCm officially supports NHWC in MIOpen
