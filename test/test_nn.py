@@ -5089,6 +5089,28 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             out2 = model(inp2)
             self.assertEqual(out1, out2)
 
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    @parametrize_test("mixed", [False, True])
+    @parametrize_test("dtype", [torch.float, torch.half, torch.bfloat16])
+    def test_batchnorm_nhwc_eval(self, mixed, dtype):
+        if mixed and dtype == torch.float:
+            self.skipTest("mixed precision is useless for float32")
+        if TEST_WITH_ROCM and not mixed and dtype in (torch.half, torch.bfloat16):
+            self.skipTest("pure mode not supported for bf16/fp16 on ROCm")
+        if TEST_WITH_ROCM:
+            self.skipTest("MIOpen SolverNotFound for NCHW FP32/Fp16/BF16 NHWC batchnorm SWDEV-509640")
+
+        (N, C, H, W) = 2, 64, 50, 50
+        model = torch.nn.BatchNorm2d(C, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        model = model.eval().cuda()
+        if not mixed:
+            model = model.to(dtype)
+        inp1 = torch.randn(N, C, H, W, device=torch.device('cuda'), dtype=dtype)
+        inp2 = inp1.contiguous(memory_format=torch.channels_last)
+        out1 = model(inp1)
+        out2 = model(inp2)
+        self.assertEqual(out1, out2)
+
     @parametrize_test("layout", ["NCHW", "NHWC"])
     @parametrize_test("mixed", [False, True])
     @parametrize_test("dtype", [torch.float, torch.half, torch.bfloat16])
