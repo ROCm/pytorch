@@ -13,6 +13,7 @@ import math
 import operator
 import os
 import random
+import re
 import sys
 import tempfile
 import threading
@@ -9931,7 +9932,7 @@ fn
     # The following 2 tests fail due to https://github.com/python/cpython/issues/118013.
     # Tracked by https://github.com/pytorch/pytorch/issues/124302.
     # The xfails can be removed once Python 3.12 is updated on CI.
-    @xfailIfPy312
+    # @xfailIfPy312
     def test_outside_linear_module_free(self):
         # Compared to test_linear_module_free, the linear
         # layer is not the code object that is directly compiled.
@@ -9966,7 +9967,7 @@ fn
         gc.collect()
         self.assertTrue(cleared)
 
-    @xfailIfPy312
+    # @xfailIfPy312
     def test_parameter_free(self):
         def model_inp_ctr():
             param = torch.nn.Parameter(torch.randn(100, 100))

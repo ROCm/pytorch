@@ -103,7 +103,7 @@ try:
 except ImportError:
     has_pytest = False
 
-NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101")
+NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 
 HAS_HIPCC = torch.version.hip is not None and ROCM_HOME is not None and shutil.which('hipcc') is not None
 
