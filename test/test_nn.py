@@ -10,7 +10,6 @@ import itertools
 import warnings
 import pickle
 import re
-import os
 from copy import deepcopy
 from itertools import product
 from functools import partial
