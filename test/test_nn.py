@@ -5098,7 +5098,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         if TEST_WITH_ROCM and not mixed and dtype in (torch.half, torch.bfloat16):
             self.skipTest("pure mode not supported for bf16/fp16 on ROCm")
         if TEST_WITH_ROCM:
-            self.skipTest("MIOpen SolverNotFound for FP32/Fp16/BF16 NHWC batchnorm SWDEV-509640")
+            self.skipTest("NHWC batchnorm disabled on ROCm6.4 SWDEV-510757 SWDEV-509640")
 
         (N, C, H, W) = 2, 64, 50, 50
         model = torch.nn.BatchNorm2d(C, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
