@@ -52,9 +52,9 @@ std::tuple<Tensor, Tensor, Tensor> ck_layer_norm(
     auto M_N = _check_layer_norm_inputs(input, normalized_shape, weight, bias);
     auto M = M_N.first;
     auto N = M_N.second;
-    auto input_reshaped = input.reshape({M, N});
-    auto weight_reshaped = weight.reshape({N});
-    auto bias_reshaped = bias.reshape({N});
+    auto input_reshaped = input.expect_contiguous()->reshape({M, N});
+    auto weight_reshaped = weight.expect_contiguous()->reshape({N});
+    auto bias_reshaped = bias.expect_contiguous()->reshape({N});
 
     auto output = at::empty(input_reshaped.sizes(), input.options());
     std::string dtype_str = torchDTypeToStr(dtype);
