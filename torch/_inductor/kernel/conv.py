@@ -79,28 +79,9 @@ platform_configs = tuple(
 
 # On ROCm convert num_stages to 1 as pipelining provides no benefit
 if torch.version.hip:
-    platform_configs = build_rocm_gemm_configs(platform_configs)
-
-
-def _is_large_block_for_cpu(m, n, k):
-    # Thresholds are experimentally determined to reduce Triton CPU compile times
-    if m > 256 or n > 256 or k > 256:
-        return True
-    return m * n * k > 2**17
-
-
-def conv_configs(m, n, k, *, device_type, **kwargs):
-    if device_type == "cpu":
-        return filtered_configs(
-            m,
-            n,
-            k,
-            configs=platform_configs,
-            extra_args={},
-            scale=0.5,
-            exclude=_is_large_block_for_cpu,
-        )
-    return filtered_configs(m, n, k, configs=platform_configs, extra_args={})
+    platform_configs = tuple(
+        (config[0], config[1], config[2], 1, config[4]) for config in platform_configs
+    )
 
 conv_configs = functools.partial(
     filtered_configs,
