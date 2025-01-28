@@ -13,7 +13,6 @@ import math
 import operator
 import os
 import random
-import re
 import sys
 import tempfile
 import threading
