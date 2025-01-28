@@ -118,7 +118,7 @@ install_centos() {
 
   if [[ $OS_VERSION == 9 ]]; then
       yum update -y --nogpgcheck
-      dnf --enablerepo=crb install -y perl-File-BaseDir python3-wheel
+      dnf --enablerepo=crb install -y perl-File-BaseDir
       yum install -y --nogpgcheck rocm-ml-sdk rocm-developer-tools
   else
       yum update -y
