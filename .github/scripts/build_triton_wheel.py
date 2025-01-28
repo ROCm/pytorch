@@ -208,6 +208,7 @@ def main() -> None:
     parser = ArgumentParser("Build Triton binaries")
     parser.add_argument("--release", action="store_true")
     parser.add_argument("--build-conda", action="store_true")
+    parser.add_argument("--build-rocm", action="store_true")
     parser.add_argument(
         "--device", type=str, default="cuda", choices=["cuda", "rocm", "xpu"]
     )
