@@ -317,8 +317,6 @@ void direct_copy_kernel_cuda(TensorIteratorBase &iter) {
     });
   } else if (dtype == kFloat8_e5m2 || dtype == kFloat8_e4m3fn || dtype == kFloat8_e5m2fnuz || dtype == kFloat8_e4m3fnuz) {
      float8_copy_kernel_cuda(iter);
-  } else if (is_permute_021(iter) && (dtype == kBFloat16 || dtype == kHalf)) {
-      transpose_last2dim(iter);
   } else if (isBitsType(dtype)) {
     TORCH_CHECK(dtype == iter.dtype(1), "copy_() does not support casting "
       "bits types to different bits types. Source dtype is ", iter.dtype(1), "target dtype is ", dtype);
