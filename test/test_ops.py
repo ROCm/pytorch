@@ -68,6 +68,7 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     set_default_dtype,
+    skipIfRocm,
     skipIfTorchInductor,
     slowTest,
     suppress_warnings,
@@ -1366,24 +1367,8 @@ class TestCommon(TestCase):
 
     @ops(op_db, allowed_dtypes=(torch.bool,))
     @unittest.skipIf(TEST_WITH_UBSAN, "Test uses undefined behavior")
+    @skipIfRocm
     def test_non_standard_bool_values(self, device, dtype, op):
-        if TEST_WITH_ROCM and "cuda" in device:
-            gcn_arch = str(
-                torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
-            )
-            if "gfx12" in gcn_arch:
-                navi_blocklist = [
-                    "test_non_standard_bool_values_masked_scatter_cuda_bool",
-                    "test_non_standard_bool_values_put_cuda_bool",
-                    "test_non_standard_bool_values_scatter_add_cuda_bool",
-                    "test_non_standard_bool_values_scatter_cuda_bool",
-                    "test_non_standard_bool_values_scatter_reduce_sum_cuda_bool",
-                    "test_non_standard_bool_values_tril_cuda_bool",
-                    "test_non_standard_bool_values_triu_cuda_bool",
-                ]
-                if self._testMethodName in navi_blocklist:
-                    self.skipTest("Failed on Navi")
-
         # Test boolean values other than 0x00 and 0x01 (gh-54789)
         def convert_boolean_tensors(x):
             if not isinstance(x, torch.Tensor) or x.dtype != torch.bool:

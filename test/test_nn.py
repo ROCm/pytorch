@@ -12209,7 +12209,7 @@ if __name__ == '__main__':
 
     @skipMeta
     @dtypes(torch.float32, torch.float64)
-    @skipIfRocmArch(NAVI4_ARCH)
+    @skipIfRocmArch(NAVI4_ARCH)  # Flaky on Navi4
     def test_module_to_empty(self, device, dtype):
         class MyModule(nn.Module):
             def __init__(self, in_features, out_features, device=None, dtype=None):
