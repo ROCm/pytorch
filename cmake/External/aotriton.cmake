@@ -33,8 +33,8 @@ if(NOT __AOTRITON_INCLUDED)
       )
   set(__AOTRITON_CI_COMMIT "6f8cbcac8a92775291bb1ba8f514d4beb350baf4")
   set(__AOTRITON_SHA256_LIST
-      "42211ef61a0e74dd48dd278e1cd5f85873b72b0f311baa67680179fb967b68b4"  # rocm6.2
-      "f1327dfbacdb21dcbd89f45a76a7cc22df372537b1245a4fc8468a06e2ac1811"  # rocm6.3
+      "66445e6b0209b9f4080743b839cc9d424054dc5c8d07363f9f27f109231c324a"  # rocm6.2
+      "16356dc1813cf3e60da23eb2f29440cb35eedd3a2fbf81e6093a0bc42056ad08"  # rocm6.3
       )
   set(__AOTRITON_Z "gz")
 
