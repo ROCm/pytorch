@@ -18,7 +18,7 @@ from torch._dynamo.testing import CompileCounterWithBackend
 from torch._higher_order_ops.wrap import tag_activation_checkpoint
 from torch.testing._internal.common_utils import (
     IS_WINDOWS,
-    NAVI4_ARCH,
+    NAVI_ARCH,
     skipIfRocm,
     skipIfRocmArch,
 )
@@ -1023,7 +1023,7 @@ class ActivationCheckpointingViaTagsTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x, [y, z])
         self.assertEqual(ref, res)
 
-    @skipIfRocmArch(NAVI4_ARCH)
+    @skipIfRocmArch(NAVI_ARCH)
     @requires_cuda
     def test_pattern_matcher(self):
         # Check that the sdpa op is recomputed in the backward graph
