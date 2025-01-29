@@ -1368,7 +1368,7 @@ class TestCommon(TestCase):
     @unittest.skipIf(TEST_WITH_UBSAN, "Test uses undefined behavior")
     def test_non_standard_bool_values(self, device, dtype, op):
         if TEST_WITH_ROCM and "cuda" in device:
-            navi_blocklist = [
+            rocm_blocklist = [
                 "test_non_standard_bool_values_masked_scatter_cuda_bool",
                 # "test_non_standard_bool_values_nn_functional_unfold_cuda_bool",  # only in rocm6.4_internal_testing
                 "test_non_standard_bool_values_put_cuda_bool",
@@ -1378,7 +1378,7 @@ class TestCommon(TestCase):
                 "test_non_standard_bool_values_tril_cuda_bool",
                 "test_non_standard_bool_values_triu_cuda_bool",
             ]
-            if self._testMethodName in navi_blocklist:
+            if self._testMethodName in rocm_blocklist:
                 self.skipTest("Failed on ROCm")
 
         # Test boolean values other than 0x00 and 0x01 (gh-54789)
