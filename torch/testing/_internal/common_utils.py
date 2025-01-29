@@ -98,6 +98,7 @@ import torch.utils._pytree as pytree
 
 from .composite_compliance import no_dispatch
 
+NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 
 # Class to keep track of test flags configurable by environment variables.
 # Flags set here are intended to be read-only and should not be modified after

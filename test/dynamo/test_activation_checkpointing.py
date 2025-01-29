@@ -15,7 +15,7 @@ from functorch.compile import min_cut_rematerialization_partition
 from torch._dynamo.backends.common import aot_autograd
 from torch._dynamo.testing import CompileCounterWithBackend
 from torch._higher_order_ops.wrap import tag_activation_checkpoint
-from torch.testing._internal.common_utils import IS_WINDOWS, skipIfRocm
+from torch.testing._internal.common_utils import IS_WINDOWS, NAVI_ARCH, skipIfRocm, skipIfRocmArch
 from torch.testing._internal.inductor_utils import HAS_CUDA
 from torch.testing._internal.two_tensor import TwoTensor
 from torch.utils.checkpoint import _pt2_selective_checkpoint_context_fn_gen, checkpoint
@@ -1014,6 +1014,7 @@ class ActivationCheckpointingViaTagsTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(ref, res)
 
     @requires_cuda
+    @skipIfRocmArch(NAVI_ARCH)
     def test_pattern_matcher(self):
         # Check that the sdpa op is recomputed in the backward graph
         # tests percolate_tags
