@@ -1014,7 +1014,7 @@ class ActivationCheckpointingViaTagsTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(ref, res)
 
     @requires_cuda
-    @skipIfRocmArch(NAVI_ARCH)
+    @skipIfRocmArch(NAVI_ARCH)  # failed on Navi 2x, 3x, 4x
     def test_pattern_matcher(self):
         # Check that the sdpa op is recomputed in the backward graph
         # tests percolate_tags
