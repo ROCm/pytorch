@@ -49,8 +49,8 @@ struct JittedVecKernelCache {
   at::cuda::jit::NvrtcFunction vec1;
   at::cuda::jit::NvrtcFunction vec2;
   at::cuda::jit::NvrtcFunction vec4;
-  at::cuda::jit::NvrtcFunction vec8;
 #ifdef USE_ROCM
+  at::cuda::jit::NvrtcFunction vec8;
   at::cuda::jit::NvrtcFunction vec16;
 #endif
 
@@ -150,11 +150,11 @@ void launch_jitted_vectorized_kernel(
 #ifdef USE_ROCM
   if (vec_size == 16) {
     fn_ptr = &fn_cache.vec16;
+  } else if (vec_size == 8) {
+    fn_ptr = &fn_cache.vec8;
   } else
 #endif
-  if (vec_size == 8) {
-    fn_ptr = &fn_cache.vec8;
-  } else if (vec_size == 4) {
+  if (vec_size == 4) {
     fn_ptr = &fn_cache.vec4;
   } else if (vec_size == 2) {
     fn_ptr = &fn_cache.vec2;

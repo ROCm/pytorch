@@ -240,12 +240,12 @@ static inline void launch_vectorized_kernel(
           <<<grid, num_threads(), 0, stream>>>(N, f, data);
       C10_CUDA_KERNEL_LAUNCH_CHECK();
       break;
-#endif
     case 8:
       vectorized_elementwise_kernel<8, func_t, array_t>
           <<<grid, num_threads(), 0, stream>>>(N, f, data);
       C10_CUDA_KERNEL_LAUNCH_CHECK();
       break;
+#endif
     case 4:
       vectorized_elementwise_kernel<4, func_t, array_t>
           <<<grid, num_threads(), 0, stream>>>(N, f, data);
