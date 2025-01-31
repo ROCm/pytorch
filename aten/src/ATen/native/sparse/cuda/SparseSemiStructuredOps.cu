@@ -3,7 +3,18 @@
 #include <ATen/cuda/CUDAUtils.h>
 #include <ATen/Dispatch.h>
 
-#if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+#if defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+#elif defined(USE_ROCM)
+#include <ck/ck.hpp>
+#include <ck/tensor_operation/gpu/device/tensor_layout.hpp>
+#include <ck/utility/data_type.hpp>
+#include <ck/library/reference_tensor_operation/cpu/reference_gemm.hpp>
+#include <ck/library/utility/check_err.hpp>
+#include <ck/library/utility/device_memory.hpp>
+#include <ck/library/utility/fill.hpp>
+#include <ck/library/utility/host_tensor.hpp>
+#include <ck/library/utility/host_tensor_generator.hpp>
+#include <ck/library/utility/literals.hpp>
 #else
 #include <cuda_runtime.h>
 #include <cutlass/cutlass.h>
@@ -15,8 +26,8 @@
 
 #include <type_traits>
 #include <tuple>
-
-#if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+//TODO: add check for ROCm
+#if defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
 #else
 #define CUTLASS_STATUS_CHECK(status)                                    \
   {                                                                     \
@@ -27,7 +38,7 @@
 #endif
 
 namespace at::native {
-
+//TODO: spgemm with composable kernel
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
 #else
 // Wrapper function for CUTLASS sparse GEMM implementation, used
@@ -806,8 +817,59 @@ Tensor _sparse_semi_structured_addmm(
 
 // Following is just for testing purposes.
 namespace at::native {
+#if defined(USE_ROCM)
+#include <hip/hip_runtime.h>
 
-#if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+template <typename Element>
+__global__ void reorder_meta_kernel(Element* dest, const Element* src,
+                                    const int problem_size_m, const int problem_size_k) {
+    const int group = (sizeof(Element) == 2) ? 32 : 16;
+    const int interweave = (sizeof(Element) == 2) ? 4 : 2;
+
+    int m = blockIdx.x * blockDim.x + threadIdx.x;
+    int k = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (m < problem_size_m && k < problem_size_k) {
+        // First reorder the rows
+        int dest_row = (m / group) * group + (m % 8) * interweave + (m % group) / 8;
+        int dest_col = k;
+
+        // Next swizzle the 2x2 blocks from Z to N
+        if ((dest_row % 2 == 0) && (dest_col % 2 == 1)) {
+            ++dest_row;
+            --dest_col;
+        } else if ((dest_row % 2 == 1) && (dest_col % 2 == 0)) {
+            --dest_row;
+            ++dest_col;
+        }
+
+        dest[dest_row * problem_size_k + dest_col] = src[m * problem_size_k + k];
+    }
+}
+
+template <typename Element>
+void reorder_meta(Element* dest, const Element* src,
+                  const int problem_size_m, const int problem_size_k) {
+    dim3 block_size(16, 16);
+    dim3 grid_size((problem_size_m + block_size.x - 1) / block_size.x,
+                   (problem_size_k + block_size.y - 1) / block_size.y);
+
+    hipLaunchKernelGGL(reorder_meta_kernel, grid_size, block_size, 0, 0,
+                       dest, src, problem_size_m, problem_size_k);
+
+    // Check for any errors
+    hipError_t error = hipGetLastError();
+    if (error != hipSuccess) {
+        AT_ERROR("HIP error: ", hipGetErrorString(error));
+    }
+
+    // Synchronize to ensure the kernel has completed
+    hipDeviceSynchronize();
+}
+
+#elif defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+ AT_ERROR(__func__, " : CUTLASS not supported");
+    return Tensor{};
 #else
 // Copied from tools/util/include/host_reorder.h, from CUTLASS source
 // tree.  This is for simplicity - namely, this file is not under
@@ -845,17 +907,27 @@ static void reorder_meta(cutlass::TensorRef<Element, LayoutDest> dest,
 
 std::tuple<Tensor, Tensor>
 _to_sparse_semi_structured(const Tensor& dense) {
-#if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
-  AT_ERROR(__func__, " : CUTLASS not supported");
-  return std::make_tuple(Tensor{}, Tensor{});
-#else
-  // Check dimensions of the dense matrix.
   TORCH_CHECK(dense.dim() == 2,
               __func__, " : Expected dense argument to be 2D tensor, got ",
               dense.dim(), " dims");
+#if defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+  AT_ERROR(__func__, " : CUTLASS not supported");
+  return std::make_tuple(Tensor{}, Tensor{});
+#elif defined(USE_ROCM)
+  // Check dimensions of the dense matrix.
 
-  // Determine PyTorch datatype for the metadata matrix.
-  auto meta_dtype = at::kChar;
+  // Generate sparse tensor using cuSPARSELt compression
+  auto sparse = torch._cslt_compress(dense);    
+  
+  // Extract the compressed data and metadata
+  auto compressed_data = sparse.values();
+  auto metadata = sparse.indices();
+  // Print to console that we are using hipSPARSELt
+  printf("Using hipSPARSELt for sparse semi-structured conversion\n");
+  return std::make_tuple(compressed_data, metadata);
+
+#else  // Determine PyTorch datatype for the metadata matrix.
+  auto meta_dtype= at::kChar;
   auto ksparse = 0;
   auto dense_elems_per_meta_elem = 0;
   if (dense.dtype() == at::kChar) {
@@ -945,18 +1017,23 @@ _to_sparse_semi_structured(const Tensor& dense) {
   }
 
   auto meta_reordered_cpu = meta_cpu.new_empty({meta_nrows, meta_ncols});
+
   using MetaLayout = cutlass::layout::RowMajor;
   using MetaReorderedLayout = cutlass::layout::ColumnMajorInterleaved<2>;
+
   if (meta_dtype == at::kShort) {
     using MetaElement = int16_t;
     auto meta_cpu_ref =
       cutlass::TensorRef<MetaElement, MetaLayout>(
           meta_cpu.data_ptr<MetaElement>(),
           MetaLayout::packed({meta_nrows, meta_ncols}));
+
     auto meta_reordered_cpu_ref =
       cutlass::TensorRef<MetaElement, MetaReorderedLayout>(
           meta_reordered_cpu.data_ptr<MetaElement>(),
           MetaReorderedLayout::packed({meta_nrows, meta_ncols}));
+
+//TODO: add ROCm support/CK tensor support
     reorder_meta(meta_reordered_cpu_ref, meta_cpu_ref, meta_nrows, meta_ncols);
   } else if (meta_dtype == at::kInt) {
     using MetaElement = int32_t;
