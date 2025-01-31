@@ -61,6 +61,7 @@
 #include <c10/core/SymIntArrayRef.h>
 #include <utility>
 #include <vector>
+#include <iostream>
 
 static const int MIOPEN_DIM_MAX = 5;
 
@@ -153,7 +154,6 @@ std::tuple<Tensor,Tensor,Tensor> batch_norm_cpu_transform_input_template(
     }
     return std::make_tuple(output, save_mean, save_invstd);
   }
-
   const int64_t ndim = input.dim();
   // Helper to convert 1d tensors to an nd tensor that broadcasts with input
   // All elements go into the channel dimension
@@ -484,10 +484,13 @@ std::tuple<Tensor, Tensor, Tensor> batch_norm_backward_cpu_template(
   return std::make_tuple(grad_input, grad_weight, grad_bias);
 }
 
+bool PYTORCH_MIOPEN_EXTRA_LOGGING = c10::utils::check_env("PYTORCH_MIOPEN_EXTRA_LOGGING").value_or(false);
+
 BatchNormBackend _select_batch_norm_backend(
     const Tensor& input, const Tensor& weight, const Tensor& bias, const Tensor& running_mean,
     const Tensor& running_var, bool training, double eps) {
-
+  if (at::native::PYTORCH_MIOPEN_EXTRA_LOGGING) 
+    std :: cout << "********************* _select_batch_norm_backend" << std::endl;
   auto& ctx = at::globalContext();
   bool cudnn_enabled = ctx.userEnabledCuDNN();
 
@@ -514,25 +517,44 @@ BatchNormBackend _select_batch_norm_backend(
   // See #64427
   // non static variable is used to be able to change environment variable in runtime for testing
   bool PYTORCH_MIOPEN_SUGGEST_NHWC = c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC").value_or(false);
-
+  
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std::cout << "**+** SUGGEST_NHWC=" << PYTORCH_MIOPEN_SUGGEST_NHWC 
+            << " cudnn_enabled=" << cudnn_enabled
+            << " dim=" << input.dim()
+            << " memory_format=" << input.suggest_memory_format()
+            << " input.dtype=" << input.scalar_type()
+            << " weight.dtype=" << (weight.defined()?"+":"-") << weight.scalar_type()
+            << " bias.dtype=" << (bias.defined()?"+":"-") << bias.scalar_type()
+            << " running_mean.dtype=" << (running_mean.defined()?"+":"-") << running_mean.scalar_type() 
+            << " running_var.dtype=" << (running_mean.defined()?"+":"-") << running_mean.scalar_type()
+            << " training=" << training
+            << std::endl;
   if (
       input.is_cuda()
-      && input.dim() <= MIOPEN_DIM_MAX
-      && input.scalar_type() != at::kDouble
-      && input.scalar_type() != at::kBFloat16
-      && (weight.scalar_type() != at::kHalf)
-      && weight.defined() && bias.defined()
-      && ((running_mean.defined() && running_var.defined())
-        || (!running_mean.defined() && !running_var.defined() && training))
-      && (input.dim() >= 3)
       && detail::getCUDAHooks().compiledWithMIOpen()
       && cudnn_enabled
-      && (input.suggest_memory_format() == MemoryFormat::Contiguous
-        || (input.suggest_memory_format() == MemoryFormat::ChannelsLast && PYTORCH_MIOPEN_SUGGEST_NHWC))
+      && input.dim() <= MIOPEN_DIM_MAX
+      && (input.dim() >= 3)      
+      && 
+      (
+        (input.scalar_type() == at::kFloat && input.suggest_memory_format() == MemoryFormat::Contiguous && weight.scalar_type() == at::kFloat)
+        ||
+        (input.scalar_type() == at::kFloat && input.suggest_memory_format() == MemoryFormat::ChannelsLast && PYTORCH_MIOPEN_SUGGEST_NHWC && weight.scalar_type() == at::kFloat)
+        ||
+        (input.scalar_type() == at::kHalf) // && input.suggest_memory_format() == MemoryFormat::ChannelsLast /* && weight.scalar_type() == at::kFloat*/)
+        ||
+        (input.scalar_type() == at::kBFloat16) // && input.suggest_memory_format() == MemoryFormat::ChannelsLast && PYTORCH_MIOPEN_SUGGEST_NHWC && weight.scalar_type() == at::kBFloat16)
+      )
+      && weight.defined() && bias.defined()
+      && ((running_mean.defined() && running_var.defined()) || (!running_mean.defined() && !running_var.defined() && training))
   ) {
+    if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+      std::cout << "***** BatchNormBackend::Miopen" << std::endl;
     return BatchNormBackend::Miopen;
   }
-
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std::cout << "***** BatchNormBackend::Native" << std::endl;
   return BatchNormBackend::Native;
 }
 
@@ -546,6 +568,20 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
     const Tensor& input, const std::optional<Tensor>& weight_opt /* optional */, const std::optional<Tensor>& bias_opt /* optional */, const std::optional<Tensor>& running_mean_opt /* optional */, const std::optional<Tensor>& running_var_opt /* optional */,
     bool training, double momentum, double eps, bool cudnn_enabled) {
   // See [Note: hacky wrapper removal for optional tensor]
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std :: cout 
+      << "********************* _batch_norm_impl_index" 
+      << " input=" << input.scalar_type()
+      << " weight=" << (weight_opt.has_value() ? weight_opt.value().scalar_type() : at::ScalarType::Undefined)  
+      << " bias=" << (bias_opt.has_value() ? bias_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " running_mean=" << (running_mean_opt.has_value() ? running_mean_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " running_var=" << (running_var_opt.has_value() ? running_var_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " training=" << training
+      // << " momentum=" << momentum
+      // << " eps=" << eps
+      << " cudnn_enabled=" << cudnn_enabled
+      << std::endl;
+
   c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
   const Tensor& weight = *weight_maybe_owned;
   const Tensor& bias = c10::value_or_else(bias_opt, [] {return Tensor();});
@@ -605,10 +641,12 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
 
   Tensor reserve = at::empty({0}, input.options().dtype(kByte));
 
-  if (backend == BatchNormBackend::Miopen) {
-    return std::tuple_cat(
+  if (backend == BatchNormBackend::Miopen) {  
+      return std::tuple_cat(
              at::miopen_batch_norm(
-               input.contiguous(input.suggest_memory_format()), weight.contiguous(), bias.contiguous(),
+               input.contiguous(input.suggest_memory_format()), 
+               weight.contiguous(), 
+               bias.contiguous(),
                running_mean.defined() ? running_mean.contiguous() : running_mean,
                running_var.defined() ? running_var.contiguous() : running_var,
                training, momentum, eps),
@@ -625,9 +663,17 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
 
 std::tuple<Tensor, Tensor, Tensor> _batch_norm_impl_index_backward(
     int64_t impl_index,
-    const Tensor& input, const Tensor& grad_output, const std::optional<Tensor>& weight_opt /* optional */, const std::optional<Tensor>& running_mean_opt /* optional */, const std::optional<Tensor>& running_var_opt /* optional */, const std::optional<Tensor>& save_mean_opt /* optional */, const std::optional<Tensor>& save_var_transform_opt /* optional */,
+    const Tensor& input, 
+    const Tensor& grad_output, 
+    const std::optional<Tensor>& weight_opt /* optional */, 
+    const std::optional<Tensor>& running_mean_opt /* optional */, 
+    const std::optional<Tensor>& running_var_opt /* optional */, 
+    const std::optional<Tensor>& save_mean_opt /* optional */, 
+    const std::optional<Tensor>& save_var_transform_opt /* optional */,
     bool train, double epsilon, std::array<bool, 3> output_mask, const Tensor &reservedSpace) {
   // See [Note: hacky wrapper removal for optional tensor]
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std :: cout << "********************* _batch_norm_impl_index_backward" << std::endl;
   c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
   const Tensor& weight = *weight_maybe_owned;
   const Tensor& running_mean = c10::value_or_else(running_mean_opt, [] {return Tensor();});
@@ -674,6 +720,20 @@ Tensor batch_norm(
     const Tensor& input, const std::optional<Tensor>& weight_opt, const std::optional<Tensor>& bias_opt,
     const std::optional<Tensor>& running_mean_opt, const std::optional<Tensor>& running_var_opt,
     bool training, double momentum, double eps, bool cudnn_enabled) {
+  if (PYTORCH_MIOPEN_EXTRA_LOGGING)
+    std :: cout 
+      << "********************* batch_norm" 
+      << " input=" << input.scalar_type()
+      << " weight=" << (weight_opt.has_value() ? weight_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " bias=" << (bias_opt.has_value() ? bias_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " running_mean=" << (running_mean_opt.has_value() ? running_mean_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " running_var=" << (running_var_opt.has_value() ? running_var_opt.value().scalar_type() : at::ScalarType::Undefined)
+      << " training=" << training
+      // << " momentum=" << momentum
+      // << " eps=" << eps
+      << " cudnn_enabled=" << cudnn_enabled
+      << std::endl;
+
   const Tensor& weight = c10::value_or_else(weight_opt, [] {return Tensor();});
   const Tensor& bias = c10::value_or_else(bias_opt, [] {return Tensor();});
   const Tensor& running_mean = c10::value_or_else(running_mean_opt, [] {return Tensor();});

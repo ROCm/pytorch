@@ -14,6 +14,8 @@
 
 #include <c10/util/irange.h>
 
+#include <iostream>
+
 namespace torch {
 namespace autograd {
 
@@ -96,11 +98,14 @@ static variable_list run_backward(
     const variable_list& inputs,
     bool allow_unused,
     bool accumulate_grad) {
+  
   size_t num_tensors = outputs.size();
+  std::cout << "^^^^^^^^^^ run_backward num_tensors=" << num_tensors << std::endl;
   edge_list roots;
   roots.reserve(num_tensors);
   for (const auto i : c10::irange(num_tensors)) {
     const Variable& output = outputs[i];
+    std::cout << "^^^^^^^^^^ run_backward output[" << i << "]=" << output << std::endl;
     auto gradient_edge = impl::gradient_edge(output);
     TORCH_CHECK(
         gradient_edge.function,
@@ -113,9 +118,11 @@ static variable_list run_backward(
   edge_list output_edges;
   if (!inputs.empty()) {
     size_t num_inputs = inputs.size();
+    std::cout << "^^^^^^^^^^ run_backward num_inputs=" << num_inputs << std::endl;
     output_edges.reserve(num_inputs);
     for (const auto i : c10::irange(num_inputs)) {
       const Variable& input = inputs[i];
+      std::cout << "^^^^^^^^^^ run_backward input[" << i << "]=" << input << std::endl;
       const auto output_nr = input.output_nr();
       auto grad_fn = input.grad_fn();
       if (!grad_fn) {
@@ -172,6 +179,11 @@ void backward(
   if (!retain_graph) {
     retain_graph = create_graph;
   }
+  std::cout << "^^^^^^^^^^ backward"
+            << " tensors.size()=" << tensors.size() 
+            << " grad_tensors.size()=" << grad_tensors.size()
+            << " inputs.size()=" << inputs.size()
+            << std::endl;
   run_backward(
       tensors,
       gradients,
@@ -193,6 +205,11 @@ variable_list grad(
   if (!retain_graph) {
     retain_graph = create_graph;
   }
+  std::cout << "^^^^^^^^^^ grad"
+            << " outputs.size()=" << outputs.size() 
+            << " inputs.size()=" << inputs.size()
+            << " grad_outputs.size()=" << grad_outputs.size()
+            << std::endl;
   return run_backward(
       outputs,
       gradients,

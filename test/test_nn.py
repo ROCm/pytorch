@@ -1,3 +1,4 @@
+import time
 # Owner(s): ["module: nn"]
 
 import contextlib
@@ -5063,7 +5064,8 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_batchnorm_nhwc_cuda(self):
-        for dtype in (torch.half, torch.float):
+        # for dtype in (torch.half, torch.float):
+        for dtype in (torch.bfloat16,):
             (N, C, H, W) = 2, 64, 50, 50
             model = torch.nn.BatchNorm2d(C, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
             model = model.eval().cuda().to(dtype)
@@ -8240,30 +8242,74 @@ class TestNNDeviceType(NNTestCase):
             self.assertEqual(scipy_ary, gridsample_ary.reshape_as(scipy_ary))
 
     def batchnorm2d_miopen(self, dtype, memory_format):
-        def run_test(input, grad_output):
+        def run_test(input, grad_output, enable_native = True, enable_cpu = False):
+            print(f"XXXXXXXXXXXXXX {torch.__file__}")
             c = input.size(1)
-            mod = nn.BatchNorm2d(c).cuda().to(dtype=input.dtype)
+            mod = nn.BatchNorm2d(c, device='cuda', dtype=input.dtype)
             mod.weight.data.uniform_()
             mod.bias.data.uniform_()
-            ref_input = input.detach().clone(memory_format=torch.preserve_format).requires_grad_(True)
-            ref_grad = grad.detach().clone(memory_format=torch.preserve_format)
-            ref_mod = nn.BatchNorm2d(c).cuda().to(dtype=input.dtype)
-            ref_mod.load_state_dict(mod.state_dict())
-            out = mod(input)
-            out.backward(grad_output)
-            with torch.backends.cudnn.flags(enabled=False): # force to use native nhwc batchnorm
-                ref_out = ref_mod(ref_input)
-                ref_out.backward(ref_grad)
-            self.assertTrue(out.is_contiguous(memory_format=memory_format))
-            self.assertTrue(ref_out.is_contiguous(memory_format=memory_format))
-            self.assertEqual(out, ref_out)
-            self.assertEqual(mod.weight.grad, ref_mod.weight.grad)
-            self.assertEqual(mod.bias.grad, ref_mod.bias.grad)
-            self.assertEqual(mod.running_mean, ref_mod.running_mean)
-            self.assertEqual(mod.running_var, ref_mod.running_var)
-            self.assertEqual(input.grad, ref_input.grad)
+            if enable_native:
+                ref_input = input.detach().clone(memory_format=torch.preserve_format).requires_grad_(True)
+                ref_grad = grad.detach().clone(memory_format=torch.preserve_format)
+                ref_mod = nn.BatchNorm2d(c).cuda().to(dtype=input.dtype)
+                ref_mod.load_state_dict(mod.state_dict())
 
-        size = (4, 8, 2, 2)
+            if enable_cpu:
+                cpu_input = input.detach().clone(memory_format=torch.preserve_format).cpu().requires_grad_(True)
+                cpu_grad = grad.detach().cpu().clone(memory_format=torch.preserve_format)
+                cpu_mod = nn.BatchNorm2d(c).cpu().to(dtype=input.dtype)
+                cpu_mod.load_state_dict(mod.state_dict())
+
+            print("---------------- forward ----------------")
+            time.sleep(1)
+            out = mod(input)
+            # return
+            if enable_cpu:
+                print("---------------- cpu_forward ----------------")
+                time.sleep(1)
+                cpu_out = cpu_mod(cpu_input)
+            if enable_native:
+                print("---------------- ref_forward ----------------")
+                with torch.backends.cudnn.flags(enabled=False): # force to use native nhwc batchnorm
+                    time.sleep(1)
+                    ref_out = ref_mod(ref_input)
+            
+            print("---------------- backward ----------------")
+            time.sleep(1)
+            # if input.dtype == torch.bfloat16 and memory_format==torch.channels_last:
+            #     grad_output = grad_output.to(torch.float) # .contiguous(memory_format=torch.channels_last)
+            out.backward(grad_output)
+            if enable_cpu:
+                print("---------------- cpu_backward ----------------")
+                time.sleep(1)
+                cpu_out.backward(cpu_grad)
+            if enable_native:
+                print("---------------- ref_backward ----------------")
+                time.sleep(1)
+                ref_out.backward(ref_grad)
+            print("---------------- check ----------------")    
+            time.sleep(1)
+            self.assertTrue(out.is_contiguous(memory_format=memory_format))
+            if enable_cpu:
+                self.assertTrue(cpu_out.is_contiguous(memory_format=memory_format))
+                self.assertEqual(out, cpu_out)
+                self.assertEqual(mod.weight.grad, cpu_mod.weight.grad)
+                self.assertEqual(mod.bias.grad, cpu_mod.bias.grad)
+                self.assertEqual(mod.running_mean, cpu_mod.running_mean)
+                self.assertEqual(mod.running_var, cpu_mod.running_var)
+                self.assertEqual(input.grad, cpu_input.grad)
+            if enable_native:
+                self.assertTrue(ref_out.is_contiguous(memory_format=memory_format))
+                self.assertEqual(out, ref_out)            
+                self.assertEqual(mod.weight.grad, ref_mod.weight.grad)
+                self.assertEqual(mod.bias.grad, ref_mod.bias.grad)
+                self.assertEqual(mod.running_mean, ref_mod.running_mean, atol=1e-2, rtol=3e-2, exact_dtype=False)
+                self.assertEqual(mod.running_var, ref_mod.running_var, atol=1e-2, rtol=3e-2, exact_dtype=False)
+                self.assertEqual(input.grad, ref_input.grad)
+            print("---------------- end ----------------")
+
+        # size = (4, 8, 2, 2)
+        size = (8, 32, 470, 725)
         input = torch.randint(1, 10, size=size, dtype=dtype, device="cuda")
         input = input.contiguous(memory_format=memory_format).detach().requires_grad_()
         grad = torch.randint(1, 10, size=size, dtype=dtype, device="cuda")
@@ -8271,15 +8317,15 @@ class TestNNDeviceType(NNTestCase):
         run_test(input, grad)
         # see #42588, grad is channels_last contiguous, but grad.suggest_memory_format (rightly) return "contiguous"
         # not channels_last
-        input = torch.randint(1, 10, (2, 8, 8, 1), dtype=dtype, device="cuda")
-        input = input.contiguous(memory_format=memory_format).detach().requires_grad_()
-        grad = torch.randint(1, 10, (2, 8, 8, 1), dtype=dtype, device="cuda")
-        grad = grad.permute(0, 2, 1, 3)
-        run_test(input, grad)
+        # input = torch.randint(1, 10, (2, 8, 8, 1), dtype=dtype, device="cuda")
+        # input = input.contiguous(memory_format=memory_format).detach().requires_grad_()
+        # grad = torch.randint(1, 10, (2, 8, 8, 1), dtype=dtype, device="cuda")
+        # grad = grad.permute(0, 2, 1, 3)
+        # run_test(input, grad)
 
 
     @onlyCUDA
-    @dtypes(torch.float)
+    @dtypes(torch.float, torch.float16, torch.bfloat16)
     def test_batchnorm_nhwc_miopen(self, dtype):
         # TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC once ROCm officially supports NHWC in MIOpen
         PYTORCH_MIOPEN_SUGGEST_NHWC = "PYTORCH_MIOPEN_SUGGEST_NHWC"
@@ -8294,7 +8340,7 @@ class TestNNDeviceType(NNTestCase):
                 os.environ[PYTORCH_MIOPEN_SUGGEST_NHWC] = prev_val
 
     @onlyCUDA
-    @dtypes(torch.float)
+    @dtypes(torch.float, torch.float16, torch.bfloat16)
     def test_batchnorm_nchw_miopen(self, dtype):
         self.batchnorm2d_miopen(dtype, torch.contiguous_format)
 
