@@ -3893,6 +3893,13 @@ class TestSparseCompressedTritonKernels(TestCase):
     @dtypesIfCUDA(torch.half, *[torch.bfloat16] if SM80OrLater else [], torch.float)
     @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU, "Test requires Triton")
     def test_triton_bsr_scatter_mm(self, device, dtype, blocksize):
+        if (
+            # skip for Navi4
+            TEST_WITH_ROCM
+            and dtype == torch.bfloat16
+            and "gfx12" in str(torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0])
+        ):
+            self.skipTest("failed with bfloat16 on Navi4")
         import triton
         from torch.sparse._triton_ops import bsr_scatter_mm, bsr_scatter_mm_indices_data
         from functools import partial

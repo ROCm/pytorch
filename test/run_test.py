@@ -186,6 +186,28 @@ ROCM_BLOCKLIST = [
     "test_jit_cuda_fuser",
     "distributed/_tensor/test_attention",
 ]
+
+# Skip inductor tests on Navi4
+if TEST_WITH_ROCM:
+    gcn_arch = str(torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0])
+    if "gfx12" in gcn_arch:
+        NAVI_BLOCKLIST = [
+            "inductor/test_aot_inductor.py",
+            "inductor/test_compiled_optimizers.py",
+            "inductor/test_control_flow.py",
+            "inductor/test_cuda_cpp_wrapper.py",
+            "inductor/test_cuda_repro.py",
+            "inductor/test_multi_kernel.py",
+            "inductor/test_padding.py",
+            "inductor/test_pattern_matcher.py",
+            "inductor/test_torchinductor_codegen_dynamic_shapes.py",
+            "inductor/test_torchinductor_dynamic_shapes.py",
+            "inductor/test_torchinductor_opinfo.py",
+            "inductor/test_torchinductor.py",
+            "inductor/test_unbacked_symints.py",
+        ]
+        ROCM_BLOCKLIST.extend(NAVI_BLOCKLIST)
+
 # Remove test_typing if python version is 3.9.* or less
 if Version(numpy.__version__) < Version('1.21'):
     ROCM_BLOCKLIST.extend(["test_typing"])
