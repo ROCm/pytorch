@@ -86,6 +86,7 @@ def build_triton(
     if "MAX_JOBS" not in env:
         max_jobs = os.cpu_count() or 1
         env["MAX_JOBS"] = str(max_jobs)
+    version_suffix = ""
     if not release:
         # Nightly binaries include the triton commit hash, i.e. 2.1.0+e6216047b8
         # while release build should only include the version, i.e. 2.1.0
