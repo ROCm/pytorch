@@ -2403,7 +2403,7 @@ class TestOperators(TestCase):
             self.skipTest("Skipped! Autograd not supported.")
             return
 
-        if op.name == "nn.functional.scaled_dot_product_attention":
+        if op.name == "nn.functional.scaled_dot_product_attention" and TEST_WITH_ROCM:
             torch.backends.cuda.enable_mem_efficient_sdp(False)
             
         sample_inputs = op.sample_inputs(device, dtype, requires_grad=True)
