@@ -98,7 +98,7 @@ def get_rocm_version() -> str:
 def build_triton(
     *,
     version: str,
-    : str,
+    commit_hash: str,
     build_conda: bool = False,
     device: str = "cuda",
     py_version: Optional[str] = None,
