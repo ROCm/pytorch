@@ -82,7 +82,7 @@ def get_rocm_version() -> str:
 def build_triton(
     *,
     version: str,
-    _hash: str,
+    commit_hash: str,
     build_conda: bool = False,
     build_rocm: bool = False,
     py_version: Optional[str] = None,
