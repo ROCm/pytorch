@@ -82,7 +82,7 @@ def get_rocm_version() -> str:
 def build_triton(
     *,
     version: str,
-    commit_hash: str,
+    _hash: str,
     build_conda: bool = False,
     build_rocm: bool = False,
     py_version: Optional[str] = None,
@@ -94,10 +94,10 @@ def build_triton(
         env["MAX_JOBS"] = str(max_jobs)
 
     if not release:
-        # Nightly binaries include the triton commit hash, i.e. 2.1.0+e6216047b8
+        # Nightly binaries include the triton  hash, i.e. 2.1.0+e6216047b8
         # while release build should only include the version, i.e. 2.1.0
         rocm_version = get_rocm_version()
-        version = f"{version}+rocm{rocm_version}.{commit_hash[:10]}"
+        version = f"{version}+rocm{rocm_version}.git{commit_hash[:8]}"
 
     with TemporaryDirectory() as tmpdir:
         triton_basedir = Path(tmpdir) / "triton"
