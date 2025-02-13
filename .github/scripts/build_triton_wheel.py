@@ -94,7 +94,7 @@ def build_triton(
         env["MAX_JOBS"] = str(max_jobs)
 
     if not release:
-        # Nightly binaries include the triton  hash, i.e. 2.1.0+e6216047b8
+        # Nightly binaries include the triton commit hash, i.e. 2.1.0+e6216047b8
         # while release build should only include the version, i.e. 2.1.0
         rocm_version = get_rocm_version()
         version = f"{version}+rocm{rocm_version}.git{commit_hash[:8]}"
