@@ -165,7 +165,7 @@ def build_triton(
 
         # change built wheel name and version
         rocm_version = get_rocm_version()
-        version_suffix = f"+rocm{rocm_version}.{commit_hash[:10]}"
+        version_suffix = f"+rocm{rocm_version}.git{commit_hash[:8]}"
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
         env["TRITON_WHEEL_VERSION_SUFFIX"] = version_suffix
         if with_clang_ldd:
