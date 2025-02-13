@@ -58,7 +58,7 @@ include(cmake/public/utils.cmake)
 if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.2)
   message(
     FATAL_ERROR
-      "GCC-9.d or newer is required to compile PyTorch, but found ${CMAKE_CXX_COMPILER_VERSION}"
+      "GCC-9.2 or newer is required to compile PyTorch, but found ${CMAKE_CXX_COMPILER_VERSION}"
   )
 endif()
 
