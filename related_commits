@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ubuntu|pytorch|apex|master|6fc10c371d9ddae5268b2412365716c212eb51e8|https://github.com/ROCm/apex
 centos|pytorch|apex|master|6fc10c371d9ddae5268b2412365716c212eb51e8|https://github.com/ROCm/apex
 ubuntu|pytorch|torchvision|main|229d8523bfa9a2696872d76b1cdb6815028f1e03|https://github.com/pytorch/vision
@@ -11,15 +10,3 @@ ubuntu|pytorch|torchaudio|main|b6d4675c7aedc53ba04f3f55786aac1de32be6b4|https://
 centos|pytorch|torchaudio|main|b6d4675c7aedc53ba04f3f55786aac1de32be6b4|https://github.com/pytorch/audio
 ubuntu|pytorch|ao|main|6ffe2360a7382c51b9a5a5ab30fb7aeb4b98963d|https://github.com/pytorch/ao
 centos|pytorch|ao|main|6ffe2360a7382c51b9a5a5ab30fb7aeb4b98963d|https://github.com/pytorch/ao
-=======
-ubuntu|pytorch|apex|release/1.6.0|31d60e599c2ecbe31d5bcf7e4b873366b8747aea|https://github.com/ROCm/apex
-centos|pytorch|apex|release/1.6.0|31d60e599c2ecbe31d5bcf7e4b873366b8747aea|https://github.com/ROCm/apex
-ubuntu|pytorch|torchvision|release/0.21|7af698794eded568735f9519593603c1ec889eba|https://github.com/pytorch/vision
-centos|pytorch|torchvision|release/0.21|7af698794eded568735f9519593603c1ec889eba|https://github.com/pytorch/vision
-ubuntu|pytorch|torchtext|release/0.18.0|9bed85d7a7ae13cf8c28598a88d8e461fe1afcb4|https://github.com/pytorch/text
-centos|pytorch|torchtext|release/0.18.0|9bed85d7a7ae13cf8c28598a88d8e461fe1afcb4|https://github.com/pytorch/text
-ubuntu|pytorch|torchdata|release/0.10|a4bed25873e071ecb4d4206a47b5326965283ad4|https://github.com/pytorch/data
-centos|pytorch|torchdata|release/0.10|a4bed25873e071ecb4d4206a47b5326965283ad4|https://github.com/pytorch/data
-ubuntu|pytorch|torchaudio|release/2.6|d8831425203385077a03c1d92cfbbe3bf2106008|https://github.com/pytorch/audio
-centos|pytorch|torchaudio|release/2.6|d8831425203385077a03c1d92cfbbe3bf2106008|https://github.com/pytorch/audio
->>>>>>> 93864a85f6... [release/2.6] Enable wheels (#1884)
