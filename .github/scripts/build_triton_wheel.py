@@ -54,7 +54,7 @@ def get_rocm_version() -> str:
     rocm_version_h = f"{rocm_path}/include/rocm-core/rocm_version.h"
     if not os.path.isfile(rocm_version_h):
         rocm_version_h = f"{rocm_path}/include/rocm_version.h"
- 
+
     # The file could be missing due to 1) ROCm version < 5.2, or 2) no ROCm install.
     if os.path.isfile(rocm_version_h):
         RE_MAJOR = re.compile(r"#define\s+ROCM_VERSION_MAJOR\s+(\d+)")
@@ -94,7 +94,7 @@ def build_triton(
         # Nightly binaries include the triton commit hash, i.e. 2.1.0+e6216047b8
         # while release build should only include the version, i.e. 2.1.0
         rocm_version = get_rocm_version()
-        version_suffix = f"+rocm{rocm_version}.git{commit_hash[:8]}"
+        version_suffix = f".rocm{rocm_version}.git{commit_hash[:8]}"
         version += version_suffix
 
     with TemporaryDirectory() as tmpdir:
