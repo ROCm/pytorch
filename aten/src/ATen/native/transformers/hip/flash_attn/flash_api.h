@@ -377,24 +377,29 @@ mha_bwd(const at::Tensor &dout,  // batch_size x seqlen_q x num_heads, x head_si
                        philox_offset);
     }
 #else
-    return mha_bwd_aot(dout,
-                       q,
-                       k,
-                       v,
-                       out,
-                       softmax_lse,
-                       dq_,
-                       dk_,
-                       dv_,
-                       alibi_slopes_,
-                       p_dropout,
-                       softmax_scale,
-                       is_causal,
-                       window_size_left,
-                       window_size_right,
-                       deterministic,
-                       philox_seed,
-                       philox_offset);
+  if(at::globalContext().getROCmFAPreferredBackend() ==
+    at::ROCmFABackend::Ck) {
+    TORCH_WARN_ONCE("Warning! You have opted to use CK flash attention backend in a build that was not compiled using USE_CK_FLASH_ATTENTION=1. Please set this variable and try again. Defaulting to use aotriton backend...");
+  }
+  return mha_bwd_aot(
+      dout,
+      q,
+      k,
+      v,
+      out,
+      softmax_lse,
+      dq_,
+      dk_,
+      dv_,
+      alibi_slopes_,
+      p_dropout,
+      softmax_scale,
+      is_causal,
+      window_size_left,
+      window_size_right,
+      deterministic,
+      philox_seed,
+      philox_offset);
 #endif
 
 }
