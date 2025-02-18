@@ -614,8 +614,6 @@ int get_items_per_thread(uint64_t num_slices, uint64_t slice_size) {
   int mpc = prop->multiProcessorCount;
   int regs_per_mp = prop->regsPerMultiprocessor;
   int max_blocks_per_mp = prop->maxBlocksPerMultiProcessor;
-#endif
-#endif
   int blocks_per_mp = std::min(regs_per_mp / REGS_PER_BLOCK, max_blocks_per_mp);
   int64_t items_per_thread = at::ceil_div((int64_t)(slice_size * num_slices), (int64_t)(mpc * blocks_per_mp * BLOCK_THREADS));
   items_per_thread = std::max(MIN_ITEMS_PER_THREAD, std::min((int)items_per_thread, MAX_ITEMS_PER_THREAD)); // clamp to (4, 64)
