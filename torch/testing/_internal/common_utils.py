@@ -1361,6 +1361,19 @@ IS_X86 = platform.machine() in ('x86_64', 'i386')
 IS_ARM64 = platform.machine() in ('arm64', 'aarch64')
 IS_S390X = platform.machine() == "s390x"
 
+<<<<<<< HEAD
+=======
+NAVI32_ARCH = "gfx1101"
+
+def is_navi_arch():
+    if torch.cuda.is_available():
+        prop = torch.cuda.get_device_properties(0)
+        gfx_arch = prop.gcnArchName.split(":")[0]
+        if gfx_arch in ["gfx1100", "gfx1101", "gfx1102"]:
+            return True
+    return False
+
+>>>>>>> 896c7893dc ([rocm6.4_internal_testing] [NAVI32] Skipped sdpa_2 test in test_aot_inductor for Navi32 (#1882))
 def is_avx512_vnni_supported():
     if sys.platform != 'linux':
         return False
