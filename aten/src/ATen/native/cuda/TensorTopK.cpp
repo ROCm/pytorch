@@ -35,7 +35,8 @@ void topk_out_with_sort(
 bool disable_sort_for_topk();
 bool should_use_sort(const Tensor& self, int64_t dim) {
 #if defined(USE_ROCM)
-  return (self.numel() == self.size(dim) && self.numel() >= 10000); // based on the experiments in https://github.com/pytorch/pytorch/pull/146387
+  if (self.dtype() == kBool) return false; // Bool sort not supported in ROCm: https://github.com/pytorch/pytorch/issues/139972
+  return (self.numel() >= 10000 && self.numel() == self.size(dim)); // based on the experiments in https://github.com/pytorch/pytorch/pull/146387
 #else
   if (disable_sort_for_topk()) return false;
   // This heuristics is based on the experiment in https://github.com/pytorch/pytorch/pull/68632
