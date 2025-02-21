@@ -1021,6 +1021,13 @@ if(USE_ROCM)
     list(APPEND HIP_CXX_FLAGS -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP)
     list(APPEND HIP_CXX_FLAGS -std=c++17)
     list(APPEND HIP_CXX_FLAGS -DHIPBLAS_V2)
+<<<<<<< HEAD
+=======
+    if(HIPBLASLT_VEC_EXT)
+      list(APPEND HIP_CXX_FLAGS -DHIPBLASLT_VEC_EXT)
+    endif()
+    list(APPEND HIP_HIPCC_FLAGS --offload-compress)
+>>>>>>> 8354da2c24 ([release/2.6] [ROCm] Fix for ld failed to convert GOTPCREL relocation in PyTorch build (#143986) (#1921))
     if(HIP_NEW_TYPE_ENUMS)
       list(APPEND HIP_CXX_FLAGS -DHIP_NEW_TYPE_ENUMS)
     endif()
