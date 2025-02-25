@@ -412,6 +412,7 @@ _efficient_attention_backward(
   // ROCM Implementation
   if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck)
   {
+#if defined(USE_CK_FLASH_ATTENTION)
     const auto my_softmax_scale = sdp::calculate_scale(query, scale).expect_float();
     // Store grad_bias in optional
     std::optional<at::Tensor> opt_grad_bias = grad_bias;
@@ -445,7 +446,9 @@ _efficient_attention_backward(
                      philox_seed,
                      philox_offset);
     grad_bias = dBias;
-
+#else
+    TORCH_CHECK(false, "Attempting to use CK mem_eff_backward backend in a build that has not built CK");
+#endif
   } else {
     TORCH_CHECK(!num_splits_key.has_value(),
               "ROCM does not support num_split_keys in _efficient_attention_forward");
@@ -509,7 +512,7 @@ _efficient_attention_backward(
                                     0,
                                     is_causal,
                                     stream);
-    } else {
+    } else { // cu_seqlens.has_value
       auto d_head = Kv;
       bool use_fused_bwd = d_head <= 192 && d_head * max_seqlen_q < 64 * 512;
       if (use_fused_bwd) {
@@ -533,7 +536,7 @@ _efficient_attention_backward(
                              stream);
       } else {
         at::Tensor delta = at::empty_like(softmax_lse).contiguous();
-      err = attn_bwd(mk_aotensor(q_t, "q"),
+        err = attn_bwd(mk_aotensor(q_t, "q"),
                      mk_aotensor(k_t, "k"),
                      mk_aotensor(v_t, "v"),
                      bias.has_value() ? mk_aotensor(bias.value(), "bias") : empty_t4,
@@ -552,8 +555,9 @@ _efficient_attention_backward(
                      0,
                      is_causal,
                      stream);
-    }
-  }
+      } //used_fused_bwd
+    } // cuseqlen.has_value
+  } // Use CK
 #else // USE_CUDA
   at::Tensor workspace;
   cudaDeviceProp* p = at::cuda::getDeviceProperties(query.device().index());
