@@ -10,7 +10,7 @@ boto3==1.35.42
 #Pinned versions: 1.19.12, 1.16.34
 #test that import:
 
-click
+click==8.1.7
 #Description: Command Line Interface Creation Kit
 #Pinned versions:
 #test that import:
@@ -379,3 +379,4 @@ pulp==2.9.0 ; python_version >= "3.8"
 #Description: required for testing ilp formulaiton under torch/distributed/_tools
 #Pinned versions: 2.9.0
 #test that import: test_sac_ilp.py
+
