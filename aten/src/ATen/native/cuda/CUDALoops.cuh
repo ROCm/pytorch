@@ -103,6 +103,29 @@ __global__ void unrolled_elementwise_kernel(
   elementwise_kernel_helper(f, policy);
 }
 
+template <
+    typename func_t,
+    typename array_t,
+    typename inp_calc_t,
+    typename out_calc_t,
+    typename loader_t,
+    typename storer_t>
+C10_LAUNCH_BOUNDS_1(num_threads())
+__global__ void unrolled_templated_elementwise_kernel(
+    int N,
+    func_t f,
+    array_t data,
+    inp_calc_t ic,
+    out_calc_t oc,
+    loader_t l,
+    storer_t s) {
+  int remaining = N - block_work_size() * blockIdx.x;
+  auto policy = memory::policies::
+      unroll<array_t, inp_calc_t, out_calc_t, loader_t, storer_t>(
+          data, remaining, ic, oc, l, s);
+  unrolled_templated_elementwise_kernel_helper(f, policy);
+}
+
 // this function assume trivial 1d and no dynamic casting
 template <typename func_t, typename array_t>
 static inline void launch_vectorized_kernel(
@@ -169,6 +192,30 @@ static inline void launch_unrolled_kernel(
       <<<grid, num_threads(), 0, stream>>>(N, f, data, ic, oc, l, s);
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
+
+template <
+    typename func_t,
+    typename array_t,
+    typename inp_calc_t,
+    typename out_calc_t,
+    typename loader_t,
+    typename storer_t>
+static inline void launch_unrolled_templated_kernel(
+    int64_t N,
+    const func_t& f,
+    array_t data,
+    inp_calc_t ic,
+    out_calc_t oc,
+    loader_t l,
+    storer_t s) {
+  TORCH_INTERNAL_ASSERT(N > 0 && N <= std::numeric_limits<int32_t>::max());
+  int64_t grid = (N + block_work_size() - 1) / block_work_size();
+  auto stream = at::cuda::getCurrentCUDAStream();
+  unrolled_templated_elementwise_kernel<func_t, array_t>
+      <<<grid, num_threads(), 0, stream>>>(N, f, data, ic, oc, l, s);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
+}
+
 
 template <int nt, int vt, typename func_t>
 C10_LAUNCH_BOUNDS_2(nt, 4)
@@ -425,6 +472,44 @@ void gpu_kernel_impl_nocast(TensorIteratorBase& iter, const func_t& f) {
 #endif
 }
 
+namespace {
+template<typename TupleLike, size_t arity, size_t arg_num=0>
+struct check_types {
+  constexpr static inline bool check() {
+    bool current = false;
+    if constexpr (arity != 2) return false;
+    if constexpr (arg_num == 0) {
+      using SelectedType = std::tuple_element_t<arg_num, TupleLike>;
+    if constexpr (std::is_same_v<float, SelectedType>)
+        return check_types<TupleLike, arity, arg_num+1>::check();
+    } else if constexpr (arg_num == 1) {
+      using SelectedType2 = std::tuple_element_t<arg_num, TupleLike>;
+     if constexpr (std::is_same_v<float, SelectedType2>)
+      return check_types<TupleLike, arity, arg_num+1>::check();
+    }
+    return false;
+  }
+};
+
+// Bottom case: if we got this far, assume correct type matching except
+// when there are no arguments (arity == 0).
+template<typename TupleLike, size_t arity>
+struct check_types<TupleLike, arity, arity> {
+  constexpr static inline bool check() {
+  if constexpr (arity != 0)
+    return true;
+  return false;
+  }
+};
+
+template<typename TupleLike>
+struct check_types<TupleLike, 0, 0> {
+  constexpr static inline bool check() {
+    return false;
+  }
+};
+} // namespace anonymous
+
 template <typename func_t>
 void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
   if (!needs_dynamic_casting<func_t>::check(iter)) {
@@ -449,6 +534,45 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
 
   if (contiguous) {
 #ifdef USE_ROCM
+    // Attempt to call specialized unrolled elementwise kernel
+    // that enables interleaving.
+    using float_map = c10::CppTypeToScalarType<float>;
+    using bfloat16_map = c10::CppTypeToScalarType<BFloat16>;
+    int64_t grid = (numel + block_work_size() - 1) / block_work_size();
+    // Number of iterations is a perfect multiple of the grid size
+    // to avoid bound checking and enabling loop unrolling without
+    // intervening basic blocks, which prevents interleaving.
+    if (iter.ninputs() == 2 &&
+        iter.input_dtype(0) == float_map::value &&
+        iter.input_dtype(1) == bfloat16_map::value &&
+	!(numel%(block_work_size()*grid))) {
+	// constexpr to reduce the amount of kernels (empty) generated for
+	// unrolled templated elementwise and limit which functors are actually
+        // applied to the load and store at compile time.
+	using func_tuple = typename traits::ArgsTuple;
+	if constexpr (std::is_same_v<float,arg0_t> &&
+		      traits::arity == 2 &&
+		      check_types<func_tuple, traits::arity, 0>::check()) {
+	  // templated load/store for specific data type remove the need for a runtime
+	  // switch statement over the input tensor type. This, together with
+	  // no bound checks, enables memory instruction interleaving with
+	  // compute.
+	  auto loader = memory::TemplatedLoad<float, float, BFloat16>();
+	  auto storer = memory::TemplatedStore<float, float>();
+          auto input_offset_calculator = TrivialOffsetCalculator<traits::arity>();
+          auto output_offset_calculator = TrivialOffsetCalculator<1>();
+	  launch_unrolled_templated_kernel(
+            numel,
+	    f,
+            data,
+            input_offset_calculator,
+            output_offset_calculator,
+            loader,
+            storer);
+	  return;
+        }
+    }
+
     at::detail::Array<ScalarType, ntensors> dtypes;
     auto inner_strides = iter.get_inner_strides();
     at::detail::Array<int, ntensors> strides;
