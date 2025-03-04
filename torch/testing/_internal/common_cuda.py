@@ -5,7 +5,14 @@ r"""This file is allowed to initialize CUDA context when imported."""
 import functools
 import torch
 import torch.cuda
-from torch.testing._internal.common_utils import LazyVal, TEST_NUMBA, TEST_WITH_ROCM, TEST_CUDA, IS_WINDOWS
+from torch.testing._internal.common_utils import (
+    LazyVal,
+    MI300_ARCH,
+    TEST_NUMBA,
+    TEST_WITH_ROCM,
+    TEST_CUDA,
+    IS_WINDOWS,
+)
 import inspect
 import contextlib
 import os
@@ -118,7 +125,15 @@ def initialize_cuda_context_rng():
 # Test whether hardware TF32 math mode enabled. It is enabled only on:
 # - CUDA >= 11
 # - arch >= Ampere
+#More--
+# For AMD GPUs, tf32 is supported on mi300.
 def tf32_is_not_fp32():
+    if torch.version.hip:
+        prop = torch.cuda.get_device_properties(torch.cuda.current_device())
+        if prop.gcnArchName.split(":")[0] in MI300_ARCH:
+            return True
+        else:
+            return False
     if not torch.cuda.is_available() or torch.version.cuda is None:
         return False
     if torch.cuda.get_device_properties(torch.cuda.current_device()).major < 8:
@@ -141,6 +156,9 @@ def tf32_off():
 
 @contextlib.contextmanager
 def tf32_on(self, tf32_precision=1e-5):
+    if torch.version.hip:
+        hip_allow_tf32 = os.environ.get("HIPBLASLT_ALLOW_TF32", None)
+        os.environ["HIPBLASLT_ALLOW_TF32"] = "1"
     old_allow_tf32_matmul = torch.backends.cuda.matmul.allow_tf32
     old_precision = self.precision
     try:
@@ -149,6 +167,11 @@ def tf32_on(self, tf32_precision=1e-5):
         with torch.backends.cudnn.flags(enabled=None, benchmark=None, deterministic=None, allow_tf32=True):
             yield
     finally:
+        if torch.version.hip:
+            if hip_allow_tf32 is not None:
+                os.environ["HIPBLASLT_ALLOW_TF32"] = hip_allow_tf32
+            else:
+                del os.environ["HIPBLASLT_ALLOW_TF32"]
         torch.backends.cuda.matmul.allow_tf32 = old_allow_tf32_matmul
         self.precision = old_precision
 
