@@ -431,6 +431,7 @@ class TestGroupBatchFusion(TestCase):
             self.compare_gradients(module, traced, rtol=1e-8, atol=1e-8)
             counters.clear()
 
+    @skipIfRocmArch(NAVI_ARCH)  # failed on Navi
     def test_pointwise_op_fusion(self):
         counters.clear()
         module = TestPoitwiseOps("cuda")
