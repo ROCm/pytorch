@@ -111,6 +111,7 @@ class TestMatmulCuda(TestCase):
         # Compare
         gcn_arch = str(torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0])
         if (dtype == torch.float16) and (size > 1000) and ("gfx11" in gcn_arch):
+            # adjust tolerance for Navi3 (hipblas) on large input
             self.assertEqual(res_cpu, res_cuda, atol=size*2.5e-5, rtol=0.0)
         else:
             self.assertEqual(res_cpu, res_cuda)
