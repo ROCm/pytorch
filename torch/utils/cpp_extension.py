@@ -1048,11 +1048,19 @@ class BuildExtension(build_ext):
         else:
             extension.extra_compile_args.append(flag)
 
+    # Simple hipify, replace the first occurrence of CUDA with HIP
+    # in flags starting with "-" and containing "CUDA", but exclude -I flags
     def _hipify_compile_flags(self, extension):
-        # Simple hipify, map CUDA->HIP
         if isinstance(extension.extra_compile_args, dict):
-            extension.extra_compile_args['nvcc'] = [
-                flag.replace("CUDA", "HIP") for flag in extension.extra_compile_args['nvcc']]
+            modified_flags = []
+            for flag in extension.extra_compile_args['nvcc']:
+                if flag.startswith("-") and "CUDA" in flag and not flag.startswith("-I"):
+                    modified_flag = flag.replace("CUDA", "HIP", 1)
+                    modified_flags.append(modified_flag)
+                    print(f'Modified flag: {flag} -> {modified_flag}', file=sys.stderr)
+                else:
+                    modified_flags.append(flag)
+            extension.extra_compile_args['nvcc'] = modified_flags
 
     def _define_torch_extension_name(self, extension):
         # pybind11 doesn't support dots in the names
