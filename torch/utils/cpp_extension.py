@@ -1051,7 +1051,7 @@ class BuildExtension(build_ext):
     # Simple hipify, replace the first occurrence of CUDA with HIP
     # in flags starting with "-" and containing "CUDA", but exclude -I flags
     def _hipify_compile_flags(self, extension):
-        if isinstance(extension.extra_compile_args, dict):
+        if isinstance(extension.extra_compile_args, dict) and 'nvcc' in extension.extra_compile_args:
             modified_flags = []
             for flag in extension.extra_compile_args['nvcc']:
                 if flag.startswith("-") and "CUDA" in flag and not flag.startswith("-I"):
