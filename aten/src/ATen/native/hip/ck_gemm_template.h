@@ -41,57 +41,6 @@ using PassThrough = ck::tensor_operation::element_wise::PassThrough;
 
 namespace at::native {
 
-template <typename T>
-struct CkMathType {
-  using dtype = T;
-};
-
-template <>
-struct CkMathType<at::BFloat16> {
-  using dtype = ck::bhalf_t;
-};
-
-template <>
-struct CkMathType<at::Half> {
-  using dtype = ck::half_t;
-};
-
-
-template <bool A, bool B>
-struct CkTensorLayout {
-  // default goes to row-wise for now
-  using a_layout = Row;
-  using b_layout = Row;
-};
-
-// True denotes transpose is necessary. Default is Col, so return Row
-template <>
-struct CkTensorLayout<true, true> {
-  using a_layout = Col;
-  using b_layout = Col;
-};
-
-
-template <>
-struct CkTensorLayout<true, false> {
-  using a_layout = Row;
-  using b_layout = Col;
-};
-
-template <>
-struct CkTensorLayout<false, true> {
-  using a_layout = Col;
-  using b_layout = Row;
-};
-
-
-template <>
-struct CkTensorLayout<false, false> {
-  using a_layout = Row;
-  using b_layout = Row;
-};
-
-
 // Elementwise Operators
 struct AlphaBetaAdd
 {
