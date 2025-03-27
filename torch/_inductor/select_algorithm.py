@@ -354,8 +354,6 @@ class TritonTemplateKernel(TritonKernel):
         triton_meta["configs"] = [config_of(signature)]
         for arg_num in triton_meta["configs"][0].equal_to_1:  # type: ignore[index]
             triton_meta["constants"][signature[arg_num].name] = 1  # type: ignore[index]
-        for arg_num in equal_1_arg_indices(signature):  # type: ignore[index]
-            triton_meta["constants"][signature[arg_num].name] = 1  # type: ignore[index,union-attr]
         matrix_instr_nonkdim = self.meta.get("matrix_instr_nonkdim", None)
         waves_per_eu = self.meta.get("waves_per_eu", None)
         kpack = self.meta.get("kpack", None)
@@ -365,6 +363,7 @@ class TritonTemplateKernel(TritonKernel):
             triton_meta["waves_per_eu"] = waves_per_eu
         if kpack:
             triton_meta["kpack"] = kpack
+
 
         self.triton_meta = triton_meta
 

@@ -1210,8 +1210,8 @@ def flex_attention(
 
     # Check if the environment variable is set
     if os.getenv("TORCHINDUCTOR_EXHAUSTIVE_FLEX_ATTENTION_EXPERIMENTAL") == "1":
-        param1 = [16, 32, 64, 128, 256]
-        param2 = [16, 32, 64, 128, 256]
+        param1 = [16, 32, 64, 128, 256, 512]
+        param2 = [16, 32, 64, 128, 256, 512]
         param3 = [2, 4, 8, 16]
         param4 = [1]
 
@@ -2307,9 +2307,9 @@ def flex_attention_backward(*args, **kwargs):
         configs.extend(
             [
                 (BLOCK1, BLOCK2, w, s)
-                for BLOCK1 in [16, 32, 64, 128, 256]
-                for BLOCK2 in [16, 32, 64, 128, 256]
-                for w in ([4, 8] if BLOCK1 >= 128 or BLOCK2 >= 128 else [4])
+                for BLOCK1 in [16, 32, 64, 128, 256, 512]
+                for BLOCK2 in [16, 32, 64, 128, 256, 512]
+                for w in ([4, 8] if BLOCK1 >= 128 or BLOCK2 >= 128 else [4, 8])
                 for s in num_stages_list
                 if BLOCK2 % BLOCK1 == 0
             ]
@@ -2339,7 +2339,7 @@ def flex_attention_backward(*args, **kwargs):
         cur_kernel_options.setdefault("SPARSE_Q_BLOCK_SIZE", SPARSE_Q_BLOCK_SIZE)
         cur_kernel_options.setdefault("SPARSE_KV_BLOCK_SIZE", SPARSE_KV_BLOCK_SIZE)
 
-        for wpeu in [0, 4, 8]:
+        for wpeu in [0, 1, 2, 4, 8]:
             for mfma in [0, 16]:
                 cur_kernel_options["waves_per_eu"] = wpeu
                 cur_kernel_options["matrix_instr_non_kdim"] = mfma

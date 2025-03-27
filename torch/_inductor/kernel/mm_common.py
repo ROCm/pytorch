@@ -4,6 +4,8 @@ import itertools
 import logging
 from typing import Any, cast, Dict, Sequence, Tuple
 
+from torch.utils._ordered_set import OrderedSet
+
 import sympy
 
 import torch
