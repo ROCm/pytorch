@@ -34,7 +34,9 @@ from torch.testing._internal.common_utils import (  # type: ignore[attr-defined]
     run_tests,
     runOnRocmArch,
     TestCase,
+    TEST_WITH_ROCM,
 )
+from torch.testing._internal.common_device_type import ( E4M3_MAX_POS, e4m3_type, E5M2_MAX_POS, e5m2_type )
 from torch.testing._internal.distributed._tensor.common_dtensor import MLPModule
 from torch.testing._internal.distributed.fake_pg import FakeStore
 from torch.testing._internal.inductor_utils import HAS_GPU
@@ -271,8 +273,8 @@ class MicroPipelineTPTest(TestCase):
             raise AssertionError(f"Invalid A_dims: {A_dims}")
 
         A_shard_shape[gather_dim] //= self.world_size
-        A_shard = torch.rand(*A_shard_shape, device="cuda").to(torch.float8_e4m3fn)
-        B = torch.rand(16, 32, device="cuda").to(torch.float8_e4m3fn).T
+        A_shard = torch.rand(*A_shard_shape, device="cuda").to(e4m3_type)
+        B = torch.rand(16, 32, device="cuda").to(e4m3_type).T
         A_scale = torch.tensor(0.1, device="cuda")
         B_scale = torch.tensor(0.1, device="cuda")
 
@@ -357,14 +359,14 @@ class MicroPipelineTPTest(TestCase):
             else:
                 C = torch._scaled_mm(A, B, A_scale, B_scale, out_dtype=out_dtype)
             return reduce_scatter_tensor(C, "avg", scatter_dim, group)
-
+        
         if A_dims == 2:
-            A = torch.rand(64, 32, device="cuda").to(torch.float8_e4m3fn)
+            A = torch.rand(64, 32, device="cuda").to(e4m3_type)
         elif A_dims == 3:
-            A = torch.rand(2, 64, 32, device="cuda").to(torch.float8_e4m3fn)
+            A = torch.rand(2, 64, 32, device="cuda").to(e4m3_type)
         else:
             raise AssertionError(f"Invalid A_dims: {A_dims}")
-        B = torch.rand(16, 32, device="cuda").to(torch.float8_e4m3fn).T
+        B = torch.rand(16, 32, device="cuda").to(e4m3_type).T
         A_scale = torch.tensor(0.1, device="cuda")
         B_scale = torch.tensor(0.1, device="cuda")
 
@@ -379,6 +381,69 @@ class MicroPipelineTPTest(TestCase):
 
         with _test_mode():
             compiled = torch.compile(func)
+            code = run_and_get_triton_code(
+                compiled, A, B, A_scale, B_scale, torch.bfloat16
+            )
+        self.assertIn("fused_scaled_matmul_reduce_scatter", code)
+        self.assertNotIn("reduce_scatter_tensor", code)
+
+    @runOnRocmArch(MI300_ARCH)
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @parametrize("scatter_dim", [2])
+    @fresh_inductor_cache()
+    def test_fuse_scaled_matmul_reduce_scatter_rowwise_scales_reshape_mm_reshape(
+        self, scatter_dim
+    ):
+        group = dist.group.WORLD
+
+        def reshape_mm_reshape(
+            A: torch.Tensor,
+            B: torch.Tensor,
+            A_scale: torch.Tensor,
+            B_scale: torch.Tensor,
+            out_dtype: torch.dtype,
+        ) -> torch.Tensor:
+            """
+            Performs a scaled_mm followed by a reduce scatter,
+            following the reshape -> scaled_mm -> reshape pattern.
+            """
+            orig_shape = A.shape
+
+            # reshape tensor and scale together
+            A = A.reshape(-1, orig_shape[-1])
+            A_scale = A_scale.reshape(-1, A_scale.shape[-1])
+            A_scale = torch.reciprocal(A_scale)
+
+            C = torch._scaled_mm(A, B, A_scale, B_scale, out_dtype=out_dtype)
+
+            # reshape output to have same leading dims as original `A` tensor
+            C = C.view(*orig_shape[:-1], C.shape[-1])
+            return reduce_scatter_tensor(C, "sum", scatter_dim, group)
+
+        A = torch.rand(1, 16, 32, device="cuda").to(e4m3_type)
+        B = torch.rand(64, 32, device="cuda").to(e4m3_type).T
+
+        # A_scale = rowwise scales
+        A_scale = torch.full((1, 16, 1), 0.1, device="cuda")
+
+        # B_scale = rowwise scales transposed for A @ B^T
+        B_scale = torch.full((1, 64), 0.1, device="cuda")
+
+        gm = _make_post_grad_fx(
+            reshape_mm_reshape, A, B, A_scale, B_scale, torch.bfloat16
+        )
+
+        with _test_mode():
+            micro_pipeline_tp_pass(gm.graph)
+
+        self.assertIn("fused_scaled_matmul_reduce_scatter", str(gm.graph))
+        self.assertNotIn("reduce_scatter_tensor", str(gm.graph))
+
+        if torch.cuda.get_device_capability() < (8, 9):
+            return
+
+        with _test_mode():
+            compiled = torch.compile(reshape_mm_reshape)
             code = run_and_get_triton_code(
                 compiled, A, B, A_scale, B_scale, torch.bfloat16
             )
