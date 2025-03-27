@@ -865,6 +865,13 @@ cmake_dependent_option(
   "USE_CUDA OR USE_ROCM;NOT MSVC"
   OFF)
 
+cmake_dependent_option(
+  USE_CK_FLASH_ATTENTION
+  "Whether to build the CK flash_attention kernel. Will be enabled if USE_FLASH_ATTENTION is enabled."
+  ON
+  "USE_FLASH_ATTENTION"
+  OFF)
+
 # We are currenlty not using alibi attention for Flash So we disable this
 # feature by default We dont currently document this feature because we don't
 # Suspect users building from source will need this
@@ -885,6 +892,13 @@ cmake_dependent_option(
 if(USE_ROCM)
   if(UNIX AND (USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION))
     include(cmake/External/aotriton.cmake)
+  endif()
+endif()
+
+# CK shared lib linkage
+if(USE_ROCM)
+	if(UNIX AND (USE_CK_FLASH_ATTENTION))
+    include(cmake/External/ck.cmake)
   endif()
 endif()
 
