@@ -897,7 +897,7 @@ endif()
 
 # CK shared lib linkage
 if(USE_ROCM)
-	if(UNIX AND (USE_CK_FLASH_ATTENTION))
+    if(UNIX AND (USE_CK_FLASH_ATTENTION))
     include(cmake/External/ck.cmake)
   endif()
 endif()

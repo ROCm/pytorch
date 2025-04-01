@@ -172,7 +172,6 @@ def print_results(experiments: List[Experiment]):
 
 
 def main():
-    torch.backends.cuda.preferred_rocm_fa_library("ck")
     seed = 123
     torch.manual_seed(seed)
     results = []
