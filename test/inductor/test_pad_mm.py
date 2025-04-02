@@ -22,7 +22,9 @@ class PadMMTest(TestCase):
         if not is_big_gpu(0):
             return self.skipTest("Need a big GPU to run max_autotune=True")
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_mm_dyn_m(self):
         M = 40
         K1 = 581
@@ -53,7 +55,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_cat_pad_mm_dyn_m(self):
         M1 = 128
         M2 = 40
@@ -88,7 +92,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_mm_dyn_n(self):
         M = 20
         K = 81
@@ -115,7 +121,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_mm_dyn_k(self):
         M = 21
         K = 80
@@ -182,7 +190,9 @@ class PadMMTest(TestCase):
         b = torch.randn(10, 100).cuda()
         self.assertEqual(torch.compile(addmm)(x, a, b), addmm(x, a, b))
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_bmm_dyn_b(self):
         B = 10
         M = 128
@@ -211,7 +221,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_bmm_dyn_k(self):
         B = 10
         M = 128
@@ -240,7 +252,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"N = {aligned_n}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_bmm_dyn_bm(self):
         B = 10
         M = 128
@@ -270,7 +284,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"N = {aligned_n}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_addmm_dyn_m(self):
         M = 128
         K = 33
@@ -299,7 +315,9 @@ class PadMMTest(TestCase):
             FileCheck().check(f"K = {aligned_k}").run(code)
         self.assertEqual(res1, res2)
 
-    @inductor_config.patch(max_autotune=True, max_autotune_gemm_backends="TRITON")
+    @inductor_config.patch(max_autotune=True,
+                           max_autotune_gemm_backends="TRITON",
+                           force_shape_pad=True)
     def test_pad_addmm_dyn_mn(self):
         M = 128
         K = 33
