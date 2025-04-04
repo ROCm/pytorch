@@ -18,9 +18,6 @@ else()
     message(FATAL_ERROR "Failed to get submodule status for composable_kernel.")
 endif()
 
-# get ROCm version from LoadHIP.cmake
-include(${CMAKE_SOURCE_DIR}/cmake/public/LoadHIP.cmake)
-
 # full path for CK library on compute-artifactory.amd.com
 set(url "https://compute-artifactory.amd.com/artifactory/rocm-generic-local")
 set(ck_lib_full_path "${url}/torch_ck_gen_lib/ck_${ck_commit_hash}/rocm_${ROCM_VERSION_DEV}/libck_kernels.so")
