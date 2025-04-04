@@ -173,13 +173,6 @@ file(GLOB flash_attention_hip_hip "native/transformers/hip/flash_attn/*.hip")
 # if USE_FLASH_ATTENTION is set, ensure CK instances get generated
 if(USE_FLASH_ATTENTION)
   if(USE_CK_FLASH_ATTENTION)
-    if(DEFINED ENV{PYTORCH_ROCM_ARCH})
-      list(LENGTH PYTORCH_ROCM_ARCH NUM_ARCHS)
-      if(NUM_ARCHS GREATER 1)
-        message(WARNING "Building CK for multiple archs can increase build time considerably!
-        Consider setting PYTORCH_ROCM_ARCH env var value as the gfx arch you need to build for")
-      endif()
-    endif()
     message(STATUS "USE_CK_FLASH_ATTENTION is set; building PyTorch with CK Flash Attention enabled")
     message(STATUS "Generating CK kernel instances...")
     # disable buidling CK files
