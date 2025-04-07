@@ -7,6 +7,7 @@
 #include <c10/util/TypeCast.h>
 #include <c10/macros/Macros.h>
 #include <ATen/core/Array.h>
+#include <ATen/cuda/CUDAContext.h>
 #include <ATen/detail/FunctionTraits.h>
 #include <ATen/cuda/detail/OffsetCalculator.cuh>
 #include <ATen/native/cuda/thread_constants.h>
@@ -528,6 +529,22 @@ inline int can_vectorize_up_to(array_t pointers) {
   using traits = function_traits<func_t>;
   using return_t = typename traits::result_type;
   constexpr int arity = traits::arity;
+#ifdef USE_ROCM
+#ifdef __HIP_DEVICE_COMPILE__
+#ifdef __gfx942__
+  // In-place elementwise operation is slower on MI300 series with bigger vector size
+  if (pointers[0] == pointers[1])
+    return 4;
+#endif
+#else
+  c10::DeviceIndex curDevice = -1;
+  AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
+  if (at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"})) {
+    if (pointers[0] == pointers[1])
+      return 4;
+  }
+#endif
+#endif
   int result = can_vectorize_up_to<return_t>(pointers[0]);
   // We need to get the type for each argument of `func_t`, this can only
   // be done at compile time.
