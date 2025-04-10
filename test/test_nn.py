@@ -35,7 +35,7 @@ from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, r
     download_file, get_function_arglist, load_tests, skipIfMPS, \
     IS_PPC, \
     parametrize as parametrize_test, subtest, instantiate_parametrized_tests, \
-    skipIfTorchDynamo, gcIfJetson, set_default_dtype
+    skipIfTorchDynamo, skipIfRocmVersionLessThan, gcIfJetson, set_default_dtype
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_MULTIGPU, TEST_CUDNN, PLATFORM_SUPPORTS_FLASH_ATTENTION
 from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, CriterionTest, \
     module_tests, criterion_tests, loss_reference_fns, _create_basic_net, \
@@ -5104,7 +5104,8 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         [
             ("NCHW", "cpu", False, torch.float),
             ("NCHW", "cpu", True, torch.half),
-            ("NCHW", "cpu", True, torch.bfloat16),
+            # train failed on rocm<=6.3 due to native tolerance issue SWDEV-507600
+            subtest(("NCHW", "cpu", True, torch.bfloat16), decorators=[skipIfRocmVersionLessThan((6, 4))]),
 
             ("NCHW", "native", False, torch.float),
             ("NCHW", "native", True, torch.half),
@@ -5121,7 +5122,8 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
             ("NHWC", "NCHW", False, torch.float),
             ("NHWC", "NCHW", True, torch.half),
-            ("NHWC", "NCHW", True, torch.bfloat16),
+            # train failed on rocm<=6.3 due to native tolerance issue SWDEV-507600
+            subtest(("NHWC", "NCHW", True, torch.bfloat16), decorators=[skipIfRocmVersionLessThan((6, 4))]),
         ],
         name_fn=lambda f, b, m, t: f"{f}_vs_{b}{'_mixed' if m else ''}_{dtype_name(t)}"
     )
