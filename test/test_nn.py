@@ -5104,12 +5104,13 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         [
             ("NCHW", "cpu", False, torch.float),
             ("NCHW", "cpu", True, torch.half),
+            # NCHW bfloat16 path uses native kernels for rocm<=6.3
             # train failed on rocm<=6.3 due to native tolerance issue SWDEV-507600
             subtest(("NCHW", "cpu", True, torch.bfloat16), decorators=[skipIfRocmVersionLessThan((6, 4))]),
 
             ("NCHW", "native", False, torch.float),
             ("NCHW", "native", True, torch.half),
-            # this config failed for train and passed for inference on ROCm
+            # this config failed for train and passed for inference on ROCm6.4
             # subtest(("NCHW", "native", True, torch.bfloat16), decorators=[unittest.expectedFailure]),
 
             ("NHWC", "cpu", False, torch.float),
@@ -5122,6 +5123,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
             ("NHWC", "NCHW", False, torch.float),
             ("NHWC", "NCHW", True, torch.half),
+            # NCHW bfloat16 path uses native kernels for rocm<=6.3
             # train failed on rocm<=6.3 due to native tolerance issue SWDEV-507600
             subtest(("NHWC", "NCHW", True, torch.bfloat16), decorators=[skipIfRocmVersionLessThan((6, 4))]),
         ],
