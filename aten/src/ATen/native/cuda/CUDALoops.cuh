@@ -500,6 +500,165 @@ void gpu_kernel_impl_nocast(TensorIteratorBase& iter, const func_t& f) {
 #endif
 }
 
+<<<<<<< HEAD
+=======
+#ifdef USE_ROCM
+namespace {
+template <
+    typename TupleLike,
+    typename FirstParamTy,
+    typename SecondParamTy,
+    size_t arity,
+    size_t arg_num = 0>
+struct check_binary_functor_types_for_specialization {
+  constexpr static inline bool check() {
+    if constexpr (arity != 2)
+      return false;
+    if constexpr (arg_num == 0) {
+      using SelectedType = std::tuple_element_t<arg_num, TupleLike>;
+      if constexpr (std::is_same_v<FirstParamTy, SelectedType>)
+        return check_binary_functor_types_for_specialization<
+            TupleLike,
+            FirstParamTy,
+            SecondParamTy,
+            arity,
+            arg_num + 1>::check();
+    } else if constexpr (arg_num == 1) {
+      using SelectedType2 = std::tuple_element_t<arg_num, TupleLike>;
+      if constexpr (std::is_same_v<SecondParamTy, SelectedType2>)
+        return check_binary_functor_types_for_specialization<
+            TupleLike,
+            FirstParamTy,
+            SecondParamTy,
+            arity,
+            arg_num + 1>::check();
+    }
+    return false;
+  }
+};
+
+// Bottom case: if we got this far, assume correct type matching except
+// when there are no arguments (arity == 0).
+template <
+    typename TupleLike,
+    typename FirstParamTy,
+    typename SecondParamTy,
+    size_t arity>
+struct check_binary_functor_types_for_specialization<
+    TupleLike,
+    FirstParamTy,
+    SecondParamTy,
+    arity,
+    arity> {
+  constexpr static inline bool check() {
+    if constexpr (arity != 0)
+      return true;
+    return false;
+  }
+};
+
+template <typename TupleLike, typename FirstParamTy, typename SecondParamTy>
+struct check_binary_functor_types_for_specialization<
+    TupleLike,
+    FirstParamTy,
+    SecondParamTy,
+    0,
+    0> {
+  constexpr static inline bool check() {
+    return false;
+  }
+};
+
+// The following is a list of type specializations for vectorized_templated
+// elementwise kernel. The three types refer to runtime types of the output
+// tensor, first tensor argument, and the second tensor argument used for a
+// binary functor.
+constexpr std::array rt_binary_specializations = {
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<BFloat16>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<Half>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<float>::value})};
+
+bool check_binary_rt_types_for_specialization(TensorIteratorBase& iter) {
+  if (iter.ninputs() != 2)
+    return false;
+  for (auto spec : rt_binary_specializations)
+    if (iter.dtype(0) == spec[0] && iter.input_dtype(0) == spec[1] &&
+        iter.input_dtype(1) == spec[2])
+      return true;
+  return false;
+}
+
+template <int arg_index>
+struct type_specialized_kernel_launcher {
+  template <
+      typename func_t,
+      typename array_t,
+      typename inp_calc_t,
+      typename out_calc_t,
+      typename loader_t,
+      typename storer_t>
+  static void apply(
+      ScalarType ret_t,
+      ScalarType arg0_t,
+      ScalarType arg1_t,
+      int64_t numel,
+      func_t f,
+      array_t data,
+      inp_calc_t input_offset_calculator,
+      out_calc_t output_offset_calculator,
+      loader_t loader,
+      storer_t storer) {
+    if (ret_t == rt_binary_specializations[arg_index][0] &&
+        arg0_t == rt_binary_specializations[arg_index][1] &&
+        arg1_t == rt_binary_specializations[arg_index][2])
+      launch_vectorized_templated_kernel<
+          func_t,
+          array_t,
+          inp_calc_t,
+          out_calc_t,
+          loader_t,
+          storer_t,
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][0]>::t),
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][1]>::t),
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][2]>::t)>(
+          numel,
+          f,
+          data,
+          input_offset_calculator,
+          output_offset_calculator,
+          loader,
+          storer);
+  }
+};
+
+} // namespace
+#endif
+
+>>>>>>> 751e48d1cc ([ROCM] Fix in-place aten sum with specialized templated kernels. (#151230))
 template <typename func_t>
 void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
   if (!needs_dynamic_casting<func_t>::check(iter)) {
@@ -524,6 +683,51 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
 
   if (contiguous) {
 #ifdef USE_ROCM
+<<<<<<< HEAD
+=======
+    // Attempt to call specialized vectorized elementwise kernel
+    // that enables interleaving.
+    if (check_binary_rt_types_for_specialization(iter) &&
+        memory::can_vectorize_up_to<func_t>(data) > 1) {
+      // constexpr to reduce the amount of kernels generated for
+      // vectorized templated elementwise and limit which functors are actually
+      // applied to the load and store at compile time.
+      using func_tuple = typename traits::ArgsTuple;
+      if constexpr (
+          std::is_same_v<float, arg0_t> && traits::arity == 2 &&
+          check_binary_functor_types_for_specialization<
+              func_tuple,
+              float,
+              float,
+              traits::arity,
+              /*arg_num=*/0>::check()) {
+        // If we got here, we know we are in one of the specialized cases. We
+        // need to translate the runtime type to a statically known type. This
+        // is effectively hoisting to the host the switch over runtime type in
+        // the kernel in fetch_and_cast. Loader, storer, offset calculators are
+        // only needed for the reminder loop.
+        auto input_offset_calculator = TrivialOffsetCalculator<traits::arity>();
+        auto output_offset_calculator = TrivialOffsetCalculator<1>();
+        auto loader = memory::LoadWithCast<traits::arity>(iter);
+        auto storer = memory::StoreWithCast<1>(iter);
+        memory::detail::static_unroll<
+            type_specialized_kernel_launcher,
+            rt_binary_specializations.size()>::
+            with_args(
+                iter.dtype(0),
+                iter.input_dtype(0),
+                iter.input_dtype(1),
+                numel,
+                f,
+                data,
+                input_offset_calculator,
+                output_offset_calculator,
+                loader,
+                storer);
+        return;
+      }
+    }
+>>>>>>> 751e48d1cc ([ROCM] Fix in-place aten sum with specialized templated kernels. (#151230))
     std::array<ScalarType, ntensors> dtypes;
     auto inner_strides = iter.get_inner_strides();
     std::array<int, ntensors> strides;

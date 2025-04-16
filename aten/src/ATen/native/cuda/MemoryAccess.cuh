@@ -289,6 +289,89 @@ struct vectorized {
   }
 };
 
+<<<<<<< HEAD
+=======
+#ifdef USE_ROCM
+// This is similar to vectorized policy above, but this one supports
+// heterogenous input tensor types as templated parameters.
+// Its use should be limited to frequently used heterogeneous data types
+// as each instantiation will generate a separate kernel, leading to code
+// bloating if applied to all combinations supported in PyTorch. Assumption: all
+// tensors are contiguous, that is: stride == sizeof(type) for all tensors.
+template <
+    int vec_size,
+    typename data_t,
+    int elems_per_thread,
+    int num_threads,
+    typename CastToT,
+    typename... CastFromTs> // vec_size: number of scalars, can be 1, 2, or 4.
+struct vectorized_templated {
+  static_assert(
+      elems_per_thread % vec_size == 0,
+      "The workload per thread must be a multiple of vec_size");
+  static constexpr int loop_size = elems_per_thread / vec_size;
+  static constexpr int tws = elems_per_thread;
+  static constexpr int block_work_size = elems_per_thread * num_threads;
+  data_t data;
+
+  __device__ vectorized_templated(data_t data) : data(data) {}
+
+  __device__ inline constexpr bool check_inbounds(int thread_work_elem) {
+    return true;
+  }
+
+  template <int arg_index, typename accessor_t>
+  __device__ inline void load_single_arg(accessor_t to, char* ptr, int idx) {
+    // extract the arg_index-th input tensor element type from the
+    // variadic template argument.
+    using CastFromT =
+        std::tuple_element_t<arg_index, std::tuple<CastFromTs...>>;
+    // Delayed pointer arithmetic from the caller: this is the place
+    // where we know the type of the argument.
+    CastFromT* block_ptr =
+        reinterpret_cast<CastFromT*>(ptr) + block_work_size * idx;
+    int thread_idx = threadIdx.x;
+#pragma unroll
+    for (int i = 0; i < loop_size; i++) {
+      int index = thread_idx + i * num_threads;
+      auto v = load_vector<vec_size>(block_ptr, index);
+#pragma unroll
+      for (int j = 0; j < vec_size; j++) {
+        to(vec_size * i + j) = c10::convert<CastToT>(v.val[j]);
+      }
+    }
+  }
+
+  template <typename args_t>
+  __device__ inline void load(args_t* args, int idx) {
+    constexpr int arity = std::tuple_size<args_t>::value;
+    detail::static_unroll<detail::vectorized_templated_load_helper, arity>::
+        with_args(*this, args, idx);
+  }
+
+  // Assume for now that from (temporary array per thread) is of the same
+  // type as to (destination tensor), which is the case for
+  // float(float,bfloat16) and functor add on float(float,float).
+  template <typename scalar_t>
+  __device__ inline void store(scalar_t* from, int idx) {
+    using vec_t = aligned_vector<CastToT, vec_size>;
+    CastToT* to = reinterpret_cast<CastToT*>(data[0]) + block_work_size * idx;
+    vec_t* to_ = reinterpret_cast<vec_t*>(to);
+    int thread_idx = threadIdx.x;
+#pragma unroll
+    for (int i = 0; i < loop_size; i++) {
+      int index = thread_idx + i * num_threads;
+      vec_t v;
+      for (int j = 0; j < vec_size; j++) {
+        v.val[j] = from[vec_size * i + j];
+      }
+      to_[index] = v;
+    }
+  }
+};
+#endif
+
+>>>>>>> 751e48d1cc ([ROCM] Fix in-place aten sum with specialized templated kernels. (#151230))
 template <typename data_t, typename inp_calc_t, typename out_calc_t, int num_outputs>
 struct multi_outputs_unroll {
   //multi_outputs_unroll struct members and check_inbounds and load methods are copypasted from unroll struct
