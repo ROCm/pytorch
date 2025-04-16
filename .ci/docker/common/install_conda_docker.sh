@@ -5,7 +5,8 @@ set -ex
 # Anaconda
 # Latest anaconda is using openssl-3 which is incompatible with all currently published versions of git
 # Which are using openssl-1.1.1, see https://anaconda.org/anaconda/git/files?version=2.40.1 for example
-MINICONDA_URL=https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+# MINICONDA_URL=https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+MINICONDA_URL=https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
 wget -q $MINICONDA_URL
 # NB: Manually invoke bash per https://github.com/conda/conda/issues/10431
 bash $(basename "$MINICONDA_URL") -b -p /opt/conda
