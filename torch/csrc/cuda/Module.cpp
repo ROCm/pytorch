@@ -1006,7 +1006,9 @@ static void registerCudaDeviceProperties(PyObject* module) {
 #ifndef FBCODE_CAFFE2
       .def_readonly("uuid", &cudaDeviceProp::uuid)
 #endif
+#if !USE_ROCM
       .def_readonly("L2_cache_size", &cudaDeviceProp::l2CacheSize)
+#endif
       .def("__repr__", [](const cudaDeviceProp& prop) {
         std::ostringstream stream;
         stream << "_CudaDeviceProperties(name='" << prop.name
