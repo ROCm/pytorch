@@ -328,8 +328,8 @@ at::BlasBackend Context::blasPreferredBackend() {
           "gfx1100", "gfx1101", "gfx1200", "gfx1201"
 #endif
       };
-      for (auto index: c10::irange(getNumGPUs())) {
-        if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
+      for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
           TORCH_WARN_ONCE(
             "Attempting to use hipBLASLt on an unsupported architecture! "
             "Overriding blas backend to hipblas");
@@ -381,8 +381,8 @@ void Context::setROCmFAPreferredBackend(at::ROCmFABackend b) {
       static const std::vector<std::string> archs = {
           "gfx90a",  "gfx942"
       };
-      for (auto index: c10::irange(getNumGPUs())) {
-        if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
+      for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
           TORCH_WARN_ONCE(
             "Attempting to use CK on an unsupported architecture! Cannot set backend to CK");
           return true;
