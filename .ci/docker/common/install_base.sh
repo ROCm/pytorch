@@ -15,6 +15,9 @@ install_ubuntu() {
   elif [[ "$UBUNTU_VERSION" == "22.04"* ]]; then
     cmake3="cmake=3.22*"
     maybe_libiomp_dev=""
+  elif [[ "$UBUNTU_VERSION" == "24.04"* ]]; then
+    cmake3="cmake=3.28*"
+    maybe_libiomp_dev=""
   else
     cmake3="cmake=3.5*"
     maybe_libiomp_dev="libiomp-dev"
@@ -87,22 +90,57 @@ install_ubuntu() {
   # see: https://github.com/pytorch/pytorch/issues/65931
   apt-get install -y libgnutls30
 
+  if [[ "$UBUNTU_VERSION" == "22.04"* ]]; then
+    apt-get install -y libopenblas-dev
+  fi
+
   # Cleanup package manager
   apt-get autoclean && apt-get clean
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 }
 
+build_libpng() {
+  # install few packages
+  yum install -y zlib zlib-devel
+
+  LIBPNG_VERSION=1.6.37
+
+  mkdir -p libpng
+  pushd libpng
+
+  wget http://download.sourceforge.net/libpng/libpng-$LIBPNG_VERSION.tar.gz
+  tar -xvzf libpng-$LIBPNG_VERSION.tar.gz
+
+  pushd libpng-$LIBPNG_VERSION
+
+  ./configure
+  make
+  make install
+
+  popd
+
+  popd
+  rm -rf libpng
+}
+
 install_centos() {
   # Need EPEL for many packages we depend on.
   # See http://fedoraproject.org/wiki/EPEL
-  yum --enablerepo=extras install -y epel-release
+  # extras repo is not there for CentOS 9 and epel-release is already part of repo list
+  if [[ $OS_VERSION == 9 ]]; then
+      yum install -y epel-release
+      ALLOW_ERASE="--allowerasing"
+  else
+      yum --enablerepo=extras install -y epel-release
+      ALLOW_ERASE=""
+  fi
 
   ccache_deps="asciidoc docbook-dtds docbook-style-xsl libxslt"
   numpy_deps="gcc-gfortran"
   # Note: protobuf-c-{compiler,devel} on CentOS are too old to be used
   # for Caffe2. That said, we still install them to make sure the build
   # system opts to build/use protoc and libprotobuf from third-party.
-  yum install -y \
+  yum install -y $ALLOW_ERASE \
     $ccache_deps \
     $numpy_deps \
     autoconf \
@@ -119,14 +157,27 @@ install_centos() {
     glibc-headers \
     glog-devel \
     libstdc++-devel \
-    libsndfile-devel \
     make \
-    opencv-devel \
     sudo \
     wget \
     vim \
     unzip \
     gdb
+
+  if [[ $OS_VERSION == 9 ]]
+  then
+	  dnf --enablerepo=crb -y install libsndfile-devel
+	  yum install -y procps
+  else
+	  yum install -y \
+            opencv-devel \
+	    libsndfile-devel
+  fi
+
+  # CentOS7 doesnt have support for higher version of libpng,
+  # so it is built from source.
+  # Libpng is required for torchvision build.
+  build_libpng
 
   # Cleanup
   yum clean all
@@ -135,8 +186,10 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
-# Install base packages depending on the base OS
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
+
+# Install base packages depending on the base OS
 case "$ID" in
   ubuntu)
     install_ubuntu

@@ -4791,6 +4791,13 @@ class TestLinalg(TestCase):
             filename3 = f"{filename1}_tmp2.csv"
             ordinal = torch.cuda.current_device()
             assert filename1 == f"tunableop_results_{unique_id}_{ordinal}.csv"
+            assert len(torch.cuda.tunable.get_validators()) > 0
+            validators = {}
+            for key, value in torch.cuda.tunable.get_validators():
+                validators[key] = value
+            if torch.version.hip:
+                assert "HIPBLASLT_VERSION" in validators
+                assert re.match(r'^\d+-[a-z0-9]+$', validators["HIPBLASLT_VERSION"])
             assert len(torch.cuda.tunable.get_results()) > 0
 
             assert torch.cuda.tunable.write_file()  # use default filename

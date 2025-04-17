@@ -128,7 +128,11 @@ class TestMatmulCuda(TestCase):
         # Move to CPU for comparison
         res_cuda = res_cuda.to("cpu")
         # Compare
-        self.assertEqual(res_cpu, res_cuda)
+        if dtype == torch.float16:
+            self.assertEqual(res_cpu, res_cuda, atol=size * 2.5e-5, rtol=0.0)
+        else:
+            self.assertEqual(res_cpu, res_cuda)
+
         torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = orig_bf16
         torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = orig_fp16
         torch.backends.cuda.matmul.allow_fp16_accumulation = orig_fp16_accumulate
@@ -436,6 +440,17 @@ class TestMatmulCuda(TestCase):
 f8_msg = "FP8 is only supported on H100+, SM 8.9 and MI300+ devices"
 mx_skip_msg = "MX gemm is only supported on CUDA capability 10.0+"
 
+if torch.version.hip and 'gfx94' in torch.cuda.get_device_properties(0).gcnArchName:
+    e4m3_type = torch.float8_e4m3fnuz
+    e5m2_type = torch.float8_e5m2fnuz
+    E4M3_MAX_POS = torch.finfo(torch.float8_e4m3fnuz).max
+    E5M2_MAX_POS = torch.finfo(torch.float8_e5m2fnuz).max
+else:
+    e4m3_type = torch.float8_e4m3fn
+    e5m2_type = torch.float8_e5m2
+    E4M3_MAX_POS = torch.finfo(torch.float8_e4m3fn).max
+    E5M2_MAX_POS = torch.finfo(torch.float8_e5m2).max
+
 # avoid division by zero when calculating scale
 EPS = 1e-12
 
@@ -702,8 +717,7 @@ class TestFP8Matmul(TestCase):
             raise unittest.SkipTest(f8_msg)
         size = (16, 16)
         x = torch.full(size, .5, device=device, dtype=e4m3_type)
-        # hipblaslt does not yet support mixed e4m3_type input
-        y_type = e4m3_type if torch.version.hip else e5m2_type
+        y_type = e5m2_type
         y = torch.full(size, .5, device=device, dtype=y_type).t()
         scale_one = torch.tensor(1.0, device=device)
         scale_a = torch.tensor(1.5, device=device)

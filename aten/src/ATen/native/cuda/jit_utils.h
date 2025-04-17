@@ -60,7 +60,6 @@ inline int can_vectorize_up_to(size_t default_alignment, void *pointer) {
   if ((default_alignment <= 2) && (ip % (8 * default_alignment) == 0)) {
     return 8;
   }
-#else
   if (ip % (8 * default_alignment) == 0) {
     return 8;
   }

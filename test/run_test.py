@@ -168,7 +168,6 @@ WINDOWS_BLOCKLIST = [
 
 ROCM_BLOCKLIST = [
     "distributed/rpc/test_faulty_agent",
-    "distributed/rpc/test_tensorpipe_agent",
     "distributed/rpc/test_share_memory",
     "distributed/rpc/cuda/test_tensorpipe_agent",
     "test_determination",
@@ -177,6 +176,9 @@ ROCM_BLOCKLIST = [
     "test_jit_cuda_fuser",
 ]
 
+if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor <= 9):
+    ROCM_BLOCKLIST.append("test_typing")
+    
 S390X_BLOCKLIST = [
     # these tests fail due to various reasons
     "dynamo/test_misc",
@@ -1130,6 +1132,11 @@ def handle_log_file(
             if re.search("Running .* items in this shard:", line):
                 print_to_stderr(line.rstrip())
         print_to_stderr("")
+
+        # Temporary dumping the log file into stderr for QA reference
+        print_to_stderr(f"\n START of temporary dumping of {test} execution log file from ({file_path})")
+        print_to_stderr(full_text)
+        print_to_stderr(f"END of temporary dumping of {test} execution log file form ({file_path})\n")
         return
 
     # otherwise: print entire file

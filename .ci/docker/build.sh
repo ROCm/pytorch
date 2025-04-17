@@ -54,6 +54,8 @@ if [[ "$image" == *-focal* ]]; then
   UBUNTU_VERSION=20.04
 elif [[ "$image" == *-jammy* ]]; then
   UBUNTU_VERSION=22.04
+elif [[ "$image" == *-noble* ]]; then
+  UBUNTU_VERSION=24.04
 elif [[ "$image" == *ubuntu* ]]; then
   extract_version_from_image_name ubuntu UBUNTU_VERSION
 elif [[ "$image" == *centos* ]]; then
@@ -460,12 +462,22 @@ if [[ "$image" == *cuda*  && ${OS} == "ubuntu" ]]; then
   fi
 fi
 
+if [[ "$image" == *centos9* ]]; then
+ DOCKERFILE_NAME="Dockerfile.centos.stream"
+else
+ DOCKERFILE_NAME="Dockerfile"
+fi
+
 no_cache_flag=""
 progress_flag=""
 # Do not use cache and progress=plain when in CI
 if [[ -n "${CI:-}" ]]; then
   no_cache_flag="--no-cache"
   progress_flag="--progress=plain"
+fi
+
+if [[ "${DOCKER_BUILDKIT}" == 0 ]]; then
+  progress_flag=""
 fi
 
 # Build image
@@ -509,7 +521,7 @@ docker build \
        --build-arg "ACL=${ACL:-}" \
        --build-arg "SKIP_SCCACHE_INSTALL=${SKIP_SCCACHE_INSTALL:-}" \
        --build-arg "SKIP_LLVM_SRC_BUILD_INSTALL=${SKIP_LLVM_SRC_BUILD_INSTALL:-}" \
-       -f $(dirname ${DOCKERFILE})/Dockerfile \
+       -f $(dirname ${DOCKERFILE})/${DOCKERFILE_NAME} \
        -t "$tmp_tag" \
        "$@" \
        .
