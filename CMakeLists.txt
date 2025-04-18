@@ -891,7 +891,7 @@ endif()
 # link CK library
 if(USE_ROCM)
   if(UNIX AND USE_CK_FLASH_ATTENTION)
-    include(cmake/External/ck.cmake)
+    include(cmake/External/ck_kernels.cmake)
   endif()
 endif()
 
