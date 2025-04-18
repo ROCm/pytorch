@@ -8,6 +8,9 @@
 
 namespace pytorch_flash {
 
+// check AOTriton GPU support
+void check_aotriton_gpu_arch(hipStream_t stream);
+
 // AOTriton Implementation
 TORCH_API
 std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor>
@@ -228,6 +231,8 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
 #if defined(USE_CK_FLASH_ATTENTION)
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
+    TORCH_WARN_ONCE("Using CK backend for Flash Attention forward...");
+
     std::optional<at::Tensor> dummy_attn_bias = std::nullopt;
     return mha_fwd_ck(
         q,
