@@ -16,8 +16,8 @@ if(NOT __ck_kernels_included)
     install(DIRECTORY
             $ENV{CK_KERNELS_INSTALLED_PREFIX}/
             DESTINATION ${ck_kernels_install_dir}
-            FILES_MATCHING_PATTERN "libck_kernels.so")
-    set(ck_kernels_install_path "${ck_kernels_install_dir}/libck_kernels.so")
+	    )
+    set(ck_kernels_install_path "$ENV{CK_KERNELS_INSTALLED_PREFIX}/libck_kernels.so")
     # specify path to CK library
     target_link_libraries(__ck_kernels_lib INTERFACE ${ck_kernels_install_path})
     message(STATUS "Using Preinstalled CK_kernels from $ENV{CK_KERNELS_INSTALLED_PREFIX}; installed at ${ck_kernels_install_dir}")
