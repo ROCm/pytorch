@@ -58,6 +58,7 @@ if(NOT __ck_kernels_included)
     target_link_libraries(__ck_kernels_lib INTERFACE ${ck_kernels_install_path})
   else()
     # TODO: Enable build from source
+    set(CK_KERNELS_INSTALL_FROM_SOURCE TRUE)
   endif() # DEFINED ENV{CK_KERNELS_INSTALLED_PREFIX}
   
 endif() # __ck_kernels_included
