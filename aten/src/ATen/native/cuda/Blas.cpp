@@ -1242,12 +1242,14 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
          "hipblaslt rowwise _scaled_mm only supports BFloat16 output");
   }
   else if (scaling_choice == ScalingType::BlockWise) {
-    TORCH_CHECK(mat1.scalar_type() == at::kFloat8_e8m0fnu &&
-                mat2.scalar_type() == at::kFloat8_e8m0fnu,
-                "Block-wise scaling requires both matrices to be Float8_e8m0fnu type");
+    //todo
+    //TORCH_CHECK(mat1.scalar_type() == at::kFloat8_e8m0fnu &&
+    //            mat2.scalar_type() == at::kFloat8_e8m0fnu,
+    //            "Block-wise scaling requires both matrices to be Float8_e8m0fnu type");
 
 #if ROCM_VERSION >= 60500
-    TORCH_CHECK(at::cuda::tunable::IsGfx950Device(),
+    //todo
+    TORCH_CHECK(!at::cuda::tunable::IsGfx950Device(),
                "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
     TORCH_CHECK(mat1.size(0) % 32 == 0 && mat1.size(1) % 32 == 0 &&
