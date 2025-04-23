@@ -3,6 +3,7 @@
  */
 
 #include <ATen/ATen.h>
+#include <ATen/cuda/CUDAContextLight.h>
 #include <ATen/cuda/CUDABlas.h>
 #include <ATen/cuda/Exceptions.h>
 #include <ATen/cuda/CUDADataType.h>
@@ -215,6 +216,48 @@ static size_t _getWorkspaceSize() {
   return workspace_size;
 }
 
+void* _getUnifiedWorkspaceWithoutHandle() {
+  cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
+  auto stream = c10::cuda::getCurrentCUDAStream();
+  cudaStream_t _stream = stream;
+  auto key = std::make_tuple(static_cast<void *>(handle), static_cast<void *>(_stream));
+  auto workspace_it = at::cuda::cublas_handle_stream_to_workspace().find(key);
+  TORCH_INTERNAL_ASSERT(workspace_it != at::cuda::cublas_handle_stream_to_workspace().end());
+  return workspace_it->second.mutable_get();
+}
+
+struct CublasLtWorkspace {
+  CublasLtWorkspace() {
+    size = _getWorkspaceSize();
+#ifndef USE_ROCM
+    static bool unified = c10::utils::check_env("TORCH_CUBLASLT_UNIFIED_WORKSPACE") == true;
+    if (unified) {
+      auto cublasWorkspaceSize = at::cuda::getChosenWorkspaceSize();
+      if (cublasWorkspaceSize < size) {
+        TORCH_WARN_ONCE("Requested unified CUBLASLT workspace size of ", size,
+                        " bytes exceeds CUBLAS workspace size of ", cublasWorkspaceSize,
+                        " bytes. Please increase CUBLAS workspace size",
+                        " via CUBLAS_WORKSPACE_CONFIG or decrease requested"
+                        " CUBLASLT_WORKSPACE_SIZE. Otherwise CUBLASLT workspace"
+                        " size will be limited to the CUBLAS workspace size.");
+        size = cublasWorkspaceSize;
+      }
+      ptr = _getUnifiedWorkspaceWithoutHandle();
+    } else {
+      auto allocator = c10::cuda::CUDACachingAllocator::get();
+      stashed_ptr_ = allocator->allocate(size);
+      ptr = stashed_ptr_.mutable_get();
+    }
+#else
+    auto allocator = c10::cuda::CUDACachingAllocator::get();
+    stashed_ptr_ = allocator->allocate(size);
+    ptr = stashed_ptr_.mutable_get();
+#endif
+  }
+  at::DataPtr stashed_ptr_;
+  void * ptr;
+  size_t size;
+};
 } // anonymous namespace
 
 namespace at::cuda::blas {
@@ -404,10 +447,6 @@ inline void bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES(Dtype)) {
   }
 
   CuBlasLtMatmulPreference preference;
-  // See https://github.com/pytorch/pytorch/issues/73328 for reasoning behind
-  // setting this to 1M.
-  size_t workspaceSize = _getWorkspaceSize();
-  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, workspaceSize);
 
 #ifndef USE_ROCM
   uint32_t a_alignment = _getAlignment(reinterpret_cast<uintptr_t>(a));
@@ -418,7 +457,9 @@ inline void bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES(Dtype)) {
   preference.setAttribute(CUBLASLT_MATMUL_PREF_MIN_ALIGNMENT_C_BYTES, c_alignment);
 #endif
 
-  auto workspace = at::empty(static_cast<int64_t>(workspaceSize), at::TensorOptions().dtype(at::kByte).device(at::kCUDA));
+  auto ltworkspace = CublasLtWorkspace();
+  TORCH_CHECK(ltworkspace.ptr != nullptr, "OOM trying to allocate workspace for cublaslt");
+  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, ltworkspace.size);
 
   cublasLtMatmulHeuristicResult_t heuristicResult = {};
   int returnedResult = 0;
@@ -451,8 +492,8 @@ inline void bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES(Dtype)) {
       c,
       Cdesc.descriptor(),
       &heuristicResult.algo,
-      workspace.mutable_data_ptr(),
-      workspaceSize,
+      ltworkspace.ptr,
+      ltworkspace.size,
       at::cuda::getCurrentCUDAStream());
   TORCH_CHECK(
       cublasStatus == CUBLAS_STATUS_SUCCESS,
@@ -1345,10 +1386,8 @@ void gemm_and_bias(
   CuBlasLtMatrixLayout Cdesc(abcType, m, n, result_ld);
 
   CuBlasLtMatmulPreference preference;
-  // See https://github.com/pytorch/pytorch/issues/73328 for reasoning behind
-  // setting this to 1M.
-  size_t workspaceSize = _getWorkspaceSize();
-  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, workspaceSize);
+  auto ltworkspace = CublasLtWorkspace();
+  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, ltworkspace.size);
 
 #ifndef USE_ROCM
   uint32_t a_alignment = _getAlignment(reinterpret_cast<uintptr_t>(mat1_ptr));
@@ -1360,8 +1399,6 @@ void gemm_and_bias(
   preference.setAttribute(CUBLASLT_MATMUL_PREF_MIN_ALIGNMENT_C_BYTES, c_alignment);
   preference.setAttribute(CUBLASLT_MATMUL_PREF_MIN_ALIGNMENT_D_BYTES, d_alignment);
 #endif
-
-  auto workspace = at::empty(static_cast<int64_t>(workspaceSize), at::TensorOptions().dtype(at::kByte).device(at::kCUDA));
 
   cublasLtMatmulHeuristicResult_t heuristicResult = {};
   int returnedResult = 0;
@@ -1395,8 +1432,8 @@ void gemm_and_bias(
       result_ptr,
       Cdesc.descriptor(),
       &heuristicResult.algo,
-      workspace.mutable_data_ptr(),
-      workspaceSize,
+      ltworkspace.ptr,
+      ltworkspace.size,
       at::cuda::getCurrentCUDAStream());
   TORCH_CHECK(
       cublasStatus == CUBLAS_STATUS_SUCCESS,
@@ -1597,11 +1634,10 @@ void scaled_gemm(
 #endif // if CUDA_VERSION >= 12090
   }
 
-  size_t workspaceSize = _getWorkspaceSize();
-  auto workspace = at::empty(static_cast<int64_t>(workspaceSize), at::TensorOptions().dtype(at::kByte).device(at::kCUDA));
-
+  auto stream = c10::cuda::getCurrentCUDAStream();
   CuBlasLtMatmulPreference preference;
-  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, workspaceSize);
+  auto ltworkspace = CublasLtWorkspace();
+  preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, ltworkspace.size);
   cublasLtMatmulHeuristicResult_t heuristicResult = {};
   int returnedResult = 0;
   cublasLtHandle_t ltHandle = at::cuda::getCurrentCUDABlasLtHandle();
@@ -1654,7 +1690,7 @@ void scaled_gemm(
                 all_algos[i].algo,
                 ret_workspace_size);
         if (is_valid_status == HIPBLAS_STATUS_SUCCESS) {
-            if (ret_workspace_size <= workspaceSize) {
+            if (ret_workspace_size <= ltworkspace.size) {
                 heuristicResult = all_algos[i];
                 found = true;
                 break;
@@ -1682,9 +1718,9 @@ void scaled_gemm(
       result_ptr,
       Ddesc.descriptor(),
       &heuristicResult.algo,
-      workspace.mutable_data_ptr(),
-      workspaceSize,
-      at::cuda::getCurrentCUDAStream());
+      ltworkspace.ptr,
+      ltworkspace.size,
+      stream);
   TORCH_CHECK(
       cublasStatus == CUBLAS_STATUS_SUCCESS,
       "CUDA error: ",
@@ -1760,8 +1796,8 @@ void int8_gemm(
   CuBlasLtMatmulPreference preference;
   size_t workspaceSize = _getWorkspaceSize();
   preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, workspaceSize);
-  auto workspace = at::empty(workspaceSize, at::TensorOptions().dtype(at::kByte).device(at::kCUDA));
-
+  auto& allocator = *::c10::cuda::CUDACachingAllocator::get();
+  auto workspace = allocator.allocate(workspaceSize);
   cublasLtMatmulHeuristicResult_t heuristicResult = {};
   int returnedResult = 0;
   TORCH_CUDABLAS_CHECK(cublasLtMatmulAlgoGetHeuristic(
@@ -1799,7 +1835,7 @@ void int8_gemm(
       nullptr, // Heuristics don't seem to work for int8
 #endif
 #ifdef USE_ROCM
-      workspace.mutable_data_ptr(),
+      workspace.mutable_get(),
 #else
       nullptr, // Non-zero workspace doesn't seem to work.
 #endif
