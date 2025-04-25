@@ -61,4 +61,3 @@ execute_process(COMMAND bash -c "for file in ${CMAKE_CURRENT_LIST_DIR}/*.cpp; do
 if(ret AND NOT ret EQUAL 0)
   message( FATAL_ERROR "CK Tile FMHA FAILED to change the generated instances extensions from .cpp to .hpp")
 endif()
-
