@@ -143,6 +143,7 @@ install_centos() {
                    rocprofiler-dev \
                    roctracer-dev \
                    amd-smi-lib
+  fi
 
   # precompiled miopen kernels; search for all unversioned packages
   # if search fails it will abort this script; use true to avoid case where search fails
