@@ -50,6 +50,7 @@ from torch.testing._internal.common_utils import (
     freeze_rng_state,
     gcIfJetson,
     get_cycles_per_ms,
+    HAS_HIPCC,
     instantiate_parametrized_tests,
     IS_ARM64,
     IS_FBCODE,
@@ -4375,6 +4376,7 @@ class TestMemPool(TestCase):
         # increments the id
         self.assertTrue(abs(pool2[1] - pool1[1]) > 0)
 
+    @unittest.skipIf(TEST_WITH_ROCM and not HAS_HIPCC, "ROCm requires hipcc compiler")
     def test_mempool_with_allocator(self):
         pool = torch.cuda.MemPool()
 
