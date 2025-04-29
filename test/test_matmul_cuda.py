@@ -1161,7 +1161,12 @@ class TestFP8Matmul(TestCase):
         if recipe == "nvfp4" and K % 32 != 0:
             return unittest.skip("K must be divisible by 32 for nvfp4 cublas gemm, skipping")
 
-        BLOCK_SIZE = 16 if recipe == "nvfp4" else 32
+        if TEST_WITH_ROCM:
+            BLOCK_SIZE = 32
+            fp4_scaling_dtype = torch.float8_e8m0fnu
+        else:
+            BLOCK_SIZE = 16 if recipe == "nvfp4" else 32
+            fp4_scaling_dtype = torch.float8_e4m3fn
         require_exact_match = True
         approx_match_sqnr_target = 22.0
 
@@ -1179,8 +1184,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
 
         elif test_case_name == "a_ones_b_ones":
             A_ref = torch.ones(M, K, device=device, dtype=torch.bfloat16)
@@ -1194,8 +1199,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
 
         elif test_case_name == "a_ones_modified_b_ones":
             A_ref = torch.ones(M, K, device=device, dtype=torch.bfloat16)
@@ -1210,8 +1215,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
 
         elif test_case_name == "a_ones_b_ones_modified":
             A_ref = torch.ones(M, K, device=device, dtype=torch.bfloat16)
@@ -1226,8 +1231,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
 
         elif test_case_name == "a_scale_modified_b_ones":
             A_ref = torch.ones(M, K, device=device, dtype=torch.bfloat16)
@@ -1244,8 +1249,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
                 A_ref[1][0:BLOCK_SIZE] = 4
                 A.view(torch.uint8)[1][0:(BLOCK_SIZE // 2)] = 0b01000100
                 A_scale[1][0] = 2
@@ -1265,8 +1270,8 @@ class TestFP8Matmul(TestCase):
             else:  # nvfp4
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
                 B_ref[1][0:BLOCK_SIZE] = 4
                 B.view(torch.uint8)[1][0:(BLOCK_SIZE // 2)] = 0b01000100
                 B_scale[1][0] = 2
@@ -1301,8 +1306,8 @@ class TestFP8Matmul(TestCase):
                 ).bfloat16()
                 A = _bfloat16_to_float4_e2m1fn_x2(A_ref)
                 B = _bfloat16_to_float4_e2m1fn_x2(B_ref)
-                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
-                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=torch.float8_e4m3fn)
+                A_scale = torch.full((M, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
+                B_scale = torch.full((N, ceil_div(K, BLOCK_SIZE)), 1.0, device=device, dtype=fp4_scaling_dtype)
 
         elif test_case_name == "data_random_scales_from_data":
             if not K % BLOCK_SIZE == 0:
