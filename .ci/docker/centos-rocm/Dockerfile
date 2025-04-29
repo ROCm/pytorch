@@ -19,8 +19,6 @@ RUN yum install -y glibc-langpack-en
 # Update CentOS git version
 RUN yum -y remove git
 RUN yum -y remove git-*
-RUN yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && \
-    sed -i 's/packages.endpoint/packages.endpointdev/' /etc/yum.repos.d/endpoint.repo
 RUN yum install -y git
 
 # Install devtoolset
@@ -50,7 +48,13 @@ COPY ./common/install_conda.sh install_conda.sh
 COPY ./common/common_utils.sh common_utils.sh
 RUN bash ./install_conda.sh && rm install_conda.sh common_utils.sh /opt/conda/requirements-ci.txt
 
-# (optional) Install vision packages like OpenCV
+# (optional) Install protobuf for ONNX
+ARG PROTOBUF
+COPY ./common/install_protobuf.sh install_protobuf.sh
+RUN if [ -n "${PROTOBUF}" ]; then bash ./install_protobuf.sh; fi
+RUN rm install_protobuf.sh
+ENV INSTALLED_PROTOBUF ${PROTOBUF}
+
 ARG VISION
 COPY ./common/install_vision.sh ./common/cache_vision_models.sh ./common/common_utils.sh ./
 RUN if [ -n "${VISION}" ]; then bash ./install_vision.sh; fi
