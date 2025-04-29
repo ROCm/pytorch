@@ -18,7 +18,12 @@ from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.test_operators import realize
 from torch._inductor.utils import sympy_index_symbol
 from torch._inductor.virtualized import ops, V
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8, xfailIfSM89
+=======
+from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8
+from torch.testing._internal.common_utils import skipIfRocm
+>>>>>>> 179bf1ac89 ([rocm6.4_internal_testing] Skipped two tests with fp8 types in test_loop_ordering for ROCm (#2064))
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 from torch.utils._pytree import tree_map
 from torch.utils._sympy.functions import ModularIndexing
@@ -384,6 +389,10 @@ class LoopOrderingTest(TestCase):
         self.assertEqual(1, metrics.generated_kernel_count)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
+    @skipIfRocm
+    # Related PR: https://github.com/pytorch/pytorch/pull/149369
+    # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
+    # in eager mode that is required here to check vs compiled results
     def test_fp8_cast_and_t(self):
         """
         This test repros the not able to fuses issue in
@@ -406,7 +415,14 @@ class LoopOrderingTest(TestCase):
         self.assertEqual(1, metrics.generated_kernel_count)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
+<<<<<<< HEAD
     @xfailIfSM89
+=======
+    @skipIfRocm
+    # Related PR: https://github.com/pytorch/pytorch/pull/149369
+    # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
+    # in eager mode that is required here to check vs compiled results
+>>>>>>> 179bf1ac89 ([rocm6.4_internal_testing] Skipped two tests with fp8 types in test_loop_ordering for ROCm (#2064))
     def test_fp8_pattern_2(self):
         """
         This test repros the fp8 fusion relation issue here:
