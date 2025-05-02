@@ -22,6 +22,7 @@ if(NOT __AOTRITON_INCLUDED)
   # Replaces .ci/docker/aotriton_version.txt
   # Note packages information may have versions skipped (due to no ABI breaks)
   # But they must be listed from lower version to higher version
+  set(__AOTRITON_RELEASE "0.9.2b")
   set(__AOTRITON_VER "0.9.2b_612896439f")
   set(__AOTRITON_MANYLINUX_LIST
       "manylinux_2_28"  # rocm6.5
@@ -93,7 +94,7 @@ if(NOT __AOTRITON_INCLUDED)
                                   "_${__AOTRITON_ARCH}-rocm${__AOTRITON_ROCM}"
                                   "-shared.tar.${__AOTRITON_Z}")
     string(CONCAT __AOTRITON_URL "https://github.com/ROCm/aotriton/releases/download/"
-                                 "${__AOTRITON_VER}/${__AOTRITON_FILE}")
+                                 "${__AOTRITON_RELEASE}/${__AOTRITON_FILE}")
     ExternalProject_Add(aotriton_external
       URL "${__AOTRITON_URL}"
       URL_HASH SHA256=${__AOTRITON_SHA256}
