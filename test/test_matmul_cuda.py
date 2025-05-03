@@ -1162,6 +1162,9 @@ class TestFP8Matmul(TestCase):
             raise unittest.SkipTest("K must be divisible by 32 for nvfp4 cublas gemm, skipping")
 
         if TEST_WITH_ROCM:
+            if not (M % 32 == 0 and K % 32 == 0 and N % 32 == 0):
+                raise unittest.SkipTest("Matrix dimensions must be multiples of 32 on ROCm, skipping")
+        if TEST_WITH_ROCM:
             BLOCK_SIZE = 32
             fp4_scaling_dtype = torch.float8_e8m0fnu
         else:
@@ -1344,9 +1347,10 @@ class TestFP8Matmul(TestCase):
 
         C_ref = A_ref @ B_ref.t()
 
-        # convert to swizzled format
-        A_scale = to_blocked(A_scale)
-        B_scale = to_blocked(B_scale)
+	if not TEST_WITH_ROCM:
+            # convert to swizzled format
+            A_scale = to_blocked(A_scale)
+            B_scale = to_blocked(B_scale)
 
         C = torch._scaled_mm(
             A,
