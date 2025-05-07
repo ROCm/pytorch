@@ -418,25 +418,14 @@ class TORCH_API Context {
       c10::utils::check_env("TORCH_LINALG_PREFER_CUSOLVER") == true
       ? at::LinalgBackend::Cusolver
       : at::LinalgBackend::Default;
-#ifdef USE_ROCM
-  const bool is_gfx110x = []() {
-    const std::vector<std::string> archs = {"gfx1100", "gfx1101"};
-    for (auto index: c10::irange(detail::getCUDAHooks().getNumGPUs())) {
-      if (detail::getCUDAHooks().isGPUArch(index, archs)) {
-        return true;
-      }
-    }
-    return false;
-  }();
-#endif
   at::BlasBackend blas_preferred_backend =
 #ifdef USE_ROCM
-      ((is_gfx110x && c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") != true) ||  c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") == false)
+      (c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") != false)
 #else
       (c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT") == true)
 #endif
-      ? at::BlasBackend::Cublas
-      : at::BlasBackend::Cublaslt;
+      ? at::BlasBackend::Cublaslt
+      : at::BlasBackend::Cublas;
   at::ROCmFABackend rocm_fa_preferred_backend =
       c10::utils::check_env("TORCH_ROCM_FA_PREFER_CK") == true
       ? at::ROCmFABackend::Ck
