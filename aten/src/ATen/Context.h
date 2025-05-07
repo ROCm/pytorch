@@ -438,11 +438,13 @@ class TORCH_API Context {
   static const bool _hipblaslt_preferred_default = false;
 #endif
   static const bool _blaslt_preferred = []() {
-    if (c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT") == true) {
-      return true;
+    auto env = c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT");
+    if (env.has_value()) {
+      return env.value();
     }
-    if (c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") == true) {
-      return true;
+    env = c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT");
+    if (env.has_value()) {
+      return env.value();
     }
 #ifdef USE_ROCM
     return _hipblaslt_preferred_default;
