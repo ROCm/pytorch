@@ -418,12 +418,38 @@ class TORCH_API Context {
       c10::utils::check_env("TORCH_LINALG_PREFER_CUSOLVER") == true
       ? at::LinalgBackend::Cusolver
       : at::LinalgBackend::Default;
-  at::BlasBackend blas_preferred_backend =
 #ifdef USE_ROCM
-      (c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") != false)
-#else
-      (c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT") == true)
+  // AMD Instinct targets prefer hipblaslt
+  static const bool _hipblaslt_preferred_default = []() {
+    static const std::vector<std::string> archs = {
+        "gfx90a", "gfx942",
+#if ROCM_VERSION >= 60500
+        "gfx950"
 #endif
+    };
+    for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+      if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+        return false;
+      }
+    }
+    return true;
+  }();
+#else
+  static const bool _hipblaslt_preferred_default = false;
+#endif
+  static const bool _blaslt_preferred = []() {
+    if (c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT") == true) {
+      return true;
+    }
+    if (c10::utils::check_env("TORCH_BLAS_PREFER_HIPBLASLT") == true) {
+      return true;
+    }
+#ifdef USE_ROCM
+    return _hipblaslt_preferred_default;
+#endif
+    return false;
+  }();
+  at::BlasBackend blas_preferred_backend = _blaslt_preferred
       ? at::BlasBackend::Cublaslt
       : at::BlasBackend::Cublas;
   at::ROCmFABackend rocm_fa_preferred_backend =
