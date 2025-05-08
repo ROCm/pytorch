@@ -159,8 +159,7 @@ class TestFP8Types(TestCase):
     @parametrize(
         "dst_types",
         [(torch.float8_e4m3fn, torch.float8_e5m2)]
-        if torch.version.hip is None
-        else [(torch.float8_e4m3fnuz, torch.float8_e5m2fnuz)],
+        if torch.version.hip is None else ([(None, torch.float8_e5m2)] if "gfx120" in torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] else [(torch.float8_e4m3fnuz, torch.float8_e5m2fnuz)]),
     )
     def test_valid_cast(self, dtype: torch.dtype, shape: str, dst_types: tuple):
         e4m3, e5m2 = dst_types
@@ -207,8 +206,7 @@ class TestFP8Types(TestCase):
     @parametrize(
         "dst_dtype",
         (torch.float8_e4m3fn, torch.float8_e5m2)
-        if torch.version.hip is None
-        else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz),
+        if torch.version.hip is None else ((torch.float8_e5m2,) if "gfx120" in torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz)),
     )
     @parametrize("shape", ("16,16,16", "4,2048,4096"))
     def test_to_fp8_saturated(
@@ -261,8 +259,7 @@ class TestFP8Types(TestCase):
     @parametrize(
         "float8_dtype",
         (torch.float8_e4m3fn, torch.float8_e5m2)
-        if torch.version.hip is None
-        else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz),
+        if torch.version.hip is None else ((torch.float8_e5m2,) if "gfx120" in torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz)),
     )
     @parametrize("shape", ("1,1,15", "1,10,15", "1,10,512", "1,10,4096", "4,2048,4096"))
     def test_amax_along_with_fp8_quant(self, float8_dtype: torch.dtype, shape: str):
@@ -343,7 +340,7 @@ class TestFP8Types(TestCase):
         "float8_dtype",
         (torch.float8_e4m3fn, torch.float8_e5m2)
         if torch.version.hip is None
-        else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz),
+        else ((torch.float8_e5m2,) if "gfx120" in torch.cuda.get_device_properties(0).gcnArchName.split(":")[0] else (torch.float8_e4m3fnuz, torch.float8_e5m2fnuz)),
     )
     @parametrize("shape", ("4,2048,4096",))
     @parametrize("keepdim", (False, True))
