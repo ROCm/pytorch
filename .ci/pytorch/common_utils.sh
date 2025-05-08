@@ -56,7 +56,30 @@ function assert_git_not_dirty() {
 function pip_install_whl() {
   # This is used to install PyTorch and other build artifacts wheel locally
   # without using any network connection
+<<<<<<< HEAD
   python3 -mpip install --no-index --no-deps "$@"
+=======
+
+  # Convert the input arguments into an array
+  local args=("$@")
+
+  # Check if the first argument contains multiple paths separated by spaces
+  if [[ "${args[0]}" == *" "* ]]; then
+    # Split the string by spaces into an array
+    IFS=' ' read -r -a paths <<< "${args[0]}"
+    # Loop through each path and install individually
+    for path in "${paths[@]}"; do
+      echo "Installing $path"
+      python3 -mpip install "$path"
+    done
+  else
+    # Loop through each argument and install individually
+    for path in "${args[@]}"; do
+      echo "Installing $path"
+      python3 -mpip install "$path"
+    done
+  fi
+>>>>>>> 5c42a37052 ([release/2.6] Remove --no-index and --no-deps flags (#2103))
 }
 
 function pip_install() {
