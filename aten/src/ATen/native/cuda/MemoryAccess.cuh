@@ -546,7 +546,7 @@ inline int can_vectorize_up_to(array_t pointers) {
 #else
   c10::DeviceIndex curDevice = -1;
   AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
-  if (at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"})) {
+  if (at::detail::getCUDAHooks().isGPUArch({"gfx942"}, curDevice)) {
     if (pointers[0] == pointers[1])
       return 4;
   }
