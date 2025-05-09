@@ -3608,13 +3608,12 @@ class TestSparse(TestSparseBase):
         self._check_zero_nnz_softmax_op(torch.sparse.log_softmax, 10, device, dtype)
 
     # TODO: Check after why ROCm's cusparseXcsrgemm2Nnz function doesn't return the same nnz value as CUDA
-    @skipIfRocm
     @coalescedonoff
     @dtypes(*floating_and_complex_types())
-    @dtypesIfCUDA(*floating_types_and(*[torch.half] if SM53OrLater else [],
-                                      *[torch.bfloat16] if SM80OrLater else [],
+    @dtypesIfCUDA(*floating_types_and(*[torch.half] if SM53OrLater and not TEST_WITH_ROCM else [],
+                                      *[torch.bfloat16] if SM80OrLater and not TEST_WITH_ROCM else [],
                                       torch.complex64,
-                                      *[torch.complex128] if CUSPARSE_SPMM_COMPLEX128_SUPPORTED else []))
+                                      *[torch.complex128] if CUSPARSE_SPMM_COMPLEX128_SUPPORTED or HIPSPARSE_SPMM_COMPLEX128_SUPPORTED else []))
     @unittest.skipIf(TEST_WITH_CROSSREF, "not working with fake tensor")
     @precisionOverride({torch.bfloat16: 1e-2, torch.float16: 1e-2, torch.complex64: 1e-2, torch.float32: 1e-2})
     def test_sparse_matmul(self, device, dtype, coalesced):
