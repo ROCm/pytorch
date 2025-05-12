@@ -420,24 +420,27 @@ class TORCH_API Context {
       : at::LinalgBackend::Default;
 #ifdef USE_ROCM
   // AMD Instinct targets prefer hipblaslt
-  static const bool _hipblaslt_preferred_default = []() {
-    static const std::vector<std::string> archs = {
+  const bool _hipblaslt_preferred_default = []() {
+    const std::vector<std::string> archs = {
         "gfx90a", "gfx942",
+#if ROCM_VERSION >= 60300
+        "gfx1200", "gfx1201",
+#endif
 #if ROCM_VERSION >= 60500
         "gfx950"
 #endif
     };
     for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
-      if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+      if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
         return false;
       }
     }
     return true;
   }();
 #else
-  static const bool _hipblaslt_preferred_default = false;
+  const bool _hipblaslt_preferred_default = false;
 #endif
-  static const bool _blaslt_preferred = []() {
+  const bool _blaslt_preferred = [&]() {
     auto env = c10::utils::check_env("TORCH_BLAS_PREFER_CUBLASLT");
     if (env.has_value()) {
       return env.value();
