@@ -27,15 +27,11 @@ from torch.ao.quantization.quantizer.x86_inductor_quantizer import X86InductorQu
 from torch.export import Dim, export, export_for_training
 from torch.testing import FileCheck
 from torch.testing._internal import common_utils
-<<<<<<< HEAD
-from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8, SM80OrLater
-=======
 from torch.testing._internal.common_cuda import (
     SM80OrLater,
     SM90OrLater,
     PLATFORM_SUPPORTS_FLASH_ATTENTION
 )
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
 from torch.testing._internal.common_device_type import (
     _has_sufficient_memory,
     skipCUDAIf,
