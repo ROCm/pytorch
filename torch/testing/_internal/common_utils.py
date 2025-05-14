@@ -109,12 +109,8 @@ except ImportError:
 
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
-<<<<<<< HEAD
-
-=======
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
->>>>>>> 4ce2c1490e ([release/2.5] test_decompose_mem_bound_mm.py tolerance increase for navi3x (#2129))
 
 def is_navi3_arch():
     if torch.cuda.is_available():
