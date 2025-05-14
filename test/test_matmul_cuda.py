@@ -594,6 +594,8 @@ def compute_error(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
 # largest power of 2 representable in `torch.float8_e4m3fn`
 F8E4M3_LARGEST_POW2 = 8
+# largest power of 2 representable in `torch.float4_e2m1fn_x2`
+FP4E2M1FN_LARGEST_POW2 = 1.0
 # max value of `torch.float8_e4m3fn` (448)
 F8E4M3_MAX_VAL = torch.finfo(torch.float8_e4m3fn).max
 # exponent bias of `torch.float8_e8m0fnu`
@@ -602,14 +604,20 @@ F8E8M0_EXP_BIAS = 127
 FP4_EBITS, FP4_MBITS = 2, 1
 FP4_MAX_VAL = 6.0
 
-def data_to_mx_scale(x, block_size):
+def data_to_mx_scale(x, block_size, input_dtype):
     # simple implementation of https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf
     # section 6.3, not all edge cases (such as NaN) are handled/tested
+    if input_dtype == torch.float8_e4m3fn:
+        largest_pow2 = F8E4M3_LARGEST_POW2
+    elif input_dtype == torch.float4_e2m1fn_x2:
+        largest_pow2 = FP4E2M1FN_LARGEST_POW2
+    else:
+        raise ValueError(f"data_to_mx_scale(): Unsupported input_dtype: {input_dtype}")
     orig_shape = x.shape
     x = x.reshape(-1, block_size)
     max_abs = torch.amax(torch.abs(x), 1)
     largest_p2_lt_max_abs = torch.floor(torch.log2(max_abs))
-    scale_e8m0_unbiased = largest_p2_lt_max_abs - F8E4M3_LARGEST_POW2
+    scale_e8m0_unbiased = largest_p2_lt_max_abs - largest_pow2
     scale_e8m0_unbiased = torch.clamp(scale_e8m0_unbiased, -1 * F8E8M0_EXP_BIAS, F8E8M0_EXP_BIAS)
     scale_e8m0_biased = scale_e8m0_unbiased + F8E8M0_EXP_BIAS
     scale_e8m0_biased = scale_e8m0_biased.to(torch.uint8)
@@ -1161,10 +1169,10 @@ class TestFP8Matmul(TestCase):
         if recipe == "nvfp4" and K % 32 != 0:
             raise unittest.SkipTest("K must be divisible by 32 for nvfp4 cublas gemm, skipping")
 
-        if TEST_WITH_ROCM:
+        if torch.version.hip:
             if not (M % 32 == 0 and K % 32 == 0 and N % 32 == 0):
                 raise unittest.SkipTest("Matrix dimensions must be multiples of 32 on ROCm, skipping")
-        if TEST_WITH_ROCM:
+        if torch.version.hip:
             BLOCK_SIZE = 32
             fp4_scaling_dtype = torch.float8_e8m0fnu
         else:
@@ -1322,8 +1330,8 @@ class TestFP8Matmul(TestCase):
 
             if recipe == "mxfp8":
                 # Calculate scales based on the inputs
-                A_scale = data_to_mx_scale(A_ref, BLOCK_SIZE)
-                B_scale = data_to_mx_scale(B_ref, BLOCK_SIZE)
+                A_scale = data_to_mx_scale(A_ref, BLOCK_SIZE, torch.float8_e4m3fn)
+                B_scale = data_to_mx_scale(B_ref, BLOCK_SIZE, torch.float8_e4m3fn)
                 max_val = F8E4M3_MAX_VAL
                 min_val = -1 * max_val
                 A = (A_ref.reshape(-1, BLOCK_SIZE) / A_scale.reshape(M * ceil_div(K, BLOCK_SIZE), 1).float()).reshape(M, K)
@@ -1331,8 +1339,12 @@ class TestFP8Matmul(TestCase):
                 B = (B_ref.reshape(-1, BLOCK_SIZE) / B_scale.reshape(N * ceil_div(K, BLOCK_SIZE), 1).float()).reshape(N, K)
                 B = B.clamp(min=min_val, max=max_val).to(torch.float8_e4m3fn)
             else:  # nvfp4
-                A_scale = data_to_nvfp4_scale(A_ref, BLOCK_SIZE)
-                B_scale = data_to_nvfp4_scale(B_ref, BLOCK_SIZE)
+                if torch.version.hip:
+                    A_scale = data_to_mx_scale(A_ref, BLOCK_SIZE, torch.float4_e2m1fn_x2)
+                    B_scale = data_to_mx_scale(B_ref, BLOCK_SIZE, torch.float4_e2m1fn_x2)
+                else:
+                    A_scale = data_to_nvfp4_scale(A_ref, BLOCK_SIZE)
+                    B_scale = data_to_nvfp4_scale(B_ref, BLOCK_SIZE)
                 max_val = FP4_MAX_VAL
                 min_val = -1 * max_val
 
@@ -1347,7 +1359,7 @@ class TestFP8Matmul(TestCase):
 
         C_ref = A_ref @ B_ref.t()
 
-        if not TEST_WITH_ROCM:
+        if not torch.version.hip:
             # convert to swizzled format
             A_scale = to_blocked(A_scale)
             B_scale = to_blocked(B_scale)
