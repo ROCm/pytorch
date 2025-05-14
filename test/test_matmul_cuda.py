@@ -1347,7 +1347,7 @@ class TestFP8Matmul(TestCase):
 
         C_ref = A_ref @ B_ref.t()
 
-	if not TEST_WITH_ROCM:
+        if not TEST_WITH_ROCM:
             # convert to swizzled format
             A_scale = to_blocked(A_scale)
             B_scale = to_blocked(B_scale)
