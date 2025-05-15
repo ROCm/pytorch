@@ -1567,21 +1567,12 @@ void scaled_gemm(
     matmulDescB = HIPBLASLT_MATMUL_DESC_B_SCALE_POINTER_VEC_EXT;
   }
     else if(mat1_scale_dtype == kFloat8_e8m0fnu && mat2_scale_dtype == kFloat8_e8m0fnu) {
-    #if ROCM_VERSION >= 60500
+#if ROCM_VERSION >= 60500
           if (at::cuda::tunable::IsGfx950Device()) {
             // Validate matrix dimensions for MX format
             TORCH_CHECK(at::cuda::tunable::ValidateMXFormatRequirements(m, n, k),
                        "Matrix dimensions must be multiples of 32 for MX format. ",
                        "Got m=", m, ", n=", n, ", k=", k);
-
-           //todo
-            // Set block sizes for MX format
-            // TODO: Check if we need to set these explicitly for hipblaslt
-            //constexpr int32_t block_size = 32;
-            //computeDesc.setAttribute(HIPBLASLT_MATMUL_DESC_A_SCALE_BLOCK_SIZE_ROWS_VEC_EXT, block_size);
-            //computeDesc.setAttribute(HIPBLASLT_MATMUL_DESC_A_SCALE_BLOCK_SIZE_COLS_VEC_EXT, block_size);
-            //computeDesc.setAttribute(HIPBLASLT_MATMUL_DESC_B_SCALE_BLOCK_SIZE_ROWS_VEC_EXT, block_size);
-            //computeDesc.setAttribute(HIPBLASLT_MATMUL_DESC_B_SCALE_BLOCK_SIZE_COLS_VEC_EXT, block_size);
           }
 #endif
   }

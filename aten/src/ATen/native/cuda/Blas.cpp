@@ -1035,7 +1035,6 @@ ScalingType get_scaling_type(
         BLOCK_SIZE_MN * ceil_div(dim_n, BLOCK_SIZE_MN) * padded_num_k_blocks;
 
 #ifndef USE_ROCM
-//todo
     TORCH_CHECK(scale_a.numel() == expected_a_size,
                 "For BlockWise scaling: Expected scale_a size to be ",
                 expected_a_size, " but got ", scale_a.numel());
@@ -1251,13 +1250,7 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
          "hipblaslt rowwise _scaled_mm only supports BFloat16 output");
   }
   else if (scaling_choice == ScalingType::BlockWise) {
-    //todo
-    //TORCH_CHECK(mat1.scalar_type() == at::kFloat8_e8m0fnu &&
-    //            mat2.scalar_type() == at::kFloat8_e8m0fnu,
-    //            "Block-wise scaling requires both matrices to be Float8_e8m0fnu type");
-
 #if ROCM_VERSION >= 60500
-    //todo
     TORCH_CHECK(!at::cuda::tunable::IsGfx950Device(),
                "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
