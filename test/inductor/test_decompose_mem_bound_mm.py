@@ -95,7 +95,7 @@ class TestDecomposeMemMM(TestCase):
         self.setup_tolerance(rtol, atol)
         ref_params = dict(module.named_parameters())
         res_params = dict(traced.named_parameters())
-        self.assertTrue(self.compare_dict_tensors(ref_params, res_params, self.rtol, self.atol))
+        self.assertTrue(self.compare_dict_tensors(ref_params, res_params, rtol=self.rtol, atol=self.atol))
 
     def compare_gradients(self, module, traced, rtol=None, atol=None):
         self.setup_tolerance(rtol, atol)
