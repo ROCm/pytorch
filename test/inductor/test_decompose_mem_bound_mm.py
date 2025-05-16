@@ -1,6 +1,7 @@
 # Owner(s): ["module: inductor"]
 
 import logging
+import unittest
 
 import torch
 import torch._inductor
@@ -11,9 +12,10 @@ from torch._inductor.utils import run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
+    patch_test_members,
     is_navi3_arch,
     parametrize,
-    skipIfXpu,
+    TEST_XPU,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA
 from torch.testing._internal.triton_utils import requires_gpu
@@ -54,9 +56,10 @@ default_rtol = 4e-3 if is_navi3_arch() else 1e-3
 
 
 @requires_gpu
-@skipIfXpu(
-    msg="Intel GPU has not enabled decompose_mem_bound_mm PASS in "
-    "torch/_inductor/fx_passes/decompose_mem_bound_mm.py"
+@unittest.skipIf(
+    TEST_XPU,
+    "Intel GPU has not enabled decompose_mem_bound_mm PASS in "
+    "torch/_inductor/fx_passes/decompose_mem_bound_mm.py",
 )
 @torch._inductor.config.patch(
     post_grad_fusion_options={
@@ -65,31 +68,46 @@ default_rtol = 4e-3 if is_navi3_arch() else 1e-3
 )
 @instantiate_parametrized_tests
 class TestDecomposeMemMM(TestCase):
-    def compare_dict_tensors(self, ref_dict, res_dict, rtol=default_rtol, atol=default_atol):
+    def __init__(self, method_name='runTest', methodName='runTest'):
+        super().__init__(method_name, methodName)
+        self.atol = 1e-3
+        self.rtol = 1e-3
+
+    def setup_tolerance(self, rtol=None, atol=None):
+        if rtol is None:
+            rtol = self.rtol
+        if atol is None:
+            atol = self.rtol
+
+    def compare_dict_tensors(self, ref_dict, res_dict, rtol=None, atol=None):
+        self.setup_tolerance(rtol, atol)
         if len(set(ref_dict.keys())) != len(set(res_dict.keys())):
             return False
         for key1 in ref_dict.keys():
             key2 = "_orig_mod." + key1
             assert key2 in res_dict, f"{key1} does not exist in traced module"
-            if not torch.allclose(ref_dict[key1], res_dict[key2], rtol=rtol, atol=atol):
+            if not torch.allclose(ref_dict[key1], res_dict[key2], rtol=self.rtol, atol=self.atol):
                 return False
         return True
 
-    def compare_pred(self, module, traced, input, rtol=default_rtol, atol=default_atol):
+    def compare_pred(self, module, traced, input, rtol=None, atol=None):
+        self.setup_tolerance(rtol, atol)
         ref = module(*input)
         res = traced(*input)
-        self.assertEqual(ref, res, rtol=rtol, atol=atol)
+        self.assertEqual(ref, res, rtol=self.rtol, atol=self.atol)
 
-    def compare_parameters(self, module, traced, rtol=default_rtol, atol=default_atol):
+    def compare_parameters(self, module, traced, rtol=None, atol=None):
+        self.setup_tolerance(rtol, atol)
         ref_params = dict(module.named_parameters())
         res_params = dict(traced.named_parameters())
-        self.assertTrue(self.compare_dict_tensors(ref_params, res_params, rtol, atol))
+        self.assertTrue(self.compare_dict_tensors(ref_params, res_params, self.rtol, self.atol))
 
-    def compare_gradients(self, module, traced, rtol=default_rtol, atol=default_atol):
+    def compare_gradients(self, module, traced, rtol=None, atol=None):
+        self.setup_tolerance(rtol, atol)
         ref_grad = {key: param.grad for key, param in module.named_parameters()}
         res_grad = {key: param.grad for key, param in traced.named_parameters()}
         self.assertTrue(
-            self.compare_dict_tensors(ref_grad, res_grad, rtol=rtol, atol=atol)
+            self.compare_dict_tensors(ref_grad, res_grad, rtol=self.rtol, atol=self.atol)
         )
 
     @parametrize(
@@ -196,6 +214,12 @@ class TestDecomposeMemMM(TestCase):
         )
         counters.clear()
 
+    # We have to increase tolerance for navi3 because all fp16, bf16
+    # GEMMs operations have an accuracy issue caused by hardware limitation
+    @patch_test_members({
+        "atol": 2e-3 if is_navi3_arch() else 1e-3,
+        "rtol": 2e-3 if is_navi3_arch() else 1e-3
+    })
     @parametrize(
         "m,k,n, should_decompose",
         [(20480, 5, 2, True), (20480, 32, 2, False), (2048, 2, 2, False)],
@@ -304,6 +328,12 @@ class TestDecomposeMemMM(TestCase):
         )
         counters.clear()
 
+    # We have to increase tolerance for navi3 because all fp16, bf16
+    # GEMMs operations have an accuracy issue caused by hardware limitation
+    @patch_test_members({
+        "atol": 3e-3 if is_navi3_arch() else 1e-3,
+        "rtol": 4e-3 if is_navi3_arch() else 1e-3
+    })
     @parametrize(
         "m,k,n, should_decompose",
         [(20480, 5, 2, True), (20480, 32, 2, False), (2048, 2, 2, False)],
