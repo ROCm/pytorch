@@ -1406,27 +1406,6 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
         scaling_choice == ScalingType::RowWise);
   }
 
-  // Add MX format validation for gfx950
-  if (scaling_choice == ScalingType::RowWise) {
-#ifdef USE_ROCM
-    if (at::cuda::tunable::IsGfx950Device()) {
-      // Validate matrix dimensions for MX format
-      TORCH_CHECK(at::cuda::tunable::ValidateMXFormatRequirements(mat1.size(0), mat2.size(1), mat1.size(1)),
-                 "For MX format on gfx950, matrix dimensions must be multiples of 32. ",
-                 "Got dimensions: ", mat1.sizes(), " x ", mat2.sizes());
-
-      // Validate data types for MX format
-      TORCH_CHECK(mat1.scalar_type() == at::kFloat8_e8m0fnu &&
-                 mat2.scalar_type() == at::kFloat8_e8m0fnu,
-                 "MX format requires Float8_e8m0fnu type for both input matrices");
-
-      TORCH_CHECK(out.scalar_type() == ScalarType::BFloat16 ||
-                 out.scalar_type() == ScalarType::Half,
-                 "MX format only supports BFloat16 or Half output types");
-    }
-#endif
-  }
-
   return out;
 }
 
