@@ -49,11 +49,6 @@ class MyModule3(torch.nn.Module):
         output = torch.mm(input1, input2)
         return output
 
-# We have to increase tolerance for navi3 because all fp16, bf16
-# GEMMs operations have an accuracy issue caused by hardware limitation
-default_atol = 3e-3 if is_navi3_arch() else 1e-3
-default_rtol = 4e-3 if is_navi3_arch() else 1e-3
-
 
 @requires_gpu
 @unittest.skipIf(
