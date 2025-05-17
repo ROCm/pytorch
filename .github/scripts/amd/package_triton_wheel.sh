@@ -53,19 +53,12 @@ done
 
 # Required ROCm libraries - ROCm 6.0
 ROCM_SO=(
-<<<<<<< HEAD
-    "libamdhip64.so.6"
-    "libhsa-runtime64.so.1"
-    "libdrm.so.2"
-    "libdrm_amdgpu.so.1"
-=======
     "libamdhip64.so"
     "libhsa-runtime64.so"
     "libdrm.so"
     "libdrm_amdgpu.so"
     "libamd_comgr.so"
     "librocprofiler-register.so"
->>>>>>> 684f6f2e63 ([release/2.6] Make triton build ROCm version agnostic (#2130))
 )
 
 for lib in "${ROCM_SO[@]}"
