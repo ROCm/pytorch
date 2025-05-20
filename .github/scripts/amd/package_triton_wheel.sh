@@ -51,16 +51,6 @@ do
     cp $lib $TRITON_ROCM_DIR/lib/
 done
 
-<<<<<<< HEAD
-# Required ROCm libraries
-if [[ "${MAJOR_VERSION}" == "6" ]]; then
-    libamdhip="libamdhip64.so.6"
-else
-    libamdhip="libamdhip64.so.5"
-fi
-
-=======
->>>>>>> 684f6f2e63 ([release/2.6] Make triton build ROCm version agnostic (#2130))
 # Required ROCm libraries - ROCm 6.0
 ROCM_SO=(
     "libamdhip64.so"
@@ -70,18 +60,6 @@ ROCM_SO=(
     "libamd_comgr.so"
     "librocprofiler-register.so"
 )
-<<<<<<< HEAD
-if [[ $ROCM_INT -ge 60400 ]]; then
-    ROCM_SO+=("libamd_comgr.so.3")
-else
-    ROCM_SO+=("libamd_comgr.so.2")
-fi
-
-if [[ $ROCM_INT -ge 60100 ]]; then
-    ROCM_SO+=("librocprofiler-register.so.0")
-fi
-=======
->>>>>>> 684f6f2e63 ([release/2.6] Make triton build ROCm version agnostic (#2130))
 
 for lib in "${ROCM_SO[@]}"
 do
