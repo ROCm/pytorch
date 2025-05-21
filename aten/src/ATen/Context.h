@@ -429,13 +429,7 @@ class TORCH_API Context {
   // AMD Instinct targets prefer hipblaslt
   const bool _hipblaslt_preferred_default = []() {
     const std::vector<std::string> archs = {
-        "gfx90a", "gfx942",
-#if ROCM_VERSION >= 60300
-        "gfx1200", "gfx1201",
-#endif
-#if ROCM_VERSION >= 60500
-        "gfx950"
-#endif
+        "gfx90a", "gfx942"
     };
     for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
       if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
