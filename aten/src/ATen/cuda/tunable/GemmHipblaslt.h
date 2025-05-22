@@ -14,7 +14,6 @@
 #include <hipblaslt/hipblaslt.h>
 #include <hipblaslt/hipblaslt-ext.hpp>
 
-#include <ATen/cuda/tunable/GemmMxUtils.h>
 
 #define TORCH_HIPBLASLT_CHECK(EXPR)               \
   do {                                            \

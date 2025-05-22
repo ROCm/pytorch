@@ -17,7 +17,6 @@
 #include <ATen/native/Resize.h>
 #include <c10/util/MaybeOwned.h>
 #include <ATen/native/cuda/RowwiseScaledMM.h>
-#include <ATen/cuda/tunable/GemmMxUtils.h>
 #include <ATen/native/cuda/ScaledGroupMM.h>
 #include <ATen/native/cuda/GroupMM.h>
 
@@ -1251,7 +1250,7 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
   }
   else if (scaling_choice == ScalingType::BlockWise) {
 #if ROCM_VERSION >= 60500
-    TORCH_CHECK(!at::cuda::tunable::IsGfx950Device(),
+    TORCH_CHECK(at::detail::getCUDAHooks().isGPUArch({"gfx950"},
                "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
     TORCH_CHECK(mat1.size(0) % 32 == 0 && mat1.size(1) % 32 == 0 &&

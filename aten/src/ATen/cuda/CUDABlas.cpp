@@ -1568,9 +1568,9 @@ void scaled_gemm(
   }
     else if(mat1_scale_dtype == kFloat8_e8m0fnu && mat2_scale_dtype == kFloat8_e8m0fnu) {
 #if ROCM_VERSION >= 60500
-          if (at::cuda::tunable::IsGfx950Device()) {
+          if (at::detail::getCUDAHooks().isGPUArch({"gfx950"})) {
             // Validate matrix dimensions for MX format
-            TORCH_CHECK(at::cuda::tunable::ValidateMXFormatRequirements(m, n, k),
+            TORCH_CHECK((m % 32 == 0) && (n % 32 == 0) && (k % 32 == 0),
                        "Matrix dimensions must be multiples of 32 for MX format. ",
                        "Got m=", m, ", n=", n, ", k=", k);
           }
