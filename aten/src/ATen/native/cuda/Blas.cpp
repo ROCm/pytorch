@@ -1033,6 +1033,7 @@ ScalingType get_scaling_type(
     auto expected_b_size =
         BLOCK_SIZE_MN * ceil_div(dim_n, BLOCK_SIZE_MN) * padded_num_k_blocks;
 
+    //TODO: enable the checks for ROCm
 #ifndef USE_ROCM
     TORCH_CHECK(scale_a.numel() == expected_a_size,
                 "For BlockWise scaling: Expected scale_a size to be ",
@@ -1190,6 +1191,11 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
     TORCH_CHECK(out.scalar_type() != kFloat, "Bias is not supported when out_dtype is set to Float32");
     TORCH_CHECK(bias->scalar_type() == ScalarType::BFloat16 || bias->scalar_type() == ScalarType::Half,
         "Bias must be BFloat16 or Half, but got ", bias->scalar_type());
+    TORCH_CHECK((out.scalar_type() != kFloat && out.scalar_type() != ScalarType::BFloat16) ||
+        bias->scalar_type() == ScalarType::BFloat16,
+        "Bias must be BFloat16 to compute ", out.scalar_type(), " output, but got ", bias->scalar_type());
+    TORCH_CHECK(out.scalar_type() != ScalarType::Half || bias->scalar_type() == ScalarType::Half,
+        "Bias must be Float16 to compute ", out.scalar_type(), " output, but got ", bias->scalar_type());
   }
   {
     auto bias_ = bias.value_or(Tensor());
@@ -1250,7 +1256,7 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
   }
   else if (scaling_choice == ScalingType::BlockWise) {
 #if ROCM_VERSION >= 60500
-    TORCH_CHECK(at::detail::getCUDAHooks().isGPUArch({"gfx950"},
+    TORCH_CHECK(at::detail::getCUDAHooks().isGPUArch({"gfx950"}),
                "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
     TORCH_CHECK(mat1.size(0) % 32 == 0 && mat1.size(1) % 32 == 0 &&
