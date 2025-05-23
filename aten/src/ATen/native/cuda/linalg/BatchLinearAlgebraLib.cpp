@@ -1212,9 +1212,9 @@ Tensor& orgqr_helper_cusolver(Tensor& result, const Tensor& tau) {
 template <typename scalar_t>
 static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& vectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
 
-  TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-             ""
-            );
+  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+  //            ""
+  //           );
   using value_t = typename c10::scalar_value_type<scalar_t>::type;
 
   // cublasFillMode_t uplo = upper ? CUBLAS_FILL_MODE_UPPER : CUBLAS_FILL_MODE_LOWER;
@@ -1240,26 +1240,29 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
   auto& allocator = *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t) * work_size);
 
-  TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-             "scalar_t: ", typeid(scalar_t).name(), "\n"
-             "value_t: ", typeid(value_t).name(), "\n"
-             "vectors.sizes: ", vectors.sizes(), "\n"
-             "values.sizes: ", values.sizes(), "\n"
-             "infos.sizes: ", infos.sizes(), "\n"
-             "uplo: ", uplo, "\n"
-             "evect: ", evect, "\n"
-             "n: ", n, "\n"
-             "lda: ", lda, "\n"
-             "batch_size: ", batch_size, "\n"
-             "vectors_stride: ", vectors_stride, "\n"
-             "values_stride: ", values_stride, "\n"
-             "work_stride: ", work_stride, "\n"
-             "work_size: ", work_size, "\n"
-             "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
-            );
+  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+  //            "scalar_t: ", typeid(scalar_t).name(), "\n"
+  //            "value_t: ", typeid(value_t).name(), "\n"
+  //            "evect: ", evect, "\n"
+  //            "uplo: ", uplo, "\n"
+  //            "n: ", n, "\n"
+  //            "vectors.sizes: ", vectors.sizes(), "\n"
+  //            "lda: ", lda, "\n"
+  //            "vectors_stride: ", vectors_stride, "\n"
+  //            "values.sizes: ", values.sizes(), "\n"
+  //            "values_stride: ", values_stride, "\n"
+  //            "work_size: ", work_size, "\n"
+  //            "work_stride: ", work_stride, "\n"
+  //            "infos.sizes: ", infos.sizes(), "\n"
+  //            "batch_size: ", batch_size, "\n"
+  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
+  //           );
 
-  rocsolver_ssyevd_strided_batched(
-    (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
+  rocblas_handle handle; 
+  rocblas_create_handle(&handle);
+  auto result = rocsolver_ssyevd_strided_batched(
+    // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
+    handle,
     evect,
     uplo,
     n,
@@ -1273,6 +1276,11 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
     infos_data,
     batch_size
   );
+  rocblas_destroy_handle(handle);
+  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+  //            "result: ", result, "\n"
+  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
+  //           );
 }
 
 template <typename scalar_t>
