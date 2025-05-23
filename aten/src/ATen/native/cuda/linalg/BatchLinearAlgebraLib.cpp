@@ -28,6 +28,11 @@
 #include <ATen/ops/zeros.h>
 #endif
 
+#if defined(USE_ROCM)
+#include <rocsolver/rocsolver.h>
+// #include <rocblas/rocblas.h>
+#endif
+
 namespace at::native {
 
 static cublasOperation_t to_cublas(TransposeType trans) {
@@ -1205,6 +1210,72 @@ Tensor& orgqr_helper_cusolver(Tensor& result, const Tensor& tau) {
 }
 
 template <typename scalar_t>
+static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& vectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
+
+  TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+             ""
+            );
+  using value_t = typename c10::scalar_value_type<scalar_t>::type;
+
+  // cublasFillMode_t uplo = upper ? CUBLAS_FILL_MODE_UPPER : CUBLAS_FILL_MODE_LOWER;
+  auto uplo = upper ? rocblas_fill::rocblas_fill_upper : rocblas_fill::rocblas_fill_lower;
+  // cusolverEigMode_t jobz = compute_eigenvectors ? CUSOLVER_EIG_MODE_VECTOR : CUSOLVER_EIG_MODE_NOVECTOR;
+  auto evect = compute_eigenvectors ? rocblas_evect::rocblas_evect_original : rocblas_evect::rocblas_evect_none;
+
+  int64_t n = vectors.size(-1);
+  int64_t lda = std::max<int64_t>(1, n);
+  int64_t batch_size = batchCount(vectors);
+
+  auto vectors_stride = matrixStride(vectors);
+  auto values_stride = n;
+
+
+  auto vectors_data = vectors.data_ptr<scalar_t>();
+  auto values_data = values.data_ptr<value_t>();
+  auto infos_data = infos.data_ptr<int>();
+
+  auto work_stride = n;
+  auto work_size = work_stride * batch_size;
+      // allocate workspace storage on device
+  auto& allocator = *at::cuda::getCUDADeviceAllocator();
+  auto work_data = allocator.allocate(sizeof(scalar_t) * work_size);
+
+  TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+             "scalar_t: ", typeid(scalar_t).name(), "\n"
+             "value_t: ", typeid(value_t).name(), "\n"
+             "vectors.sizes: ", vectors.sizes(), "\n"
+             "values.sizes: ", values.sizes(), "\n"
+             "infos.sizes: ", infos.sizes(), "\n"
+             "uplo: ", uplo, "\n"
+             "evect: ", evect, "\n"
+             "n: ", n, "\n"
+             "lda: ", lda, "\n"
+             "batch_size: ", batch_size, "\n"
+             "vectors_stride: ", vectors_stride, "\n"
+             "values_stride: ", values_stride, "\n"
+             "work_stride: ", work_stride, "\n"
+             "work_size: ", work_size, "\n"
+             "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
+            );
+
+  rocsolver_ssyevd_strided_batched(
+    (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
+    evect,
+    uplo,
+    n,
+    vectors_data,
+    lda,
+    vectors_stride,
+    values_data,
+    values_stride,
+    static_cast<scalar_t*>(work_data.get()),
+    work_stride,
+    infos_data,
+    batch_size
+  );
+}
+
+template <typename scalar_t>
 static void apply_syevd(const Tensor& values, const Tensor& vectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
   using value_t = typename c10::scalar_value_type<scalar_t>::type;
 
@@ -1414,6 +1485,16 @@ static void linalg_eigh_cusolver_syevd(const Tensor& eigenvalues, const Tensor& 
   });
 }
 
+static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
+  // AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
+    AT_DISPATCH_SWITCH(
+      eigenvectors.scalar_type(),
+      "linalg_eigh_cuda",
+      AT_DISPATCH_CASE(at::ScalarType::Float, [&]() { apply_syevd_batched_rocsolver<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);})
+      AT_DISPATCH_CASE(at::ScalarType::Double, [&]() {return;})  
+    );
+}
+
 static void linalg_eigh_cusolver_syevj(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
     apply_syevj<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
@@ -1426,18 +1507,32 @@ static void linalg_eigh_cusolver_syevj_batched(const Tensor& eigenvalues, const 
   });
 }
 
+// static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
+//   AT_DISPATCH_FLOATING_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
+//     apply_rocsolver_syevd_batched<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+//   });
+// }
+
 void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
+#ifdef USE_ROCM 
+  // syevj has larger numerical errors than syevd
+  linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+#else
   if (use_cusolver_syevj_batched_ && batchCount(eigenvectors) > 1 && eigenvectors.size(-1) <= 32) {
+    TORCH_WARN("##### syevj_batched batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     // Use syevjBatched for batched matrix operation when matrix size <= 32
     // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
     linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   } else if (eigenvectors.scalar_type() == at::kFloat && eigenvectors.size(-1) >= 32 && eigenvectors.size(-1) <= 512) {
+    TORCH_WARN("##### syevj batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     // syevj is better than syevd for float32 dtype and matrix sizes 32x32 - 512x512
     // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
     linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   } else {
+    TORCH_WARN("##### syevd batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   }
+#endif
 }
 
 // The 'apply_' word is used for templated by dtype functions that call an API routine
