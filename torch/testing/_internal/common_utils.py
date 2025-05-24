@@ -50,9 +50,12 @@ from typing import (
     Any,
     Callable,
     Dict,
+<<<<<<< HEAD
     Iterable,
     Iterator,
     List,
+=======
+>>>>>>> bbd0112a2c ([release/2.7] import 'Dict' to fix common_utils.py (#2181))
     Optional,
     Tuple,
     Type,
