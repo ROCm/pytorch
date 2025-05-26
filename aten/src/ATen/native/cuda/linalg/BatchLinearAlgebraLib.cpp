@@ -1210,6 +1210,65 @@ Tensor& orgqr_helper_cusolver(Tensor& result, const Tensor& tau) {
 }
 
 template <typename scalar_t>
+rocblas_status _rocsolver_syevd_strided_batched(
+    rocblas_handle handle,
+    const rocblas_evect evect,
+    const rocblas_fill uplo,
+    const rocblas_int n,
+    scalar_t* A,
+    const rocblas_int lda,
+    const rocblas_stride strideA,
+    scalar_t* D,
+    const rocblas_stride strideD,
+    scalar_t* E,
+    const rocblas_stride strideE,
+    rocblas_int* info,
+    const rocblas_int batch_count
+);
+
+template <>
+rocblas_status _rocsolver_syevd_strided_batched<float>(
+    rocblas_handle handle,
+    const rocblas_evect evect,
+    const rocblas_fill uplo,
+    const rocblas_int n,
+    float* A,
+    const rocblas_int lda,
+    const rocblas_stride strideA,
+    float* D,
+    const rocblas_stride strideD,
+    float* E,
+    const rocblas_stride strideE,
+    rocblas_int* info,
+    const rocblas_int batch_count
+){
+  return rocsolver_ssyevd_strided_batched(
+    handle, evect, uplo, n, A, lda, strideA, D, strideD, E, strideE, info, batch_count
+  );
+}
+
+template <>
+rocblas_status _rocsolver_syevd_strided_batched<double>(
+    rocblas_handle handle,
+    const rocblas_evect evect,
+    const rocblas_fill uplo,
+    const rocblas_int n,
+    double* A,
+    const rocblas_int lda,
+    const rocblas_stride strideA,
+    double* D,
+    const rocblas_stride strideD,
+    double* E,
+    const rocblas_stride strideE,
+    rocblas_int* info,
+    const rocblas_int batch_count
+){
+  return rocsolver_dsyevd_strided_batched(
+    handle, evect, uplo, n, A, lda, strideA, D, strideD, E, strideE, info, batch_count
+  );
+}
+
+template <typename scalar_t>
 static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& vectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
 
   // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
@@ -1240,32 +1299,11 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
   auto& allocator = *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t) * work_size);
 
-  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-  //            "scalar_t: ", typeid(scalar_t).name(), "\n"
-  //            "value_t: ", typeid(value_t).name(), "\n"
-  //            "evect: ", evect, "\n"
-  //            "uplo: ", uplo, "\n"
-  //            "n: ", n, "\n"
-  //            "vectors.sizes: ", vectors.sizes(), "\n"
-  //            "lda: ", lda, "\n"
-  //            "vectors_stride: ", vectors_stride, "\n"
-  //            "values.sizes: ", values.sizes(), "\n"
-  //            "values_stride: ", values_stride, "\n"
-  //            "work_size: ", work_size, "\n"
-  //            "work_stride: ", work_stride, "\n"
-  //            "infos.sizes: ", infos.sizes(), "\n"
-  //            "batch_size: ", batch_size, "\n"
-  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
-  //           );
-
   rocblas_handle handle; 
   rocblas_create_handle(&handle);
   // auto handle = (rocblas_handle)(at::cuda::getCurrentCUDASolverDnHandle());
-  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-  //            "handle: ", handle, "\n"
-  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
-  //           );
-  auto result = rocsolver_ssyevd_strided_batched(
+
+  auto result = _rocsolver_syevd_strided_batched<scalar_t>(
     // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
     handle,
     evect,
@@ -1282,10 +1320,6 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
     batch_size
   );
   rocblas_destroy_handle(handle);
-  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-  //            "result: ", result, "\n"
-  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
-  //           );
 }
 
 template <typename scalar_t>
@@ -1500,12 +1534,9 @@ static void linalg_eigh_cusolver_syevd(const Tensor& eigenvalues, const Tensor& 
 
 static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
   // AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
-    AT_DISPATCH_SWITCH(
-      eigenvectors.scalar_type(),
-      "linalg_eigh_cuda",
-      AT_DISPATCH_CASE(at::ScalarType::Float, [&]() { apply_syevd_batched_rocsolver<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);})
-      AT_DISPATCH_CASE(at::ScalarType::Double, [&]() {return;})  
-    );
+    AT_DISPATCH_FLOATING_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&]() { 
+      apply_syevd_batched_rocsolver<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    });
 }
 
 static void linalg_eigh_cusolver_syevj(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
