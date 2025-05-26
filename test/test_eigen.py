@@ -19,6 +19,8 @@
 # C.run_eigen()
 # exit()
 
+from itertools import product
+import os
 from typing import Optional
 
 import matplotlib.pyplot as plt
@@ -153,21 +155,28 @@ def condition_number(n: int, dtype=torch.float32) -> None:
 
 
 def main() -> None:
-    l_list, a_list = prepare_input(32, 10)
-    print(a_list.shape)
-    l_list_res, _ = torch.linalg.eigh(a_list)
-    torch.testing.assert_close(l_list, l_list_res, rtol=1e-4, atol=1e-4)
+    batches = [1, 2, 4, 8, 16, 32, 64, 128, 256]
+    sizes = [2, 4, 8, 16, 32, 48, 64, 128, 256]
+    modes = ["SYEVD", "SYEVJ", "SYEVD_BATCHED", "SYEVJ_BATCHED", "CUDA"]
+    print(f"shape | {' |'.join(f'{m} | {m}_seq' for m in modes)}")
+    for n, x in product(batches, sizes):
+        l_list, a_list = prepare_input(x, n)
+        print(f"{a_list.shape} ", end="")
+        for mode in modes:
+            os.environ["PYTORCH_ROCM_EIGEN_MODE"] = mode
+            l_list_res, _ = torch.linalg.eigh(a_list)
+            torch.testing.assert_close(l_list, l_list_res, rtol=1e-4, atol=1e-4)
+    
+            res1 = triton.testing.do_bench(lambda: torch.linalg.eigh(a_list))
 
-    res1 = triton.testing.do_bench(lambda: torch.linalg.eigh(a_list))
+            def run_seq(a_list):
+                for a in a_list:
+                    torch.linalg.eigh(a)
 
-    def run_seq(a_list):
-        for a in a_list:
-            torch.linalg.eigh(a)
+            res2 = triton.testing.do_bench(lambda: run_seq(a_list))
 
-    res2 = triton.testing.do_bench(lambda: run_seq(a_list))
-
-    print(f"batched: {res1:.3f} ms")
-    print(f"non-batched: {res2:.3f} ms")
+            print(f" | {res1:.3f} | {res2:.3f} ", end="")
+        print()
     # for size in [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]:
     #    run(size, torch.float32)
     # condition_number(1024, torch.float32)

@@ -1260,6 +1260,11 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
 
   rocblas_handle handle; 
   rocblas_create_handle(&handle);
+  // auto handle = (rocblas_handle)(at::cuda::getCurrentCUDASolverDnHandle());
+  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
+  //            "handle: ", handle, "\n"
+  //            "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n"
+  //           );
   auto result = rocsolver_ssyevd_strided_batched(
     // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
     handle,
@@ -1521,10 +1526,74 @@ static void linalg_eigh_cusolver_syevj_batched(const Tensor& eigenvalues, const 
 //   });
 // }
 
+enum ROCM_EIGEN_MODE {
+  ROCM_EIGEN_MODE_SYEVD = 0,
+  ROCM_EIGEN_MODE_SYEVD_BATCHED = 1,
+  ROCM_EIGEN_MODE_SYEVJ = 2,
+  ROCM_EIGEN_MODE_SYEVJ_BATCHED = 3,
+  ROCM_EIGEN_MODE_CUDA = 4
+} ;
+
+static ROCM_EIGEN_MODE get_rocm_eigen_mode() {
+  auto env = c10::utils::get_env("PYTORCH_ROCM_EIGEN_MODE").value_or("SYEVD");
+  // TORCH_WARN("$$$$$$$$$$$$ PYTORCH_ROCM_EIGEN_MODE: ", env);
+  if (env == "SYEVD") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVD;
+  } else if (env == "SYEVD_BATCHED") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVD_BATCHED;
+  } else if (env == "SYEVJ") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVJ;
+  } else if (env == "SYEVJ_BATCHED") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVJ_BATCHED;
+  } else if (env == "CUDA") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_CUDA;
+  }
+  // Default to SYEVD if no environment variable is set
+  // TORCH_WARN("$$$$$$$$$$$$ unknown PYTORCH_ROCM_EIGEN_MODE: ", env, " defaulting to SYEVD");
+  return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVD;
+}
+
+
+
 void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
 #ifdef USE_ROCM 
-  // syevj has larger numerical errors than syevd
-  linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+  ROCM_EIGEN_MODE rocm_eigen_mode = get_rocm_eigen_mode();
+  // TORCH_WARN("$$$$$$$$$$$$ ROCM_EIGEN_MODE = ", rocm_eigen_mode);
+  switch (rocm_eigen_mode) {
+  case ROCM_EIGEN_MODE_SYEVD:
+    linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
+  case ROCM_EIGEN_MODE_SYEVD_BATCHED:
+    linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
+  case ROCM_EIGEN_MODE_SYEVJ:    
+    linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
+  case ROCM_EIGEN_MODE_SYEVJ_BATCHED:
+    linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
+
+  case ROCM_EIGEN_MODE_CUDA:
+    if (use_cusolver_syevj_batched_ && batchCount(eigenvectors) > 1 && eigenvectors.size(-1) <= 32) {
+      // TORCH_WARN("##### syevj_batched batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
+      // Use syevjBatched for batched matrix operation when matrix size <= 32
+      // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
+      linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    } else if (eigenvectors.scalar_type() == at::kFloat && eigenvectors.size(-1) >= 32 && eigenvectors.size(-1) <= 512) {
+      // TORCH_WARN("##### syevj batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
+      // syevj is better than syevd for float32 dtype and matrix sizes 32x32 - 512x512
+      // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
+      linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    } else {
+      // TORCH_WARN("##### syevd batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
+      linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    }
+    break;  
+  default:
+    linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
+  }
+  // linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
 #else
   if (use_cusolver_syevj_batched_ && batchCount(eigenvectors) > 1 && eigenvectors.size(-1) <= 32) {
     TORCH_WARN("##### syevj_batched batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
