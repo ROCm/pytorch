@@ -155,8 +155,8 @@ def condition_number(n: int, dtype=torch.float32) -> None:
 
 
 def main() -> None:
-    batches = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-    sizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256, 512]
+    batches = [1, 2, 4, 8, 10, 16, 32, 64, 128, 256]
+    sizes = [2, 4, 8, 16, 32, 48, 64, 80, 96, 128, 256, 512]
     modes = ["SYEVD", "SYEVJ", "SYEVD_BATCHED", "SYEVJ_BATCHED", "CUDA", "ROCM"]
     dtypes = [torch.float32, torch.float64]
     # dtypes = [torch.float64]

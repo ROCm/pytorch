@@ -1299,12 +1299,16 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
   auto& allocator = *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t) * work_size);
 
-  rocblas_handle handle; 
-  rocblas_create_handle(&handle);
+  // rocblas_handle handle; 
+  // rocblas_create_handle(&handle);
   // auto handle = (rocblas_handle)(at::cuda::getCurrentCUDASolverDnHandle());
+  auto handle = (rocblas_handle)(at::cuda::getCurrentCUDABlasHandle());
+  
+
 
   auto result = _rocsolver_syevd_strided_batched<scalar_t>(
-    // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(),
+    /// CUBLAShandle
+    // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(), 
     handle,
     evect,
     uplo,
@@ -1319,7 +1323,8 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
     infos_data,
     batch_size
   );
-  rocblas_destroy_handle(handle);
+  // rocblas_destroy_handle(handle); ///////////////
+  TORCH_CUSOLVER_CHECK((hipsolverStatus_t)result);
 }
 
 template <typename scalar_t>
@@ -1624,12 +1629,17 @@ void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors,
     }
     break; 
   case ROCM_EIGEN_MODE_ROCM:
-    if (eigenvectors.size(-1) < 96)
+    #if PYTORCH_ROCBLAS_VERSION_DECIMAL >= 330
+    // #if ROCSOLVER_VERSION_MAJOR + ROCSOLVER_VERSION_MINOR >=  ?????????????????????????
+    if (eigenvectors.size(-1) < 96) # tuned on MI300
       linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
     else
       linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    #else
+    linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    #endif // PYTORCH_ROCBLAS_VERSION_DECIMAL >= 330
     break;
-  default:
+  default: // ROCM default
     linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
     break;
   }
