@@ -30,6 +30,8 @@
 
 #if defined(USE_ROCM)
 #include <rocsolver/rocsolver.h>
+#define PYTORCH_ROCSOLVER_VERSION \
+  (ROCSOLVER_VERSION_MAJOR * 10000 + ROCSOLVER_VERSION_MINOR * 100 + ROCSOLVER_VERSION_PATCH)
 // #include <rocblas/rocblas.h>
 #endif
 
@@ -1629,7 +1631,7 @@ void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors,
     }
     break; 
   case ROCM_EIGEN_MODE_ROCM:
-    #if PYTORCH_ROCBLAS_VERSION_DECIMAL >= 330
+    #if PYTORCH_ROCSOLVER_VERSION >= 30300
     // #if ROCSOLVER_VERSION_MAJOR + ROCSOLVER_VERSION_MINOR >=  ?????????????????????????
     if (eigenvectors.size(-1) < 96) # tuned on MI300
       linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
