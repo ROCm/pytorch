@@ -1562,7 +1562,8 @@ enum ROCM_EIGEN_MODE {
   ROCM_EIGEN_MODE_SYEVD_BATCHED = 1,
   ROCM_EIGEN_MODE_SYEVJ = 2,
   ROCM_EIGEN_MODE_SYEVJ_BATCHED = 3,
-  ROCM_EIGEN_MODE_CUDA = 4
+  ROCM_EIGEN_MODE_CUDA = 4,
+  ROCM_EIGEN_MODE_ROCM = 5
 } ;
 
 static ROCM_EIGEN_MODE get_rocm_eigen_mode() {
@@ -1578,6 +1579,8 @@ static ROCM_EIGEN_MODE get_rocm_eigen_mode() {
     return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVJ_BATCHED;
   } else if (env == "CUDA") {
     return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_CUDA;
+  } else if (env == "ROCM") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_ROCM;
   }
   // Default to SYEVD if no environment variable is set
   // TORCH_WARN("$$$$$$$$$$$$ unknown PYTORCH_ROCM_EIGEN_MODE: ", env, " defaulting to SYEVD");
@@ -1619,7 +1622,13 @@ void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors,
       // TORCH_WARN("##### syevd batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
       linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
     }
-    break;  
+    break; 
+  case ROCM_EIGEN_MODE_ROCM:
+    if (eigenvectors.size(-1) < 96)
+      linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    else
+      linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+    break;
   default:
     linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
     break;

@@ -156,15 +156,15 @@ def condition_number(n: int, dtype=torch.float32) -> None:
 
 def main() -> None:
     batches = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-    sizes = [2, 4, 8, 16, 32, 48, 64, 128, 256]
-    modes = ["SYEVD", "SYEVJ", "SYEVD_BATCHED", "SYEVJ_BATCHED", "CUDA"]
-    # dtypes = [torch.float32, torch.float64]
-    dtypes = [torch.float64]
-    print(f"dtype | batch_size | shape | {' |'.join(f'{m} | {m}_seq' for m in modes)}")
+    sizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256, 512]
+    modes = ["SYEVD", "SYEVJ", "SYEVD_BATCHED", "SYEVJ_BATCHED", "CUDA", "ROCM"]
+    dtypes = [torch.float32, torch.float64]
+    # dtypes = [torch.float64]
+    print(f"dtype         | batch | shape | {' | '.join(f'{m}' for m in modes)}")
     for dtype in dtypes:
         for n, x in product(batches, sizes):
             l_list, a_list = prepare_input(x, n, dtype=dtype)
-            print(f"{dtype} | {n} | [{x}, {x}]", end="")
+            print(f"{dtype} | {n:>5} | {x:>5}", end="")
             for mode in modes:
                 os.environ["PYTORCH_ROCM_EIGEN_MODE"] = mode
                 l_list_res, _ = torch.linalg.eigh(a_list)
@@ -176,13 +176,13 @@ def main() -> None:
         
                 res1 = triton.testing.do_bench(lambda: torch.linalg.eigh(a_list))
 
-                def run_seq(a_list):
-                    for a in a_list:
-                        torch.linalg.eigh(a)
+                # def run_seq(a_list):
+                #     for a in a_list:
+                #         torch.linalg.eigh(a)
 
-                res2 = triton.testing.do_bench(lambda: run_seq(a_list))
+                # res2 = triton.testing.do_bench(lambda: run_seq(a_list))
 
-                print(f" | {res1:.3f}{'' if not err else f'/{err}'} | {res2:.3f} ", end="")
+                print(f" | {(1.0 if not err else -1.0)*res1:.3f}", end="")
             print()
     # for size in [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]:
     #    run(size, torch.float32)
