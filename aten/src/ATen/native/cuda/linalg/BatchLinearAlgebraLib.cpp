@@ -1633,7 +1633,7 @@ void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors,
   case ROCM_EIGEN_MODE_ROCM:
     #if PYTORCH_ROCSOLVER_VERSION >= 30300
     // #if ROCSOLVER_VERSION_MAJOR + ROCSOLVER_VERSION_MINOR >=  ?????????????????????????
-    if (eigenvectors.size(-1) < 96) # tuned on MI300
+    if (eigenvectors.size(-1) < 96) // tuned on MI300
       linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
     else
       linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
