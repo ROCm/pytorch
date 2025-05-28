@@ -32,7 +32,8 @@
 #include <rocsolver/rocsolver.h>
 #define PYTORCH_ROCSOLVER_VERSION \
   (ROCSOLVER_VERSION_MAJOR * 10000 + ROCSOLVER_VERSION_MINOR * 100 + ROCSOLVER_VERSION_PATCH)
-// #include <rocblas/rocblas.h>
+#define ROCSOLVER_SYEVD_BATCHED_ENABLED \
+  (PYTORCH_ROCSOLVER_VERSION >= 30300)
 #endif
 
 namespace at::native {
@@ -1273,14 +1274,9 @@ rocblas_status _rocsolver_syevd_strided_batched<double>(
 template <typename scalar_t>
 static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& vectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
 
-  // TORCH_WARN("$$$$$$$$$$$ apply_syevd_batched_rocsolver $$$$$$$$$$$$$$$$$$$$\n"
-  //            ""
-  //           );
   using value_t = typename c10::scalar_value_type<scalar_t>::type;
 
-  // cublasFillMode_t uplo = upper ? CUBLAS_FILL_MODE_UPPER : CUBLAS_FILL_MODE_LOWER;
   auto uplo = upper ? rocblas_fill::rocblas_fill_upper : rocblas_fill::rocblas_fill_lower;
-  // cusolverEigMode_t jobz = compute_eigenvectors ? CUSOLVER_EIG_MODE_VECTOR : CUSOLVER_EIG_MODE_NOVECTOR;
   auto evect = compute_eigenvectors ? rocblas_evect::rocblas_evect_original : rocblas_evect::rocblas_evect_none;
 
   int64_t n = vectors.size(-1);
@@ -1289,7 +1285,6 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
 
   auto vectors_stride = matrixStride(vectors);
   auto values_stride = n;
-
 
   auto vectors_data = vectors.data_ptr<scalar_t>();
   auto values_data = values.data_ptr<value_t>();
@@ -1300,18 +1295,9 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
       // allocate workspace storage on device
   auto& allocator = *at::cuda::getCUDADeviceAllocator();
   auto work_data = allocator.allocate(sizeof(scalar_t) * work_size);
-
-  // rocblas_handle handle; 
-  // rocblas_create_handle(&handle);
-  // auto handle = (rocblas_handle)(at::cuda::getCurrentCUDASolverDnHandle());
-  auto handle = (rocblas_handle)(at::cuda::getCurrentCUDABlasHandle());
   
-
-
-  auto result = _rocsolver_syevd_strided_batched<scalar_t>(
-    /// CUBLAShandle
-    // (rocblas_handle)at::cuda::getCurrentCUDASolverDnHandle(), 
-    handle,
+  TORCH_CUSOLVER_CHECK(static_cast<hipsolverStatus_t>(_rocsolver_syevd_strided_batched<scalar_t>(
+    static_cast<rocblas_handle>(at::cuda::getCurrentCUDABlasHandle()), // getCurrentCUDASolverDnHandle() can't be used
     evect,
     uplo,
     n,
@@ -1324,9 +1310,7 @@ static void apply_syevd_batched_rocsolver(const Tensor& values, const Tensor& ve
     work_stride,
     infos_data,
     batch_size
-  );
-  // rocblas_destroy_handle(handle); ///////////////
-  TORCH_CUSOLVER_CHECK((hipsolverStatus_t)result);
+  )));
 }
 
 template <typename scalar_t>
@@ -1539,13 +1523,6 @@ static void linalg_eigh_cusolver_syevd(const Tensor& eigenvalues, const Tensor& 
   });
 }
 
-static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
-  // AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
-    AT_DISPATCH_FLOATING_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&]() { 
-      apply_syevd_batched_rocsolver<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    });
-}
-
 static void linalg_eigh_cusolver_syevj(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
     apply_syevj<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
@@ -1558,24 +1535,29 @@ static void linalg_eigh_cusolver_syevj_batched(const Tensor& eigenvalues, const 
   });
 }
 
-// static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
-//   AT_DISPATCH_FLOATING_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
-//     apply_rocsolver_syevd_batched<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-//   });
-// }
+static void linalg_eigh_rocsolver_syevd_batched(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
+  // AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&] {
+    AT_DISPATCH_FLOATING_TYPES(eigenvectors.scalar_type(), "linalg_eigh_cuda", [&]() { 
+      apply_syevd_batched_rocsolver<scalar_t>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);});
+    // AT_DISPATCH_SWITCH(eigenvectors.scalar_type(), "linalg_eigh_cuda", 
+    //   AT_DISPATCH_CASE_FLOATING_TYPES( [&]() { 
+    //     apply_syevd_batched_rocsolver<eigenvectors.scalar_type()>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);}),
+    //   AT_DISPATCH_CASE_COMPLEX_TYPES( [&]() { 
+    //     apply_syevd<eigenvectors.scalar_type()>(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);})
+    // );
+}
 
 enum ROCM_EIGEN_MODE {
-  ROCM_EIGEN_MODE_SYEVD = 0,
-  ROCM_EIGEN_MODE_SYEVD_BATCHED = 1,
-  ROCM_EIGEN_MODE_SYEVJ = 2,
-  ROCM_EIGEN_MODE_SYEVJ_BATCHED = 3,
-  ROCM_EIGEN_MODE_CUDA = 4,
-  ROCM_EIGEN_MODE_ROCM = 5
+  ROCM_EIGEN_MODE_DEFAULT = 0,
+  ROCM_EIGEN_MODE_SYEVD = 1,
+  ROCM_EIGEN_MODE_SYEVD_BATCHED = 2,
+  ROCM_EIGEN_MODE_SYEVJ = 3,
+  ROCM_EIGEN_MODE_SYEVJ_BATCHED = 4,
+
 } ;
 
 static ROCM_EIGEN_MODE get_rocm_eigen_mode() {
-  auto env = c10::utils::get_env("PYTORCH_ROCM_EIGEN_MODE").value_or("SYEVD");
-  // TORCH_WARN("$$$$$$$$$$$$ PYTORCH_ROCM_EIGEN_MODE: ", env);
+  auto env = c10::utils::get_env("PYTORCH_ROCM_EIGEN_MODE").value_or("DEFAULT");
   if (env == "SYEVD") {
     return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVD;
   } else if (env == "SYEVD_BATCHED") {
@@ -1584,81 +1566,54 @@ static ROCM_EIGEN_MODE get_rocm_eigen_mode() {
     return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVJ;
   } else if (env == "SYEVJ_BATCHED") {
     return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVJ_BATCHED;
-  } else if (env == "CUDA") {
-    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_CUDA;
-  } else if (env == "ROCM") {
-    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_ROCM;
+  } else if (env == "DEFAULT") {
+    return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_DEFAULT;
   }
   // Default to SYEVD if no environment variable is set
-  // TORCH_WARN("$$$$$$$$$$$$ unknown PYTORCH_ROCM_EIGEN_MODE: ", env, " defaulting to SYEVD");
   return ROCM_EIGEN_MODE::ROCM_EIGEN_MODE_SYEVD;
 }
 
-
-
 void linalg_eigh_cusolver(const Tensor& eigenvalues, const Tensor& eigenvectors, const Tensor& infos, bool upper, bool compute_eigenvectors) {
-#ifdef USE_ROCM 
-  ROCM_EIGEN_MODE rocm_eigen_mode = get_rocm_eigen_mode();
-  // TORCH_WARN("$$$$$$$$$$$$ ROCM_EIGEN_MODE = ", rocm_eigen_mode);
-  switch (rocm_eigen_mode) {
-  case ROCM_EIGEN_MODE_SYEVD:
-    linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    break;
-  case ROCM_EIGEN_MODE_SYEVD_BATCHED:
-    linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    break;
-  case ROCM_EIGEN_MODE_SYEVJ:    
-    linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    break;
-  case ROCM_EIGEN_MODE_SYEVJ_BATCHED:
-    linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    break;
-
-  case ROCM_EIGEN_MODE_CUDA:
-    if (use_cusolver_syevj_batched_ && batchCount(eigenvectors) > 1 && eigenvectors.size(-1) <= 32) {
-      // TORCH_WARN("##### syevj_batched batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
-      // Use syevjBatched for batched matrix operation when matrix size <= 32
-      // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
-      linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    } else if (eigenvectors.scalar_type() == at::kFloat && eigenvectors.size(-1) >= 32 && eigenvectors.size(-1) <= 512) {
-      // TORCH_WARN("##### syevj batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
-      // syevj is better than syevd for float32 dtype and matrix sizes 32x32 - 512x512
-      // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
-      linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    } else {
-      // TORCH_WARN("##### syevd batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
-      linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    }
-    break; 
-  case ROCM_EIGEN_MODE_ROCM:
-    #if PYTORCH_ROCSOLVER_VERSION >= 30300
-    // #if ROCSOLVER_VERSION_MAJOR + ROCSOLVER_VERSION_MINOR >=  ?????????????????????????
-    if (eigenvectors.size(-1) < 80) // optimized for MI300
-      linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    else
+#if defined(USE_ROCM) && !ROCSOLVER_SYEVD_BATCHED_ENABLED
+  linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+#elif defined(USE_ROCM) && ROCSOLVER_SYEVD_BATCHED_ENABLED
+  if (eigenvectors.scalar_type() == at::kFloat || eigenvectors.scalar_type() == at::kDouble) {
+      // Use syevd_batched for float and double types
+    switch (get_rocm_eigen_mode()) {
+    case ROCM_EIGEN_MODE_SYEVD_BATCHED:
       linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    #else
+      break;
+    case ROCM_EIGEN_MODE_SYEVJ:    
+      linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+      break;
+    case ROCM_EIGEN_MODE_SYEVJ_BATCHED:
+      linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+      break;
+    case ROCM_EIGEN_MODE_DEFAULT:
+      if (eigenvectors.size(-1) < 80) // optimized for MI300
+        linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+      else
+        linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+      break;
+    case ROCM_EIGEN_MODE_SYEVD:
+    default: // ROCM default
+      linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
+      break;
+    }
+  } else {
+    // For other (complex) types o ROCm, use syevd
     linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    #endif // PYTORCH_ROCBLAS_VERSION_DECIMAL >= 330
-    break;
-  default: // ROCM default
-    linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-    break;
   }
-  // linalg_eigh_rocsolver_syevd_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
-#else
+#else // not USE_ROCM
   if (use_cusolver_syevj_batched_ && batchCount(eigenvectors) > 1 && eigenvectors.size(-1) <= 32) {
-    TORCH_WARN("##### syevj_batched batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     // Use syevjBatched for batched matrix operation when matrix size <= 32
     // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
     linalg_eigh_cusolver_syevj_batched(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   } else if (eigenvectors.scalar_type() == at::kFloat && eigenvectors.size(-1) >= 32 && eigenvectors.size(-1) <= 512) {
-    TORCH_WARN("##### syevj batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     // syevj is better than syevd for float32 dtype and matrix sizes 32x32 - 512x512
     // See https://github.com/pytorch/pytorch/pull/53040#issuecomment-788264724
     linalg_eigh_cusolver_syevj(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   } else {
-    TORCH_WARN("##### syevd batchCount=", batchCount(eigenvectors), " eigenvectors.size(-1)=", eigenvectors.size(-1));
     linalg_eigh_cusolver_syevd(eigenvalues, eigenvectors, infos, upper, compute_eigenvectors);
   }
 #endif
