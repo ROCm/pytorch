@@ -51,6 +51,23 @@
 
 namespace at::native {
 
+#ifdef USE_ROCM
+// Custom configuration for vectorized elementwise kernel
+// with template instantiation.
+namespace vectorized_templated_config {
+constexpr int num_threads() {
+  return 512;
+}
+
+constexpr int elems_per_thread() {
+  return 32;
+}
+
+constexpr int block_work_size() {
+  return elems_per_thread() * num_threads();
+}
+} // namespace vectorized_templated_config
+#endif
 
 template <typename args_t, size_t... Is>
 constexpr auto sum_of_sizes(args_t args, std::index_sequence<Is...>) {
@@ -138,9 +155,16 @@ C10_LAUNCH_BOUNDS_1(num_threads())
 __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
   using traits = function_traits<func_t>;
   constexpr auto io_size = calc_io_size<func_t>();
-  int remaining = N - io_block_work_size<io_size>() * blockIdx.x;
+#if defined(USE_ROCM) && defined(__gfx942__)
+  // Similar check in launch_vectorized_kernel() as well. Both should be in sync.
+  constexpr int tws = (io_size >= 2) ? 8 : 16;
+#else
+  constexpr int tws = elems_per_thread<io_size>();
+#endif
+  constexpr int bws = tws * num_threads();
+  int remaining = N - bws * blockIdx.x;
 
-  if (remaining < io_block_work_size<io_size>()) { // if this block handles the reminder,
+  if (remaining < bws) { // if this block handles the reminder,
                                        // just do a naive unrolled loop
     auto input_calc = TrivialOffsetCalculator<traits::arity>();
     auto output_calc = TrivialOffsetCalculator<1>();
@@ -152,7 +176,7 @@ __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
         decltype(output_calc),
         memory::LoadWithoutCast,
         memory::StoreWithoutCast,
-        elems_per_thread<io_size>()>(
+        tws>(
         data, remaining, input_calc, output_calc, loader, storer);
     elementwise_kernel_helper(f, policy);
   } else { // if this block has a full `block_work_size` data to handle, use
@@ -163,7 +187,7 @@ __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
     constexpr auto optimal_vec_size = vec_size;
 #endif
     elementwise_kernel_helper(
-        f, memory::policies::vectorized<optimal_vec_size, array_t, elems_per_thread<io_size>()>(data));
+        f, memory::policies::vectorized<optimal_vec_size, array_t, tws>(data));
   }
 }
 
@@ -200,10 +224,13 @@ static inline void launch_vectorized_kernel(
   TORCH_INTERNAL_ASSERT(N > 0 && N <= std::numeric_limits<int32_t>::max());
   using traits = function_traits<func_t>;
   constexpr auto io_size = calc_io_size<func_t>();
-  int64_t grid = (N + io_block_work_size<io_size>() - 1) / io_block_work_size<io_size>();
   auto stream = at::cuda::getCurrentCUDAStream();
 #ifdef USE_ROCM
   int vec_size = memory::can_vectorize_up_to<func_t>(data);
+  // Similar check in vectorized_elementwise_kernel() as well. Both should be in sync.
+  c10::DeviceIndex curDevice = -1;
+  AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
+  int tws = at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"}) ? ((io_size >= 2) ? 8 : 16) : elems_per_thread<io_size>();
 #else
   using cpp_type = typename function_traits<func_t>::result_type;
   const uint16_t max_vec_size = memory::can_vectorize_up_to<func_t>(data);
@@ -215,7 +242,10 @@ static inline void launch_vectorized_kernel(
   if constexpr (sizeof(cpp_type) < 2) {
     vec_size = std::min<uint16_t>(vec_size, 4);
   }
+  int tws = elems_per_thread<io_size>();
 #endif
+  int bws = tws * num_threads();
+  int64_t grid = (N + bws - 1) / bws;
   switch (vec_size) {
 #ifdef USE_ROCM
     case 16:
@@ -244,8 +274,9 @@ static inline void launch_vectorized_kernel(
       auto output_calc = TrivialOffsetCalculator<1>();
       auto loader = memory::LoadWithoutCast();
       auto storer = memory::StoreWithoutCast();
+      int64_t grid_unrolled = (N + io_block_work_size<io_size>() - 1) / io_block_work_size<io_size>();
       unrolled_elementwise_kernel<func_t, array_t, elems_per_thread<io_size>()>
-          <<<grid, num_threads(), 0, stream>>>(
+          <<<grid_unrolled, num_threads(), 0, stream>>>(
               N, f, data, input_calc, output_calc, loader, storer);
       C10_CUDA_KERNEL_LAUNCH_CHECK();
       break;
@@ -254,6 +285,141 @@ static inline void launch_vectorized_kernel(
       TORCH_INTERNAL_ASSERT(false, "Unexpected vectorization size");
   }
 }
+
+#ifdef USE_ROCM
+template <
+    int vec_size,
+    typename func_t,
+    typename array_t,
+    typename inp_calc_t,
+    typename out_calc_t,
+    typename loader_t,
+    typename storer_t,
+    typename OutputType,
+    typename... InputTypes>
+C10_LAUNCH_BOUNDS_1(vectorized_templated_config::num_threads())
+__global__ void vectorized_templated_elementwise_kernel(
+    int N,
+    func_t f,
+    array_t data,
+    inp_calc_t inp_calc,
+    out_calc_t out_calc,
+    loader_t loader,
+    storer_t storer) {
+  int remaining = N -
+      vectorized_templated_config::block_work_size() *
+          (gridDim.x - blockIdx.x - 1);
+  constexpr bool reverted_idx = true;
+
+  if (remaining <
+      vectorized_templated_config::block_work_size()) { // if this block handles
+                                                        // the reminder,
+    // just do a naive unrolled loop
+    auto policy = memory::policies::unroll_base<
+        vectorized_templated_config::num_threads(),
+        array_t,
+        inp_calc_t,
+        out_calc_t,
+        loader_t,
+        storer_t,
+        vectorized_templated_config::elems_per_thread()>(
+        data, remaining, inp_calc, out_calc, loader, storer);
+    elementwise_kernel_helper<reverted_idx>(f, policy);
+  } else { // if this block has a full `block_work_size` data to handle, use
+           // vectorized memory access
+    auto policy = memory::policies::vectorized_templated<
+        vec_size,
+        array_t,
+        vectorized_templated_config::elems_per_thread(),
+        vectorized_templated_config::num_threads(),
+        OutputType,
+        InputTypes...>(data);
+    elementwise_kernel_helper<reverted_idx>(f, policy);
+  }
+}
+
+// This function assume trivial 1d and supports template specialization
+// to avoid dynamic casting.
+// Input vectorization size is based on runtime information, i.e.
+// the actual data types of the input and output tensor and cannot
+// be determined using the functor type, as in regular non-templated
+// vectorized kernels. The caller is in charge of selecting the correct input
+// vectorization length.
+template <
+    typename func_t,
+    typename array_t,
+    typename inp_calc_t,
+    typename out_calc_t,
+    typename loader_t,
+    typename storer_t,
+    typename OutputType,
+    typename... InputTypes>
+static inline void launch_vectorized_templated_kernel(
+    int64_t N,
+    const func_t& f,
+    array_t data,
+    inp_calc_t ic,
+    out_calc_t oc,
+    loader_t l,
+    storer_t s) {
+  TORCH_INTERNAL_ASSERT(N > 0 && N <= std::numeric_limits<int32_t>::max());
+  using traits = function_traits<func_t>;
+  int64_t grid = (N + vectorized_templated_config::block_work_size() - 1) /
+      vectorized_templated_config::block_work_size();
+  auto stream = at::cuda::getCurrentCUDAStream();
+  int vec_size = memory::can_vectorize_up_to<func_t>(data);
+  switch (vec_size) {
+    case 8:
+      vectorized_templated_elementwise_kernel<
+          8,
+          func_t,
+          array_t,
+          inp_calc_t,
+          out_calc_t,
+          loader_t,
+          storer_t,
+          OutputType,
+          InputTypes...>
+          <<<grid, vectorized_templated_config::num_threads(), 0, stream>>>(
+              N, f, data, ic, oc, l, s);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
+      break;
+    case 4:
+      vectorized_templated_elementwise_kernel<
+          4,
+          func_t,
+          array_t,
+          inp_calc_t,
+          out_calc_t,
+          loader_t,
+          storer_t,
+          OutputType,
+          InputTypes...>
+          <<<grid, vectorized_templated_config::num_threads(), 0, stream>>>(
+              N, f, data, ic, oc, l, s);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
+      break;
+    case 2:
+      vectorized_templated_elementwise_kernel<
+          2,
+          func_t,
+          array_t,
+          inp_calc_t,
+          out_calc_t,
+          loader_t,
+          storer_t,
+          OutputType,
+          InputTypes...>
+          <<<grid, vectorized_templated_config::num_threads(), 0, stream>>>(
+              N, f, data, ic, oc, l, s);
+      C10_CUDA_KERNEL_LAUNCH_CHECK();
+      break;
+    default:
+      // vector size 1 is not handled as part of vectorize_templated kernel
+      TORCH_INTERNAL_ASSERT(false, "Unexpected vectorization size");
+  }
+}
+#endif
 
 template <
     typename func_t,
@@ -500,6 +666,162 @@ void gpu_kernel_impl_nocast(TensorIteratorBase& iter, const func_t& f) {
 #endif
 }
 
+#ifdef USE_ROCM
+namespace {
+template <
+    typename TupleLike,
+    typename FirstParamTy,
+    typename SecondParamTy,
+    size_t arity,
+    size_t arg_num = 0>
+struct check_binary_functor_types_for_specialization {
+  constexpr static inline bool check() {
+    if constexpr (arity != 2)
+      return false;
+    if constexpr (arg_num == 0) {
+      using SelectedType = std::tuple_element_t<arg_num, TupleLike>;
+      if constexpr (std::is_same_v<FirstParamTy, SelectedType>)
+        return check_binary_functor_types_for_specialization<
+            TupleLike,
+            FirstParamTy,
+            SecondParamTy,
+            arity,
+            arg_num + 1>::check();
+    } else if constexpr (arg_num == 1) {
+      using SelectedType2 = std::tuple_element_t<arg_num, TupleLike>;
+      if constexpr (std::is_same_v<SecondParamTy, SelectedType2>)
+        return check_binary_functor_types_for_specialization<
+            TupleLike,
+            FirstParamTy,
+            SecondParamTy,
+            arity,
+            arg_num + 1>::check();
+    }
+    return false;
+  }
+};
+
+// Bottom case: if we got this far, assume correct type matching except
+// when there are no arguments (arity == 0).
+template <
+    typename TupleLike,
+    typename FirstParamTy,
+    typename SecondParamTy,
+    size_t arity>
+struct check_binary_functor_types_for_specialization<
+    TupleLike,
+    FirstParamTy,
+    SecondParamTy,
+    arity,
+    arity> {
+  constexpr static inline bool check() {
+    if constexpr (arity != 0)
+      return true;
+    return false;
+  }
+};
+
+template <typename TupleLike, typename FirstParamTy, typename SecondParamTy>
+struct check_binary_functor_types_for_specialization<
+    TupleLike,
+    FirstParamTy,
+    SecondParamTy,
+    0,
+    0> {
+  constexpr static inline bool check() {
+    return false;
+  }
+};
+
+// The following is a list of type specializations for vectorized_templated
+// elementwise kernel. The three types refer to runtime types of the output
+// tensor, first tensor argument, and the second tensor argument used for a
+// binary functor.
+constexpr std::array rt_binary_specializations = {
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<BFloat16>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<BFloat16>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<Half>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<float>::value,
+         c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<float>::value}),
+    std::array<c10::ScalarType, 3>(
+        {c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<Half>::value,
+         c10::CppTypeToScalarType<float>::value})};
+
+bool check_binary_rt_types_for_specialization(TensorIteratorBase& iter) {
+  if (iter.ninputs() != 2)
+    return false;
+  for (auto spec : rt_binary_specializations)
+    if (iter.dtype(0) == spec[0] && iter.input_dtype(0) == spec[1] &&
+        iter.input_dtype(1) == spec[2])
+      return true;
+  return false;
+}
+
+template <int arg_index>
+struct type_specialized_kernel_launcher {
+  template <
+      typename func_t,
+      typename array_t,
+      typename inp_calc_t,
+      typename out_calc_t,
+      typename loader_t,
+      typename storer_t>
+  static void apply(
+      ScalarType ret_t,
+      ScalarType arg0_t,
+      ScalarType arg1_t,
+      int64_t numel,
+      func_t f,
+      array_t data,
+      inp_calc_t input_offset_calculator,
+      out_calc_t output_offset_calculator,
+      loader_t loader,
+      storer_t storer) {
+    if (ret_t == rt_binary_specializations[arg_index][0] &&
+        arg0_t == rt_binary_specializations[arg_index][1] &&
+        arg1_t == rt_binary_specializations[arg_index][2])
+      launch_vectorized_templated_kernel<
+          func_t,
+          array_t,
+          inp_calc_t,
+          out_calc_t,
+          loader_t,
+          storer_t,
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][0]>::t),
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][1]>::t),
+          decltype(c10::impl::ScalarTypeToCPPType<
+                   rt_binary_specializations[arg_index][2]>::t)>(
+          numel,
+          f,
+          data,
+          input_offset_calculator,
+          output_offset_calculator,
+          loader,
+          storer);
+  }
+};
+
+} // namespace
+#endif
+
 template <typename func_t>
 void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
   if (!needs_dynamic_casting<func_t>::check(iter)) {
@@ -524,6 +846,48 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
 
   if (contiguous) {
 #ifdef USE_ROCM
+    // Attempt to call specialized vectorized elementwise kernel
+    // that enables interleaving.
+    if (check_binary_rt_types_for_specialization(iter) &&
+        memory::can_vectorize_up_to<func_t>(data) > 1) {
+      // constexpr to reduce the amount of kernels generated for
+      // vectorized templated elementwise and limit which functors are actually
+      // applied to the load and store at compile time.
+      using func_tuple = typename traits::ArgsTuple;
+      if constexpr (
+          std::is_same_v<float, arg0_t> && traits::arity == 2 &&
+          check_binary_functor_types_for_specialization<
+              func_tuple,
+              float,
+              float,
+              traits::arity,
+              /*arg_num=*/0>::check()) {
+        // If we got here, we know we are in one of the specialized cases. We
+        // need to translate the runtime type to a statically known type. This
+        // is effectively hoisting to the host the switch over runtime type in
+        // the kernel in fetch_and_cast. Loader, storer, offset calculators are
+        // only needed for the reminder loop.
+        auto input_offset_calculator = TrivialOffsetCalculator<traits::arity>();
+        auto output_offset_calculator = TrivialOffsetCalculator<1>();
+        auto loader = memory::LoadWithCast<traits::arity>(iter);
+        auto storer = memory::StoreWithCast<1>(iter);
+        memory::detail::static_unroll<
+            type_specialized_kernel_launcher,
+            rt_binary_specializations.size()>::
+            with_args(
+                iter.dtype(0),
+                iter.input_dtype(0),
+                iter.input_dtype(1),
+                numel,
+                f,
+                data,
+                input_offset_calculator,
+                output_offset_calculator,
+                loader,
+                storer);
+        return;
+      }
+    }
     std::array<ScalarType, ntensors> dtypes;
     auto inner_strides = iter.get_inner_strides();
     std::array<int, ntensors> strides;
