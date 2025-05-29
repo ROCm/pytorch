@@ -7,19 +7,6 @@ ver() {
     printf "%3d%03d%03d%03d" $(echo "$1" | tr '.' ' ');
 }
 
-# Magma build scripts need `python`
-ln -sf /usr/bin/python3 /usr/bin/python
-
-ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
-case "$ID" in
-  almalinux)
-    yum install -y gcc-gfortran
-    ;;
-  *)
-    echo "No preinstalls to build magma..."
-    ;;
-esac
-
 MKLROOT=${MKLROOT:-/opt/conda/envs/py_$ANACONDA_PYTHON_VERSION}
 
 # "install" hipMAGMA into /opt/rocm/magma by copying after build
