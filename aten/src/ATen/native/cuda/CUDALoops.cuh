@@ -157,7 +157,7 @@ __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
   constexpr auto io_size = calc_io_size<func_t>();
 #if defined(USE_ROCM) && defined(__gfx942__)
   // Similar check in launch_vectorized_kernel() as well. Both should be in sync.
-  constexpr int tws = (io_size >= 2) ? 8 : 16;
+  constexpr int tws = (io_size >= 2) ? 16 : 16;
 #else
   constexpr int tws = elems_per_thread<io_size>();
 #endif
@@ -230,7 +230,7 @@ static inline void launch_vectorized_kernel(
   // Similar check in vectorized_elementwise_kernel() as well. Both should be in sync.
   c10::DeviceIndex curDevice = -1;
   AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
-  int tws = at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"}) ? ((io_size >= 2) ? 8 : 16) : elems_per_thread<io_size>();
+  int tws = at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"}) ? ((io_size >= 2) ? 16 : 16) : elems_per_thread<io_size>();
 #else
   using cpp_type = typename function_traits<func_t>::result_type;
   const uint16_t max_vec_size = memory::can_vectorize_up_to<func_t>(data);
@@ -895,10 +895,26 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
       dtypes[i] = iter.dtype(i);
       strides[i] = inner_strides[i];
     }
-    launch_legacy_kernel<512, 1>(numel, [=]GPU_LAMBDA(int idx) {
-      void* out = data[0] + strides[0] * idx;
-      arg0_t result = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
-      c10::cast_and_store<arg0_t>(dtypes[0], out, result);
+    constexpr int grp_sz = 128;
+    launch_legacy_kernel_manual_unroll<grp_sz, 4>(numel, [=] GPU_LAMBDA(int idx, bool unrl) {
+      if (unrl) {
+        void* out0 = data[0] + strides[0] * idx;
+        void* out1 = data[0] + strides[0] * (idx + grp_sz);
+        void* out2 = data[0] + strides[0] * (idx + grp_sz * 2);
+        void* out3 = data[0] + strides[0] * (idx + grp_sz * 3);
+        arg0_t result0 = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
+        arg0_t result1 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz));
+        arg0_t result2 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz * 2));
+        arg0_t result3 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz * 3));
+        c10::cast_and_store<arg0_t>(dtypes[0], out0, result0);
+        c10::cast_and_store<arg0_t>(dtypes[0], out1, result1);
+        c10::cast_and_store<arg0_t>(dtypes[0], out2, result2);
+        c10::cast_and_store<arg0_t>(dtypes[0], out3, result3);
+      } else {
+        void* out = data[0] + strides[0] * idx;
+        arg0_t result = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
+        c10::cast_and_store<arg0_t>(dtypes[0], out, result);
+      }
     });
 #else
     auto loader = memory::LoadWithCast<traits::arity>(iter);
