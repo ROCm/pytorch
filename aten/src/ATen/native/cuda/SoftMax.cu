@@ -5,6 +5,7 @@
 #include <ATen/TensorUtils.h>
 #include <ATen/TensorOperators.h>
 #include <ATen/WrapDimUtils.h>
+#include <ATen/ceil_div.h>
 #include <c10/macros/Macros.h>
 
 #include <ATen/AccumulateType.h>
@@ -486,6 +487,10 @@ ilpReduce(index_t shift,
   }
 
   offset = size - last + threadIdx.x;
+  if (offset < 0) {
+    // Ensure offset >= 0
+    offset += round_up<long>(-offset, blockDim.x);
+  }
   // Epilogue
   for (; offset < size; offset += blockDim.x)
     threadVal = r(threadVal, data[offset]);
@@ -543,6 +548,10 @@ WriteFpropResultsVectorized(
   }
 
   offset = size - last + threadIdx.x;
+  if (offset < 0) {
+    // Ensure offset >= 0
+    offset += round_up<long>(-offset, blockDim.x);
+  }
   // handle the tail
   for (; offset < size; offset += blockDim.x) {
     output[offset] = epilogue(input[offset]);
@@ -603,6 +612,10 @@ WriteBpropResultsVectorized(
   }
 
   offset = size - last + threadIdx.x;
+  if (offset < 0) {
+    // Ensure offset >= 0
+    offset += round_up<long>(-offset, blockDim.x);
+  }
   for (; offset < size; offset += blockDim.x) {
     gradInput[offset] = epilogue(gradOutput[offset], output[offset]);
   }
