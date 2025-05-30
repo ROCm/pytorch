@@ -5144,7 +5144,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
         def _get_ref_device(backend: str , device: str):
             # If 'backend' specifies the memory format, return 'device' arg, otherwise return a device matches the backend
-            if backend in ("NHWC", "NHWC3D", "NHWC3D", "NCHW"):
+            if backend in ("NHWC", "NHWC3D", "NCHW", "NCHW3D"):
                 return device
             if backend == "native":
                 return "cuda"
