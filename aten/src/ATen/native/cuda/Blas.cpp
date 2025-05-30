@@ -88,8 +88,7 @@ c10::MaybeOwned<Tensor> inline prepare_matrix_for_cublas(const Tensor& tensor, b
   if ((tensor_strides[0] == 1) && (tensor_strides[1] >= std::max<int64_t>(1, tensor_sizes[0]))) {
     transpose_tensor = false;
     return resolve_conj_if_indicated(tensor, true);
-  } else if ((tensor_strides[1] == 1) &&
-    (tensor_strides[0] >= std::max<int64_t>(1, tensor_sizes[1]))) {
+  } else if ((tensor_strides[1] == 1) && (tensor_strides[0] >= std::max<int64_t>(1, tensor_sizes[1]))) {
     transpose_tensor = true;
     return resolve_conj_if_indicated(tensor, true);
   } else {
