@@ -22,7 +22,12 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
     SM90OrLater,
 )
-from torch.testing._internal.common_utils import IS_WINDOWS, skipIfRocm
+from torch.testing._internal.common_utils import (
+    IS_WINDOWS,
+    NAVI4_ARCH,
+    skipIfRocm,
+    skipIfRocmArch,
+)
 from torch.testing._internal.inductor_utils import HAS_CUDA
 from torch.testing._internal.two_tensor import TwoTensor
 from torch.utils.checkpoint import (
@@ -1279,6 +1284,7 @@ Non-primal fwd outputs from model w/o backward hook: {mod_no_hook_fwd_outputs_no
         self.assertEqual(ref, res)
 
     @requires_cuda
+    @skipIfRocmArch(NAVI4_ARCH)
     def test_pattern_matcher(self):
         # Check that the sdpa op is recomputed in the backward graph
         # tests percolate_tags
