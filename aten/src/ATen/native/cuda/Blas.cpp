@@ -1162,10 +1162,10 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
 #endif
 #ifdef USE_ROCM
   if (mat1.scalar_type() == ScalarType::Float8_e5m2 || mat2.scalar_type() == ScalarType::Float8_e5m2) {
-    TORCH_CHECK(ROCM_VERSION >= 60000, "Float8_e5m2 is only supported for ROCm 6.5 and above");
+    TORCH_CHECK(ROCM_VERSION >= 60000, "Float8_e5m2 is only supported for ROCm 6.0 and above");
   }
   if (mat1.scalar_type() == ScalarType::Float8_e4m3fn || mat2.scalar_type() == ScalarType::Float8_e4m3fn) {
-    TORCH_CHECK(ROCM_VERSION >= 60000, "Float8_e4m3fn is only supported for ROCm 6.5 and above");
+    TORCH_CHECK(ROCM_VERSION >= 60000, "Float8_e4m3fn is only supported for ROCm 6.0 and above");
   }
 #endif
   if (bias) {
@@ -1236,7 +1236,7 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
          "hipblaslt rowwise _scaled_mm only supports BFloat16 output");
   }
   else if (scaling_choice == ScalingType::BlockWise) {
-#if ROCM_VERSION >= 60500
+#if ROCM_VERSION >= 70000
     TORCH_CHECK(at::detail::getCUDAHooks().isGPUArch(0, {"gfx950"}),
                "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
@@ -1248,7 +1248,7 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
                 out.scalar_type() == ScalarType::Half,
                 "Block-wise scaling only supports BFloat16 or Half output types");
 #else
-    TORCH_CHECK(false, "Block-wise scaling for Float8_e8m0fnu requires ROCm 6.5 or later");
+    TORCH_CHECK(false, "Block-wise scaling for Float8_e8m0fnu requires ROCm 7.0 or later");
 #endif
   }
 #endif
