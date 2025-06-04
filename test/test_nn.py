@@ -5162,12 +5162,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
             ("NCHW", "native", False, torch.float),
             ("NCHW", "native", True, torch.half),
-<<<<<<< HEAD
-            # this config failed for train and passed for inference on ROCm
-            # subtest(("NCHW", "native", True, torch.bfloat16), decorators=[unittest.expectedFailure]),
-=======
             ("NCHW", "native", True, torch.bfloat16),
->>>>>>> bbf4b9bd62 ([release/2.6] Add 3D batchnorm tests (#2214))
 
             ("NHWC", "cpu", False, torch.float),
             ("NHWC", "cpu", True, torch.half),
