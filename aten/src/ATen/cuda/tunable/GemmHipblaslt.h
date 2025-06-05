@@ -25,32 +25,6 @@
 namespace at::cuda::tunable {
 
 template <typename T>
-<<<<<<< HEAD
-constexpr hipblasDatatype_t HipBlasDataTypeFor();
-
-template <>
-constexpr hipblasDatatype_t HipBlasDataTypeFor<float>() {
-  return HIPBLAS_R_32F;
-}
-
-template <>
-constexpr hipblasDatatype_t HipBlasDataTypeFor<Half>() {
-  return HIPBLAS_R_16F;
-}
-
-template <>
-constexpr hipblasDatatype_t HipBlasDataTypeFor<BFloat16>() {
-  return HIPBLAS_R_16B;
-}
-
-template <>
-constexpr hipblasDatatype_t HipBlasDataTypeFor<double>() {
-  return HIPBLAS_R_64F;
-}
-
-template <>
-constexpr hipblasDatatype_t HipBlasDataTypeFor<c10::Float8_e4m3fnuz>() {
-=======
 constexpr hipDataType HipDataTypeFor();
 
 template <>
@@ -80,11 +54,8 @@ constexpr hipDataType HipDataTypeFor<c10::Float8_e4m3fnuz>() {
 }
 
 template <>
-<<<<<<< HEAD
-constexpr hipblasDatatype_t HipBlasDataTypeFor<c10::Float8_e5m2fnuz>() {
-=======
+
 constexpr hipDataType HipDataTypeFor<c10::Float8_e5m2fnuz>() {
->>>>>>> 5ddb6c9a56 ([release/2.5] Change from hipblasDatatype_t to hipDataType (#2205))
   return HIP_R_8F_E5M2_FNUZ;
 }
 
