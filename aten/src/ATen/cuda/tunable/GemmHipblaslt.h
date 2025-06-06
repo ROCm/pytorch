@@ -49,7 +49,6 @@ constexpr hipDataType HipDataTypeFor<double>() {
 
 template <>
 constexpr hipDataType HipDataTypeFor<c10::Float8_e4m3fnuz>() {
->>>>>>> 5ddb6c9a56 ([release/2.5] Change from hipblasDatatype_t to hipDataType (#2205))
   return HIP_R_8F_E4M3_FNUZ;
 }
 
