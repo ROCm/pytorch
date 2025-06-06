@@ -130,8 +130,7 @@ numba==0.61.2
 #test_binary_ufuncs.py
 numpy==2.1.2
 
-pandas==2.0.3; python_version < "3.13"
-pandas==2.2.3; python_version >= "3.13"
+pandas==2.2.3
 
 #onnxruntime
 #Description: scoring engine for Open Neural Network Exchange (ONNX) models
