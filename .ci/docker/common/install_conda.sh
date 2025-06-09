@@ -73,17 +73,17 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
     CONDA_COMMON_DEPS="astunparse pyyaml setuptools openblas==0.3.25=*openmp* ninja==1.11.1 scons==4.5.2"
 
     if [ "$ANACONDA_PYTHON_VERSION" = "3.8" ]; then
-      NUMPY_VERSION=1.24.4
+      NUMPY_VERSION=2.1.2
     else
-      NUMPY_VERSION=1.26.2
+      NUMPY_VERSION=2.1.2
     fi
   else
     CONDA_COMMON_DEPS="astunparse pyyaml mkl=2021.4.0 mkl-include=2021.4.0 setuptools"
 
     if [ "$ANACONDA_PYTHON_VERSION" = "3.11" ] || [ "$ANACONDA_PYTHON_VERSION" = "3.12" ] || [ "$ANACONDA_PYTHON_VERSION" = "3.13" ]; then
-      NUMPY_VERSION=1.26.0
+      NUMPY_VERSION=2.1.2
     else
-      NUMPY_VERSION=1.21.2
+      NUMPY_VERSION=2.1.2
     fi
   fi
   conda_install ${CONDA_COMMON_DEPS}
