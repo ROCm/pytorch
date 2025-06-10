@@ -1288,10 +1288,6 @@ IS_MACOS = sys.platform == "darwin"
 IS_PPC = platform.machine() == "ppc64le"
 IS_X86 = platform.machine() in ('x86_64', 'i386')
 IS_ARM64 = platform.machine() in ('arm64', 'aarch64')
-<<<<<<< HEAD
-=======
-IS_S390X = platform.machine() == "s390x"
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
 
 def is_avx512_vnni_supported():
     if sys.platform != 'linux':
