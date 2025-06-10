@@ -24,19 +24,11 @@ from torch._inductor.utils import run_and_get_cpp_code
 from torch.export import Dim, export
 from torch.testing import FileCheck
 from torch.testing._internal import common_utils
-<<<<<<< HEAD
-from torch.testing._internal.common_cuda import SM80OrLater, SM90OrLater
-=======
 from torch.testing._internal.common_cuda import (
     SM80OrLater,
     SM90OrLater,
     PLATFORM_SUPPORTS_FLASH_ATTENTION
 )
-from torch.testing._internal.common_device_type import (
-    _has_sufficient_memory,
-    skipCUDAIf,
-)
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
 from torch.testing._internal.common_quantization import (
     skip_if_no_torchvision,
     skipIfNoFBGEMM,
@@ -50,10 +42,6 @@ from torch.testing._internal.common_utils import (
     IS_SANDCASTLE,
     IS_WINDOWS,
     skipIfRocm,
-<<<<<<< HEAD
-=======
-    skipIfXpu,
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
     TEST_WITH_ROCM,
 )
 from torch.testing._internal.triton_utils import HAS_CUDA, requires_cuda
@@ -1072,80 +1060,7 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(Repro(), example_inputs)
 
-<<<<<<< HEAD
-=======
-    @config.patch({"triton.autotune_at_compile_time": None})
-    def test_stride_with_unbacked_expr(self):
-        class Repro(torch.nn.Module):
-            def forward(self, x, y):
-                u0 = x.item()
-                torch._check(u0 >= 1)
-                s0 = y.size(0)
-                expr = u0 * s0
-                sevens = torch.empty_strided(
-                    size=(10, expr, 32), stride=(expr * 32, 32, 1), device=x.device
-                ).fill_(7)
-                return sevens * 3
 
-        example_inputs = (
-            torch.scalar_tensor(2, dtype=torch.int, device=self.device),
-            torch.ones(8, device=self.device),
-        )
-        self.check_model(Repro(), example_inputs)
-
-    @skipIfXpu(msg="_scaled_dot_product_flash_attention is not supported on XPU yet")
-    @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
-    def test_fallback_kernel_with_symexpr_output(self):
-        if self.device != GPU_TYPE:
-            raise unittest.SkipTest("requires GPU")
-
-        class Module(torch.nn.Module):
-            def forward(self, q, k, v):
-                q = q.reshape(
-                    q.shape[0],
-                    2,
-                    q.shape[2] * q.shape[3],
-                    q.shape[1] // 2,
-                )
-                k = k.reshape(
-                    k.shape[0],
-                    2,
-                    k.shape[2] * k.shape[3],
-                    k.shape[1] // 2,
-                )
-                v = v.reshape(
-                    v.shape[0],
-                    2,
-                    v.shape[2] * v.shape[3],
-                    v.shape[1] // 2,
-                )
-
-                res = torch.ops.aten._scaled_dot_product_flash_attention.default(
-                    q,
-                    k,
-                    v,
-                )
-                return res[0]
-
-        m = Module().to(device=self.device)
-        tensor_shape = (4, 32, 4, 4)
-        inputs = (
-            torch.randn(tensor_shape, dtype=torch.float16, device=self.device),
-            torch.randn(tensor_shape, dtype=torch.float16, device=self.device),
-            torch.randn(tensor_shape, dtype=torch.float16, device=self.device),
-        )
-
-        dynamic_shapes = {
-            "q": {2: Dim.DYNAMIC, 3: Dim.DYNAMIC},
-            "k": {2: Dim.DYNAMIC, 3: Dim.DYNAMIC},
-            "v": {2: Dim.DYNAMIC, 3: Dim.DYNAMIC},
-        }
-        ep = torch.export.export(m, inputs, dynamic_shapes=dynamic_shapes, strict=False)
-        path = torch._inductor.aot_compile(ep.module(), inputs)
-        aot_model = torch._export.aot_load(path, device=self.device)
-        torch.testing.assert_close(m(*inputs), aot_model(*inputs))
-
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
     def test_large_grid(self):
         if self.device != "cuda":
             raise unittest.SkipTest("requires CUDA")
@@ -2929,11 +2844,9 @@ class AOTInductorTestsTemplate:
             dynamic_shapes=dynamic_shapes,
         )
 
-<<<<<<< HEAD
+
     @skipIfRocm  # USE_MEM_EFF_ATTENTION was not enabled for build.
-=======
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
->>>>>>> 4e4e3395e6 ([rocm6.4_internal_testing] Replaced ROCm specific skips to generalized conditions (#2100))
     def test_scaled_dot_product_efficient_attention(self):
         if self.device != "cuda":
             raise unittest.SkipTest("requires CUDA")
