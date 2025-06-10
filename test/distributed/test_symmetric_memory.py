@@ -1012,7 +1012,7 @@ class SymmMemCollectiveTest(MultiProcessTestCase):
                 atol=1e-01,
             )
 
-    @skipIfRocm
+    @requires_multicast_support()
     @skip_if_lt_x_gpu(4)
     @parametrize("align_bytes", [4, 8, 16])
     def test_multimem_all_gather(self, align_bytes: int) -> None:
