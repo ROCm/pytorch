@@ -1007,7 +1007,6 @@ elseif(USE_CUDA)
         target_link_libraries(torch_cuda_linalg PRIVATE torch::magma)
       elseif(USE_ROCM)
         target_link_libraries(torch_cuda_linalg PRIVATE __rocm_magma)
-
       endif()
       # CUDAHooks reports version of MAGMA PyTorch was compiled against, i.e. needs to be able to include magma headers
       get_target_property(HOOKS_INCLUDE_DIRECTORIES torch_cuda INCLUDE_DIRECTORIES)

@@ -31,10 +31,8 @@ if(NOT __MAGMA_INCLUDED)
         INSTALL_DIR   ${__MAGMA_INSTALL_DIR}
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        
         INSTALL_COMMAND   ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include/ <INSTALL_DIR>/include/magma
         COMMAND           ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/libmagma.so <INSTALL_DIR>/lib
-
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libmagma.so
         BUILD_BYPRODUCTS <INSTALL_DIR>/include/magma
         )
@@ -89,12 +87,10 @@ if(NOT __MAGMA_INCLUDED)
         URL           ${__MAGMA_URL}
         SOURCE_DIR    "${CMAKE_CURRENT_BINARY_DIR}/magma_src"
         INSTALL_DIR   ${__MAGMA_INSTALL_DIR}
-
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/magma/lib/libmagma.so <INSTALL_DIR>/lib/
         COMMAND         ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/magma/include <INSTALL_DIR>/include/magma
-
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libmagma.so
         BUILD_BYPRODUCTS <INSTALL_DIR>/include/magma
     )
@@ -155,16 +151,12 @@ if(NOT __MAGMA_INCLUDED)
         INSTALL_DIR       ${__MAGMA_INSTALL_DIR}
         GIT_REPOSITORY    ${MAGMA_REPOSITORY}
         GIT_TAG        ${MAGMA_GIT_TAG}
-
         CONFIGURE_COMMAND  ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/make.inc-examples/make.inc.hip-gcc-mkl <SOURCE_DIR>/make.inc
         COMMAND            ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> make -f make.gen.hipMAGMA -j ${N_LOGICAL_CORES}
-        
         BUILD_COMMAND ${CMAKE_COMMAND} -E env MKLROOT=${MKLROOT}
                       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> make lib/libmagma.so -j ${N_LOGICAL_CORES} MKLROOT=${MKLROOT} GPU_TARGET=${target_gpus}
-
         INSTALL_COMMAND  ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/libmagma.so <INSTALL_DIR>/lib/
         COMMAND          ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include/magma
-        
         USES_TERMINAL_DOWNLOAD TRUE
         USES_TERMINAL_CONFIGURE TRUE
         USES_TERMINAL_BUILD TRUE
