@@ -47,6 +47,8 @@ from torch.testing._internal.common_utils import (
     parametrize,
     skipIfWindows,
     TEST_WITH_ROCM,
+    skipIfRocmArch,
+    NAVI44_ARCH,
 )
 from torch.testing._internal.two_tensor import TwoTensor
 
@@ -6408,6 +6410,7 @@ def forward(self, s0 : torch.SymInt, s1 : torch.SymInt, L_x_ : torch.Tensor):
         self.assertEqual(fn(inp), opt_fn(inp))
 
     @requires_cuda
+    @skipIfRocmArch(NAVI44_ARCH)
     def test_sdpa_dynamic_shapes(self):
         def f(x, s0, s1, s2):
             q = x.view(2, s0, s2, s0)
