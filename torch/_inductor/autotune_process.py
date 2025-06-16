@@ -631,7 +631,7 @@ class TritonBenchmarkRequest(BenchmarkRequest):
         num_warps: int,
         matrix_instr_nonkdim: int = 0,  # only used for hip to choose the shape of mfma instruction.
         waves_per_eu: int = 0,  # only used for hip to schedule waves per execution unit
-        kpack: int = 0,  # ROCm specific gemm paramete
+        kpack: int = 0,  # ROCm specific gemm parameter
         workspace_arg: Optional[WorkspaceArg] = None,
     ) -> None:
         super().__init__(kernel_name, input_tensor_meta, output_tensor_meta, extra_args)
