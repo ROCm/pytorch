@@ -1017,9 +1017,9 @@ class AOTInductorTestsTemplate:
     @unittest.skipIf(
         # for archs where this isn't lowered to flash attention, the math
         # backend will be used and it doesn't work for bfloat16
-        not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA with bfloat16"
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION,
+        "Some archs don't support SDPA with bfloat16",
     )
-    
     def test_sdpa_2(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
