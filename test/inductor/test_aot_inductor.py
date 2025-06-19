@@ -32,7 +32,8 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
     SM80OrLater,
     SM90OrLater,
-    PLATFORM_SUPPORTS_FLASH_ATTENTION
+    PLATFORM_SUPPORTS_FLASH_ATTENTION,
+    PLATFORM_SUPPORTS_FP8
 )
 from torch.testing._internal.common_device_type import (
     _has_sufficient_memory,
