@@ -1466,7 +1466,7 @@ class TestBinaryUfuncs(TestCase):
         else:
             if isinstance(base, torch.Tensor):
                 actual = base.pow(exponent)
-                self.assertEqual(actual, expected.to(actual))
+                self.assertEqual(actual, expected.to(dtype=actual.dtype, device=actual.device))
                 actual = base.clone()
                 # When base is a 0-dim cpu tensor and exp is a cuda tensor, we exp `pow` to work but `pow_` to fail, since
                 # `pow` will try to create the output tensor on a cuda device, but `pow_` needs to use the cpu tensor as the output
@@ -1480,8 +1480,8 @@ class TestBinaryUfuncs(TestCase):
                     self.assertRaisesRegex(RuntimeError, regex, base.pow_, exponent)
                 elif torch.can_cast(torch.result_type(base, exponent), base.dtype):
                     actual2 = actual.pow_(exponent)
-                    self.assertEqual(actual, expected)
-                    self.assertEqual(actual2, expected)
+                    self.assertEqual(actual, expected.to(dtype=actual.dtype, device=actual.device))
+                    self.assertEqual(actual2, expected.to(dtype=actual.dtype, device=actual.device))
                 else:
                     self.assertRaisesRegex(
                         RuntimeError,
