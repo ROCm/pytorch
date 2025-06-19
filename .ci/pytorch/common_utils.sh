@@ -159,14 +159,6 @@ function install_torchvision() {
   fi
 }
 
-<<<<<<< HEAD
-function install_tlparse() {
-  pip_install --user "tlparse==0.3.25"
-  PATH="$(python -m site --user-base)/bin:$PATH"
-}
-=======
->>>>>>> 0bd4030892 ([release/2.7] Removing --user flag from all pip install commands (#2238))
-
 function install_torchrec_and_fbgemm() {
   local torchrec_commit
   torchrec_commit=$(get_pinned_commit torchrec)
