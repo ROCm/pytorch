@@ -117,7 +117,7 @@ numba==0.61.2
 #test that import: test_numba_integration.py
 #For numba issue see https://github.com/pytorch/pytorch/issues/51511
 
-numpy=2.1.2
+numpy==2.1.2
 #Description: Provides N-dimensional arrays and linear algebra
 #Pinned versions: 1.20
 #test that import: test_view_ops.py, test_unary_ufuncs.py, test_type_promotion.py,
