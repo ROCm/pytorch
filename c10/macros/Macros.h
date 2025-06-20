@@ -344,6 +344,16 @@ inline int C10_WARP_SIZE_INTERNAL() {
 #define C10_WARP_SIZE_STATIC 64
 
 #else // defined(USE_ROCM)
+#if defined(__HIP_DEVICE_COMPILE__)
+#if defined(__GFX9__)
+static constexpr int C10_WARP_SIZE = 64;
+#else // __GFX9__
+static constexpr int C10_WARP_SIZE = 32;
+#endif // __GFX9__
+#else
+static constexpr int C10_WARP_SIZE = 1;
+#endif // __HIP_DEVICE_COMPILE__
+#else
 #define C10_WARP_SIZE 32
 #endif
 
