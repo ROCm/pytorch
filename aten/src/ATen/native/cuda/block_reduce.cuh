@@ -15,7 +15,10 @@ constexpr int kCUDABlockReduceNumThreads = 512;
 // ROCm NOTE: C10_WARP_SIZE should only be used inside device functions,
 // and kCUDABlockReduceMaxThreads is a host-side variable.
 #ifdef USE_ROCM
-static const int kCUDABlockReduceMaxThreads = at::cuda::warp_size() * at::cuda::warp_size();
+inline int kCUDABlockReduceMaxThreads() {
+    static int val = at::cuda::warp_size() * at::cuda::warp_size();
+    return val;
+}
 #else
 constexpr int kCUDABlockReduceMaxThreads = C10_WARP_SIZE * C10_WARP_SIZE;
 #endif
