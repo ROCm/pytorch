@@ -2844,7 +2844,6 @@ class AOTInductorTestsTemplate:
         )
 
     @skipIfRocm  # USE_MEM_EFF_ATTENTION was not enabled for build.
-    @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_scaled_dot_product_efficient_attention(self):
         if self.device != "cuda":
             raise unittest.SkipTest("requires CUDA")
