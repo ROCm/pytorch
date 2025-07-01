@@ -43,19 +43,16 @@ def evaluate_gfx_arch_within(arch_list):
     effective_arch = os.environ.get('PYTORCH_DEBUG_FLASH_ATTENTION_GCN_ARCH_OVERRIDE', gcn_arch_name)
     # gcnArchName can be complicated strings like gfx90a:sramecc+:xnack-
     # Hence the matching should be done reversely
-    result = any(arch in effective_arch for arch in arch_list)
-
-    if result and gcn_arch_name == "gfx1201":
-        os.environ['TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL'] = '1'
-
-    return result
+    return any(arch in effective_arch for arch in arch_list)
 
 def CDNA2OrLater():
     return evaluate_gfx_arch_within(["gfx90a", "gfx942"])
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201"]
+        arch_list = ["gfx90a", "gfx942", "gfx1100"]
+        if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
+            arch_list += ["gfx1201", "gfx950"]
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return not IS_WINDOWS and SM80OrLater
@@ -64,6 +61,8 @@ def evaluate_platform_supports_flash_attention():
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
         arch_list = ["gfx90a", "gfx942", "gfx1100"]
+        if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
+            arch_list += ["gfx1201", "gfx950"]
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return True
