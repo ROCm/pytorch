@@ -2255,7 +2255,7 @@ class TestSparseCSR(TestCase):
                                                                                  itertools.product([True, False], repeat=4)):
             run_test(n, k, upper, unitriangular, transpose, zero)
 
-    @skipCUDAIfRocm
+    @skipCUDAIfRocm("sampled_addmm issue")
     @skipCUDAIf(
         not _check_cusparse_sddmm_available(),
         "cuSparse Generic API SDDMM is not available"
@@ -2310,7 +2310,7 @@ class TestSparseCSR(TestCase):
                 for op_a, op_b in itertools.product([True, False], repeat=2):
                     run_test(c, a, b, op_a, op_b)
 
-    @skipCUDAIfRocm
+    @skipCUDAIfRocm("sddmm known issue")
     @skipCUDAIf(
         not _check_cusparse_sddmm_available(),
         "cuSparse Generic API SDDMM is not available"
@@ -2341,7 +2341,7 @@ class TestSparseCSR(TestCase):
             self.assertEqual(a.grad, a1.grad)
             self.assertEqual(b.grad, b1.grad)
 
-    @skipCUDAIfRocm
+    @skipCUDAIfRocm("sddmm known issue")
     @onlyCUDA
     @skipCUDAIf(True, "Causes CUDA memory exception, see https://github.com/pytorch/pytorch/issues/72177")
     @skipCUDAIf(
@@ -2643,7 +2643,7 @@ class TestSparseCSR(TestCase):
             dense_output.backward(dense_covector)
             self.assertEqual(sparse_input.grad, dense_input.grad)
 
-    @skipCUDAIfRocm
+    @skipCUDAIfRocm("addmm known issues")
     @skipCUDAIf(
         not _check_cusparse_sddmm_available(),
         "cuSparse Generic API SDDMM is not available"

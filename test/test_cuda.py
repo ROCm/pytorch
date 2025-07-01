@@ -1193,7 +1193,7 @@ class TestCuda(TestCase):
             c2p.put(sync_func(self, TestCuda.FIFTY_MIL_CYCLES))
 
     # Skip the test for ROCm as per https://github.com/pytorch/pytorch/issues/53190
-    @skipIfRocm
+    @skipIfRocm("as per pytorch/issues/53190")
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
     def test_stream_event_nogil(self):
         for sync_func in [TestCuda._stream_synchronize,
@@ -1231,7 +1231,7 @@ class TestCuda(TestCase):
             self.assertGreater(parent_time + child_time, total_time * 1.4)
 
     # This test is flaky for ROCm, see issue #62602
-    @skipIfRocm
+    @skipIfRocm("flakey on rocm")
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
     def test_events_wait(self):
         d0 = torch.device('cuda:0')
@@ -1341,7 +1341,7 @@ class TestCuda(TestCase):
             self.assertGreater(e0.elapsed_time(e2), 0)
 
     # XXX: this test only fails with hip-clang. revisit this once the dust has settled there.
-    @skipIfRocm
+    @skipIfRocm("fails on hip-clang")
     def test_record_stream(self):
         cycles_per_ms = get_cycles_per_ms()
 

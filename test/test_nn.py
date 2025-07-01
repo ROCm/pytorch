@@ -3575,7 +3575,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         output = rnn(input, hx)
 
     @unittest.skipIf(not TEST_CUDNN, 'CUDNN not available')
-    @skipIfRocm
+    @skipIfRocm("Skipped on ROCm as explicit cudnn test")
     def test_cudnn_weight_format(self):
         rnns = [
             nn.LSTM(10, 20, batch_first=True),

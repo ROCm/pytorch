@@ -1512,7 +1512,7 @@ class TestOptim(TestCase):
             with self.assertRaisesRegex(ValueError, "Invalid weight_decay value: -0.5"):
                 optim.ASGD(None, lr=1e-2, weight_decay=-0.5, foreach=foreach)
 
-    @skipIfRocm
+    @skipIfRocm("Skipped on ROCm due to some reason...")
     def test_rprop(self):
         is_cuda_sm86 = torch.cuda.is_available() and torch.cuda.get_device_capability(
             0
