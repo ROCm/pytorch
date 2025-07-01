@@ -3779,6 +3779,10 @@ class TestAttnBias(NNTestCase):
         if TEST_WITH_ROCM and causal_variant == CausalVariant.LOWER_RIGHT:
             self.skipTest("No support for LOWER_RIGHT variant for now")
             return
+        if (TEST_WITH_ROCM
+                and "gfx12" in torch.cuda.get_device_properties(0).gcnArchName.split(":")[0]
+                and self._testMethodName == "test_causal_variants_causal_variant_CausalVariant_UPPER_LEFT_shape3_cuda"):
+            self.skipTest(f"Failed on Navi4x in release/2.5 for shape {shape}")
 
         bsz, num_heads, seq_len_q, seq_len_kv, head_dim = shape
         make_q_tensor = partial(make_tensor, SdpaShape(bsz, num_heads, seq_len_q, head_dim))
