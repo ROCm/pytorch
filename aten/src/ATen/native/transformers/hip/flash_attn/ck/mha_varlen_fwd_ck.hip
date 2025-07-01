@@ -20,6 +20,7 @@ fmha_fwd_traits get_ck_fmha_varlen_fwd_traits(const mask_info &mask,
                            dtype,
                            true, // is_group_mode
                            true, // is_v_rowmajor
+                           false, // has_logits_soft_cap
                            mask.type,
                            enable_bias ? bias_enum::elementwise_bias : bias_enum::no_bias,
                            has_lse,
@@ -117,6 +118,7 @@ fmha_fwd_args get_ck_fmha_varlen_fwd_args(bool has_lse,
                          softmax_scale, // scale_s
                          1,             // scale_p
                          1,             // scale_o
+                         0.0f,          // logits_soft_cap
                          stride_q,
                          stride_k,
                          stride_v,
@@ -140,6 +142,7 @@ fmha_fwd_args get_ck_fmha_varlen_fwd_args(bool has_lse,
                          mask.left,
                          mask.right,
                          static_cast<ck_tile::index_t>(mask.type),
+                         -1,                                // min_seqlen_q
                          p_dropout,
                          has_dropout_randval,
                          drop_seed_offset};
@@ -149,7 +152,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tenso
 mha_varlen_fwd_ck(const at::Tensor &q,                   // total_q x num_heads x head_size, total_q := \sum_{i=0}^{b} s_i
                   const at::Tensor &k,             // total_k x num_heads_k x head_size, total_k := \sum_{i=0}^{b} s_i or num_blocks x page_block_size x num_heads_k x head_size if there's a block_table.
                   const at::Tensor &v,             // total_k x num_heads_k x head_size, total_k := \sum_{i=0}^{b} s_i or num_blocks x page_block_size x num_heads_k x head_size if there's a block_table.
-                  c10::optional<at::Tensor> &out_, // total_q x num_heads x head_size, total_k := \sum_{i=0}^{b} s_i
+                  std::optional<at::Tensor> &out_, // total_q x num_heads x head_size, total_k := \sum_{i=0}^{b} s_i
                   const at::Tensor &cu_seqlens_q,  // b+1
                   const at::Tensor &cu_seqlens_k,  // b+1
                   std::optional<at::Tensor> & /*seqused_k*/,
@@ -209,7 +212,7 @@ mha_varlen_fwd_ck(const at::Tensor &q,                   // total_q x num_heads 
     const int total_q = q.size(0);
     const int total_k = k.size(0);
 
-    TORCH_CHECK(batch_size > 0, "batch size must be postive");
+    TORCH_CHECK(batch_size > 0, "batch size must be positive");
     TORCH_CHECK(head_size_og <= 256, "CK only supports head dimension at most 256");
     TORCH_CHECK(num_heads % num_heads_k == 0, "Number of heads in key/value must divide number of heads in query");
 
