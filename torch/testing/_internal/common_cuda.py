@@ -53,6 +53,9 @@ def evaluate_platform_supports_flash_attention():
         arch_list = ["gfx90a", "gfx942", "gfx1100"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1201", "gfx950"]
+        version = _get_torch_rocm_version()
+        if version >= (6, 5):
+            arch_list += ["gfx950"]
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return not IS_WINDOWS and SM80OrLater
@@ -63,6 +66,9 @@ def evaluate_platform_supports_efficient_attention():
         arch_list = ["gfx90a", "gfx942", "gfx1100"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1201", "gfx950"]
+        version = _get_torch_rocm_version()
+        if version >= (6, 5):
+            arch_list += ["gfx950"]
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return True
