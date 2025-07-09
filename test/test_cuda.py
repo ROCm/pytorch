@@ -445,7 +445,6 @@ class TestCuda(TestCase):
         if torch.version.hip and ('gfx1101' in torch.cuda.get_device_properties(0).gcnArchName):
            torch.cuda.empty_cache()
            torch.cuda.reset_peak_memory_stats()
-
         orig = torch.cuda.get_per_process_memory_fraction(0)
         try:
             # test invalid fraction value.
