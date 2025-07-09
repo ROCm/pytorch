@@ -323,7 +323,7 @@ namespace at::cuda {
 TORCH_CUDA_CPP_API int warp_size();
 }
 #ifdef __HIPCC__
-inline int __host__ C10_WARP_SIZE_INTERNAL() {
+static inline int __host__ C10_WARP_SIZE_INTERNAL() {
   return at::cuda::warp_size();
 }
 
