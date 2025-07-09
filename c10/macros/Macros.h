@@ -341,6 +341,7 @@ inline int C10_WARP_SIZE_INTERNAL() {
 #endif
 
 #define C10_WARP_SIZE (C10_WARP_SIZE_INTERNAL())
+#define C10_WARP_SIZE_STATIC 64
 
 #else // defined(USE_ROCM)
 #define C10_WARP_SIZE 32
