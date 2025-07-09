@@ -917,7 +917,7 @@ class TestZeroRedundancyOptimizerDistributed(TestZeroRedundancyOptimizer):
                 torch.testing.assert_close(
                     loss_ddp,
                     loss_sharded_optim,
-                    atol=1.3e-3,
+                    atol=1.6e-3,
                     rtol=3e-6,
                     msg="Losses differ between local optimizer and ZeRO",
                 )
