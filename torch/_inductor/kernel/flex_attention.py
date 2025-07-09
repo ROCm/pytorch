@@ -1,5 +1,7 @@
 # mypy: allow-untyped-defs
 """ Triton Implementation of the flex_attention Kernel"""
+import os
+import itertools 
 
 import logging
 import math
@@ -1206,9 +1208,23 @@ def flex_attention(
         if torch.version.hip:
             configs = [(c[0], c[1], c[2], 1) for c in configs]
 
+    # Check if the environment variable is set
+    if os.getenv("TORCHINDUCTOR_EXHAUSTIVE_FLEX_ATTENTION_EXPERIMENTAL") == "1":
+        param1 = [16, 32, 64, 128, 256, 512]
+        param2 = [16, 32, 64, 128, 256, 512]
+        param3 = [2, 4, 8, 16]
+        param4 = [1]
+
+        # Generate full search space
+        configs = list(itertools.product(param1, param2, param3, param4))
+
     # Mark SPARSE_KV_BLOCK_SIZE & SPARSE_Q_BLOCK_SIZE as static shapes and add guards.
     SPARSE_KV_BLOCK_SIZE = V.graph.sizevars.evaluate_static_shape(SPARSE_KV_BLOCK_SIZE)
     SPARSE_Q_BLOCK_SIZE = V.graph.sizevars.evaluate_static_shape(SPARSE_Q_BLOCK_SIZE)
+
+    # ROCm specific considerations
+    if torch.version.hip:
+        kernel_options["kpack"] = 2
 
     # Note, we don't need to pass in the captured buffers explicitly
     # because they're implicitly added by the score_mod function
@@ -1234,33 +1250,67 @@ def flex_attention(
         cur_kernel_options.setdefault("SPARSE_Q_BLOCK_SIZE", SPARSE_Q_BLOCK_SIZE)
         cur_kernel_options.setdefault("SPARSE_KV_BLOCK_SIZE", SPARSE_KV_BLOCK_SIZE)
 
-        error = flex_attention_template.maybe_append_choice(
-            choices=choices,
-            input_nodes=[
-                query,
-                key,
-                value,
-                logsumexp,
-                kv_num_blocks,
-                kv_indices,
-                full_kv_num_blocks,
-                full_kv_indices,
-            ],
-            layout=layout,
-            subgraphs=[
-                subgraph_buffer,
-                mask_graph_buffer,
-            ],
-            mutated_inputs=[
-                logsumexp,
-            ],
-            num_stages=num_stages,
-            num_warps=num_warps,
-            call_sizes=query.get_size(),
-            **cur_kernel_options,
-        )
-        if error is not None and len(configs) == 1:
-            raise error
+        if os.getenv("TORCHINDUCTOR_EXHAUSTIVE_FLEX_ATTENTION_EXPERIMENTAL") == "1":
+            for mfma in [0, 16]:
+                for wpeu in [0, 1, 2, 4, 8]:
+                    cur_kernel_options["waves_per_eu"] = wpeu
+                    cur_kernel_options["matrix_instr_non_kdim"] = mfma
+                    error = flex_attention_template.maybe_append_choice(
+                        choices=choices,
+                        input_nodes=[
+                            query,
+                            key,
+                            value,
+                            logsumexp,
+                            kv_num_blocks,
+                            kv_indices,
+                            full_kv_num_blocks,
+                            full_kv_indices,
+                        ],
+                        layout=layout,
+                        subgraphs=[
+                            subgraph_buffer,
+                            mask_graph_buffer,
+                        ],
+                        mutated_inputs=[
+                            logsumexp,
+                        ],
+                        num_stages=num_stages,
+                        num_warps=num_warps,
+                        call_sizes=query.get_size(),
+                        **cur_kernel_options,
+                    )
+                    if error is not None and len(configs) == 1:
+                        raise error
+        else:
+            error = flex_attention_template.maybe_append_choice(
+                choices=choices,
+                input_nodes=[
+                    query,
+                    key,
+                    value,
+                    logsumexp,
+                    kv_num_blocks,
+                    kv_indices,
+                    full_kv_num_blocks,
+                    full_kv_indices,
+                ],
+                layout=layout,
+                subgraphs=[
+                    subgraph_buffer,
+                    mask_graph_buffer,
+                ],
+                mutated_inputs=[
+                    logsumexp,
+                ],
+                num_stages=num_stages,
+                num_warps=num_warps,
+                call_sizes=query.get_size(),
+                **cur_kernel_options,
+            )
+            if error is not None and len(configs) == 1:
+                raise error
+
     inputs_for_autotuning = (
         [
             query,
@@ -2257,13 +2307,15 @@ def flex_attention_backward(*args, **kwargs):
         configs.extend(
             [
                 (BLOCK1, BLOCK2, w, s)
-                for BLOCK1 in [32, 64]
-                for BLOCK2 in [32, 64, 128]
-                for w in ([4, 8] if BLOCK1 >= 128 or BLOCK2 >= 128 else [4])
+                for BLOCK1 in [16, 32, 64, 128, 256, 512]
+                for BLOCK2 in [16, 32, 64, 128, 256, 512]
+                for w in ([4, 8] if BLOCK1 >= 128 or BLOCK2 >= 128 else [4, 8])
                 for s in num_stages_list
                 if BLOCK2 % BLOCK1 == 0
             ]
         )
+    
+
     original_kernel_options = kernel_options.copy()
     for BLOCK1, BLOCK2, num_warps, num_stages in configs:
         if (
@@ -2284,43 +2336,47 @@ def flex_attention_backward(*args, **kwargs):
         cur_kernel_options.setdefault("SPARSE_Q_BLOCK_SIZE", SPARSE_Q_BLOCK_SIZE)
         cur_kernel_options.setdefault("SPARSE_KV_BLOCK_SIZE", SPARSE_KV_BLOCK_SIZE)
 
-        flex_attention_backward_template.maybe_append_choice(
-            choices=choices,
-            input_nodes=[
-                query,
-                key,
-                value,
-                logsumexp,
-                delta,
-                grad_out,
-                grad_query,
-                broadcasted_grad_value,
-                kv_num_blocks,
-                kv_indices,
-                q_num_blocks,
-                q_indices,
-                full_kv_num_blocks,
-                full_kv_indices,
-                full_q_num_blocks,
-                full_q_indices,
-            ],
-            layout=layout_broadcasted_k,  # We use store_output only for grad_key
-            subgraphs=[
-                fw_subgraph_buffer,
-                joint_outputs.grad_input,
-                mask_graph_buffer,
-                joint_outputs.captured_grads_compute,
-            ],
-            mutated_inputs=[
-                grad_query,
-                broadcasted_grad_value,
-                *joint_outputs.mutated_grads,
-            ],
-            call_sizes=query.get_size() + key.get_size()[1:3],
-            num_stages=num_stages,
-            num_warps=num_warps,
-            **cur_kernel_options,
-        )
+        for wpeu in [0, 1, 2, 4, 8]:
+            for mfma in [0, 16]:
+                cur_kernel_options["waves_per_eu"] = wpeu
+                cur_kernel_options["matrix_instr_non_kdim"] = mfma
+                flex_attention_backward_template.maybe_append_choice(
+                    choices=choices,
+                    input_nodes=[
+                        query,
+                        key,
+                        value,
+                        logsumexp,
+                        delta,
+                        grad_out,
+                        grad_query,
+                        broadcasted_grad_value,
+                        kv_num_blocks,
+                        kv_indices,
+                        q_num_blocks,
+                        q_indices,
+                        full_kv_num_blocks,
+                        full_kv_indices,
+                        full_q_num_blocks,
+                        full_q_indices,
+                    ],
+                    layout=layout_broadcasted_k,  # We use store_output only for grad_key
+                    subgraphs=[
+                        fw_subgraph_buffer,
+                        joint_outputs.grad_input,
+                        mask_graph_buffer,
+                        joint_outputs.captured_grads_compute,
+                    ],
+                    mutated_inputs=[
+                        grad_query,
+                        broadcasted_grad_value,
+                        *joint_outputs.mutated_grads,
+                    ],
+                    call_sizes=query.get_size() + key.get_size()[1:3],
+                    num_stages=num_stages,
+                    num_warps=num_warps,
+                    **cur_kernel_options,
+                )
     inputs_for_autotuning = (
         [
             query,
