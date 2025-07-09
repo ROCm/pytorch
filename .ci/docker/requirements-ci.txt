@@ -304,9 +304,6 @@ z3-solver==4.12.2.0
 #Pinned versions:
 #test that import:
 
-<<<<<<< HEAD
-tensorboard==2.13.0
-=======
 tensorboard==2.18.0
 >>>>>>> c7f61f4205 ([rocm7.0_internal_testing] upgrade tensorboard compatible with numpy 2 (#2326))
 #Description: Also included in .ci/docker/requirements-docs.txt
