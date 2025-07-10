@@ -334,11 +334,11 @@ static inline constexpr int __device__ C10_WARP_SIZE_INTERNAL() {
   return 32;
 #endif // __GFX9__
 }
-#else
+#else // __HIPCC__
 inline int C10_WARP_SIZE_INTERNAL() {
   return at::cuda::warp_size();
 }
-#endif
+#endif // __HIPCC__
 
 #define C10_WARP_SIZE (C10_WARP_SIZE_INTERNAL())
 #define C10_WARP_SIZE_STATIC 64
