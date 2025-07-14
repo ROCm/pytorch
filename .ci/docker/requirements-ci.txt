@@ -157,13 +157,13 @@ optree==0.13.0
 #test_pointwise_ops.py, test_dtensor_ops.py, test_torchinductor.py, test_fx.py,
 #test_fake_tensor.py, test_mps.py
 
-pillow==11.0.0 ; python_version == "3.13"
-pillow==10.3.0 ; python_version <= "3.12"
+pillow==11.0.0
 #Description:  Python Imaging Library fork
 #Pinned versions: 10.3.0
 #test that import:
 
-protobuf==4.25.1
+protobuf==3.20.2 ; python_version <= "3.12"
+protobuf==4.25.1 ; python_version == "3.13"
 #Description:  Google’s data interchange format
 #Pinned versions: 3.20.1
 #test that import: test_tensorboard.py
@@ -326,7 +326,8 @@ pywavelets==1.7.0 ; python_version >= "3.12"
 #Pinned versions: 1.4.1
 #test that import:
 
-lxml==6.0.0
+lxml==5.3.0 ; python_version <= "3.12"
+lxml==6.0.0 ; python_version == "3.13"
 #Description: This is a requirement of unittest-xml-reporting
 
 # Python-3.9 binaries
