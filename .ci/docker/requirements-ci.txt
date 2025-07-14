@@ -159,7 +159,6 @@ pillow==10.3.0 ; python_version <= "3.12"
 #Description:  Python Imaging Library fork
 #Pinned versions: 10.3.0
 #test that import:
-pybind11==3.0.0
 
 protobuf==4.25.1
 #Description:  Google’s data interchange format
