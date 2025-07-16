@@ -312,8 +312,38 @@ constexpr uint32_t CUDA_THREADS_PER_BLOCK_FALLBACK = 256;
 #endif
 
 #if defined(USE_ROCM)
-#define C10_WARP_SIZE warpSize // = 64 or 32 (Defined in hip_runtime.h)
-#else
+// C10_WARP_SIZE is only allowed for device code.
+// Host code _must_ use at::cuda::warp_size()
+// HIP header used to define warpSize as a constexpr that was either 32 or 64
+// depending on the target device, and then always set it to 64 for host code.
+// Host pass of HIP compiler needs C10_WARP_SIZE defined to _something_ so we
+// set it to something unreasonable to trigger obvious host code errors.
+
+namespace at::cuda {
+TORCH_CUDA_CPP_API int warp_size();
+}
+#ifdef __HIPCC__
+static inline int __host__ C10_WARP_SIZE_INTERNAL() {
+  return at::cuda::warp_size();
+}
+
+static inline constexpr int __device__ C10_WARP_SIZE_INTERNAL() {
+#if defined(__GFX9__)
+  return 64;
+#else // __GFX9__
+  return 32;
+#endif // __GFX9__
+}
+#else // __HIPCC__
+inline int C10_WARP_SIZE_INTERNAL() {
+  return at::cuda::warp_size();
+}
+#endif // __HIPCC__
+
+#define C10_WARP_SIZE (C10_WARP_SIZE_INTERNAL())
+#define C10_WARP_SIZE_STATIC 64
+
+#else // defined(USE_ROCM)
 #define C10_WARP_SIZE 32
 #endif
 
