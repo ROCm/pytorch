@@ -2225,7 +2225,7 @@ def foreach(triton_meta, filename=None, inductor_meta=None):
         configs.append(triton.Config({}, num_stages=1, num_warps=8))
     else:
         for warps in [1, 2, 4, 8]:
-            configs.append(triton.Config({}, num_stages=1, num_warps=1))
+            configs.append(triton.Config({}, num_stages=1, num_warps=warps))
 
     return cached_autotune(
         None,
