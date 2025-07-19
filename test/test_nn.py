@@ -5174,6 +5174,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         name_fn=lambda f, b, m, t: f"{f}_vs_{b}{'_mixed' if m else ''}_{dtype_name(t)}"
     )
     def test_batchnorm(self, dims, mode, memory_format, ref_backend, mixed, dtype):
+<<<<<<< HEAD
         if torch.version.cuda:
             if self._testMethodName in ("test_batchnorm_2D_train_NCHW_vs_cpu_mixed_bfloat16",
                                         "test_batchnorm_3D_train_NCHW_vs_cpu_mixed_bfloat16"):
@@ -5182,6 +5183,10 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             if self._testMethodName == "test_batchnorm_3D_train_NCHW_vs_native_mixed_float16":
                 self.skipTest("Batchnorm 3D NHWC train failed on CUDA")
 
+=======
+        if self._testMethodName == "test_batchnorm_3D_train_NCHW_vs_native_mixed_float16":
+           self.skipTest("3D float16 NCHW train failed on CUDA and ROCm due to Native batchnorm accuracy issue SWDEV-541024")
+>>>>>>> 4eaa5bf23b ([rocm7.0_internal_testing] skip 3D NCHW FP16 batchnorm test due to Native accuracy issue (#2370))
         if torch.version.hip:
             if self._testMethodName in ("test_batchnorm_2D_train_NCHW_vs_cpu_mixed_bfloat16",
                                         "test_batchnorm_3D_train_NCHW_vs_cpu_mixed_bfloat16") \
@@ -5197,10 +5202,13 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 # https://github.com/pytorch/pytorch/issues/156513
                 self.skipTest("bfloat16 NCHW train failed due to native tolerance issue")
 
+<<<<<<< HEAD
             if self._testMethodName == "test_batchnorm_3D_train_NCHW_vs_native_mixed_float16" \
                     and _get_torch_rocm_version() < (7, 0):
                 self.skipTest("3D float16 NCHW train failed on ROCm<7.0")
 
+=======
+>>>>>>> 4eaa5bf23b ([rocm7.0_internal_testing] skip 3D NCHW FP16 batchnorm test due to Native accuracy issue (#2370))
         if dims == 3 and memory_format in ("NHWC", "NCHW"):
             memory_format = memory_format + "3D"
 
