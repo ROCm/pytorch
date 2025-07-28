@@ -2078,7 +2078,7 @@ def _persistent_reduction_configs(
         if max_autotune_enabled:
             for tconfig in tiny_configs:
                 if tconfig not in configs:
-                    configs.append(tiny_config)
+                    configs.append(tconfig)
             else:
                 configs = tiny_configs
 
