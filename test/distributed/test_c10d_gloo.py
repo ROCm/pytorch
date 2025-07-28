@@ -53,11 +53,8 @@ from torch.testing._internal.common_utils import (
     retry_on_connect_failures,
     run_tests,
     skip_but_pass_in_sandcastle,
-<<<<<<< HEAD
     skipIfRocmArch,
-=======
     skipIfRocm,
->>>>>>> 2269e37502 (Skipped *_stress_cuda UTs in test_c10d_gloo in release/2.5 branch. (#2317))
     TestCase,
 )
 
