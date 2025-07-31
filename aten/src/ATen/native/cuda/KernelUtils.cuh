@@ -281,9 +281,19 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
         }
     }
 
+<<<<<<< HEAD
     // not coalsced, so now let try to capture lane-matches...
     // __activemask() -- finds the set of threads in the warp that are about to perform atomicAdd
     // __match_any_sync() -- returns bit mask of the threads that have same dest addr
+=======
+    if (numel > 16 /*<-hueristic threshold*/ * 64 ) {
+      // well shucks, unlikely to capture same-dest atomics in a wave.
+      // fall back to direct fastAtomic...
+      fastAtomicAdd(self_ptr, index, numel, value, true);
+      return;
+    }
+
+>>>>>>> faae1f393fa ([release/2.7] [ROCm] Use opportunistic fastatomics based on heuristics (#2438))
     auto mask = __match_any_sync(__activemask(), (int64_t)dst);
 
     // select a leader thread
