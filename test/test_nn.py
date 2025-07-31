@@ -3913,7 +3913,8 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         hidden_c_shape = update_shape(correct_hidden_c_shape, 0, bad_size)
         test(input_shape, hidden_h_shape, hidden_c_shape)
 
-    @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
+    @unittest.skipIf(not TEST_MULTIGPU, "single-GPU not supported")
+    @unittest.skipIf(TEST_MULTIGPU, "multi-GPU not supported")
     def test_rnn_check_device(self):
         import copy
         input_size = 3
