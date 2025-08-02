@@ -120,12 +120,11 @@ struct TORCH_CUDA_CPP_API ConvolutionDescriptor
   }
 };
 
-// NOLINTNEXTLINE(bugprone-exception-escape)
-struct TORCH_CUDA_CPP_API DropoutDescriptor
-    : public Descriptor<
-          miopenDropoutDescriptor,
-          &miopenCreateDropoutDescriptor,
-          &miopenDestroyDropoutDescriptor> {
+struct DropoutDescriptor
+  : public Descriptor<miopenDropoutDescriptor,
+                      &miopenCreateDropoutDescriptor,
+                      &miopenDestroyDropoutDescriptor>
+{
     void set(miopenHandle_t handle, float dropout, void* states, size_t stateSizeInBytes,
              unsigned long long seed, bool use_mask, bool state_evo, miopenRNGType_t rng_mode) {
       MIOPEN_CHECK(miopenSetDropoutDescriptor(mut_desc(), handle, dropout, states, stateSizeInBytes, seed, use_mask, state_evo, rng_mode));
