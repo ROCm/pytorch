@@ -113,6 +113,7 @@ class TestSelectAlgorithm(TestCase):
         self.assertEqual(counters["inductor"]["select_algorithm_autotune"], 1)
 
     @patches
+    @skipIfRocm
     def test__int_mm(self):
         @torch.compile
         def foo(a, b):
