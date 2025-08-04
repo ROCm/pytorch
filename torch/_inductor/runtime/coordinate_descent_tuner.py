@@ -3,6 +3,7 @@ import copy
 import itertools
 import logging
 from typing import Callable, Optional
+from functools import lru_cache
 
 from .hints import TRITON_MAX_BLOCK
 
@@ -78,6 +79,7 @@ class CoordescTuner:
             rmax = min(rmax, self.size_hints[-1])  # the last one is for reduction
         return rmax
 
+    @lru_cache(maxsize=1)
     def get_warpsmax(self):
         # CUDA/ROCm has a maximum of 1024 threads per block
         from torch.cuda import current_device, get_device_properties, is_available
