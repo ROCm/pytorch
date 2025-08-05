@@ -12,7 +12,7 @@ cases*/
 
 static constexpr auto bfloat16_type_string = "__nv_bfloat16";
 
-#if defined(USE_ROCM)
+#if defined(USE_ROCM) && (TORCH_HIP_VERSION < 700)
 static auto type_declarations_template = at::jit::CodeTemplate(R"(
 ${HalfHeader}
 ${BFloat16Header}
