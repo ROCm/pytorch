@@ -34,7 +34,9 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
     skipIfRocm,
+    skipIfRocmArch,
     TEST_WITH_ROCM,
+    NAVI32_ARCH,
 )
 from torch.testing._internal.inductor_utils import HAS_CPU, HAS_CUDA
 
@@ -717,6 +719,8 @@ class TestMaxAutotune(TestCase):
 
         self.assertIn("NoValidChoicesError", str(context.exception))
 
+    # NAVI32 doesn't have enough VRAM to run all autotune configurations and padding benchmarks
+    @skipIfRocmArch(NAVI32_ARCH)
     def test_non_contiguous_input_mm(self):
         """
         Make sure the triton template can work with non-contiguous inputs without crash.
@@ -766,6 +770,8 @@ class TestMaxAutotune(TestCase):
         act = f(x, y)
         torch.testing.assert_close(act, ref, atol=2e-2, rtol=1e-2)
 
+    # NAVI32 doesn't have enough VRAM to run all autotune configurations and padding benchmarks
+    @skipIfRocmArch(NAVI32_ARCH)
     def test_non_contiguous_input_mm_plus_mm(self):
         x1 = rand_strided((50257, 32768), (1, 50304), device="cuda")
         y1 = rand_strided((32768, 768), (768, 1), device="cuda")
