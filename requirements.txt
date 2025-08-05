@@ -18,4 +18,5 @@ setuptools==69.5.1 ; python_version >= "3.12"
 packaging==24.1
 optree==0.9.1 ; python_version < "3.12"
 optree==0.10.0 ; python_version >= "3.12"
+cmake==3.31.4
 lark==0.12.0
