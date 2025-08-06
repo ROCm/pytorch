@@ -1892,7 +1892,6 @@ def skipIfRocmNotEnoughMemory(required_amount):
                 if not result:
                     reason = f"skipIfRocm: Not enough free VRAM on current ROCm device. Available {free_global:.2f} GB | Required {required_amount:.2f} GB."
                     raise unittest.SkipTest(reason)
-
             return fn(self, *args, **kwargs)
         return wrap_fn
     return dec_fn
