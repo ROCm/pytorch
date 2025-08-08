@@ -17,7 +17,7 @@ psutil==7.0.0
 pyyaml==6.0.2
 requests==2.32.4
 # setuptools develop deprecated on 80.0
-setuptools==79.0.1
+setuptools==75.8.2
 sympy==1.13.3
 types-dataclasses==0.6.6
 typing-extensions==4.14.1
