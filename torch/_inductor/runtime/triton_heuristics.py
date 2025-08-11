@@ -2705,14 +2705,14 @@ def _persistent_reduction_configs(
             triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
             for xblock in (1, 8, 32, 128)
             if xblock == 1
-            or (rnumel * xblock <= MAX_PERSISTENT_BLOCK_NUMEL and xblock <= xnumel)
+            or (rnumel * xblock <= 4096 and xblock <= xnumel)
         ]
     else:
         configs = []
         assert "tiling_scores" in inductor_meta
         x_y_scores = {dim: inductor_meta["tiling_scores"][dim] for dim in ("x", "y")}
         for target_block_size in (1, 8, 32, 64, 128):
-            if target_block_size * rnumel > MAX_PERSISTENT_BLOCK_NUMEL:
+            if target_block_size * rnumel > 4096:
                 continue
 
             block_sizes = match_target_block_product(
