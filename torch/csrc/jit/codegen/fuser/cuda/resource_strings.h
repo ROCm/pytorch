@@ -267,6 +267,10 @@ constexpr auto bfloat16_support_literal =
 #define __align__(x) __attribute__((aligned(x)))
 #endif
 
+#if ROCM_VERSION >= 70000
+typedef unsigned int uint32_t;
+#endif
+
 typedef struct __align__(2) {
   unsigned short x;
 }
