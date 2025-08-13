@@ -422,8 +422,6 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         # reset env
         os.environ["TORCH_NCCL_NAN_CHECK"] = "0"
 
-<<<<<<< HEAD
-=======
     def _helper_test_extra_cuda_context_by_nvml(self):
         """
         A helper for `test_extra_cuda_context`, if pynvml is avaiable.
@@ -521,7 +519,6 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         except ModuleNotFoundError:
             self._helper_test_extra_cuda_context_by_memory()
 
->>>>>>> 960d1d0fd8c ([ROCm6.4_internal_testing] Using c10d.barrier() in test_extra_cuda_context test in test_c10d_nccl.py (#2447))
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_destruct_before_terminate_pg(self):
