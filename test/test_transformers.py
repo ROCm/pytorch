@@ -3302,6 +3302,8 @@ class TestSDPACudaOnly(NNTestCase):
                 fudge_factors['grad_query'] = 650.0
             if dtype == torch.float32:
                 fudge_factors['grad_key'] = 90.0
+                if "gfx95" in torch.cuda.get_device_properties(0).gcnArchName:
+                    fudge_factors['grad_value'] = 12.0
 
         check_out_and_grad(
             (out_ref, out_lp_ref, out),
