@@ -197,6 +197,7 @@ class InductorChoices:
         )  # type: ignore[arg-types]
 
     @staticmethod
+<<<<<<< HEAD
     def want_no_x_dim(features: SIMDKernelFeatures) -> bool:
         """
         Heuristic to decide if we should drop the X dimension from a persistent reduction kernel.
@@ -209,6 +210,8 @@ class InductorChoices:
         return False
 
     @staticmethod
+=======
+>>>>>>> origin/main
     def reduction_split_factor(
         device: torch.device,
         reduction_numel_hint: int,
