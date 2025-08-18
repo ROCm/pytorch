@@ -30,14 +30,18 @@ from torch._inductor.utils import fresh_inductor_cache, run_and_get_code
 from torch._inductor.virtualized import V
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.testing import FileCheck
+from torch.testing._internal.common_device_type import largeTensorTest
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
-    skipIfRocmNotEnoughMemory,
     skipIfRocm,
     TEST_WITH_ROCM,
 )
-from torch.testing._internal.inductor_utils import HAS_CPU, HAS_CUDA
+from torch.testing._internal.inductor_utils import (
+    GPU_TYPE,
+    HAS_CPU,
+    HAS_CUDA,
+)    
 
 
 torch.set_float32_matmul_precision("high")
@@ -719,7 +723,7 @@ class TestMaxAutotune(TestCase):
         self.assertIn("NoValidChoicesError", str(context.exception))
 
     # Some ROCm GPUs don't have enough VRAM to run all autotune configurations and padding benchmarks
-    @skipIfRocmNotEnoughMemory(30)
+    @largeTensorTest("30 GB", device=GPU_TYPE)
     def test_non_contiguous_input_mm(self):
         """
         Make sure the triton template can work with non-contiguous inputs without crash.
@@ -770,7 +774,7 @@ class TestMaxAutotune(TestCase):
         torch.testing.assert_close(act, ref, atol=2e-2, rtol=1e-2)
 
     # Some ROCm GPUs don't have enough VRAM to run all autotune configurations and padding benchmarks
-    @skipIfRocmNotEnoughMemory(30)
+    @largeTensorTest("30 GB", device=GPU_TYPE)
     def test_non_contiguous_input_mm_plus_mm(self):
         x1 = rand_strided((50257, 32768), (1, 50304), device="cuda")
         y1 = rand_strided((32768, 768), (768, 1), device="cuda")
