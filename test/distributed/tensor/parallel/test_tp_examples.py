@@ -43,6 +43,7 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
     Transformer,
     with_comms,
 )
+from unittest import skipIf
 
 
 c10d_functional = torch.ops.c10d_functional
@@ -414,6 +415,7 @@ class DistTensorParallelExampleTest(DTensorTestBase):
         + f"{str(dtype).split('.')[-1]}_"
         + f"thaw_{'__'.join(sorted({n.rpartition('.')[0].replace('.', '_') for n in thaw})) if thaw else 'all'}",
     )
+
     @skipIf(not PLATFORM_SUPPORTS_FUSED_ATTENTION, "Does not support fused scaled dot product attention")
     def test_transformer_req_grad(self, thaw_params, is_seq_parallel, dtype, exp_cnts):
         # Sample a subset of `requires_grad` patterns
