@@ -56,8 +56,8 @@ class C10_CUDA_API CUDAAllocatorConfig {
     return instance().m_release_lock_on_cudamalloc;
   }
 
-  static bool reclaim_memory_in_graph_capture() {
-    return instance().m_reclaim_memory_in_graph_capture;
+  static bool graph_capture_record_stream_reuse() {
+    return instance().m_graph_capture_record_stream_reuse;
   }
 
   /** Pinned memory allocator settings */
@@ -125,7 +125,7 @@ class C10_CUDA_API CUDAAllocatorConfig {
         "amalloc",
         "pinned_use_cud"
         "a_host_register",
-        "reclaim_memory_in_graph_capture",
+        "graph_capture_record_stream_reuse",
         // NOLINTEND(bugprone-suspicious-missing-comma,-warnings-as-errors)
         "release_lock_on_hipmalloc",
         "pinned_use_hip_host_register",
@@ -183,7 +183,7 @@ class C10_CUDA_API CUDAAllocatorConfig {
 #endif
   std::atomic<bool> m_release_lock_on_cudamalloc{false};
   std::atomic<bool> m_pinned_use_cuda_host_register{false};
-  std::atomic<bool> m_reclaim_memory_in_graph_capture{false};
+  std::atomic<bool> m_graph_capture_record_stream_reuse{false};
   std::atomic<bool> m_use_async_allocator{false};
   std::atomic<bool> m_is_allocator_loaded{false};
 };
