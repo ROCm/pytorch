@@ -5612,11 +5612,12 @@ class TestMemPool(TestCase):
                 data1.record_stream(s2)
 
             data1.fill_(1.0)
-            del data1; gc.collect()
+            del data1
+            gc.collect()
 
             s1.wait_stream(s2)
 
-            # the graph would be joined after this rand kernel        
+            # the graph would be joined after this kernel
             unrelated.fill_(1.0)
             # this new allocation should reuse data1 if the graph_capture_record_stream_reuse is enabled
             data2 = torch.rand(8, device="cuda")
@@ -5673,7 +5674,8 @@ class TestMemPool(TestCase):
                 data1.record_stream(s4)
 
             data1.fill_(1.0)
-            del data1; gc.collect()
+            del data1
+            gc.collect()
 
             s1.wait_stream(s2)
             unrelated.fill_(1.0)
@@ -5682,7 +5684,7 @@ class TestMemPool(TestCase):
             with torch.cuda.stream(s3):
                 unrelated.fill_(3.0)
                 unrelated.record_stream(s3)
-                
+
             unrelated.fill_(3.0)
             data2 = torch.ones(8, device="cuda")
             data2_ptr = data2.data_ptr()
@@ -5702,7 +5704,6 @@ class TestMemPool(TestCase):
         torch.cuda.memory._set_allocator_settings(
             "graph_capture_record_stream_reuse:False"
         )
-
 
     @skipIfRocm(msg="expandable_segments mode is not supported on ROCm")
     @unittest.skipIf(IS_FBCODE or IS_SANDCASTLE, "Load_inline doesn't work in fbcode")
