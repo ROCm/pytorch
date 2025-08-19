@@ -258,16 +258,7 @@ scipy==1.14.1 ; python_version > "3.9"
 #Pinned versions:
 #test that import:
 
-<<<<<<< HEAD
-tb-nightly==2.13.0a20230426
-#Description: TensorBoard
-#Pinned versions:
-#test that import:
-
 tlparse==0.3.30
-=======
-tlparse==0.3.25
->>>>>>> 2feede28593 ([release/2.6] Remove tb-nightly (#2535))
 #Description: parse logs produced by torch.compile
 #Pinned versions:
 #test that import: dynamo/test_structured_trace.py
