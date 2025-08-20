@@ -187,35 +187,9 @@ function install_torchrec_and_fbgemm() {
   pip_uninstall torchrec-nightly
   pip_uninstall fbgemm-gpu-nightly
   pip_install setuptools-git-versioning scikit-build pyre-extensions
-<<<<<<< HEAD
   # See https://github.com/pytorch/pytorch/issues/106971
-  CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 --user "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
-  pip_install --no-use-pep517 --user "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
-=======
-
-  if [[ "$BUILD_ENVIRONMENT" == *rocm* ]] ; then
-    # install torchrec first because it installs fbgemm nightly on top of rocm fbgemm
-    pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
-    pip_uninstall fbgemm-gpu-nightly
-
-    pip_install tabulate  # needed for newer fbgemm
-    pip_install patchelf  # needed for rocm fbgemm
-    git clone --recursive https://github.com/pytorch/fbgemm
-    pushd fbgemm/fbgemm_gpu
-    git checkout "${fbgemm_commit}"
-    python setup.py install \
-      --package_variant=rocm \
-      -DHIP_ROOT_DIR="${ROCM_PATH}" \
-      -DCMAKE_C_FLAGS="-DTORCH_USE_HIP_DSA" \
-      -DCMAKE_CXX_FLAGS="-DTORCH_USE_HIP_DSA"
-    popd
-    rm -rf fbgemm
-  else
-    # See https://github.com/pytorch/pytorch/issues/106971
-    CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
-    pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
-  fi
->>>>>>> 0bd4030892d... [release/2.7] Removing --user flag from all pip install commands (#2238)
+  CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
 }
 
 function clone_pytorch_xla() {
@@ -249,15 +223,6 @@ function checkout_install_torchbench() {
   popd
 }
 
-<<<<<<< HEAD
-=======
-function install_torchao() {
-  local commit
-  commit=$(get_pinned_commit torchao)
-  pip_install --no-use-pep517 "git+https://github.com/pytorch/ao.git@${commit}"
-}
-
->>>>>>> 0bd4030892d... [release/2.7] Removing --user flag from all pip install commands (#2238)
 function print_sccache_stats() {
   echo 'PyTorch Build Statistics'
   sccache --show-stats
