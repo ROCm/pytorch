@@ -148,7 +148,7 @@ test_jit_hooks() {
   popd
   assert_git_not_dirty
 }
-
+if [[ $NUM_TEST_SHARDS -gt 1 ]]; then
   test_python_shard "${SHARD_NUMBER}"
   if [[ "${SHARD_NUMBER}" == 1 ]]; then
     test_libtorch
