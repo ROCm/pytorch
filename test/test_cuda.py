@@ -5613,7 +5613,6 @@ class TestMemPool(TestCase):
 
             data1.fill_(1.0)
             del data1
-            gc.collect()
 
             s1.wait_stream(s2)
 
@@ -5675,7 +5674,6 @@ class TestMemPool(TestCase):
 
             data1.fill_(1.0)
             del data1
-            gc.collect()
 
             s1.wait_stream(s2)
             unrelated.fill_(1.0)
