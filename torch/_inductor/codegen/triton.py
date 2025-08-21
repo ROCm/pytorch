@@ -1083,11 +1083,11 @@ class TritonOverrides(OpOverrides):
 
     @staticmethod
     def minimum(a, b):
-        return f"triton_helpers.minimum({a}, {b})"
+        return f"tl.minimum({a}, {b})"
 
     @staticmethod
     def maximum(a, b):
-        return f"triton_helpers.maximum({a}, {b})"
+        return f"tl.maximum({a}, {b})"
 
     @staticmethod
     def where(a, b, c):
@@ -1273,7 +1273,7 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def rsqrt(x):
-        return f"libdevice.rsqrt({x})"
+        return f"tl.rsqrt({x})"
 
     @staticmethod
     @maybe_upcast_float32()
