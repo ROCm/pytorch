@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
-from typing import List, Sequence
+from typing import List, Sequence, Dict, Optional
 import re
 import pandas as pd
 from openpyxl.utils import get_column_letter
@@ -199,58 +199,32 @@ def split_df_diff(
 
     return results
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# main
-# ──────────────────────────────────────────────────────────────────────────────
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("reports", nargs="+", help="TraceLens Excel reports (.xlsx)")
-    parser.add_argument(
-        "-o", "--output", default="comparison.xlsx", help="Output file name"
-    )
-    parser.add_argument(
-        "--names", nargs="*", help="Optional tags for each report (must match count)"
-    )
-    parser.add_argument(
-        "--sheets",
-        choices=(
-            "gpu_timeline",
-            "ops_summary",
-            "ops_all",
-            "roofline",
-            "all",
-        ),
-        default="all",
-        help="Which sheet groups to process",
-    )
-    args = parser.parse_args()
-
-    if len(args.reports) < 2:
-        parser.error("Need at least two report files")
-    if args.names and len(args.names) != len(args.reports):
-        parser.error("--names count must equal number of reports")
-
+def generate_compare_perf_reports_pytorch(
+        reports: List[str], # List of paths to TraceLens reports
+        output: str = "comparison.xlsx",
+        names: List[str] = None,
+        sheets: List[str] = ["all"],
+) -> Dict[str, pd.DataFrame]:
+    
     tags = (
-        args.names
-        if args.names
-        else [os.path.splitext(os.path.basename(p))[0] for p in args.reports]
+        names
+        if names
+        else [os.path.splitext(os.path.basename(p))[0] for p in reports]
     )
     baseline_tag = tags[0]
     if len(set(tags)) != len(tags):
-        parser.error("Tags must be unique – use --names to disambiguate.")
-
+        raise ValueError("Tags must be unique – use --names to disambiguate.")
     results: dict[str, pd.DataFrame] = {}
     cols_to_hide_xl: dict[str, List[str]] = {}
 
     # ── GPU timeline ──────────────────────────────────────────────────────────
-    if args.sheets in ("gpu_timeline", "all"):
+    if "gpu_timeline" in sheets or "all" in sheets:
         keys = ["type"]
         diff_col = "time ms"
         # Load the GPU timeline sheet from each report
         dfs = [
             load_sheet(path, sheet_name="gpu_timeline")
-            for path in args.reports
+            for path in reports
         ]
         dtl = build_df_dff(
             dfs=dfs,
@@ -261,14 +235,14 @@ def main() -> None:
         results["gpu_timeline"] = dtl
 
     # ── Ops summary ───────────────────────────────────────────────────────────
-    if args.sheets in ("ops_summary", "all"):
+    if "ops_summary" in sheets or "all" in sheets:
         keys = ["name"]
         diff_cols = ["total_direct_kernel_time_ms", "Count"]
         cols_to_delete = ["total_direct_kernel_time_sum"]
         # Load the Ops summary sheet from each report
         dfs = [
             load_sheet(path, sheet_name="ops_summary")
-            for path in args.reports
+            for path in reports
         ]
 
         # Delete columns that are not needed
@@ -294,9 +268,9 @@ def main() -> None:
 
     # ── Ops ALL (split into 3 sheets) ─────────────────────────────────────────
     alias = ["ops_all", "ops_unique_args"] # different names for different versions of perf reports
-    if args.sheets in ("ops_all", "all"):
+    if "ops_all" in sheets or "all" in sheets:
         for sheet_name in alias:
-            if sheet_name in pd.ExcelFile(args.reports[0]).sheet_names:
+            if sheet_name in pd.ExcelFile(reports[0]).sheet_names:
                 ops_all_sheet = sheet_name
                 break
         keys = [
@@ -310,7 +284,7 @@ def main() -> None:
 
         dfs = [
             load_sheet(path, sheet_name=ops_all_sheet)
-            for path in args.reports
+            for path in reports
         ]
 
         opsA = build_df_dff(
@@ -337,7 +311,7 @@ def main() -> None:
             cols_to_hide_xl[sheet_name] = cols_to_hide
 
     # ── Roofline sheets (per-op) ──────────────────────────────────────────────
-    if args.sheets in ("roofline", "all"):
+    if "roofline" in sheets or "all" in sheets:
         roofline_sheets = [
             "GEMM",
             "SDPA_fwd",
@@ -361,7 +335,7 @@ def main() -> None:
             
             dfs = [
                 load_sheet(path=path, sheet_name=sheet)
-                for path in args.reports
+                for path in reports
             ]
 
             # delete columns that are not needed for non-baseline reports
@@ -411,7 +385,7 @@ def main() -> None:
                 cols_to_hide_xl[sheet_name] = cols_to_hide
 
     # ── Write workbook ────────────────────────────────────────────────────────
-    with pd.ExcelWriter(args.output, engine='openpyxl') as xls:
+    with pd.ExcelWriter(output, engine='openpyxl') as xls:
         for sheet_name, df in results.items():
             # if df is empty, skip writing it
             if df.empty:
@@ -424,6 +398,48 @@ def main() -> None:
                 worksheet = xls.sheets[sheet_name[:31]]
                 worksheet.column_dimensions[col_letter].hidden = True
             print(f"Wrote sheet '{sheet_name}' with {len(df)} rows × {len(df.columns)} columns")
+    
+    return results
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# main
+# ──────────────────────────────────────────────────────────────────────────────
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("reports", nargs="+", help="TraceLens Excel reports (.xlsx)")
+    parser.add_argument(
+        "-o", "--output", default="comparison.xlsx", help="Output file name"
+    )
+    parser.add_argument(
+        "--names", nargs="*", help="Optional tags for each report (must match count)"
+    )
+    parser.add_argument(
+        "--sheets",
+        nargs="+",
+        choices=(
+            "gpu_timeline",
+            "ops_summary",
+            "ops_all",
+            "roofline",
+            "all",
+        ),
+        default=["all"],
+        help="Which sheet groups to process. Can be one or more.",
+    )
+    args = parser.parse_args()
+
+    if len(args.reports) < 2:
+        parser.error("Need at least two report files")
+    if args.names and len(args.names) != len(args.reports):
+        parser.error("--names count must equal number of reports")
+
+    generate_compare_perf_reports_pytorch(
+        reports=args.reports,
+        output=args.output,
+        names=args.names,
+        sheets=args.sheets,
+    )
 
 if __name__ == "__main__":
     main()

@@ -16,7 +16,8 @@ def _get_torch_or_raise() -> Any: # Changed return type to Any for flexibility
             )
     return _torch_module
 
-list_profile_tensor_types = ['float', 'c10::Half', 'c10::BFloat16']
+list_profile_tensor_types = ['double', 'float', 'c10::Half', 'c10::BFloat16',
+                             'long', 'int', 'bool']
 
 from dataclasses import dataclass
 @dataclass
@@ -27,12 +28,17 @@ class TensorCfg:
     shape: List[int]
     dtype: str
     strides: List[int]
+    init: str = "normal"
 
 
 def build_tensor(cfg: TensorCfg, device: str='cuda') -> 'torch.Tensor':
 
     torch = _get_torch_or_raise()
     dict_profile2torchdtype = {
+        'bool': torch.bool,
+        'int': torch.int,
+        'long': torch.long,
+        'double': torch.float64,
         'float': torch.float32,
         'c10::Half': torch.float16,
         'c10::BFloat16': torch.bfloat16,
@@ -42,7 +48,14 @@ def build_tensor(cfg: TensorCfg, device: str='cuda') -> 'torch.Tensor':
     stride = cfg.strides
     # allocate *exactly* the storage needed for that stride/shape
     t = torch.empty_strided(size, stride, dtype=dtype, device=device)
-    t.normal_()                     # or whatever init you like
+    is_floating = t.is_floating_point() or t.is_complex()
+    init = cfg.init
+    if init == 'normal':
+        if not is_floating:
+            raise ValueError(f"Cannot initialize tensor of type {cfg.dtype} with 'normal' init.")
+        t.normal_()                     # or whatever init you like
+    elif init is not None:
+        raise ValueError(f"Unsupported tensor initialization: {init}")
     return t
 
 def summarize_tensor(tensor: 'torch.Tensor') -> str:

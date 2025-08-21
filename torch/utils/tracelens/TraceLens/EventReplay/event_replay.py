@@ -222,6 +222,7 @@ class EventReplayer:
                 }
             }
         """
+        evt_name = event['name']
         op_name, pos_args_schema, kwargs_schema, return_type = EventReplayer.parse_schema_string(schema)
         full_args_schema = pos_args_schema + kwargs_schema
         list_pos_args = []
@@ -243,16 +244,27 @@ class EventReplayer:
                 value = []
             else:
                 if arg_type in ['Tensor', 'Tensor?', 'Tensor(a!)']:
+                    init = 'normal'
+                    if evt_name == 'aten::fill_':
+                        # special case for fill_ where we don't need to initialize the tensor
+                        # as it will be filled with a value later
+                        init = None
+                    elif evt_name == 'aten::copy_' and arg_name!= 'src':
+                        # special case for copy_ where we don't need to initialize the tensor
+                        # as it will be copied from another tensor
+                        init = None
                     value = TensorCfg(shape=event['args']['Input Dims'][idx],
                                                     dtype=event['args']['Input type'][idx],
-                                                    strides=event['args']['Input Strides'][idx])
+                                                    strides=event['args']['Input Strides'][idx],
+                                                    init=init
+                                                )
                 else:
                     arg_str = event['args']['Concrete Inputs'][idx]
                     if arg_type in ['bool', 'bool?']:
                         value = arg_str.lower() == 'true'
                     elif arg_type in ['int', 'SymInt']:
                         value = int(arg_str)
-                    elif arg_type in ['float', 'float?', 'Scalar']:
+                    elif arg_type in ['float', 'float?', 'Scalar', 'Scalar?']:
                         value = float(arg_str)
                     elif arg_type.startswith('int[') or arg_type.startswith('SymInt['):
                         value = [int(x.strip()) for x in arg_str.strip()[1:-1].split(',')]

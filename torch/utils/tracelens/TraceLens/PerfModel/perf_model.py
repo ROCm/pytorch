@@ -95,8 +95,11 @@ class GEMM:
         self.parsed_kernel_info = None
         self.arch = arch
         self.python_path = python_path
-
-        for kernel_name in event['kernel_names']:
+        if 'kernel_names' in event and len(event['kernel_names']) > 0:
+            kernel_names = event['kernel_names']
+        elif 'kernel_details' in event and len(event['kernel_details']) > 0:
+            kernel_names = [kernel['name'] for kernel in event['kernel_details']]
+        for kernel_name in kernel_names:
             # TODO: think you really wanna pass around dicts instead of objects?
             self.parsed_kernel_info = gemm_name_parser(kernel_name)
             if self.parsed_kernel_info is not None:
@@ -877,20 +880,18 @@ class SDPA:
         self.param_details = self.get_param_details(event)
         self.arch = arch
         self.python_path = python_path
-        # get useful stuff from the param_details
-        # self.B, self.N_Q, self.H, self.d_k, self.N_K = (self.param_details[key] for key in ['B', 'N_Q', 'H', 'd_k', 'N_K'])
-        self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h = (self.param_details[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h'])
+        self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h_qk, self.d_h_v = (self.param_details[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
 
     def get_param_details(event):
         # to be implemented in the child class
         raise NotImplementedError
 
     @staticmethod
-    def flops_func(B, N_Q, H_Q, N_KV, H_KV, d_h, causal):
+    def flops_func(B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v, causal):
         # ref: https://github.com/Dao-AILab/flash-attention/blob/main/benchmarks/benchmark_flash_attention.py#L29
-        flops_qk = B * H_Q * (2 * N_Q * N_KV * d_h)
+        flops_qk = B * H_Q * (2 * N_Q * N_KV * d_h_qk)
         # not including softmax for now as flops are order of d_k smaller
-        flops_pv = B * H_Q * (2 * N_Q * d_h * N_KV)
+        flops_pv = B * H_Q * (2 * N_Q * d_h_v * N_KV)
         total_flops = flops_qk + flops_pv
         if causal:
             if N_Q == N_KV:
@@ -899,45 +900,46 @@ class SDPA:
                 raise ValueError(f"causal=True but N_Q != N_K: {N_Q} != {N_KV}")
         return total_flops
     def flops(self):
-        return self.flops_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h,
+        return self.flops_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h_qk, self.d_h_v,
                                 self.param_details['causal'])
 
     @staticmethod
-    def bytes_func(B, N_Q, H_Q, N_KV, H_KV, d_h, causal, bytes_per_element):
-        elems_q_read = B * N_Q * H_Q * d_h
-        elems_kv_read = 2 * B * N_KV * H_KV * d_h
-        elems_out_write = B * N_Q * H_Q * d_h
-        total_elems_moved = elems_q_read + elems_kv_read + elems_out_write
+    def bytes_func(B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v, causal, bytes_per_element):
+        elems_q_read = B * N_Q * H_Q * d_h_qk
+        elems_k_read = B * N_KV * H_KV * d_h_qk
+        elems_v_read = B * N_KV * H_KV * d_h_v
+        elems_out_write = B * N_Q * H_Q * d_h_v
+        total_elems_moved = elems_q_read + elems_k_read + elems_v_read + elems_out_write
         return total_elems_moved * bytes_per_element
     #TODO make bytes_per_element based on profile info
     def bytes(self, bytes_per_element=2):
-        return self.bytes_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h,
+        return self.bytes_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h_qk, self.d_h_v,
                                 self.param_details['causal'], bytes_per_element)
 
     @staticmethod
-    def flops_bwd_func(B, N_Q, H_Q, N_KV, H_KV, d_h, causal, flash_impl):
+    def flops_bwd_func(B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v, causal, flash_impl):
         total_flops = 0
         if flash_impl:
             # 0. recompute qk
-            flops_recompute_qk = B * H_Q * (2 * N_Q * N_KV * d_h)
+            flops_recompute_qk = B * H_Q * (2 * N_Q * N_KV * d_h_qk)
             total_flops += flops_recompute_qk
             # 0.1 recompute softmax P - ignored as it is small
 
         # not including softmax for now
         # 1. V_grad = P_grad^T.matmul(O)
-        flops_vgrad = B * H_Q * (2 * N_KV * N_Q  * d_h) 
-        flops_vgrad +=  B * N_KV * d_h * (H_Q//H_KV -1 ) # reduce from H_Q to H_KV for GQA
+        flops_vgrad = B * H_Q * (2 * N_KV * N_Q  * d_h_v)
+        flops_vgrad +=  B * N_KV * d_h_v * (H_Q//H_KV -1 ) # reduce from H_Q to H_KV for GQA
         total_flops += flops_vgrad
         # 2. P_grad = O_grad.matmul(V^T)
-        flops_pgrad = B * H_Q * (2 * N_Q * N_KV * d_h)
+        flops_pgrad = B * H_Q * (2 * N_Q * N_KV * d_h_v)
         total_flops += flops_pgrad
         # 3. S_grad = f(P_grad, P) -  ignored as it is small
         # 4. Q_grad = S_grad.matmul(K)
-        flops_q_grad = B * H_Q * (2 * N_Q * N_KV * d_h)
+        flops_q_grad = B * H_Q * (2 * N_Q * N_KV * d_h_qk)
         total_flops += flops_q_grad
         # 5. K_grad = S_grad^T.matmul(Q)
-        flops_k_grad = B * H_Q * (2 * N_KV * N_Q * d_h)
-        flops_k_grad += B * N_KV * d_h * (H_Q//H_KV -1 ) # reduce from H_Q to H_KV for GQA
+        flops_k_grad = B * H_Q * (2 * N_KV * N_Q * d_h_qk)
+        flops_k_grad += B * N_KV * d_h_qk * (H_Q//H_KV -1 ) # reduce from H_Q to H_KV for GQA
         total_flops += flops_k_grad
 
         if causal:
@@ -948,22 +950,24 @@ class SDPA:
         return total_flops
 
     @staticmethod
-    def bytes_bwd_func(B, N_Q, H_Q, N_KV, H_KV, d_h, causal, bytes_per_element):
+    def bytes_bwd_func(B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v, causal, bytes_per_element):
         # This will be done for recompute in flash attention
-        elems_q_read = B * N_Q * H_Q * d_h
-        elems_kv_read = 2 * B * N_KV * H_KV * d_h
+        elems_q_read = B * N_Q * H_Q * d_h_qk
+        elems_k_read = B * N_KV * H_KV * d_h_qk
+        elems_v_read = B * N_KV * H_KV * d_h_v
 
-        elems_o_grad_read = B * N_Q * H_Q * d_h
+        elems_o_grad_read = B * N_Q * H_Q * d_h_v
         # grad for q, k and v
-        elems_q_grad_write = B * N_Q * H_Q * d_h
-        elems_kv_grad_write = 2 * B * N_KV * H_KV * d_h
+        elems_q_grad_write = B * N_Q * H_Q * d_h_qk
+        elems_k_grad_write = B * N_KV * H_KV * d_h_qk
+        elems_v_grad_write = B * N_KV * H_KV * d_h_v
 
-        total_elems_moved = (elems_q_read + elems_kv_read + elems_o_grad_read +
-                             elems_q_grad_write + elems_kv_grad_write)
+        total_elems_moved = (elems_q_read + elems_k_read + elems_v_read + elems_o_grad_read +
+                             elems_q_grad_write + elems_k_grad_write + elems_v_grad_write)
         return total_elems_moved * bytes_per_element
 
     def flops_bwd(self):
-        return self.flops_bwd_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h,
+        return self.flops_bwd_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h_qk, self.d_h_v,
                                     self.param_details['causal'],
                                     self.param_details['flash_impl'])
 
@@ -971,8 +975,8 @@ class SDPA:
     # def bytes_bwd_func(B, N_Q, H, d_k, N_K, dropout, causal, flash_impl, bytes_per_element):
     def bytes_bwd(self, bytes_per_element=2):
         # Same as forward for now
-        return self.bytes_bwd_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h
-                                   , self.param_details['causal'], bytes_per_element)
+        return self.bytes_bwd_func(self.B, self.N_Q, self.H_Q, self.N_KV, self.H_KV, self.d_h_qk, self.d_h_v,
+                                   self.param_details['causal'], bytes_per_element)
 
     @staticmethod
     def get_simulation_time_func(arch, dtype, python_path,dtype_A_B, bytes,
@@ -1141,6 +1145,27 @@ class SDPA:
                 pass
         return simulated_time
 
+def extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx):
+    B_q, H_Q, N_Q, d_h_Q = tuple(q_shape[i] for i in bhnd_idx)
+    B_k, H_K, N_K, d_h_K = tuple(k_shape[i] for i in bhnd_idx)
+    B_v, H_V, N_V, d_h_V = tuple(v_shape[i] for i in bhnd_idx)
+    if B_q != B_k or B_q != B_v:
+        raise ValueError(f"Batch sizes do not match: {B_q} != {B_k} != {B_v}")
+    if H_K != H_V:
+        raise ValueError(f"Head sizes do not match for K and V: {H_K} != {H_V}")
+    if N_K != N_V:
+        raise ValueError(f"Length sizes do not match for K and V: {N_K} != {N_V}")
+    if d_h_Q != d_h_K:
+        raise ValueError(f"Head dimensions do not match for Q and K: {d_h_Q} != {d_h_K}")
+    return {
+        "B": B_q,
+        "N_Q": N_Q,
+        "H_Q": H_Q,
+        "N_KV": N_K,
+        "H_KV": H_K,
+        "d_h_qk": d_h_Q,
+        "d_h_v": d_h_V,
+    }
 
 class flash_attention(SDPA):
 
@@ -1149,15 +1174,16 @@ class flash_attention(SDPA):
         input_dims = event['args']['Input Dims']
         q_idx, k_idx, v_idx = 0, 1, 2
         q_shape, k_shape, v_shape = input_dims[q_idx], input_dims[k_idx], input_dims[v_idx]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        
         dtype_A_B = tuple(event['args']['Input type'][:2])
         strides = event['args']['Input Strides']
-        q_stride, k_stride, v_stride = tuple(strides[q_idx]), tuple(strides[k_idx]), tuple(strides[v_idx])
-        B, N_Q, H_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, N_KV, H_KV, _ = input_dims[1]
+        q_stride, k_stride, v_stride = tuple(strides[q_idx]), tuple(strides[k_idx]), tuple(strides[v_idx])        
         dropout = float(event['args']['Concrete Inputs'][3])
         causal = eval(event['args']['Concrete Inputs'][5])
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "q_stride": q_stride, "k_stride": k_stride, "v_stride": v_stride,
                 "dropout": dropout, "causal": causal, "flash_impl": True, "dtype_A_B": dtype_A_B}
 
@@ -1190,9 +1216,9 @@ class aten__scaled_dot_product_cudnn_attention(SDPA):
         input_dims = event['args']['Input Dims']
         concrete_inputs = event['args']['Concrete Inputs']
         q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
-        B, H_Q, N_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, H_KV, N_KV, _ = input_dims[1]
+        bhnd_idx = 0, 1, 2, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
 
         dropout_p = 0.0
         if concrete_inputs[5] not in ('', 'None'):
@@ -1203,7 +1229,7 @@ class aten__scaled_dot_product_cudnn_attention(SDPA):
 
         is_causal = concrete_inputs[6].lower() == 'true' if concrete_inputs[6] not in ('', 'None') else False
 
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": False}    
 
 class aten__scaled_dot_product_efficient_attention(SDPA):
@@ -1223,9 +1249,9 @@ class aten__scaled_dot_product_efficient_attention(SDPA):
         input_dims = event['args']['Input Dims']
         concrete_inputs = event['args']['Concrete Inputs']
         q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
-        B, H_Q, N_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, H_KV, N_KV, _ = input_dims[1]
+        bhnd_idx = 0, 1, 2, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
 
         dropout_p = 0.0
         if concrete_inputs[5] not in ('', 'None'):
@@ -1237,7 +1263,7 @@ class aten__scaled_dot_product_efficient_attention(SDPA):
         is_causal = concrete_inputs[6].lower() == 'true' if concrete_inputs[6] not in ('', 'None') else False
         # scale = float(concrete_inputs[7]) if concrete_inputs[7] not in ('', 'None') else None
 
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": False}    
 
 class aten__scaled_dot_product_flash_attention(SDPA):
@@ -1256,9 +1282,9 @@ class aten__scaled_dot_product_flash_attention(SDPA):
         input_dims = event['args']['Input Dims']
         concrete_inputs = event['args']['Concrete Inputs']
         q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
-        B, H_Q, N_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, H_KV, N_KV, _ = input_dims[1]
+        bhnd_idx = 0, 1, 2, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
         dropout_p = 0.0
         if concrete_inputs[3] not in ('', 'None'):
             try:
@@ -1268,7 +1294,7 @@ class aten__scaled_dot_product_flash_attention(SDPA):
         is_causal = concrete_inputs[4].lower() == 'true' if concrete_inputs[4] not in ('', 'None') else False
         # scale = float(concrete_inputs[5]) if concrete_inputs[5] not in ('', 'None') else None
 
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
 
 class aiter__flash_attn_forward(SDPA):
@@ -1291,9 +1317,9 @@ class aiter__flash_attn_forward(SDPA):
         input_dims = event['args']['Input Dims']
         concrete_inputs = event['args']['Concrete Inputs']
         q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
-        B, N_Q, H_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, N_KV, H_KV, _ = input_dims[1]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
         dropout_p = 0.0
         if concrete_inputs[3] not in ('', 'None'):
             try:
@@ -1302,7 +1328,7 @@ class aiter__flash_attn_forward(SDPA):
                 pass
         is_causal = concrete_inputs[5].lower() == 'true' if concrete_inputs[5] not in ('', 'None') else False
 
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
 
 class aiter__flash_attn_backward(SDPA):
@@ -1325,9 +1351,9 @@ class aiter__flash_attn_backward(SDPA):
         input_dims = event['args']['Input Dims']
         concrete_inputs = event['args']['Concrete Inputs']
         q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
-        B, N_Q, H_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, N_KV, H_KV, _ = input_dims[1]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
         dropout_p = 0.0
         if concrete_inputs[10] not in ('', 'None'):
             try:
@@ -1336,7 +1362,7 @@ class aiter__flash_attn_backward(SDPA):
                 pass
         is_causal = concrete_inputs[12].lower() == 'true' if concrete_inputs[12] not in ('', 'None') else False
 
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
 
     def flops(self):
@@ -1471,3 +1497,94 @@ class aten_binary_elementwise(BinaryElementwise):
                 "dtype_in1_in2_out" : (dtype_in1, dtype_in2, dtype_out),
                 "stride_input1": stride_input1, "stride_input2": stride_input2, "stride_output": stride_output}
 
+class GroupedGemm:
+    """
+    Grouped General Matrix Multiplication (GEMM).
+
+    This operation applies group-specific weight matrices to partitions of the
+    input tensor `X`. The rows of `X` are already arranged in group order along
+    the first dimension; the tensor `b_g` encodes how many rows belong to each
+    group so that group boundaries can be identified.
+
+    Inputs:
+        X : tensor, shape (M, K)
+            Input tensor, arranged in group order along the first dimension.
+        W : tensor, shape (G, K, N)
+            Weight tensors, one (K, N) tensor per group.
+        b_g : tensor, shape (G,)
+            Integer tensor specifying the number of rows from `X` assigned
+            to each group. Must satisfy sum(b_g) = M.
+    Outputs:
+        Y : tensor, shape (M, N)
+            The concatenated result of the groupwise multiplications.
+            
+    Computation is functionally equivalent to  (implementation detail will ofcourse be efficient):
+        start = 0
+        Y_parts = []
+        for i in range(G):
+            rows = b_g[i]
+            X_g = X[start:start+rows]     # (rows, K)
+            Y_g = X_g @ W[i]              # (rows, N)
+            Y_parts.append(Y_g)
+            start += rows
+        Y = concat(Y_parts, dim=0)        # (M, N)
+
+    Performance Model:
+        Forward FLOPs:
+            - Per group: 2 * b_g[i] * K * N
+            - Total:     2 * M * K * N
+
+        Backward FLOPs:
+            - Per group: dX = dY @ W^T  (2 * b_g[i] * N * K)
+                         dW = X^T @ dY  (2 * K * b_g[i] * N)
+            - Total:     4 * M * K * N
+
+        Forward bytes (assuming weights use same dtype as inputs):
+            - Reads:  X (M*K), W (G*K*N)
+            - Writes: Y (M*N)
+            - Total bytes: (M*K + G*K*N) * bpe_in + (M*N) * bpe_out
+
+        Backward bytes (streaming estimate, dY read twice):
+            - Reads:  dY twice (2*M*N) * bpe_out
+                      W once   (G*K*N) * bpe_in
+                      X once   (M*K)   * bpe_in
+            - Writes: dX       (M*K)   * bpe_in
+                      dW       (G*K*N) * bpe_in
+            - Total bytes: (2*M*N) * bpe_out + (2*M*K) * bpe_in + (2*G*K*N) * bpe_in
+    """
+
+
+    def __init__(self, event, arch=None, python_path=None):
+        self.event = event
+        self.param_details = self.get_param_details(event)
+        self.arch = arch
+        self.python_path = python_path
+        self.M, self.K, self.G, self.N = (self.param_details[key] for key in ['M', 'K', 'G', 'N'])
+        self.bpe_in = self.param_details['bpe_in']
+        self.bpe_out = self.param_details['bpe_out']
+
+    @staticmethod
+    def flops_func(M, K, N):
+        return 2 * M * K * N
+    def flops(self):
+        return self.flops_func(self.M, self.K, self.N)
+    
+    @staticmethod
+    def bytes_func(M, K, N, G, bpe_in, bpe_out):
+        return (M * K + G * K * N) * bpe_in + M * N * bpe_out
+    def bytes(self):
+        return self.bytes_func(self.M, self.K, self.N, self.G, 
+                               self.bpe_in, self.bpe_out)
+
+    @staticmethod
+    def flops_bwd_func(M, K, N):
+        return 4 * M * K * N
+    def flops_bwd(self):
+        return self.flops_bwd_func(self.M, self.K, self.N)
+    
+    @staticmethod
+    def bytes_bwd_func(M, K, N, G, bpe_in, bpe_out):
+        return (2 * M * N) * bpe_out + (2 * M * K) * bpe_in + (2 * G * K * N) * bpe_in
+    def bytes_bwd(self):
+        return self.bytes_bwd_func(self.M, self.K, self.N, self.G, 
+                                 self.bpe_in, self.bpe_out)

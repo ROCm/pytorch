@@ -272,7 +272,7 @@ class tev2_pseudo_gemm(GEMM):
     def bytes_bwd(self):
         raise NotImplementedError("Backward pass for tev2_pseudo_gemm is not defined.")
 
-from TraceLens.PerfModel import SDPA
+from TraceLens.PerfModel import SDPA, GroupedGemm, extract_sdpa_cfg
 class transformer_engine_attention(SDPA):
     """
     Context: The FusedAttnFunc is a pytorch extention for the attention kernel.
@@ -289,26 +289,51 @@ class transformer_engine_attention(SDPA):
     # ref TransformerEngine/transformer_engine/pytorch/cpp_extensions/fused_attn.py
     # https://github.com/NVIDIA/TransformerEngine/blob/51cd441501e8e6dee18c00056f008e1b53b89ebd/transformer_engine/pytorch/attention/dot_product_attention/backends.py#L881
         input_dims = event['args']['Input Dims']
-        q_idx = None
-        for i, dim in enumerate(input_dims):
-            if len(dim)==4:
-                q_idx = i
-                break
-        assert q_idx is not None, "query index not found"
-        q_shape, k_shape, v_shape = input_dims[q_idx: q_idx+3]
+        q_idx, k_idx, v_idx = 9, 10, 11 # this is the idx in the args list
+        q_shape, k_shape, v_shape = input_dims[q_idx], input_dims[k_idx], input_dims[v_idx]
+        bhnd_idx = (1, 2, 0, 3)
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+
         strides = event['args']['Input Strides']
-        q_strides, k_strides, v_strides = strides[q_idx: q_idx+3]
+        q_strides, k_strides, v_strides = strides[q_idx], strides[k_idx], strides[v_idx]
         # convert stride to tuple
         q_strides, k_strides, v_strides = tuple(q_strides), tuple(k_strides), tuple(v_strides)
-        B, N_Q, H_Q, d_h = q_shape
-        assert k_shape == v_shape, f"Key and value shapes are different: {k_shape} != {v_shape}"
-        _, N_KV, H_KV, _ = k_shape 
+
         is_causal = True
         dropout_p = 0.0
         flash_impl = True
-        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h": d_h,
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
                 "q_strides": q_strides, "k_strides": k_strides, "v_strides": v_strides,
                 "dropout": dropout_p, "causal": is_causal, "flash_impl": flash_impl}
+
+import ast
+class custom_grouped_gemm(GroupedGemm):
+
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        X_dims = input_dims[0]
+        W_dims = input_dims[1]
+        transpose = ast.literal_eval(event['args']['Concrete Inputs'][3])
+        M, K = X_dims
+        if transpose:
+            assert K == W_dims[-1], f"Expected K dimension to match W_dims[-1] for transposed GEMM, got {K} and {W_dims[-1]}"
+            G, N, K = W_dims
+        else:
+            assert K == W_dims[1], f"Expected K dimension to match W_dims[1] for non-transposed GEMM, got {K} and {W_dims[1]}"
+            G, K, N = W_dims
+        input_types = event['args']['Input type']
+        dtype_X = input_types[0]
+        dtype_W = input_types[1]
+        assert dtype_X == dtype_W, f"Expected input types to match, got {dtype_X} and {dtype_W}"
+        bpe_in = name2bpe(dtype_X)
+        if bpe_in == 1 or bpe_in == 2:
+            bpe_out = 2
+        else:
+            raise ValueError(f"Expected bpe_in to be 1 or 2, got {bpe_in}")
+        return {"M": M, "K": K, "N": N, "G": G,
+                "bpe_in": bpe_in, "bpe_out": bpe_out}
 
 # Step 2: Register the new Perf Model class in the mapping
 perf_model_extension = {
@@ -320,12 +345,14 @@ perf_model_extension = {
     '_LayerNormLinearBackward_wgrad_mm': tev2_pseudo_gemm,
 
     'FusedAttnFunc': transformer_engine_attention,
+    'GroupedGemm': custom_grouped_gemm,
 }
 
 dict_cat2names_extension = {
     'GEMM': ['_Linear_yfwd_mm', '_LinearBackward_xgrad_mm', '_LinearBackward_wgrad_mm',
              '_LayerNormLinear_yfwd_mm', '_LayerNormLinearBackward_xgrad_mm', '_LayerNormLinearBackward_wgrad_mm'],
     'SDPA': ['FusedAttnFunc'],
+    'GroupedGEMM': ['GroupedGemm'],
 }
 
 

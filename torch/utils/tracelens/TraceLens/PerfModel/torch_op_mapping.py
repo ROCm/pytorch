@@ -127,7 +127,10 @@ def categorize_torch_op(row):
             return "SDPA_fwd"
     elif row['name'].startswith('triton'):
         return 'triton'
-    kernel_name = row['kernel_names'][0]
+    if 'kernel_details' in row and len(row['kernel_details']) > 0:
+        kernel_name = row['kernel_details'][0]['name']
+    else:
+        raise ValueError("Row does not contain 'kernel_names' or 'kernel_details' with a valid name.")
     if kernel_name.startswith('void at::native'):
         if debug:
             print("Found ATen native kernel:", kernel_name[:64])

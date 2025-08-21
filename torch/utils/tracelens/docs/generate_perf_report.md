@@ -1,6 +1,6 @@
 # Generate Performance Report
 
-This  Python script (`generate_perf_report.py`) processes a PyTorch JSON profile trace and outputs an Excel workbook or CSVs with relevant information. 
+This Python script (`TraceLens/Reporting/generate_perf_report_pytorch.py`) processes a PyTorch JSON profile trace and outputs an Excel workbook or CSVs with relevant information.
 
 ---
 
@@ -10,6 +10,13 @@ Run the script with a profile JSON to generate an Excel report:
 
 ```bash
 python generate_perf_report.py --profile_json_path path/to/profile.json 
+```
+
+Alternatively you can directly call the entry point with the same command line args,
+ without the need to copy the script out of the repo. 
+
+```bash
+TraceLens_generate_perf_report_pytorch --profile_json_path path/to/profile.json 
 ```
 
 ---

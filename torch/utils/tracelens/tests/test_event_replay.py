@@ -261,6 +261,8 @@ def test_resnet(full_run_trace_path=None, output_csv_path=None):
 
     # save the replay IRs to a json file
     replay_ir_path = output_csv_path.replace('.csv', '_replay_ir.json')
+    with open(replay_ir_path, 'w') as f:
+        json.dump(list_replay_ir, f, indent=4)
     
     # now we test the batched replay
     from TraceLens import EventReplay
@@ -270,7 +272,7 @@ def test_resnet(full_run_trace_path=None, output_csv_path=None):
     cmd = [
         "python",          # run as "python ..."
         batched_replay_file, # path to the batched replay script
-        replay_ir_path, # path to the replay IR file
+        os.path.abspath(replay_ir_path)
     ]
     result = subprocess.run(cmd, cwd=dir_batched_replay,
                             capture_output=True, text=True)

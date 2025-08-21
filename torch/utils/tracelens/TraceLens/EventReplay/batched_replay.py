@@ -105,6 +105,11 @@ if __name__ == "__main__":
         # --- Benchmark the function ---
         mean_time_us = benchmark_func(lambda: func(*pos_args, **kwargs), args.device, warmup=50, avg_steps=100)
         print(f"  Average time taken: {mean_time_us:.2f} microseconds")
+        if 'count' in repro_info:
+            count_workload = repro_info['count']
+            total_time_us = mean_time_us * count_workload
+            print(f"  Count in workload: {count_workload}")
+            print(f"  Est time in workload: {total_time_us:.2f} microseconds")
         # --- Optionally sync again ---
         if args.device == 'cuda': torch.cuda.synchronize()
 
