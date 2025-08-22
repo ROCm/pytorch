@@ -2626,7 +2626,15 @@ def _reduction_configs(
 
     # Additional reduction configs appended for ROCm builds
     if torch.version.hip:
-        pass
+        # New config
+        result_configs.append(triton_config_reduction(
+            size_hints,
+            8192,
+            2048,
+            num_warps=4,
+            num_stages=1,
+            waves_per_eu=2
+        ))
 
     return result_configs
 
