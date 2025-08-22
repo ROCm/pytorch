@@ -2408,9 +2408,6 @@ def pointwise(
                 triton_config_with_settings(
                     size_hints, bs // 2, num_elements_per_warp=64
                 ),
-                # triton_config_with_settings(
-                #     size_hints, 8192, num_warps=8, num_stages=1, matrix_instr=0, waves_per_eu=2
-                # ),
                 triton_config_with_settings(
                     size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
                 ),
@@ -2561,8 +2558,8 @@ def _reduction_configs(
         # New config
         result_configs.append(triton_config_reduction(
             size_hints,
-            8192,
-            2048,
+            1024,
+            8,
             num_warps=4,
             num_stages=1,
             waves_per_eu=2
