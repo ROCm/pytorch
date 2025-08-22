@@ -201,8 +201,12 @@ __global__ void vectorized_templated_elementwise_kernel(
     loader_t loader,
     storer_t storer) {
   using traits = function_traits<func_t>;
+  // Remainder chunk uses slower scheme than vectorized:
+  // assign it in the first threadblock to enable scheduler
+  // to start is as soon as possible, by inverting mapping
+  // of loop chunks to threadblocks.
   int remaining =
-      N - vectorized_templated_config::block_work_size() * blockIdx.x;
+      N - vectorized_templated_config::block_work_size() * (gridDim.x - blockIdx.x - 1);
   if (remaining <
       vectorized_templated_config::block_work_size()) { // if this block handles
                                                         // the reminder,
@@ -216,12 +220,10 @@ __global__ void vectorized_templated_elementwise_kernel(
         out_calc_t,
         loader_t,
         storer_t>(data, remaining, inp_calc, out_calc, loader, storer);
-    templated_elementwise_kernel_helper(f, policy);
+    templated_elementwise_kernel_helper</*reverted_idx=*/true>(f, policy);
   } else { // if this block has a full `block_work_size` data to handle, use
            // vectorized memory access
-    templated_elementwise_kernel_helper<
-        vectorized_templated_config::thread_work_size()>(
-        f,
+    auto policy =
         memory::policies::vectorized_templated<
             vectorized_templated_config::thread_work_size(),
             vectorized_templated_config::num_threads(),
@@ -229,7 +231,10 @@ __global__ void vectorized_templated_elementwise_kernel(
             vec_size,
             array_t,
             OutputType,
-            InputTypes...>(data));
+            InputTypes...>(data);
+    templated_elementwise_kernel_helper</*reverted_idx=*/true,
+        vectorized_templated_config::thread_work_size()>(
+        f, policy);
   }
 }
 

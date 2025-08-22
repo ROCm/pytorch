@@ -69,6 +69,7 @@ __device__ inline void elementwise_kernel_helper(func_t f, policy_t policy) {
 
 #ifdef USE_ROCM
 template <
+    bool reverted_idx=false,
     int thread_work_size = thread_work_size(),
     typename func_t,
     typename policy_t>
@@ -80,6 +81,8 @@ __device__ inline void templated_elementwise_kernel_helper(
   using args_t = typename traits::ArgsTuple;
 
   int idx = blockIdx.x;
+  if constexpr (reverted_idx)
+    idx = gridDim.x - blockIdx.x - 1;
 
   return_t results[thread_work_size];
   args_t args[thread_work_size];
