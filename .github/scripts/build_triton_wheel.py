@@ -162,6 +162,11 @@ def build_triton(
                 cwd=triton_basedir,
             )
 
+        triton_kernels_dir = Path(f"{triton_basedir}/python/triton_kernels")
+        check_call([sys.executable, "-m", "build", "--wheel"], cwd=triton_kernels_dir, env=env)
+        kernels_whl_path = next(iter((triton_kernels_dir / "dist").glob("*.whl")))
+        shutil.copy(kernels_whl_path, Path.cwd())
+
         return Path.cwd() / whl_path.name
 
 
