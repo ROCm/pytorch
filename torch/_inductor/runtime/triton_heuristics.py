@@ -2091,6 +2091,9 @@ def triton_config(
     num_stages=1,
     num_elements_per_warp=256,
     min_elem_per_thread=0,
+    num_warps=None,
+    matrix_instr=None,
+    waves_per_eu=None
 ) -> Config:
     """
     Construct a pointwise triton config with some adjustment heuristics
@@ -2147,9 +2150,11 @@ def triton_config(
     ):
         z *= 2
 
-    num_warps = _num_warps(
-        conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
-    )
+    # Calculate num_waprs if they are not hard passed to config
+    if num_warps == None:
+        num_warps = _num_warps(
+            conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
+        )
     # we are going to arrive at 2 warps only if bs was too small due to
     # numel being too small. However to workaround some ptx bugs we still
     # want at least 4 warps if there's enough elements per thread
@@ -2179,7 +2184,15 @@ def triton_config(
         cfg["ZBLOCK"] = z
     check_max_block(cfg)
     check_config(cfg, xnumel=xnumel, ynumel=ynumel, znumel=znumel)
-    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+    config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
+
+    if torch.version.hip:
+        if matrix_instr is not None:
+            config.kwargs["matrix_instr_nonkdim"] = matrix_instr
+        if waves_per_eu is not None:
+            config.kwargs["waves_per_eu"] = waves_per_eu
+
+    return config
 
 
 def _get_nd_reduction_numels(r: int, size_hints: dict[str, int]) -> dict[str, int]:
@@ -2227,6 +2240,7 @@ def triton_config_reduction(
     num_stages=1,
     num_warps=None,
     register_intensive=False,
+    waves_per_eu=None
 ) -> Config:
     """
     Construct a reduction triton config with some adjustment heuristics
@@ -2270,7 +2284,13 @@ def triton_config_reduction(
     cfg = _get_config({"x": x, **rnumels})
     check_max_block(cfg)
     check_config(cfg, xnumel=size_hints["x"])
-    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+    config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
+
+    if torch.version.hip:
+        if waves_per_eu is not None:
+            config.kwargs["waves_per_eu"] = waves_per_eu
+
+    return config
 
 
 def _get_config(numels: dict[str, int]) -> dict[str, int]:
@@ -2407,6 +2427,12 @@ def pointwise(
                 triton_config_with_settings(size_hints, bs, num_elements_per_warp=256),
                 triton_config_with_settings(
                     size_hints, bs // 2, num_elements_per_warp=64
+                ),
+                # triton_config_with_settings(
+                #     size_hints, 8192, num_warps=8, num_stages=1, matrix_instr=0, waves_per_eu=2
+                # ),
+                triton_config_with_settings(
+                    size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
                 ),
                 *hinted_configs,
             ]
@@ -2700,6 +2726,7 @@ def reduction(
     )
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
+
     return cached_autotune(
         size_hints,
         configs=configs,
