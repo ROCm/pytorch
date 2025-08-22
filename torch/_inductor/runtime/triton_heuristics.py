@@ -2703,15 +2703,14 @@ def _reduction_configs(
     ):
         pass  # skip all these cases
     elif reduction_hint == ReductionHint.INNER:
-        return configs + [contiguous_config]
+        result_configs = configs + [contiguous_config]
     elif reduction_hint == ReductionHint.OUTER:
-        return configs + [outer_config]
+        result_configs = configs + [outer_config]
     elif reduction_hint == ReductionHint.OUTER_TINY:
-        return configs + [tiny_config]
+        result_configs = configs + [tiny_config]
     if disable_pointwise_autotuning(inductor_meta):
-        return configs + [make_config(32, 128)]
-
-    return configs + [
+        result_configs = configs + [make_config(32, 128)]
+    result_configs = configs + [
         contiguous_config,
         outer_config,
         tiny_config,
@@ -2722,6 +2721,12 @@ def _reduction_configs(
         # is quite heavy. E.g. https://gist.github.com/shunting314/189a8ef69f90db9d614a823385147a72
         make_config(64, 4, num_warps=8),
     ]
+
+    # Additional reduction configs appended for ROCm builds
+    if torch.version.hip:
+        pass
+
+    return result_configs
 
 
 def match_target_block_product(
