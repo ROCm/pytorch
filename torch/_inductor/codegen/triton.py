@@ -3599,7 +3599,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                         "rsplit_end" if self.cooperative_reduction else f"{prefix}numel"
                     )
                     self.body.writeline(
-                        f"for {prefix}offset in range({loop_start}, {loop_end}, {prefix.upper()}BLOCK):"
+                        f"for {prefix}offset in tl.range({loop_start}, {loop_end}, {prefix.upper()}BLOCK, num_stages = 2):"
                     )
                 with self.body.indent(offset=level + 1):
                     self.iteration_ranges_codegen_header(tree, self.body)
