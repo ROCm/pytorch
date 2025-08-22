@@ -146,9 +146,9 @@ function install_torchaudio() {
   if [[ "$1" == "cuda" ]]; then
     # TODO: This is better to be passed as a parameter from _linux-test workflow
     # so that it can be consistent with what is set in build
-    TORCH_CUDA_ARCH_LIST="8.0;8.6" pip_install --no-use-pep517 --user "git+https://github.com/pytorch/audio.git@${commit}"
+    TORCH_CUDA_ARCH_LIST="8.0;8.6" pip_install --no-use-pep517 "git+https://github.com/pytorch/audio.git@${commit}"
   else
-    pip_install --no-use-pep517 --user "git+https://github.com/pytorch/audio.git@${commit}"
+    pip_install --no-use-pep517 "git+https://github.com/pytorch/audio.git@${commit}"
   fi
 
 }
@@ -158,8 +158,8 @@ function install_torchtext() {
   local text_commit
   data_commit=$(get_pinned_commit data)
   text_commit=$(get_pinned_commit text)
-  pip_install --no-use-pep517 --user "git+https://github.com/pytorch/data.git@${data_commit}"
-  pip_install --no-use-pep517 --user "git+https://github.com/pytorch/text.git@${text_commit}"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/data.git@${data_commit}"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/text.git@${text_commit}"
 }
 
 function install_torchvision() {
@@ -172,16 +172,12 @@ function install_torchvision() {
     echo 'char* dlerror(void) { return "";}'|gcc -fpic -shared -o "${HOME}/dlerror.so" -x c -
     LD_PRELOAD=${orig_preload}:${HOME}/dlerror.so
   fi
-  pip_install --no-use-pep517 --user "git+https://github.com/pytorch/vision.git@${commit}"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/vision.git@${commit}"
   if [ -n "${LD_PRELOAD}" ]; then
     LD_PRELOAD=${orig_preload}
   fi
 }
 
-function install_tlparse() {
-  pip_install --user "tlparse==0.3.25"
-  PATH="$(python -m site --user-base)/bin:$PATH"
-}
 
 function install_torchrec_and_fbgemm() {
   local torchrec_commit
@@ -192,8 +188,8 @@ function install_torchrec_and_fbgemm() {
   pip_uninstall fbgemm-gpu-nightly
   pip_install setuptools-git-versioning scikit-build pyre-extensions
   # See https://github.com/pytorch/pytorch/issues/106971
-  CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 --user "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
-  pip_install --no-use-pep517 --user "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
+  CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
 }
 
 function clone_pytorch_xla() {
