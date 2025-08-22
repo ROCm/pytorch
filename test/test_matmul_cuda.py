@@ -64,6 +64,9 @@ if TEST_CUDA:
 # Protects against includes accidentally setting the default dtype
 assert torch.get_default_dtype() is torch.float32
 
+input_dtypes = [torch.float32]
+if not torch.version.hip:
+    input_dtypes += [torch.float16, torch.bfloat16]
 
 @contextlib.contextmanager
 def blas_library_context(backend):
@@ -617,8 +620,7 @@ class TestMatmulCuda(TestCase):
 
 
     @onlyCUDA
-    @skipIfRocm
-    @parametrize("input_dtype", [torch.float32, torch.float16, torch.bfloat16])
+    @parametrize("input_dtype", input_dtypes)
     @parametrize("M", [1, 32, 64])
     @parametrize("N", [1, 32, 64])
     @parametrize("K", [1, 32, 64])
@@ -672,8 +674,7 @@ class TestMatmulCuda(TestCase):
 
 
     @onlyCUDA
-    @skipIfRocm
-    @parametrize("input_dtype", [torch.float32, torch.float16, torch.bfloat16])
+    @parametrize("input_dtype", input_dtypes)
     @parametrize("M", [1, 32, 64])
     @parametrize("N", [1, 32, 64])
     @parametrize("K", [1, 32, 64])
