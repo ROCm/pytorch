@@ -568,4 +568,8 @@ Note: This project is unrelated to [hughperkins/pytorch](https://github.com/hugh
 
 PyTorch has a BSD-style license, as found in the [LICENSE](LICENSE) file.
 
+<<<<<<< HEAD
 test 3
+=======
+test 2
+>>>>>>> ad4f6fb22b ([DO NOT MERGE] Test CI 3 (#2572))
