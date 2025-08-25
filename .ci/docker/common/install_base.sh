@@ -161,14 +161,11 @@ install_centos() {
 	    libsndfile-devel
   fi
 
-<<<<<<< HEAD
+
   # CentOS7 doesnt have support for higher version of libpng,
   # so it is built from source.
   # Libpng is required for torchvision build.
   build_libpng
-
-=======
->>>>>>> 7fe67f61f48... [release/2.7] Update CentOS dockerfile for CentOS Stream 9 (#2056)
   # Cleanup
   yum clean all
   rm -rf /var/cache/yum
