@@ -186,9 +186,9 @@ jobs:
       #   with:
       #     github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Teardown Windows
-        uses: ./.github/actions/teardown-win
-        if: always()
-        timeout-minutes: 120
-        with:
-          extra-delete-dir: /c/${{ github.run_id }}/build-results/
+      # - name: Teardown Windows
+      #   uses: ./.github/actions/teardown-win
+      #   if: always()
+      #   timeout-minutes: 120
+      #   with:
+      #     extra-delete-dir: /c/${{ github.run_id }}/build-results/
