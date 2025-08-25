@@ -796,6 +796,7 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
             env = dict(os.environ)
             env["TORCH_LOGS"] = "dynamo"
             env["TORCH_LOGS_OUT"] = file_path
+            env["PYTHONWARNINGS"] = "ignore"
             stdout, stderr = self.run_process_no_exception(
                 """\
 import torch
