@@ -83,22 +83,22 @@ jobs:
           # in https://github.com/actions/checkout/issues/1018
           git config --global core.fsmonitor false
 
-      - name: Clean up leftover processes on non-ephemeral Windows runner
-        uses: pytorch/test-infra/.github/actions/cleanup-runner@main
+      # - name: Clean up leftover processes on non-ephemeral Windows runner
+      #   uses: pytorch/test-infra/.github/actions/cleanup-runner@main
 
-      - name: Setup SSH (Click me for login details)
-        uses: pytorch/test-infra/.github/actions/setup-ssh@main
-        with:
-          github-secret: ${{ secrets.GITHUB_TOKEN }}
-          instructions: |
-            To forward remote desktop on your local machine ssh as follows:
-              ssh -L 3389:localhost:3389 %%username%%@%%hostname%%
-            And then change password using `passwd` command.
+      # - name: Setup SSH (Click me for login details)
+      #   uses: pytorch/test-infra/.github/actions/setup-ssh@main
+      #   with:
+      #     github-secret: ${{ secrets.GITHUB_TOKEN }}
+      #     instructions: |
+      #       To forward remote desktop on your local machine ssh as follows:
+      #         ssh -L 3389:localhost:3389 %%username%%@%%hostname%%
+      #       And then change password using `passwd` command.
 
-            To start build locally, change working folder to \actions-runner\_work\pytorch\pytorch,
-            Activate miniconda and Visual Studio environment, by running:
-              call C:\Jenkins\Miniconda3\Scripts\activate.bat C:\Jenkins\Miniconda3
-              call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+      #       To start build locally, change working folder to \actions-runner\_work\pytorch\pytorch,
+      #       Activate miniconda and Visual Studio environment, by running:
+      #         call C:\Jenkins\Miniconda3\Scripts\activate.bat C:\Jenkins\Miniconda3
+      #         call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
@@ -132,12 +132,12 @@ jobs:
           test-matrix: ${{ inputs.test-matrix }}
           job-name: ${{ steps.get-job-id.outputs.job-name }}
 
-      - name: Download pytest cache
-        uses: ./.github/actions/pytest-cache-download
-        continue-on-error: true
-        with:
-          cache_dir: .pytest_cache
-          job_identifier: ${{ github.workflow }}_${{ inputs.build-environment }}
+      # - name: Download pytest cache
+      #   uses: ./.github/actions/pytest-cache-download
+      #   continue-on-error: true
+      #   with:
+      #     cache_dir: .pytest_cache
+      #     job_identifier: ${{ github.workflow }}_${{ inputs.build-environment }}
 
       - name: Build
         if: steps.filter.outputs.is-test-matrix-empty == 'False' || inputs.test-matrix == ''
@@ -170,21 +170,21 @@ jobs:
         run: |
           .ci/pytorch/win-build.sh
 
-      # Upload to github so that people can click and download artifacts
-      - name: Upload artifacts to s3
-        if: steps.build.outcome != 'skipped'
-        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
-        with:
-          retention-days: 14
-          if-no-files-found: error
-          name: ${{ inputs.build-environment }}
-          path: C:\${{ github.run_id }}\build-results
+      # # Upload to github so that people can click and download artifacts
+      # - name: Upload artifacts to s3
+      #   if: steps.build.outcome != 'skipped'
+      #   uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+      #   with:
+      #     retention-days: 14
+      #     if-no-files-found: error
+      #     name: ${{ inputs.build-environment }}
+      #     path: C:\${{ github.run_id }}\build-results
 
-      - name: Upload sccache stats
-        if: steps.build.outcome != 'skipped'
-        uses: ./.github/actions/upload-sccache-stats
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Upload sccache stats
+      #   if: steps.build.outcome != 'skipped'
+      #   uses: ./.github/actions/upload-sccache-stats
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Teardown Windows
         uses: ./.github/actions/teardown-win
