@@ -577,7 +577,7 @@ class CachingAutotuner(KernelInterface):
         # for some (complicated) custom Triton kernels, a register-spilling
         # config may yield the best latency.
         if not self.custom_kernel and launcher.n_spills > self.inductor_meta.get(
-            "spill_threshold", 16
+            "spill_threshold", 32
         ):
             log.debug(
                 "Skip config %s because of register spilling: %d",
@@ -1874,11 +1874,8 @@ def pointwise(
                 triton_config_with_settings(
                     size_hints, bs // 2, num_elements_per_warp=64
                 ),
-                # triton_config_with_settings(
-                #     size_hints, 8192, num_warps=8, num_stages=1, matrix_instr=0, waves_per_eu=2
-                # ),
                 triton_config_with_settings(
-                    size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
+                    size_hints, TRITON_MAX_BLOCK["X"]
                 ),
                 *hinted_configs,
             ]
@@ -1975,14 +1972,14 @@ def _reduction_configs(
     if inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise"):
         pass  # skip all these cases
     elif reduction_hint == ReductionHint.INNER:
-        return [contiguous_config]
+        result_configs = [contiguous_config]
     elif reduction_hint == ReductionHint.OUTER:
-        return [outer_config]
+        result_configs = [outer_config]
     elif reduction_hint == ReductionHint.OUTER_TINY:
-        return [tiny_config]
+        result_configs = [tiny_config]
     if disable_pointwise_autotuning(inductor_meta):
-        return [triton_config_reduction(size_hints, 32, 128)]
-    return [
+        result_configs = [triton_config_reduction(size_hints, 32, 128)]
+    result_configs = [
         contiguous_config,
         outer_config,
         tiny_config,
@@ -1993,6 +1990,19 @@ def _reduction_configs(
         # is quite heavy. E.g. https://gist.github.com/shunting314/189a8ef69f90db9d614a823385147a72
         triton_config_reduction(size_hints, 64, 4, num_warps=8),
     ]
+
+    # Additional reduction configs appended for ROCm builds
+    if torch.version.hip:
+        # New config
+        result_configs.append(triton_config_reduction(
+            size_hints,
+            1024,
+            8,
+            num_warps=4,
+            num_stages=1
+        ))
+
+    return result_configs
 
 
 def reduction(
@@ -2011,23 +2021,6 @@ def reduction(
     assert triton_meta is not None
 
     configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
-
-    # Additional tuning confirgs for ROCm builds
-    # Add checks for reduction autotuning bools
-    # if torch.version.hip and inductor_meta.get("max_autotune"):
-    #     configs = [
-    #         triton_config_with_settings(size_hints, bs, num_elements_per_warp=256),
-    #         triton_config_with_settings(
-    #             size_hints, bs // 2, num_elements_per_warp=64
-    #         ),
-    #         # triton_config_with_settings(
-    #         #     size_hints, 8192, num_warps=8, num_stages=1, matrix_instr=0, waves_per_eu=2
-    #         # ),
-    #         triton_config_with_settings(
-    #             size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
-    #         ),
-    #         *hinted_configs,
-    #     ]
 
     return cached_autotune(
         size_hints,
