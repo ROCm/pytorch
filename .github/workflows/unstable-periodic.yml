@@ -34,3 +34,15 @@ jobs:
           echo
           echo "Once the jobs are deemed stable enough (% red signal < 5% and TTS < 3h),"
           echo " they can graduate and move back to periodic."
+
+  # Context: https://github.com/pytorch/pytorch/issues/159520
+  #   * Expected to be unstable during ROCm on Windows bring-up and upstreaming
+  #   * Uses expensive Windows CPU build machines so run frequency should be low
+  win-vs2022-rocm7-py3-build:
+    name: win-vs2022-rocm7-py3
+    uses: ./.github/workflows/_win-build.yml
+    with:
+      build-environment: win-vs2022-rocm7-py3
+      cuda-version: cpu
+      runner: azure-windows-scale-rocm
+    secrets: inherit
