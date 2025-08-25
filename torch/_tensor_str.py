@@ -344,6 +344,7 @@ def _tensor_str(self, indent):
         torch.float8_e5m2fnuz,
         torch.float8_e4m3fn,
         torch.float8_e4m3fnuz,
+        torch.float8_e8m0fnu,
     ]:
         self = self.half()
 

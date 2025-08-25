@@ -158,7 +158,7 @@ class TestScatterGather(TestCase):
             # When we are running opportunistic_fastatomics, we will expect some floating point rounding
             # errors as the order of operation is not guaranteed.
             if TEST_WITH_ROCM \
-                    and 'gfx94' in torch.cuda.get_device_properties(0).gcnArchName \
+                    and torch.cuda.get_device_properties(0).gcnArchName[0:5] in ('gfx94', 'gfx95')\
                     and not torch.are_deterministic_algorithms_enabled():
                 self.assertEqual(actual, expected, atol=1e-9, rtol=1e-6)
             else:
