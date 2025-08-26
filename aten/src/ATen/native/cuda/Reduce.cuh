@@ -209,6 +209,10 @@ struct ReduceConfig {
   int values_per_thread() const {
     return div_up(num_inputs, step_input);
   }
+
+  int mock_values_per_thread(int parallelism) {
+    return div_up(num_inputs, step_input * parallelism);
+  }
 };
 
 std::ostream& operator<<(std::ostream& out, const ReduceConfig& config);
@@ -793,14 +797,23 @@ struct ReduceOp {
     if (should_store) {
       index_t offset = config.staging_memory_offset(blockIdx.y);
       reduce_buffer[offset] = value;
+#ifdef USE_ROCM
+      __builtin_amdgcn_fence(__ATOMIC_RELEASE, "agent"); // make sure writes are globally visible
+#endif
     }
 
+#ifndef USE_ROCM
     __threadfence(); // make sure writes are globally visible
+#endif
     __syncthreads(); // if multiple warps in this block wrote to staging, make sure they're all done
     bool is_last_block_done = mark_block_finished();
 
     if (is_last_block_done) {
+#ifdef USE_ROCM
+      __builtin_amdgcn_fence(__ATOMIC_ACQUIRE, "agent"); // complete the acquire pattern after release
+#else
       __threadfence(); // complete the acquire pattern after atomic
+#endif
       for (auto &v : value) {
         v = ident;
       }
@@ -818,6 +831,23 @@ struct ReduceOp {
       } else {
         index_t input_offset = threadIdx.y;
         index_t step = blockDim.y;
+#ifdef USE_ROCM // Prefetch loads to better hide their latency
+        #define PRFCH 4
+        for (; input_offset < config.ctas_per_output; input_offset += step*PRFCH) {
+         arg_vec_t next[PRFCH];
+         #pragma unroll
+         for (int u = 0; (u < PRFCH) && (input_offset + u*step < config.ctas_per_output); u++) {
+          index_t idx = config.staging_memory_offset(input_offset + u*step);
+          next[u] = reduce_buffer[idx];
+         }
+         for (int u = 0; (u < PRFCH) && (input_offset + u*step < config.ctas_per_output); u++) {
+          #pragma unroll
+          for (int i = 0; i < output_vec_size; i++) {
+            value[i] = ops.combine(value[i], next[u][i]);
+          }
+         }
+        }
+#else
         for (; input_offset < config.ctas_per_output; input_offset += step) {
           index_t idx = config.staging_memory_offset(input_offset);
           arg_vec_t next = reduce_buffer[idx];
@@ -826,6 +856,7 @@ struct ReduceOp {
             value[i] = ops.combine(value[i], next[i]);
           }
         }
+#endif
       }
       value = block_y_reduce<output_vec_size>(value, shared_memory);
       if (config.should_block_x_reduce()) {
@@ -1058,7 +1089,7 @@ ReduceConfig setReduceConfig(const TensorIterator& iter){
   // In such case, values in each loaded vector always correspond to different outputs.
   if (fastest_moving_stride == sizeof(scalar_t)) {
 #ifdef USE_ROCM
-    if (reduction_on_fastest_striding_dimension && dim0 > 128 && iter.num_reduce_dims() == 1) {
+    if (reduction_on_fastest_striding_dimension && dim0 >= 128 && iter.num_reduce_dims() == 1) {
 #else
     if (reduction_on_fastest_striding_dimension && dim0 > 128 && iter.num_reduce_dims() == 1 && vt0 >= input_vec_size) {
 #endif
@@ -1166,8 +1197,17 @@ ReduceConfig setReduceConfig(const TensorIterator& iter){
     else if (config.ctas_per_output < 16)
       config.ctas_per_output = 1;
     bool is_channel_last = iter.tensor_base(1).is_contiguous(at::MemoryFormat::ChannelsLast);
-    if (iter.ndim() == 3 && !reduction_on_fastest_striding_dimension && !is_channel_last)
+    if (iter.ndim() == 3 && !reduction_on_fastest_striding_dimension && !is_channel_last) {
       config.ctas_per_output = 4;
+      int vpt = config.values_per_thread();
+      // Capping the number of values per thread to 2048 for now
+      // based on known use cases.
+      while (vpt >= 2048) {
+        config.ctas_per_output *= 2;
+        // Computes the new values per thread without side effects
+        vpt = config.mock_values_per_thread(config.ctas_per_output);
+      }
+    }
 #endif
     if (config.ctas_per_output > 1) {
       config.input_mult[2] = config.split_input(config.ctas_per_output);

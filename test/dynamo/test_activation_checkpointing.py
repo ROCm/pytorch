@@ -1285,7 +1285,10 @@ Non-primal fwd outputs from model w/o backward hook: {mod_no_hook_fwd_outputs_no
         self.assertEqual(ref, res)
 
     @requires_cuda
-    @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION and not PLATFORM_SUPPORTS_CUDNN_ATTENTION,
+        "Flash and CuDNN attention not support on GPU arch."
+    )
     def test_pattern_matcher(self, device):
         # Check that the sdpa op is recomputed in the backward graph
         # tests percolate_tags

@@ -104,6 +104,7 @@ except ImportError:
 
 
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
+MI350_ARCH = ("gfx950")
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
@@ -1983,6 +1984,23 @@ def skipIfRocmVersionLessThan(version=None):
                 if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
                     reason = f"ROCm {rocm_version_tuple} is available but {version} required"
                     raise unittest.SkipTest(reason)
+            return fn(self, *args, **kwargs)
+        return wrap_fn
+    return dec_fn
+
+def skipIfRocmVersionAndArch(version=None, arch=None):
+    def dec_fn(fn):
+        @wraps(fn)
+        def wrap_fn(self, *args, **kwargs):
+            if TEST_WITH_ROCM:
+                rocm_version = str(torch.version.hip)
+                rocm_version = rocm_version.split("-")[0]    # ignore git sha
+                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+                if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
+                    prop = torch.cuda.get_device_properties(0)
+                    if prop.gcnArchName.split(":")[0] in arch:
+                        reason = f"ROCm {version} and {arch} combination not supported"
+                        raise unittest.SkipTest(reason)
             return fn(self, *args, **kwargs)
         return wrap_fn
     return dec_fn

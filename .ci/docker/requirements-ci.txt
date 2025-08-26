@@ -162,7 +162,8 @@ pillow==11.0.0
 #Pinned versions: 10.3.0
 #test that import:
 
-protobuf==3.20.2
+protobuf==3.20.2 ; python_version <= "3.12"
+protobuf==4.25.1 ; python_version == "3.13"
 #Description:  Google’s data interchange format
 #Pinned versions: 3.20.1
 #test that import: test_tensorboard.py
@@ -257,11 +258,6 @@ scipy==1.14.1 ; python_version > "3.9"
 #Pinned versions:
 #test that import:
 
-tb-nightly==2.13.0a20230426
-#Description: TensorBoard
-#Pinned versions:
-#test that import:
-
 tlparse==0.3.30
 #Description: parse logs produced by torch.compile
 #Pinned versions:
@@ -313,8 +309,7 @@ z3-solver==4.12.6.0
 #Pinned versions:
 #test that import:
 
-tensorboard==2.13.0 ; python_version < "3.13"
-tensorboard==2.18.0 ; python_version >= "3.13"
+tensorboard==2.18.0
 #Description: Also included in .ci/docker/requirements-docs.txt
 #Pinned versions:
 #test that import: test_tensorboard
@@ -326,7 +321,8 @@ pywavelets==1.7.0 ; python_version >= "3.12"
 #Pinned versions: 1.4.1
 #test that import:
 
-lxml==5.3.0
+lxml==5.3.0 ; python_version <= "3.12"
+lxml==6.0.0 ; python_version == "3.13"
 #Description: This is a requirement of unittest-xml-reporting
 
 # Python-3.9 binaries
@@ -338,7 +334,8 @@ sympy==1.13.3
 #Pinned versions:
 #test that import:
 
-onnx==1.17.0
+onnx==1.16.1 ; python_version <= "3.12"
+onnx==1.18.0 ; python_version == "3.13"
 #Description: Required by mypy and test_public_bindings.py when checking torch.onnx._internal
 #Pinned versions:
 #test that import:

@@ -156,6 +156,7 @@ class TestCuda(TestCase):
         for thread in threads:
             thread.join()
 
+    @serialTest
     def test_host_memory_stats(self):
         # Helper functions
         def empty_stats():
@@ -436,6 +437,9 @@ class TestCuda(TestCase):
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_set_per_process_memory_fraction(self):
+        if torch.version.hip and ('gfx1101' in torch.cuda.get_device_properties(0).gcnArchName):
+           torch.cuda.empty_cache()
+           torch.cuda.reset_peak_memory_stats()
         orig = torch.cuda.get_per_process_memory_fraction(0)
         try:
             # test invalid fraction value.

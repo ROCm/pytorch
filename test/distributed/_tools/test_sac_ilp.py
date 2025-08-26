@@ -19,12 +19,12 @@ from torch.distributed._tools.sac_ilp import (
 )
 from torch.testing._internal.common_cuda import TEST_CUDA
 from torch.testing._internal.common_utils import (
-    MI300_ARCH,
-    NAVI4_ARCH,
     run_tests,
-    skipIfRocmArch,
     skipIfTorchDynamo,
     TestCase,
+    skipIfRocm,
+    skipIfRocmArch,
+    NAVI_ARCH,
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
@@ -137,8 +137,7 @@ class TestSACILP(TestCase):
 
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/115653")
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
-    @skipIfRocmArch(MI300_ARCH)
-    @skipIfRocmArch(NAVI4_ARCH)
+    @skipIfRocm
     def test_sac_ilp_case1(self):
         """
         This is a case where the memory budget is either binding or too tight,
@@ -181,6 +180,7 @@ class TestSACILP(TestCase):
 
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/115653")
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+    @skipIfRocmArch(NAVI_ARCH)
     def test_sac_ilp_case2(self):
         """
         This is a case where the memory budget is not binding, meaning that no
