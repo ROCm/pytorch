@@ -1049,7 +1049,7 @@ static bool _scaled_mm_allowed_device(bool sm90_only=false) {
     static const std::vector<std::string> archs = {
         "gfx942",
 #if ROCM_VERSION >= 60300
-        "gfx1150", "gfz1151", "gfx1200", "gfx1201",
+        "gfx1200", "gfx1201",
 #endif
 #if ROCM_VERSION >= 60500
         "gfx950"
