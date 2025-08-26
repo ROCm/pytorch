@@ -18,6 +18,7 @@
 #include <thrust/pair.h>
 
 #include <ATen/native/cuda/jit_utils.h>
+#include <ATen/native/cuda/KernelUtils.cuh>
 
 namespace at::native {
 
