@@ -37,10 +37,10 @@ if "%USE_XPU%"=="1" (
 @REM if errorlevel 1 goto fail
 @REM if not errorlevel 0 goto fail
 
-:: Update CMake
-call choco upgrade -y cmake --no-progress --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies --version=3.27.9
-if errorlevel 1 goto fail
-if not errorlevel 0 goto fail
+@REM :: Update CMake
+@REM call choco upgrade -y cmake --no-progress --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies --version=3.27.9
+@REM if errorlevel 1 goto fail
+@REM if not errorlevel 0 goto fail
 
 call pip install mkl==2024.2.0 mkl-static==2024.2.0 mkl-include==2024.2.0
 if errorlevel 1 goto fail
