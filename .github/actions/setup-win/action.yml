@@ -38,7 +38,7 @@ runs:
     - name: Install rocm
       shell: bash
       run: |
-        python -m pip install \
+        pip install \
           --index-url https://d2awnip2yjpvqn.cloudfront.net/v2/gfx110X-dgpu/ \
           rocm[libraries,devel]==7.0.0rc20250812
     - name: Install requirements
@@ -49,6 +49,8 @@ runs:
         choco install --no-progress -y ninja --version 1.12.1
         choco install --no-progress -y awscli
         echo "$PATH;C:\Program Files\Amazon\AWSCLIV2" >> $GITHUB_PATH
+        pip install -r requirements.txt
+        pip freeze
     # After other installs, so MSVC get priority in the PATH.
     - name: Configure MSVC
       uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
