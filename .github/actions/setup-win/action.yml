@@ -49,6 +49,9 @@ runs:
         choco install --no-progress -y ninja --version 1.12.1
         choco install --no-progress -y awscli
         echo "$PATH;C:\Program Files\Amazon\AWSCLIV2" >> $GITHUB_PATH
+    # After other installs, so MSVC get priority in the PATH.
+    - name: Configure MSVC
+      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
     # - name: Setup conda
     #   shell: bash

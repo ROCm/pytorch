@@ -16,13 +16,13 @@ set PATH=C:\Program Files\CMake\bin;C:\Program Files\7-Zip;C:\ProgramData\chocol
 
 set INSTALLER_DIR=%SCRIPT_HELPERS_DIR%\installation-helpers
 
-call %INSTALLER_DIR%\install_magma.bat
-if errorlevel 1 goto fail
-if not errorlevel 0 goto fail
+@REM call %INSTALLER_DIR%\install_magma.bat
+@REM if errorlevel 1 goto fail
+@REM if not errorlevel 0 goto fail
 
-call %INSTALLER_DIR%\install_sccache.bat
-if errorlevel 1 goto fail
-if not errorlevel 0 goto fail
+@REM call %INSTALLER_DIR%\install_sccache.bat
+@REM if errorlevel 1 goto fail
+@REM if not errorlevel 0 goto fail
 
 if "%USE_XPU%"=="1" (
   :: Install xpu support packages
@@ -31,11 +31,11 @@ if "%USE_XPU%"=="1" (
   if errorlevel 1 exit /b 1
 )
 
-:: Miniconda has been installed as part of the Windows AMI with all the dependencies.
-:: We just need to activate it here
-call %INSTALLER_DIR%\activate_miniconda3.bat
-if errorlevel 1 goto fail
-if not errorlevel 0 goto fail
+@REM :: Miniconda has been installed as part of the Windows AMI with all the dependencies.
+@REM :: We just need to activate it here
+@REM call %INSTALLER_DIR%\activate_miniconda3.bat
+@REM if errorlevel 1 goto fail
+@REM if not errorlevel 0 goto fail
 
 :: Update CMake
 call choco upgrade -y cmake --no-progress --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies --version=3.27.9
@@ -46,15 +46,15 @@ call pip install mkl==2024.2.0 mkl-static==2024.2.0 mkl-include==2024.2.0
 if errorlevel 1 goto fail
 if not errorlevel 0 goto fail
 
-:: Override VS env here
-pushd .
-if "%VC_VERSION%" == "" (
-    call "C:\Program Files (x86)\Microsoft Visual Studio\%VC_YEAR%\%VC_PRODUCT%\VC\Auxiliary\Build\vcvarsall.bat" x64
-) else (
-    call "C:\Program Files (x86)\Microsoft Visual Studio\%VC_YEAR%\%VC_PRODUCT%\VC\Auxiliary\Build\vcvarsall.bat" x64 -vcvars_ver=%VC_VERSION%
-)
-if errorlevel 1 goto fail
-if not errorlevel 0 goto fail
+@REM :: Override VS env here
+@REM pushd .
+@REM if "%VC_VERSION%" == "" (
+@REM     call "C:\Program Files (x86)\Microsoft Visual Studio\%VC_YEAR%\%VC_PRODUCT%\VC\Auxiliary\Build\vcvarsall.bat" x64
+@REM ) else (
+@REM     call "C:\Program Files (x86)\Microsoft Visual Studio\%VC_YEAR%\%VC_PRODUCT%\VC\Auxiliary\Build\vcvarsall.bat" x64 -vcvars_ver=%VC_VERSION%
+@REM )
+@REM if errorlevel 1 goto fail
+@REM if not errorlevel 0 goto fail
 
 if "%USE_XPU%"=="1" (
   :: Activate xpu environment - VS env is required for xpu
@@ -99,14 +99,14 @@ set PATH=%TMP_DIR_WIN%\bin;C:\Program Files\CMake\bin;%PATH%
 :: The latest Windows CUDA test is running on AWS G5 runner with A10G GPU
 if "%TORCH_CUDA_ARCH_LIST%" == "" set TORCH_CUDA_ARCH_LIST=8.6
 
-:: The default sccache idle timeout is 600, which is too short and leads to intermittent build errors.
-set SCCACHE_IDLE_TIMEOUT=0
-set SCCACHE_IGNORE_SERVER_IO_ERROR=1
-sccache --stop-server
-sccache --start-server
-sccache --zero-stats
-set CMAKE_C_COMPILER_LAUNCHER=sccache
-set CMAKE_CXX_COMPILER_LAUNCHER=sccache
+@REM :: The default sccache idle timeout is 600, which is too short and leads to intermittent build errors.
+@REM set SCCACHE_IDLE_TIMEOUT=0
+@REM set SCCACHE_IGNORE_SERVER_IO_ERROR=1
+@REM sccache --stop-server
+@REM sccache --start-server
+@REM sccache --zero-stats
+@REM set CMAKE_C_COMPILER_LAUNCHER=sccache
+@REM set CMAKE_CXX_COMPILER_LAUNCHER=sccache
 
 set CMAKE_GENERATOR=Ninja
 
@@ -150,8 +150,8 @@ python -c "import os, glob; os.system('python -mpip install --no-index --no-deps
   )
 )
 
-sccache --show-stats --stats-format json | jq .stats > sccache-stats-%BUILD_ENVIRONMENT%-%OUR_GITHUB_JOB_ID%.json
-sccache --stop-server
+@REM sccache --show-stats --stats-format json | jq .stats > sccache-stats-%BUILD_ENVIRONMENT%-%OUR_GITHUB_JOB_ID%.json
+@REM sccache --stop-server
 
 exit /b 0
 
