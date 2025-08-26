@@ -41,12 +41,14 @@ runs:
         python -m pip install \
           --index-url https://d2awnip2yjpvqn.cloudfront.net/v2/gfx110X-dgpu/ \
           rocm[libraries,devel]==7.0.0rc20250812
-    - name: Install ninja
+    - name: Install requirements
       shell: bash
       run: |
         # ninja pinned due to a bug in the 1.13.0 release:
         # https://github.com/ninja-build/ninja/issues/2616
         choco install --no-progress -y ninja --version 1.12.1
+        choco install --no-progress -y awscli
+        echo "$PATH;C:\Program Files\Amazon\AWSCLIV2" >> $GITHUB_PATH
 
     # - name: Setup conda
     #   shell: bash
