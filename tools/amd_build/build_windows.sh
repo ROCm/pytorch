@@ -14,7 +14,7 @@ fi
 #   .ci/pytorch/common-build.sh looks for "*win-*" when configuring sccache
 #   some workflows use "windows-binary-wheel" or "windows-arm64-binary-wheel"
 #   other workflows use "win-vs2022-cpu-py3", "win=vs2022-cuda12.6-py3", etc.
-export BUILD_ENVIRONMENT=windows-rocm-manywheel
+export BUILD_ENVIRONMENT=win-vs2022-rocm7-py3
 export PYTORCH_ROCM_ARCH=gfx1100
 
 # To test what CI does (may require software installed at certain paths on your system)

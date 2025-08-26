@@ -28,7 +28,7 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   # TODO: prepend ROCM_BIN_PATH to PATH as needed (venv already does this?)
   # system_path = str(bin_dir) + os.path.pathsep + os.environ.get("PATH", "")
 
-  if [[ "$BUILD_ENVIRONMENT" == *windows-* ]]; then
+  if [[ "$BUILD_ENVIRONMENT" == *win-* ]]; then
     # Set feature support environment variables (overriding defaults).
     export DISTUTILS_USE_SDK=1
     # TODO: enable tests
