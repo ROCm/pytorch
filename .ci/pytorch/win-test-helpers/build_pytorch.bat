@@ -5,6 +5,8 @@ if "%DEBUG%" == "1" (
 )
 
 set PATH=C:\Program Files\CMake\bin;C:\Program Files\7-Zip;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Amazon\AWSCLI;C:\Program Files\Amazon\AWSCLI\bin;%PATH%
+:: Put MSVC ahead of git on PATH so link.exe from MSVC is used instead of .../Git/usr/bin/link.exe.
+set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64;%PATH%
 
 :: This inflates our log size slightly, but it is REALLY useful to be
 :: able to see what our cl.exe commands are (since you can actually
