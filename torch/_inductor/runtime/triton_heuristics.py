@@ -2564,6 +2564,14 @@ def _reduction_configs(
             num_stages=1,
             waves_per_eu=2
         ))
+        result_configs.append(triton_config_reduction(
+            size_hints,
+            512,
+            8,
+            num_warps=4,
+            num_stages=1,
+            waves_per_eu=1
+        ))
 
     return result_configs
 
