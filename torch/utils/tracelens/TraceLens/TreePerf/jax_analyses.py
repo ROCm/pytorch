@@ -16,7 +16,7 @@ except ImportError:
 
 from .gpu_event_analyser import GPUEventAnalyser, JaxGPUEventAnalyser
 from ..PerfModel import perf_model
-from ..util import TraceEventUtils, DataLoader
+from ..util import TraceEventUtils, DataLoader, JaxProfileProcessor
 
 class JaxAnalyses:
     # keywords for splitting jax events
@@ -35,22 +35,6 @@ class JaxAnalyses:
         "TE": TEKeys,
     }
     UncategorizedEventKey = "Uncategorized Events"
-
-    class JaxSpecialThreads(StrEnum):
-        FrameworkCallStack = "Framework Name Scope"
-        FrameworkOps       = "Framework Ops"
-        XlaModules         = "XLA Modules"
-        XlaOps             = "XLA Ops"
-        SourceCode         = "Source Code"
-        Steps              = "Steps"
-        StreamPrefix       = "Stream #"
-
-    class JaxKernelEventArgs(StrEnum):
-        hlo_module     = "hlo module"
-        hlo_op         = "hlo_op"
-        name           = "name" # name hierarchy, not always the same as the stack we see in framework ops
-        correlation_id = "correlation_id" # can link to CPU threads
-        group_id       = "group_id"
 
     @staticmethod
     def breakdown_compute_events(event_list, group_by_gpu: bool = True, group_by_name = False):
@@ -316,7 +300,7 @@ class JaxAnalyses:
             # extract the first module name from the "XLA Modules:" thread
             xla_module_thread = TraceEventUtils.find_thread_by_item_in_metadata(
                 metadata[1],
-                lambda x: x[0] is not None and x[1][TraceEventUtils.MetadataFields.ThreadName] == JaxAnalyses.JaxSpecialThreads.XlaModules)
+                lambda x: x[0] is not None and x[1][TraceEventUtils.MetadataFields.ThreadName] == TraceEventUtils.JaxSpecialThreads.XlaModules)
             module_name = events[1][xla_module_thread][0][TraceEventUtils.TraceKeys.Name].split("(")[0]
         hlo_ops = JaxProfileProcessor.process_protobuf_file(pb_file_name, module_name)
         gemm_ops = JaxProfileProcessor.process_gemm_ops(hlo_ops)
@@ -324,7 +308,7 @@ class JaxAnalyses:
         gemm_ops = dict((x[0][1:], x[1]) for x in gemm_ops.items())
         main_thread_id = TraceEventUtils.find_thread_by_item_in_metadata(
             metadata[1],
-            lambda x: x[0] is not None and x[1][TraceEventUtils.MetadataFields.ThreadName].startswith(JaxAnalyses.JaxSpecialThreads.StreamPrefix))
+            lambda x: x[0] is not None and x[1][TraceEventUtils.MetadataFields.ThreadName].startswith(TraceEventUtils.JaxSpecialThreads.StreamPrefix))
         main_thread_events = events[1][main_thread_id]
         main_thread_gemms = filter(lambda x: TraceEventUtils.TraceKeys.Args in x and x[TraceEventUtils.TraceKeys.Args][JaxAnalyses.JaxKernelEventArgs.hlo_op] in gemm_ops, main_thread_events)
         metrics = [JaxAnalyses.gemm_perf_metrics(event, gemm_ops[event[TraceEventUtils.TraceKeys.Args][JaxAnalyses.JaxKernelEventArgs.hlo_op]], False, arch) for event in main_thread_gemms]
@@ -428,221 +412,4 @@ class JaxAnalyses:
         return dict_metrics
 
 
-    @staticmethod
-    def get_event_category(metadata: dict, event: dict):
-        if event.get(TraceEventUtils.TraceKeys.Phase == TraceEventUtils.TracePhases.Metadata):
-            return "metadata"
-        elif (TraceEventUtils.TraceKeys.PID in event and TraceEventUtils.TraceKeys.TID in event):
-            pid = event[TraceEventUtils.TraceKeys.PID]
-            tid = event[TraceEventUtils.TraceKeys.TID]
-            ThreadName = metadata[pid][tid][TraceEventUtils.MetadataFields.ThreadName]
-            if ThreadName == JaxAnalyses.JaxSpecialThreads.FrameworkCallStack:
-                return "cpu_op"
-            elif ThreadName == JaxAnalyses.JaxSpecialThreads.XlaOps:
-                return "python function"
-            elif ThreadName.startswith("Stream"):
-                name = event[TraceEventUtils.TraceKeys.Name]
-                if any(name.lower().startswith(x) for x in ['copy', 'memcpy']):
-                    return "memcpy"
-                if any(name.lower().startswith(x) for x in ['memset']):
-                    return "memset"
-                return "kernel"
-        return "Unknown"
 
-    # returns a curried function to categorizes events based on the
-    # metadata extracted from the events list
-    @staticmethod
-    def prepare_event_categorizer(events: list[dict]) -> Callable[[dict], str]:
-        metadata = TraceEventUtils.get_metadata(events)
-        return lambda event: JaxAnalyses.get_event_category(metadata, event)
-
-class JaxProfileProcessor:
-    gemm_columns = ["Batch", "M", "N", "K", "Beta", "Type"]
-
-    @staticmethod
-    def process_xla_file(xla_file_name):
-        hlo_ops={}
-        with open(xla_file_name, "r") as f:
-            for line in f:
-                JaxProfileProcessor.process_line(hlo_ops, line)
-        return hlo_ops
-
-    @staticmethod
-    def process_protobuf_file(protobuf_file_name, module_name):
-        from tensorboard_plugin_profile.convert import raw_to_tool_data as convert
-        # look to see if the protobuf file has already been extracted
-        dir_name = os.path.dirname(protobuf_file_name) + "/"
-        hlo_filename = glob.glob(dir_name + os.path.sep + module_name + "*hlo_proto.pb")
-        if len(hlo_filename) != 1:
-            convert.xspace_to_tool_names([protobuf_file_name])
-        hlo_filename = glob.glob(dir_name + os.path.sep + module_name + "*hlo_proto.pb")
-        assert len(hlo_filename) == 1
-        # need to make sure that the pb exists and get the numerical suffix into the module name
-        # and remove '.hlo_proto.pb'
-        module_name = os.path.splitext(os.path.splitext(os.path.basename(hlo_filename[0]))[0])[0]
-
-        hlo_ops={}
-        graph_viewer_options= {
-            'node_name': "",
-            'module_name': module_name,
-            'graph_width': 2,
-            'show_metadata': True,
-            'merge_fusion': True,
-            'type': "long_txt"
-        }
-        params = {'graph_viewer_options': graph_viewer_options }
-        data, _ = convert.xspace_to_tool_data(
-                [dir_name], "graph_viewer^", params)
-        data = data.decode("utf-8").split('\n')
-        for line in data:
-            JaxProfileProcessor.process_line(hlo_ops, line)
-        return hlo_ops
-
-    @staticmethod
-    def process_line(hlo_ops: dict, line: str):
-        line_processed=line.strip()
-        if (("metadata" in line_processed and not(re.search(r"\)$",line_processed)) and not(line_processed.startswith("ROOT")))
-            or any(t in line_processed for t in ["get-tuple-element", "bf16", "f8", "f16", "f32", "f64"])
-            and not(line_processed.startswith("HloModule "))):
-            k,v=JaxProfileProcessor.get_dict(hlo_ops, line_processed)
-            hlo_ops[k]=v
-            return True
-        return False
-
-    @staticmethod
-    def get_operands(operands):
-        operands=re.sub(r'^.*?\(', '', operands)
-        operands=re.sub(r'\).*?$', '', operands)
-        operands_m=re.findall(r"[bfs][0-9\[\]\{,a-z]*}",operands)
-        if operands_m:
-            return operands_m
-        return operands.split(",")
-
-    @staticmethod
-    def get_dict(hlo_ops: dict, line):
-        dict_line={}
-        line=re.sub(r"\),",")",line)
-        line=re.sub(r", ",",",line)
-        line=re.sub(r" %","%",line)
-        backend_config=re.search(r"backend_config=\{[a-zA-Z_=\"\(\)\/0-9\ @.-:,\[\]\{\}]*",line)
-        metadata=re.search(r"metadata=\{[a-zA-Z_=\"\(\)\/0-9\ @.-]*",line)
-        custom_call_target=re.search(r"custom_call_target=\"[a-zA-Z_=\"\(\)\/0-9\ @.\-\$]*",line)
-        line=line.split(" ")
-        key=line[0]
-        dict_line["output"]=line[2]
-        dict_line["operands"] = operands = JaxProfileProcessor.get_operands(line[3])
-        dict_line["computation"]="rest"
-        if metadata is not None:
-            dict_line["metadata"]=metadata[0]
-            if backend_config is not None:
-                dict_line["backend_config"]=backend_config[0]
-            if custom_call_target is not None:
-                gemm_keys = ["matmul", "cublas"]
-                dict_line["custom_call_target"]=custom_call_target[0]
-                if any(k in dict_line["custom_call_target"] for k in gemm_keys):
-                    if "f8" in str(custom_call_target[0]):
-                        dict_line["type"]="fp8"
-                        dict_line["computation"]="gemm"
-                    else:
-                        # use the input type to determine the GEMM type
-                        gemm_type = JaxProfileProcessor.get_operand_type(hlo_ops, operands[0])
-                        if not all(JaxProfileProcessor.get_operand_type(hlo_ops, o) == gemm_type for o in operands[1:]):
-                            raise Exception("Input operand type mismatch", line)
-                        dict_line["type"]=gemm_type
-                        dict_line["computation"]="gemm"
-        return (key,dict_line)
-    @staticmethod
-    def get_operand_type(hlo_ops: dict, operand : str) -> str:
-        dtypes = ["bf16", "f16", "f32", "f8", "fp8"]
-        # if the operand is a slice of something else, then the type might be at the beginning of the operand name
-        for t in dtypes:
-            if operand.startswith(t):
-                return t
-        # otherwise look it up
-        output = hlo_ops[operand]["output"]
-        for t in dtypes:
-            if output.startswith(t):
-                return t
-        return None
-
-    @staticmethod
-    def process_gemm_ops(hlo_ops: dict):
-        def get_sizes(str_size):
-            match=(re.search(r".*\[(.*)\]",str_size))
-            if match is not None:
-                m=match.group(1)
-                s=m.split(",")
-                if len(s)>3:
-                    raise ValueError("tensor size is more than 3?",str_size)
-                return s
-
-            else:
-                raise ValueError(str_size)
-        dtypes=["bf16", "f16", "f32", "f8", "fp8"]
-        gemm_dict={}
-        for opname,op in hlo_ops.items():
-            if "gemm" in op["computation"].lower():
-                if "backend_config" not in op:
-                    raise ValueError("Gemm backend config information mnissing!", op)
-                backend_config=op["backend_config"]
-                beta=re.search(r"\"beta\":[01],",backend_config)[0].split(":")[1].split(",")[0]
-                lhs_dim=re.search(r"\"lhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
-                rhs_dim=re.search(r"\"rhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
-                outputs = op["output"]
-                if outputs.startswith("("):
-                    if not outputs.endswith(")"):
-                        raise ValueError("Mistmatched parens in outputs in ",outputs)
-                    output_list = outputs[1:-2].split("},")
-                    # this code assumes that the first output is the one we care about
-                    # we should be able to make this an RE
-                    sizes_string=[[i, d] for i in output_list for d in dtypes if i.startswith(d)]
-                    if len(sizes_string) != 1:
-                        raise ValueError("Did not find wide output ",op)
-                    sizes_string = sizes_string[0]
-                    sizes_string[0] = sizes_string[0] + "}" # restore the } that was removed
-                else:
-                    sizes_string = outputs
-
-                operand_list=[]
-                for opid in op["operands"]:
-                    if ("[" in opid and "]" in opid):
-                        # pb format, shapes in operand list
-                        operand_list.append(opid)
-                    else:
-                        output = hlo_ops[opid]["output"]
-                        if any(output.startswith(d) for d in dtypes + ["f8"]) and not output.endswith("[]"):
-                            operand_list.append(hlo_ops[opid]["output"])
-                if int(beta)==1 and len(operand_list)<3:
-                    print("Bias is set, however on;y two operands found!",op)
-                if len(operand_list)>3 or len(operand_list) == 0:
-                    raise ValueError("Invalid operand list",op,operand_list)
-                c_order=re.search(r"\{[012,]*",sizes_string[0])[0].split("{")[1]
-                c=get_sizes(sizes_string[0])
-                a=get_sizes(operand_list[0])
-                b=get_sizes(operand_list[1])
-                batch=1
-                if a[int(lhs_dim)]!=b[int(rhs_dim)]:
-                    raise ValueError("contracting dimension not matching",backend_config)
-                k=a[int(lhs_dim)]
-                a.remove(k)
-                b.remove(k)
-                if len(c)>2:
-                    batch=c[0]
-                    a.remove(batch)
-                    b.remove(batch)
-                if "0,1" in c_order:
-                    n=b[0] if len(b) > 0 else 1
-                    m=a[0] if len(a) > 0 else 1
-                else:
-                    n=a[0] if len(a) > 0 else 1
-                    m=b[0] if len(b) > 0 else 1
-                gemm_dict[opname]={
-                    "Batch": int(batch),
-                    "M": int(m),
-                    "N": int(n),
-                    "K": int(k),
-                    "Beta": int(beta),
-                    "Type": op["type"],
-                    "Computation": "gemm",
-                }
-        return gemm_dict

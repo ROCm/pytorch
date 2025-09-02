@@ -147,6 +147,63 @@ class NcclAnalyser:
         self.df_per_rank_coll = df_long
         return df_long
 
+    def build_df_summary_long(self, agg_metrics=['mean', 'std', 'min', 'max'], 
+                            group_by_cols=['rank', 'Process Group Name', 'Process Group Ranks', 
+                                        'Collective name', 'Group size', 'dtype',
+                                        'In msg nelems', 'Out msg nelems', 'In split size', 
+                                        'Out split size', 'stream'],
+                            include_count=True):
+        """
+        Summarizes df_long based on specified aggregation metrics.
+        
+        Parameters:
+        -----------
+        agg_metrics : list
+            List of aggregation metrics to apply (e.g., 'mean', 'std', 'min', 'max')
+        group_by_cols : list
+            Columns to group by
+        include_count : bool
+            Whether to include count of operations in the summary
+        
+        Returns:
+        --------
+        DataFrame
+            Summarized communications data
+        """
+        if not hasattr(self, 'df_per_rank_coll'):
+            self.build_df_long()
+        
+        df = self.df_per_rank_coll
+        
+        # Define aggregations for different column types
+        agg_dict = {
+            'In msg size (MB)': 'first',  # should match across instances
+            'Out msg size (MB)': 'first',
+            'dur': ['sum']+agg_metrics  # Duration in microseconds
+        }
+        
+        # Add count if requested
+        if include_count:
+            agg_dict['collective_id'] = 'count'
+        
+        # Group and aggregate
+        summary_df = df.groupby(group_by_cols).agg(agg_dict)
+        
+        # Flatten the multi-index columns
+        summary_df.columns = ['_'.join(col).strip() for col in summary_df.columns.values]
+        
+        # Rename the count column for clarity
+        if include_count:
+            summary_df = summary_df.rename(columns={'collective_id_count': 'operation_count'})
+        
+        # Sort by total duration (descending)
+        summary_df = summary_df.sort_values(by='dur_sum', ascending=False)
+        
+        summary_df = summary_df.reset_index()
+        self.df_summary_long = summary_df
+        
+        return summary_df
+
     # ------------------------------------------------------------------------
     # Step 2: Build a wide table for implicit sync class
     # where each row is a collective operation

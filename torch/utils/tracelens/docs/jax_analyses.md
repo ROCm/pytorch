@@ -78,7 +78,7 @@ import sys
 data=TraceLens.util.DataLoader.load_data(sys.argv[1])
 events=data['traceEvents']
 metadata = TraceLens.util.TraceEventUtils.get_metadata(events)
-categorizer = TraceLens.TreePerf.JaxAnalyses.prepare_event_categorizer(events)
+categorizer = TraceLens.util.TraceEventUtils.prepare_event_categorizer(events)
 real_events = TraceLens.util.TraceEventUtils.non_metadata_events(events)
 tree = TraceLens.TraceToTree(real_events, linking_key='correlation', event_to_category=categorizer)
 tree.build_tree(True)

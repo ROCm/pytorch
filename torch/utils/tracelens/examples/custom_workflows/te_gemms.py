@@ -213,7 +213,7 @@ def main():
     
     # 3. Generate the performance report
     gemm_events = [event for event in perf_analyzer.tree.events if event['name'] in gemm_event_names]
-    df_gemm_ops = perf_analyzer.build_df_perf_metrics(gemm_events, include_kernel_names=True, dict_name_to_perf_model=dict_perf_model)
+    df_gemm_ops = perf_analyzer.build_df_perf_metrics(gemm_events, include_kernel_details=True, dict_name_to_perf_model=dict_perf_model)
     df_gemm_summary = perf_analyzer.summarize_df_perf_metrics(df_gemm_ops, ['mean'])
     df_gemm_summary.to_csv(args.output_csv_path, index=False)
     print(f"Generated GEMM performance report at {args.output_csv_path}")

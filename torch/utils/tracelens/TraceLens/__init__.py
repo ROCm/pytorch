@@ -8,7 +8,7 @@ from .TreePerf.gpu_event_analyser import (
 )
 from .TreePerf.jax_analyses import JaxAnalyses
 from .TreePerf.tree_perf import TreePerfAnalyzer
-from .util import DataLoader, TraceEventUtils
+from .util import DataLoader, TraceEventUtils, JaxProfileProcessor
 from .PerfModel import *
 from .EventReplay.event_replay import EventReplayer
 from .TraceDiff.trace_diff import TraceDiff
@@ -28,6 +28,7 @@ __all__ = [
     "EventReplayer",
     "DataLoader",
     "TraceEventUtils",
+    "JaxProfileProcessor",
     "TraceDiff",
     "Reporting",
 ]

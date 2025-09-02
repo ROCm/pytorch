@@ -49,7 +49,7 @@ class TreePerfAnalyzer:
         data = DataLoader.load_data(profile_filepath)
         data = data['traceEvents']
 
-        categorizer =  TraceToTree.default_categorizer if not jax else JaxAnalyses.prepare_event_categorizer(data)
+        categorizer =  TraceToTree.default_categorizer if not jax else TraceEventUtils.prepare_event_categorizer(data)
         data = data if not jax else TraceEventUtils.non_metadata_events(data)
         tree = TraceToTree(data, event_to_category=categorizer)
         return TreePerfAnalyzer(tree, jax=jax, event_to_category=categorizer, *args, **kwargs)

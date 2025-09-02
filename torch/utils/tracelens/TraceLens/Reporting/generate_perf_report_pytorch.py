@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from TraceLens import TraceToTree
 from TraceLens import TreePerfAnalyzer
+from TraceLens import NcclAnalyser
 import importlib.util
 import warnings
 import subprocess
@@ -175,6 +176,9 @@ def generate_perf_report_pytorch(profile_json_path: str,
                                 output_xlsx_path: Optional[str] = None,
                                 output_csvs_dir: Optional[str] = None,
 
+                                # collective analysis
+                                collective_analysis: bool = False,
+
                                 # short kernel study options
                                 short_kernel_study: bool = False,
                                 short_kernel_threshold_us: int = 10,
@@ -259,6 +263,12 @@ def generate_perf_report_pytorch(profile_json_path: str,
     if short_kernel_study:
         dict_name2df['short_kernel_histogram'] = df_hist
         dict_name2df['short_kernels_summary'] = df_short_kernels
+
+    if collective_analysis:
+        nccl_analyser = NcclAnalyser([profile_json_path], None)
+        df_nccl_summary = nccl_analyser.build_df_summary_long()
+        dict_name2df['coll_analysis'] = df_nccl_summary
+
     # Write all DataFrames to separate sheets in an Excel workbook
     if output_csvs_dir:
         # Ensure the output directory exists
@@ -296,6 +306,8 @@ def main():
                         help='Directory to save output CSV files')
 
     # Optional arguments
+    parser.add_argument('--collective_analysis', action='store_true',
+                        help='Include collective communication analysis in the report.')
     parser.add_argument('--short_kernel_study', action='store_true',
                         help='Include short kernel study in the report.')
     parser.add_argument('--short_kernel_threshold_us', type=int, default=10,
@@ -320,6 +332,7 @@ def main():
     generate_perf_report_pytorch(profile_json_path=args.profile_json_path,
                                  output_xlsx_path=args.output_xlsx_path,
                                  output_csvs_dir=args.output_csvs_dir,
+                                 collective_analysis=args.collective_analysis,
                                  short_kernel_study=args.short_kernel_study,
                                  short_kernel_threshold_us=args.short_kernel_threshold_us,
                                  short_kernel_histogram_bins=args.short_kernel_histogram_bins,
