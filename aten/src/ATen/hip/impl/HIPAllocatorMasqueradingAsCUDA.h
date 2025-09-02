@@ -67,8 +67,8 @@ public:
     allocator_->setMemoryFraction(fraction, device);
   }
 
-  void emptyCache(MempoolId_t mempool_id = {0, 0}) override {
-    allocator_->emptyCache(mempool_id);
+  void emptyCache() override {
+    allocator_->emptyCache();
   }
 
   void enable(bool value) override {
@@ -103,8 +103,8 @@ public:
     allocator_->resetPeakStats(device);
   }
 
-  HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) override {
-    return allocator_->snapshot(mempool_id);
+  HIPCachingAllocator::SnapshotInfo snapshot() override {
+    return allocator_->snapshot();
   }
 
   void beginAllocateToPool(
@@ -128,15 +128,10 @@ public:
     return allocator_->getPoolUseCount(device, mempool_id);
   }
 
-  void createOrIncrefPool(
+  void ensureExistsAndIncrefPool(
       c10::DeviceIndex device,
-      MempoolId_t mempool_id,
-      HIPAllocator* allocator = nullptr) override {
-    allocator_->createOrIncrefPool(device, mempool_id, allocator);
-  }
-
-  void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) override {
-    allocator_->setUseOnOOM(device, mempool_id);
+      MempoolId_t mempool_id) override {
+    allocator_->ensureExistsAndIncrefPool(device, mempool_id);
   }
 
   bool checkPoolLiveAllocations(
@@ -162,22 +157,13 @@ public:
       bool enabled,
       HIPCachingAllocator::CreateContextFn context_recorder,
       size_t alloc_trace_max_entries,
-      HIPCachingAllocator::RecordContext when,
-      bool clearHistory) override {
-    allocator_->recordHistory(enabled, context_recorder, alloc_trace_max_entries, when, clearHistory);
+      HIPCachingAllocator::RecordContext when) override {
+    allocator_->recordHistory(enabled, context_recorder, alloc_trace_max_entries, when);
   }
 
   void recordAnnotation(
       const std::vector<std::pair<std::string, std::string>>& md) override {
     allocator_->recordAnnotation(md);
-  }
-
-  void pushCompileContext(std::string& md) override {
-    allocator_->pushCompileContext(md);
-  }
-
-  void popCompileContext() override {
-    allocator_->popCompileContext();
   }
 
   void attachOutOfMemoryObserver(HIPCachingAllocator::OutOfMemoryObserver observer) override {
