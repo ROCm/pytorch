@@ -37,8 +37,8 @@ inline void setMemoryFraction(double fraction, c10::DeviceIndex device) {
   return get()->setMemoryFraction(fraction, device);
 }
 
-inline void emptyCache(MempoolId_t mempool_id = {0, 0}) {
-  return get()->emptyCache(mempool_id);
+inline void emptyCache() {
+  return get()->emptyCache();
 }
 
 inline void enable(bool value) {
@@ -70,8 +70,8 @@ inline void resetPeakStats(c10::DeviceIndex device) {
   return get()->resetPeakStats(device);
 }
 
-inline HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) {
-  return get()->snapshot(mempool_id);
+inline HIPCachingAllocator::SnapshotInfo snapshot() {
+  return get()->snapshot();
 }
 
 inline std::shared_ptr<HIPCachingAllocator::AllocatorState> getCheckpointState(
@@ -101,23 +101,14 @@ inline void recordHistory(
     bool enabled,
     HIPCachingAllocator::CreateContextFn context_recorder,
     size_t alloc_trace_max_entries,
-    HIPCachingAllocator::RecordContext when,
-    bool clearHistory) {
+    HIPCachingAllocator::RecordContext when) {
   return get()->recordHistory(
-      enabled, context_recorder, alloc_trace_max_entries, when, clearHistory);
+      enabled, context_recorder, alloc_trace_max_entries, when);
 }
 
 inline void recordAnnotation(
     const std::vector<std::pair<std::string, std::string>>& md) {
   return get()->recordAnnotation(md);
-}
-
-inline void pushCompileContext(std::string& md) {
-  return get()->pushCompileContext(md);
-}
-
-inline void popCompileContext() {
-  return get()->popCompileContext();
 }
 
 inline bool isHistoryEnabled() {
@@ -144,15 +135,10 @@ inline void releasePool(c10::DeviceIndex device, MempoolId_t mempool_id) {
   return get()->releasePool(device, mempool_id);
 }
 
-inline void createOrIncrefPool(
+inline void ensureExistsAndIncrefPool(
     c10::DeviceIndex device,
-    MempoolId_t mempool_id,
-    HIPCachingAllocator::HIPAllocator* allocator_ptr = nullptr) {
-  get()->createOrIncrefPool(device, mempool_id, allocator_ptr);
-}
-
-inline void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) {
-  get()->setUseOnOOM(device, mempool_id);
+    MempoolId_t mempool_id) {
+  get()->ensureExistsAndIncrefPool(device, mempool_id);
 }
 
 inline int getPoolUseCount(c10::DeviceIndex device, MempoolId_t mempool_id) {
