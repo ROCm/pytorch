@@ -37,33 +37,6 @@ public:
     allocator_->copy_data(dest, src, count);
   }
 
-  // From DeviceAllocator
-
-  bool initialized() override {
-    return allocator_->initialized();
-  }
-
-  void emptyCache(MempoolId_t mempool_id = {0, 0}) override {
-    allocator_->emptyCache(mempool_id);
-  }
-
-  void recordStream(const DataPtr& ptr, c10::Stream stream) override {
-    HIPStream hip_stream = HIPStream(stream);
-    recordStream(ptr, hip_stream);
-  }
-
-  CachingDeviceAllocator::DeviceStats getDeviceStats(c10::DeviceIndex device) override {
-    return allocator_->getDeviceStats(device);
-  }
-
-  void resetAccumulatedStats(c10::DeviceIndex device) override {
-    allocator_->resetAccumulatedStats(device);
-  }
-
-  void resetPeakStats(c10::DeviceIndex device) override {
-    allocator_->resetPeakStats(device);
-  }
-
   // From CUDAAllocator
 
   void* raw_alloc(size_t nbytes) override {
@@ -82,12 +55,20 @@ public:
     allocator_->init(device_count);
   }
 
+  bool initialized() override {
+    return allocator_->initialized();
+  }
+
   double getMemoryFraction(c10::DeviceIndex device) override {
     return allocator_->getMemoryFraction(device);
   }
 
   void setMemoryFraction(double fraction, c10::DeviceIndex device) override {
     allocator_->setMemoryFraction(fraction, device);
+  }
+
+  void emptyCache(MempoolId_t mempool_id = {0, 0}) override {
+    allocator_->emptyCache(mempool_id);
   }
 
   void enable(bool value) override {
@@ -108,6 +89,18 @@ public:
 
   void recordStream(const DataPtr& ptr, HIPStream stream) override {
     allocator_->recordStream(ptr, stream);
+  }
+
+  CachingDeviceAllocator::DeviceStats getDeviceStats(c10::DeviceIndex device) override {
+    return allocator_->getDeviceStats(device);
+  }
+
+  void resetAccumulatedStats(c10::DeviceIndex device) override {
+    allocator_->resetAccumulatedStats(device);
+  }
+
+  void resetPeakStats(c10::DeviceIndex device) override {
+    allocator_->resetPeakStats(device);
   }
 
   HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) override {
