@@ -2480,7 +2480,7 @@ def flex_attention_backward(*args, **kwargs):
     dtype = query.get_dtype()
     head_dim = V.graph.sizevars.evaluate_static_shape(query.get_size()[-1])
     configs = V.choices.get_flex_attention_bwd_configs(head_dim, dtype)
-    
+
     # Default config for warp specialization
     num_consumer_groups, num_buffers_warp_spec = 0, 0
 
