@@ -11,6 +11,8 @@
 #include <ATen/native/cpu/Loops.h>
 #include <ATen/cpu/vec/vec.h>
 #include <ATen/cpu/vec/functional.h>
+#include <unistd.h>
+#include <ATen/detail/CUDAHooksInterface.h>
 
 namespace at::native {
 
@@ -47,6 +49,18 @@ void _amp_foreach_non_finite_check_and_unscale_cpu_kernel(
       found_inf.scalar_type() == at::ScalarType::Float,
       "found_inf must be a float tensor.");
 
+  // This logic enables sleeping for Navi archs.
+  bool is_navi_arch = false;
+  static const std::vector<std::string> archs = { "gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201" };
+  for (auto index: c10::irange(detail::getCUDAHooks().deviceCount()))
+  {
+    if (detail::getCUDAHooks().isGPUArch(index, archs))
+    {
+      is_navi_arch = true;
+      break;
+    }
+  }
+
   // Ensures client code (GradScaler) filtered scaled_grads by dtype.
   at::native::check_foreach_api_restrictions(scaled_grads);
   for (const at::Tensor& t : scaled_grads) {
@@ -60,7 +74,7 @@ void _amp_foreach_non_finite_check_and_unscale_cpu_kernel(
       AT_DISPATCH_REDUCED_FLOATING_TYPES(
       iter.dtype(),
       "_amp_foreach_non_finite_check_and_unscale_cpu",
-      [&iter, &found_inf, &inv_scale] {
+      [&iter, &found_inf, &inv_scale, is_navi_arch] {
           auto* found_inf_ptr = found_inf.data_ptr<float>();
           auto* inv_scale_ptr = inv_scale.data_ptr<float>();
 
@@ -78,10 +92,14 @@ void _amp_foreach_non_finite_check_and_unscale_cpu_kernel(
                 return static_cast<scalar_t>(
                     inv_scale_val == 1.f ? val : val * inv_scale_val);
               },
-              [found_inf_ptr, inv_scale_ptr](Vectorized<scalar_t> val_vec) -> Vectorized<scalar_t>{
+              [found_inf_ptr, inv_scale_ptr, is_navi_arch](Vectorized<scalar_t> val_vec) -> Vectorized<scalar_t>{
                 auto [val_vec0, val_vec1] = convert_to_float<scalar_t>(val_vec);
                 if (val_vec0.has_inf_nan() || val_vec1.has_inf_nan()) {
                   *found_inf_ptr = 1.f;
+		  // For Navi arch, the vectorized operation was running unreliably, perhaps taking longer 
+		  // to execute and resulting in failure.
+		  if (is_navi_arch)
+		    sleep(0.5);
                 }
                 // Every thread accesses inv_scale, but it will hit in cache.
                 const auto inv_scale_val = *inv_scale_ptr;
@@ -94,7 +112,7 @@ void _amp_foreach_non_finite_check_and_unscale_cpu_kernel(
       AT_DISPATCH_FLOATING_TYPES(
         iter.dtype(),
         "_amp_foreach_non_finite_check_and_unscale_cpu",
-        [&iter, &found_inf, &inv_scale] {
+        [&iter, &found_inf, &inv_scale, is_navi_arch] {
           auto* found_inf_ptr = found_inf.data_ptr<float>();
           auto* inv_scale_ptr = inv_scale.data_ptr<float>();
           at::native::cpu_kernel_vec(
@@ -108,9 +126,12 @@ void _amp_foreach_non_finite_check_and_unscale_cpu_kernel(
                 return static_cast<scalar_t>(
                     inv_scale_val == 1.f ? val_in : val_in * inv_scale_val);
               },
-              [found_inf_ptr, inv_scale_ptr](Vectorized<scalar_t> val_vec) -> Vectorized<scalar_t>{
+              [found_inf_ptr, inv_scale_ptr, is_navi_arch](Vectorized<scalar_t> val_vec) -> Vectorized<scalar_t>{
                 if (val_vec.has_inf_nan()) {
                   *found_inf_ptr = 1.f;
+		  // For Navi arch, the vectorized operation was running unreliably, perhaps taking longer                                             // to execute and resulting in failure.
+                  if (is_navi_arch)
+                    sleep(0.5);
                 }
                 // Every thread accesses inv_scale, but it will hit in cache.
                 const auto inv_scale_val = *inv_scale_ptr;
