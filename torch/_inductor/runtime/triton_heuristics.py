@@ -3120,6 +3120,7 @@ def foreach(triton_meta, filename=None, inductor_meta=None):
     Compile a triton foreach kernel
     """
     configs = []
+    
     if disable_pointwise_autotuning(inductor_meta) and not (
         inductor_meta.get("max_autotune") or
         inductor_meta.get("max_autotune_pointwise")
