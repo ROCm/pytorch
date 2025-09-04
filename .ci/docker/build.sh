@@ -62,6 +62,8 @@ fi
 
 if [ -n "${UBUNTU_VERSION}" ]; then
   OS="ubuntu"
+elif [ -n "${CENTOS_VERSION}" ]; then
+  OS="centos"
 else
   echo "Unable to derive operating system base..."
   exit 1
