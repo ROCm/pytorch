@@ -800,7 +800,7 @@ class CachingAutotuner(KernelInterface):
         # for some (complicated) custom Triton kernels, a register-spilling
         # config may yield the best latency.
         if not self.custom_kernel and launcher.n_spills > self.inductor_meta.get(
-            "spill_threshold", 16
+            "spill_threshold", 32
         ):
             log.debug(
                 "Skip config %s because of register spilling: %d",
@@ -2071,6 +2071,9 @@ def triton_config(
     num_stages=1,
     num_elements_per_warp=256,
     min_elem_per_thread=0,
+    num_warps=None,
+    matrix_instr=None,
+    waves_per_eu=None
 ) -> Config:
     """
     Construct a pointwise triton config with some adjustment heuristics
@@ -2127,9 +2130,11 @@ def triton_config(
     ):
         z *= 2
 
-    num_warps = _num_warps(
-        conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
-    )
+    # Calculate num_waprs if they are not hard passed to config
+    if num_warps == None:
+        num_warps = _num_warps(
+            conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
+        )
     # we are going to arrive at 2 warps only if bs was too small due to
     # numel being too small. However to workaround some ptx bugs we still
     # want at least 4 warps if there's enough elements per thread
@@ -2159,7 +2164,15 @@ def triton_config(
         cfg["ZBLOCK"] = z
     check_max_block(cfg)
     check_config(cfg, xnumel=xnumel, ynumel=ynumel, znumel=znumel)
-    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+    config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
+
+    if torch.version.hip:
+        if matrix_instr is not None:
+            config.kwargs["matrix_instr_nonkdim"] = matrix_instr
+        if waves_per_eu is not None:
+            config.kwargs["waves_per_eu"] = waves_per_eu
+
+    return config
 
 
 def _get_nd_reduction_numels(r: int, size_hints: dict[str, int]) -> dict[str, int]:
@@ -2207,6 +2220,7 @@ def triton_config_reduction(
     num_stages=1,
     num_warps=None,
     register_intensive=False,
+    waves_per_eu=None
 ) -> Config:
     """
     Construct a reduction triton config with some adjustment heuristics
@@ -2250,7 +2264,13 @@ def triton_config_reduction(
     cfg = _get_config({"x": x, **rnumels})
     check_max_block(cfg)
     check_config(cfg, xnumel=size_hints["x"])
-    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+    config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
+
+    if torch.version.hip:
+        if waves_per_eu is not None:
+            config.kwargs["waves_per_eu"] = waves_per_eu
+
+    return config
 
 
 def _get_config(numels: dict[str, int]) -> dict[str, int]:
@@ -2388,6 +2408,9 @@ def pointwise(
                 triton_config_with_settings(
                     size_hints, bs // 2, num_elements_per_warp=64
                 ),
+                triton_config_with_settings(
+                    size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
+                ),
                 *hinted_configs,
             ]
     if len(size_hints) == 2:
@@ -2511,14 +2534,14 @@ def _reduction_configs(
     ):
         pass  # skip all these cases
     elif reduction_hint == ReductionHint.INNER:
-        return [contiguous_config]
+        result_configs = [contiguous_config]
     elif reduction_hint == ReductionHint.OUTER:
-        return [outer_config]
+        result_configs = [outer_config]
     elif reduction_hint == ReductionHint.OUTER_TINY:
-        return [tiny_config]
+        result_configs = [tiny_config]
     if disable_pointwise_autotuning(inductor_meta):
-        return [make_config(32, 128)]
-    return [
+        result_configs = [make_config(32, 128)]
+    result_configs = [
         contiguous_config,
         outer_config,
         tiny_config,
@@ -2529,6 +2552,28 @@ def _reduction_configs(
         # is quite heavy. E.g. https://gist.github.com/shunting314/189a8ef69f90db9d614a823385147a72
         make_config(64, 4, num_warps=8),
     ]
+
+    # Additional reduction configs appended for ROCm builds
+    if torch.version.hip:
+        # New config
+        result_configs.append(triton_config_reduction(
+            size_hints,
+            1024,
+            8,
+            num_warps=4,
+            num_stages=1,
+            waves_per_eu=2
+        ))
+        result_configs.append(triton_config_reduction(
+            size_hints,
+            512,
+            8,
+            num_warps=4,
+            num_stages=1,
+            waves_per_eu=1
+        ))
+
+    return result_configs
 
 
 def match_target_block_product(
@@ -2624,6 +2669,7 @@ def reduction(
 
     configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
+
     return cached_autotune(
         size_hints,
         configs=configs,
@@ -2694,18 +2740,12 @@ def _persistent_reduction_configs(
         or inductor_meta.get("max_autotune_pointwise")
     )
 
-    configs = [
-        triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
-        for xblock in (1, 8, 32, 128)
-        if xblock == 1 or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
-    ]
-    
     if "y" not in size_hints:
         configs = [
             triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
             for xblock in (1, 8, 32, 128)
             if xblock == 1
-            or (rnumel * xblock <= 4096 and xblock <= xnumel)
+            or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
         ]
     else:
         configs = []
@@ -2734,20 +2774,20 @@ def _persistent_reduction_configs(
         elif reduction_hint == ReductionHint.OUTER:
             configs = configs[-1:]
 
-    if reduction_hint == ReductionHint.OUTER_TINY:
-        tiny_configs = [
-            triton_config_reduction(
-                size_hints,
-                2 * (256 // rnumel) if rnumel <= 256 else 1,
-                rnumel,
-            )
-        ]
-        if max_autotune_enabled:
-            for tconfig in tiny_configs:
-                if tconfig not in configs:
-                    configs.append(tconfig)
-            else:
-                configs = tiny_configs
+    tiny_configs = [
+        triton_config_reduction(
+            size_hints,
+            2 * (256 // rnumel) if rnumel <= 256 else 1,
+            rnumel,
+        )
+    ]
+
+    if max_autotune_enabled:
+        for conf in tiny_configs:
+            if conf not in configs:
+                configs.append(conf)
+    elif reduction_hint == ReductionHint.OUTER_TINY:
+        configs = tiny_configs
 
     for c in configs:
         # we don't need Rn_BLOCK for persistent reduction
