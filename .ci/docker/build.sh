@@ -418,6 +418,7 @@ docker build \
        --build-arg "LLVMDEV=${LLVMDEV:-}" \
        --build-arg "VISION=${VISION:-}" \
        --build-arg "UBUNTU_VERSION=${UBUNTU_VERSION}" \
+       --build-arg "CENTOS_VERSION=${CENTOS_VERSION}" \
        --build-arg "DEVTOOLSET_VERSION=${DEVTOOLSET_VERSION}" \
        --build-arg "GLIBC_VERSION=${GLIBC_VERSION}" \
        --build-arg "CLANG_VERSION=${CLANG_VERSION}" \
