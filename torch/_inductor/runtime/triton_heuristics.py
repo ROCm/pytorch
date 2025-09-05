@@ -2740,18 +2740,12 @@ def _persistent_reduction_configs(
         or inductor_meta.get("max_autotune_pointwise")
     )
 
-    configs = [
-        triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
-        for xblock in (1, 8, 32, 128)
-        if xblock == 1 or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
-    ]
-    
     if "y" not in size_hints:
         configs = [
             triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
             for xblock in (1, 8, 32, 128)
             if xblock == 1
-            or (rnumel * xblock <= 4096 and xblock <= xnumel)
+            or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
         ]
     else:
         configs = []
