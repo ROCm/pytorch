@@ -6817,6 +6817,7 @@ class ReproTestsDevice(torch._dynamo.test_case.TestCase):
         self.assertEqual(cnt.frame_count, 1)
 
     @requires_cuda
+    @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_sdpa_dynamic_shapes(self, device):
         def f(x, s0, s1, s2):
             q = x.view(2, s0, s2, s0)
