@@ -2600,7 +2600,25 @@ def _reduction_configs(
     elif inductor_meta.get("max_autotune") or inductor_meta.get(
         "max_autotune_pointwise"
     ):
-        pass  # skip all these cases
+        # Extra ROCm tuning
+        if torch.version.hip:
+            result_configs.append(triton_config_reduction(
+                size_hints,
+                1024,
+                8,
+                num_warps=4,
+                num_stages=1,
+                waves_per_eu=2
+            ))
+            result_configs.append(triton_config_reduction(
+                size_hints,
+                512,
+                8,
+                num_warps=4,
+                num_stages=1,
+                waves_per_eu=1
+            ))
+
     elif reduction_hint == ReductionHint.INNER:
         result_configs = [contiguous_config]
     elif reduction_hint == ReductionHint.OUTER:
@@ -2624,22 +2642,6 @@ def _reduction_configs(
     # Additional reduction configs appended for ROCm builds
     if torch.version.hip:
         # New config
-        result_configs.append(triton_config_reduction(
-            size_hints,
-            1024,
-            8,
-            num_warps=4,
-            num_stages=1,
-            waves_per_eu=2
-        ))
-        result_configs.append(triton_config_reduction(
-            size_hints,
-            512,
-            8,
-            num_warps=4,
-            num_stages=1,
-            waves_per_eu=1
-        ))
 
     return result_configs
 
