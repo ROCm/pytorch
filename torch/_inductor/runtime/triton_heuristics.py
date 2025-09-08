@@ -2532,6 +2532,9 @@ def _reduction_configs(
     elif inductor_meta.get("max_autotune") or inductor_meta.get(
         "max_autotune_pointwise"
     ):
+
+        result_configs = []
+        
         # Extra ROCm tuning
         if torch.version.hip:
             result_configs.append(triton_config_reduction(
