@@ -2639,10 +2639,6 @@ def _reduction_configs(
         make_config(64, 4, num_warps=8),
     ]
 
-    # Additional reduction configs appended for ROCm builds
-    if torch.version.hip:
-        # New config
-
     return result_configs
 
 
