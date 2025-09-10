@@ -97,10 +97,10 @@ def build_triton(
         triton_pythondir = triton_basedir / "python"
         triton_repo = "https://github.com/ROCm/triton"
         rocm_version = get_rocm_version()  # e.g., "7.0.1"
-            if tuple(map(int, rocm_version.split("."))) > (7, 0, 0):
-                triton_pkg_name = "triton"
-            else:
-                triton_pkg_name = "pytorch-triton-rocm"
+        if tuple(map(int, rocm_version.split("."))) > (7, 0, 0):
+            triton_pkg_name = "triton"
+        else:
+            triton_pkg_name = "pytorch-triton-rocm"
         check_call(["git", "clone", triton_repo], cwd=tmpdir)
         if release:
             ver, rev, patch = version.split(".")
