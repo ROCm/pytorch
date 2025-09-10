@@ -10,7 +10,8 @@ from torch._inductor.utils import run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
-    is_navi3_arch,
+    NAVI3_ARCH,
+    is_arch,
     parametrize,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA
@@ -47,8 +48,8 @@ class MyModule3(torch.nn.Module):
 
 # We have to increase tolerance for navi3 because all fp16, bf16
 # GEMMs operations have an accuracy issue caused by hardware limitation
-default_atol = 3e-3 if is_navi3_arch() else 1e-3
-default_rtol = 4e-3 if is_navi3_arch() else 1e-3
+default_atol = 3e-3 if is_arch(NAVI3_ARCH) else 1e-3
+default_rtol = 4e-3 if is_arch(NAVI3_ARCH) else 1e-3
 
 
 @requires_gpu
