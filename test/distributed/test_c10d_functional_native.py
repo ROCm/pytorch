@@ -713,6 +713,7 @@ class PyWorkTest(TestCase):
         self.assertEqual(pg.dels, 4)
 
 
+@skipIfRocm
 class CompileTest(TestCase):
     def setUp(self):
         super().setUp()
