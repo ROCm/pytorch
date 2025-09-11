@@ -514,8 +514,8 @@ operator||(const complex<_Tp>& __x, const complex<_Tp>& __y)
 
 // 26.3.7 values:
 
-template <class _Tp, bool = is_integral<_Tp>::value,
-                     bool = is_floating_point<_Tp>::value
+template <class _Tp, bool = __hip_internal::is_integral<_Tp>::value,
+                     bool = __hip_internal::is_floating_point<_Tp>::value
                      >
 struct __libcpp_complex_overload_traits {};
 
@@ -593,9 +593,9 @@ arg(const complex<_Tp>& __c)
 
 template<class _Tp>
 inline
-typename enable_if
+typename __hip_internal::enable_if
 <
-    is_integral<_Tp>::value || is_same<_Tp, double>::value,
+    __hip_internal::is_integral<_Tp>::value || __hip_internal::is_same<_Tp, double>::value,
     double
 >::type
 arg(_Tp __re)
@@ -605,8 +605,8 @@ arg(_Tp __re)
 
 template <class _Tp>
 inline
-typename enable_if<
-    is_same<_Tp, float>::value,
+typename __hip_internal::enable_if<
+    __hip_internal::is_same<_Tp, float>::value,
     float
 >::type
 arg(_Tp __re)
@@ -716,9 +716,9 @@ proj(const complex<_Tp>& __c)
 
 template <class _Tp>
 inline
-typename enable_if
+typename __hip_internal::enable_if
 <
-    is_floating_point<_Tp>::value,
+    __hip_internal::is_floating_point<_Tp>::value,
     typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
 >::type
 proj(_Tp __re)
@@ -730,9 +730,9 @@ proj(_Tp __re)
 
 template <class _Tp>
 inline
-typename enable_if
+typename __hip_internal::enable_if
 <
-    is_integral<_Tp>::value,
+    __hip_internal::is_integral<_Tp>::value,
     typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
 >::type
 proj(_Tp __re)
@@ -866,9 +866,9 @@ pow(const complex<_Tp>& __x, const complex<_Up>& __y)
 
 template<class _Tp, class _Up>
 inline
-typename enable_if
+typename __hip_internal::enable_if
 <
-    is_arithmetic<_Up>::value,
+    __hip_internal::is_arithmetic<_Up>::value,
     complex<typename __promote<_Tp, _Up>::type>
 >::type
 pow(const complex<_Tp>& __x, const _Up& __y)
@@ -879,9 +879,9 @@ pow(const complex<_Tp>& __x, const _Up& __y)
 
 template<class _Tp, class _Up>
 inline
-typename enable_if
+typename __hip_internal::enable_if
 <
-    is_arithmetic<_Tp>::value,
+    __hip_internal::is_arithmetic<_Tp>::value,
     complex<typename __promote<_Tp, _Up>::type>
 >::type
 pow(const _Tp& __x, const complex<_Up>& __y)
