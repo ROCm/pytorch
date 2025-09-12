@@ -36,6 +36,7 @@ function do_install() {
         fi
         popd
     )
+}
 
 # Magma build scripts need `python`
 ln -sf /usr/bin/python3 /usr/bin/python
