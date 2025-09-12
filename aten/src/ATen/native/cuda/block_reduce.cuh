@@ -22,9 +22,6 @@ static int kCUDABlockReduceMaxThreads() {
 constexpr int kCUDABlockReduceMaxThreads() {
     return C10_WARP_SIZE * C10_WARP_SIZE;
 }
-static const int kCUDABlockReduceMaxThreads = at::cuda::warp_size() * at::cuda::warp_size();
-#else
-constexpr int kCUDABlockReduceMaxThreads = C10_WARP_SIZE * C10_WARP_SIZE;
 #endif
 
 // Sums `val` across all threads in a warp.
