@@ -124,7 +124,10 @@ install_centos() {
 
   ccache_deps="asciidoc docbook-dtds docbook-style-xsl libxslt"
   numpy_deps="gcc-gfortran"
-  yum install -y \
+  # Note: protobuf-c-{compiler,devel} on CentOS are too old to be used
+  # for Caffe2. That said, we still install them to make sure the build
+  # system opts to build/use protoc and libprotobuf from third-party.
+  yum install -y $ALLOW_ERASE \
     $ccache_deps \
     $numpy_deps \
     autoconf \
@@ -158,11 +161,11 @@ install_centos() {
 	    libsndfile-devel
   fi
 
+
   # CentOS7 doesnt have support for higher version of libpng,
   # so it is built from source.
   # Libpng is required for torchvision build.
   build_libpng
-
   # Cleanup
   yum clean all
   rm -rf /var/cache/yum
