@@ -2913,7 +2913,7 @@ def _persistent_reduction_configs(
     if "y" not in size_hints:
         configs = [
             triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
-            for xblock in (1, 8, 32, 128)
+            for xblock in (1, 4, 8, 16, 32, 64, 128, 256, 512)
             if xblock == 1
             or (xblock <= xnumel and rnumel * xblock <= 4096)
         ]
@@ -2921,7 +2921,7 @@ def _persistent_reduction_configs(
         configs = []
         assert "tiling_scores" in inductor_meta
         x_y_scores = {dim: inductor_meta["tiling_scores"][dim] for dim in ("x", "y")}
-        for target_block_size in (1, 8, 32, 64, 128):
+        for target_block_size in (1, 4, 8, 16, 32, 64, 128, 256, 512):
             if target_block_size * rnumel > 4096:
                 continue
 
@@ -2956,6 +2956,22 @@ def _persistent_reduction_configs(
         for conf in tiny_configs:
             if conf not in configs:
                 configs.append(conf)
+
+        # Expand configs to try additional warps
+        expanded_configs = []
+        for conf in configs:
+            num_warps = conf.num_warps
+            max_warps = 8 if torch.version.hip else 16
+            small_conf = copy.deepcopy(conf)
+            large_conf = copy.deepcopy(conf)
+            small_conf.num_warps = max(small_conf.num_warps // 2, 1)
+            large_conf.num_warps = min(large_conf.num_warps * 2, max_warps)
+            expanded_configs.append(conf)
+            expanded_configs.append(small_conf)
+            expanded_configs.append(large_conf)
+
+        configs = expanded_configs
+
     elif reduction_hint == ReductionHint.OUTER_TINY:
         configs = tiny_configs
 
