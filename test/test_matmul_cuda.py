@@ -365,7 +365,7 @@ class TestFP8MatmulCuda(TestCase):
         self._test_tautological_mm(device, size=96, out_dtype=torch.float32)
         self._test_tautological_mm(device, size=80, out_dtype=torch.bfloat16)
 
-        with self.assertRaises(AssertionError if torch.version.hip else RuntimeError):
+        with self.assertRaises(AssertionError if torch.version.hip or device == "cpu" else RuntimeError):
             self._test_tautological_mm(device, out_dtype=e5m2_type)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
