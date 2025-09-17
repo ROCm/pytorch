@@ -2541,7 +2541,7 @@ def _reduction_configs(
 
     result_configs = []
     
-    if not (max_autotune or "y" in size_hints):
+    if not (max_autotune_enabled or "y" in size_hints):
         if reduction_hint == ReductionHint.INNER:
             result_configs = [contiguous_config]
         elif reduction_hint == ReductionHint.OUTER:
