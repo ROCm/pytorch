@@ -155,6 +155,10 @@ assert __all__ == sorted(__all__)
 # Load the extension module
 ################################################################################
 
+# Set MIOpen environment variables
+os.environ.setdefault("MIOPEN_DEBUG_CONV_DIRECT_NAIVE_CONV_FWD", "0")
+os.environ.setdefault("MIOPEN_DEBUG_AMD_WINOGRAD_FURY_RXS_F2X3", "0")
+
 # If PyTorch was built against the ROCm runtime wheels, then there will be
 # a _rocm_init module and it will define an initialize() function which can
 # prepare ROCm for use. See general documentation on ROCm runtime wheels:
