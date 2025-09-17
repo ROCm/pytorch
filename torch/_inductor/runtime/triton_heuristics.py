@@ -2564,7 +2564,10 @@ def _reduction_configs(
     rnumel = get_total_reduction_numel(size_hints)
 
     # Is max autotune enabled
-    max_autotune = inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    max_autotune_enabled = not disable_pointwise_autotuning(inductor_meta) or (
+        inductor_meta.get("max_autotune")
+        or inductor_meta.get("max_autotune_pointwise")
+    )
 
     register_intensive = False
     MAX_R0_BLOCK = 2048
