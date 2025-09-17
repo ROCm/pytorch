@@ -2349,21 +2349,18 @@ def triton_config_reduction(
     check_max_block(cfg)
     check_config(cfg, xnumel=size_hints["x"])
 
+    config = InductorConfig(
+        cfg,
+        num_warps=num_warps,
+        num_stages=num_stages,
+        dynamic_scale_rblock=dynamic_scale_rblock,
+    )
+
     if torch.version.hip:
-        return InductorConfig(
-            cfg,
-            num_warps=num_warps,
-            num_stages=num_stages,
-            waves_per_eu=waves_per_eu,
-            dynamic_scale_rblock=dynamic_scale_rblock,
-        )
-    else:
-        return InductorConfig(
-            cfg,
-            num_warps=num_warps,
-            num_stages=num_stages,
-            dynamic_scale_rblock=dynamic_scale_rblock,
-        )
+        if waves_per_eu is not None:
+            config.kwargs["waves_per_eu"] = waves_per_eu
+
+    return config
 
 
 def _get_config(numels: dict[str, int]) -> dict[str, int]:
