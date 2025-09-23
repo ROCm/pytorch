@@ -16,10 +16,27 @@
 #include <ATen/ops/empty.h>
 #endif
 
+<<<<<<< HEAD
 #include <torch/nativert/executor/triton/CpuTritonKernelManager.h>
 
 namespace torch::nativert {
 
+=======
+namespace torch::nativert {
+
+// in this case, we want to use the symbol from torch_cpu.dll
+#ifndef NATIVERT_MSVC_TEST
+C10_DEFINE_TYPED_REGISTRY(
+    TritonKernelManagerRegistry,
+    c10::DeviceType,
+    TritonKernelManager,
+    std::unique_ptr,
+    std::string /* kernel_name */,
+    std::string /* kernel_bin_path */,
+    std::string /* kernel_launcher_bin_path */)
+#endif
+
+>>>>>>> upstream/main
 TritonKernel::TritonKernel(
     const Node* node,
     caffe2::serialize::PyTorchStreamReader* reader)
@@ -74,6 +91,7 @@ TritonKernel::TritonKernel(
   auto tmp_dir = extractToTemporaryFolder(*reader, kernel_prefix) + "/";
 
   if (reader->hasRecord(kernel_prefix + "/" + kernel_name + ".cubin")) {
+<<<<<<< HEAD
     TORCH_CHECK(
         create_cuda_triton_kernel_manager != nullptr,
         "couldn't find cuda loader -- is this a gpu build?");
@@ -95,6 +113,30 @@ TritonKernel::TritonKernel(
         tmp_dir + kernel_name + ".so",
         tmp_dir + kernel_name + ".launcher.so"));
   }
+=======
+    loader_ = TritonKernelManagerRegistry()->Create(
+        at::kCUDA, kernel_name, tmp_dir + kernel_name + ".cubin", "");
+    TORCH_CHECK(
+        loader_ != nullptr,
+        "couldn't find cuda loader -- is this a gpu build?");
+  } else if (reader->hasRecord(kernel_prefix + "/" + kernel_name + ".hsaco")) {
+    loader_ = TritonKernelManagerRegistry()->Create(
+        at::kHIP, kernel_name, tmp_dir + kernel_name + ".hsaco", "");
+    TORCH_CHECK(
+        loader_ != nullptr,
+        "couldn't find cuda loader -- is this a gpu build?");
+  } else {
+    loader_ = TritonKernelManagerRegistry()->Create(
+        at::kCPU,
+        kernel_name,
+        tmp_dir + kernel_name + ".so",
+        tmp_dir + kernel_name + ".launcher.so");
+  }
+
+  TORCH_CHECK(
+      loader_ != nullptr,
+      "couldn't find triton kernel loader -- are you trying to run gpu kernels on a cpu build?");
+>>>>>>> upstream/main
 }
 
 TritonKernel::~TritonKernel() = default;

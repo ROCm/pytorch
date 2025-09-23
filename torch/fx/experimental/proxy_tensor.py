@@ -1911,6 +1911,7 @@ class _ModuleStackTracer(PythonKeyTracer):
         # In non-strict export, we don't have dynamo's side effect
         # tracking logic which makes some cases hard to detect.
         # In general, our detecting strategy is:
+<<<<<<< HEAD
         #  (1) We do gc.collect() before export and get the alive fake tensors
         #  (2) We dump the proxy to fake tensor map from make_fx tracer (_FAKE_TENSOR_ID_TO_PROXY_MAP_FOR_EXPORT)
         #  (3) We query gc again to get alive fake tensors
@@ -1919,6 +1920,14 @@ class _ModuleStackTracer(PythonKeyTracer):
         #      (1) Associated with TrackedFake (input tracking thing in symbolic_shapes)
         #      (2) Associated with gm.meta
         #  (6) Do ID match with the proxies
+=======
+        #  (1) We instrument fake tensor creation to log all the fake tensors created during export.
+        #  (2) We dump the proxy to fake tensor map from make_fx tracer (_FAKE_TENSOR_ID_TO_PROXY_MAP_FOR_EXPORT))
+        #  (3) Filter out fake tensors that are logged during (1):
+        #      (1) Associated with TrackedFake (input tracking thing in symbolic_shapes)
+        #      (2) Associated with gm.meta
+        #  (4) Do ID match with the proxies
+>>>>>>> upstream/main
 
         global _FAKE_TENSOR_ID_TO_PROXY_MAP_FOR_EXPORT
         _FAKE_TENSOR_ID_TO_PROXY_MAP_FOR_EXPORT.clear()
@@ -2020,7 +2029,11 @@ class _ModuleStackTracer(PythonKeyTracer):
 
         # nn_module_stack
         if node.op not in ["placeholder", "output"]:
+<<<<<<< HEAD
             if "nn_module_stack" not in node.meta:
+=======
+            if node.meta.get("nn_module_stack") is None:
+>>>>>>> upstream/main
                 node.meta["nn_module_stack"] = self.module_stack.copy()
             # convert nn_module_stack from Dict[key, (FQN, class)] -> Dict[str, Tuple[str, str]]
             for key, (fqn, mod_cls) in node.meta["nn_module_stack"].items():

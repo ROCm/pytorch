@@ -1149,9 +1149,14 @@ bool is_blockwise_1x16_scaling(const at::Tensor& t, const at::Tensor& scale) {
 bool is_blockwise_1x32_scaling(const at::Tensor& t, const at::Tensor& scale) {
   // TODO: We might want to enforce some structure on the shapes of the scale
   // tensors
-  return (isFloat8Type(t.scalar_type()) && scale.scalar_type() == at::kFloat8_e8m0fnu
-      && scale.numel() == round_up<int64_t>(t.size(0), 128) * round_up<int64_t>(ceil_div<int64_t>(t.size(1), 32), 4)
-      && scale.is_contiguous());
+  bool is_fp8_path = (isFloat8Type(t.scalar_type()) && scale.scalar_type() == at::kFloat8_e8m0fnu
+      && scale.numel() == round_up<int64_t>(t.size(0), 128) * round_up<int64_t>(ceil_div<int64_t>(t.size(1), 32), 4));
+  bool is_packed_fp4_path = false;
+#ifdef USE_ROCM
+  is_packed_fp4_path = (t.scalar_type() == ScalarType::Float4_e2m1fn_x2 && scale.scalar_type() == at::kFloat8_e8m0fnu
+      && scale.numel() == round_up<int64_t>(t.size(0), 128) * round_up<int64_t>(ceil_div<int64_t>(t.size(1) * 2, 32), 4));
+#endif
+  return (is_fp8_path || is_packed_fp4_path) && scale.is_contiguous();
 }
 
 bool is_blockwise_1x128_scaling(const at::Tensor& t, const at::Tensor& scale) {
@@ -1392,9 +1397,21 @@ _scaled_mm_out_cuda(const Tensor& mat1, const Tensor& mat2,
     TORCH_CHECK(at::detail::getCUDAHooks().isGPUArch({"gfx950"}),
                 "Block-wise scaling for Float8_e8m0fnu is only supported on gfx950");
 
+<<<<<<< HEAD
     TORCH_CHECK(mat1.size(0) % 32 == 0 && mat1.size(1) % 32 == 0 &&
                 mat2.size(0) % 32 == 0 && mat2.size(1) % 32 == 0,
                 "Matrix dimensions must be multiples of 32 for block-wise scaling");
+=======
+    int packed_factor = 1;
+    if (mat1.scalar_type() == ScalarType::Float4_e2m1fn_x2) {
+      // For float4 data type, each byte stores two 4-bit floating-point values,
+      // effectively packing two elements into one byte.
+      packed_factor = 2;
+    }
+    TORCH_CHECK(mat1.size(0) % 16 == 0 && (mat1.size(1) * packed_factor) % 128 == 0 &&
+                mat2.size(1) % 16 == 0,
+                "M, N must be multiples of 16 and K must be multiple of 128 for block-wise scaling");
+>>>>>>> upstream/main
 
     TORCH_CHECK(out.scalar_type() == ScalarType::BFloat16 ||
                 out.scalar_type() == ScalarType::Half,
@@ -1787,7 +1804,14 @@ Tensor _grouped_mm_cuda(const Tensor& mat_a, const Tensor& mat_b,
 const std::optional<at::Tensor>& offs,
 const std::optional<at::Tensor>& bias,
 std::optional<c10::ScalarType> out_dtype) {
+  _grouped_mm_validate_inputs(mat_a, mat_b, offs, bias, out_dtype);
+  bool a_b_and_out_are_bf16 = (
+    mat_a.dtype() == at::kBFloat16 &&
+    mat_b.dtype() == at::kBFloat16 &&
+    out_dtype.value_or(at::kBFloat16) == at::kBFloat16
+  );
 #ifndef USE_ROCM
+<<<<<<< HEAD
   _grouped_mm_validate_inputs(mat_a, mat_b, offs, bias, out_dtype);
   bool a_b_and_out_are_bf16 = (
     mat_a.dtype() == at::kBFloat16 &&
@@ -1804,9 +1828,23 @@ std::optional<c10::ScalarType> out_dtype) {
     _grouped_mm_fallback(mat_a, mat_b, offs, bias, out_dtype, out);
   }
   return out;
+=======
+  bool use_fast_path = _scaled_mm_allowed_device(/*sm90_only*/true, /*sm100_only*/true) && a_b_and_out_are_bf16;
+>>>>>>> upstream/main
 #else
-  TORCH_CHECK(false, "grouped gemm is not supported on ROCM")
+  // _scaled_mm_allowed_device is used here within _grouped_mm_cuda which seems incorrect since scale is not used.
+  // the _grouped_mm_fallback should be safe for any ROCm GPU since it's just calling typical mm/bmm
+  bool use_fast_path = false;
 #endif
+  const auto out_dtype_ = _resolve_grouped_mm_out_dtype(mat_a, mat_b, out_dtype);
+  Tensor out = create_grouped_gemm_output_tensor(mat_a, mat_b, offs, out_dtype_);
+  if (use_fast_path) {
+    // fast path, no d2h sync needed
+    at::cuda::detail::bf16bf16_grouped_mm(mat_a, mat_b, offs, bias, out);
+  } else {
+    _grouped_mm_fallback(mat_a, mat_b, offs, bias, out_dtype, out);
+  }
+  return out;
 }
 
 Tensor _bmm_dtype_cuda(const Tensor& batch1, const Tensor& batch2, const at::ScalarType out_dtype) {

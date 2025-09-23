@@ -138,6 +138,11 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
     folder = os.path.dirname(wheel_path)
     os.mkdir(f"{folder}/tmp")
     os.system(f"unzip {wheel_path} -d {folder}/tmp")
+<<<<<<< HEAD
+=======
+    # Delete original wheel since it will be repackaged
+    os.system(f"rm {wheel_path}")
+>>>>>>> upstream/main
 
     # Check if we should use PyPI NVIDIA libraries or bundle system libraries
     use_nvidia_pypi_libs = os.getenv("USE_NVIDIA_PYPI_LIBS", "0") == "1"
@@ -211,7 +216,12 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
         ]
 
         # CUDA version-specific libraries
+<<<<<<< HEAD
         if "130" in desired_cuda:
+=======
+        if "13" in desired_cuda:
+            minor_version = desired_cuda[-1]
+>>>>>>> upstream/main
             version_specific_libs = [
                 "/usr/local/cuda/extras/CUPTI/lib64/libcupti.so.13",
                 "/usr/local/cuda/lib64/libcublas.so.13",
@@ -221,7 +231,11 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
                 "/usr/local/cuda/lib64/libcusolver.so.12",
                 "/usr/local/cuda/lib64/libnvJitLink.so.13",
                 "/usr/local/cuda/lib64/libnvrtc.so.13",
+<<<<<<< HEAD
                 "/usr/local/cuda/lib64/libnvrtc-builtins.so.13.0",
+=======
+                f"/usr/local/cuda/lib64/libnvrtc-builtins.so.13.{minor_version}",
+>>>>>>> upstream/main
             ]
         elif "12" in desired_cuda:
             # Get the last character for libnvrtc-builtins version (e.g., "129" -> "9")
@@ -237,6 +251,11 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
                 "/usr/local/cuda/lib64/libnvrtc.so.12",
                 f"/usr/local/cuda/lib64/libnvrtc-builtins.so.12.{minor_version}",
             ]
+<<<<<<< HEAD
+=======
+        else:
+            raise ValueError(f"Unsupported CUDA version: {desired_cuda}.")
+>>>>>>> upstream/main
 
         # Combine all libraries
         libs_to_copy = common_libs + version_specific_libs
@@ -275,14 +294,7 @@ def complete_wheel(folder: str) -> str:
             f"/{folder}/dist/{repaired_wheel_name}",
         )
     else:
-        repaired_wheel_name = wheel_name.replace(
-            "linux_aarch64", "manylinux_2_28_aarch64"
-        )
-        print(f"Renaming {wheel_name} wheel to {repaired_wheel_name}")
-        os.rename(
-            f"/{folder}/dist/{wheel_name}",
-            f"/{folder}/dist/{repaired_wheel_name}",
-        )
+        repaired_wheel_name = list_dir(f"/{folder}/dist")[0]
 
     print(f"Copying {repaired_wheel_name} to artifacts")
     shutil.copy2(
@@ -319,7 +331,7 @@ if __name__ == "__main__":
     ).decode()
 
     print("Building PyTorch wheel")
-    build_vars = "CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000 "
+    build_vars = ""
     # MAX_JOB=5 is not required for CPU backend (see commit 465d98b)
     if enable_cuda:
         build_vars += "MAX_JOBS=5 "

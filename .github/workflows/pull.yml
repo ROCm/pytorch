@@ -316,6 +316,7 @@ jobs:
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-jammy-py3-clang12-executorch-build:
     if: false  # Docker build needs pin update
     name: linux-jammy-py3-clang12-executorch
@@ -342,6 +343,8 @@ jobs:
       test-matrix: ${{ needs.linux-jammy-py3-clang12-executorch-build.outputs.test-matrix }}
     secrets: inherit
 
+=======
+>>>>>>> upstream/main
   linux-jammy-cuda12_8-py3_10-gcc9-inductor-build:
     name: cuda12.8-py3.10-gcc9-sm75
     uses: ./.github/workflows/_linux-build.yml

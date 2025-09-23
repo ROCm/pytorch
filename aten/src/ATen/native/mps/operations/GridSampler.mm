@@ -2,7 +2,10 @@
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/GridSamplerUtils.h>
 #include <ATen/native/Pool.h>
+<<<<<<< HEAD
 #include <ATen/native/mps/MPSGraphVenturaOps.h>
+=======
+>>>>>>> upstream/main
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/native/mps/kernels/GridSampler.h>
 

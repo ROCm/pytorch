@@ -363,6 +363,28 @@ void boxed_my_new_zeros_dtype_variant(StableIValue* stack, uint64_t num_args, ui
   stack[0] = from(res);
 }
 
+<<<<<<< HEAD
+=======
+Tensor my_copy_(Tensor dst, Tensor src, bool non_blocking) {
+  return copy_(dst, src, non_blocking);
+}
+
+void boxed_my_copy_(StableIValue* stack, uint64_t num_args, uint64_t num_outputs) {
+  Tensor tensor_res = my_copy_(to<Tensor>(stack[0]), to<Tensor>(stack[1]), to<bool>(stack[2]));
+  stack[0] = from(tensor_res);
+}
+
+Tensor my_clone(Tensor t) {
+  return clone(t);
+}
+
+void boxed_my_clone(StableIValue* stack, uint64_t num_args, uint64_t num_outputs) {
+  Tensor tensor_res = my_clone(to<Tensor>(stack[0]));
+  stack[0] = from(tensor_res);
+}
+
+
+>>>>>>> upstream/main
 STABLE_TORCH_LIBRARY_FRAGMENT(libtorch_agnostic, m) {
   m.def("my_transpose(Tensor t, int dim0, int dim1) -> Tensor");
   m.def("my_empty_like(Tensor t) -> Tensor");
@@ -371,6 +393,11 @@ STABLE_TORCH_LIBRARY_FRAGMENT(libtorch_agnostic, m) {
   m.def("my_narrow(Tensor t, int dim, int start, int length) -> Tensor");
   m.def("my_new_empty_dtype_variant(Tensor t) -> Tensor");
   m.def("my_new_zeros_dtype_variant(Tensor t) -> Tensor");
+<<<<<<< HEAD
+=======
+  m.def("my_copy_(Tensor dst, Tensor src, bool non_blocking) -> Tensor");
+  m.def("my_clone(Tensor t) -> Tensor");
+>>>>>>> upstream/main
 }
 
 STABLE_TORCH_LIBRARY_IMPL(libtorch_agnostic, CompositeExplicitAutograd, m) {
@@ -380,6 +407,11 @@ STABLE_TORCH_LIBRARY_IMPL(libtorch_agnostic, CompositeExplicitAutograd, m) {
   m.impl("my_is_cpu", &boxed_my_is_cpu);
   m.impl("my_new_empty_dtype_variant", &boxed_my_new_empty_dtype_variant);
   m.impl("my_new_zeros_dtype_variant", &boxed_my_new_zeros_dtype_variant);
+<<<<<<< HEAD
+=======
+  m.impl("my_copy_", &boxed_my_copy_);
+  m.impl("my_clone", &boxed_my_clone);
+>>>>>>> upstream/main
 }
 
 STABLE_TORCH_LIBRARY_IMPL(libtorch_agnostic, CompositeImplicitAutograd, m) {
@@ -415,7 +447,10 @@ void boxed_my_amax_vec(StableIValue* stack, uint64_t num_args, uint64_t num_outp
   stack[0] = from(res);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/main
 STABLE_TORCH_LIBRARY_FRAGMENT(libtorch_agnostic, m) {
   m.def("my_zero_(Tensor(a!) t) -> Tensor(a!)");
   m.def("my_amax(Tensor a) -> Tensor");

@@ -1,6 +1,9 @@
 #include "include/openreg.h"
 
+<<<<<<< HEAD
 #include <algorithm>
+=======
+>>>>>>> upstream/main
 #include <iostream>
 #include <numeric>
 #include <vector>

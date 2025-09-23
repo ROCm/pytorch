@@ -51,7 +51,11 @@ struct NVSHMEMAllocation {
 class NVSHMEMPeerAllocInfo : public c10::intrusive_ptr_target {
  public:
   NVSHMEMPeerAllocInfo(
+<<<<<<< HEAD
       std::shared_ptr<NVSHMEMAllocation> allocation,
+=======
+      NVSHMEMAllocation* allocation,
+>>>>>>> upstream/main
       const std::string& group_name)
       : base_ptr_(allocation->ptr),
         buffer_size_(allocation->buffer_size) {
@@ -144,10 +148,16 @@ class NVSHMEMPeerAllocInfo : public c10::intrusive_ptr_target {
 class NVSHMEMSymmetricMemory : public SymmetricMemory {
  public:
   NVSHMEMSymmetricMemory(
+<<<<<<< HEAD
       std::shared_ptr<NVSHMEMAllocation> allocation,
       const std::string& group_name)
       : allocation_(allocation),
         device_idx_(allocation->device_idx),
+=======
+      NVSHMEMAllocation* allocation,
+      const std::string& group_name)
+      : device_idx_(allocation->device_idx),
+>>>>>>> upstream/main
         group_name_(group_name) {
     // A handle stores two types of info:
     // (i) allocation's base ptrs and base signal pads, ours and peers'
@@ -162,7 +172,11 @@ class NVSHMEMSymmetricMemory : public SymmetricMemory {
   // Copy with offset is allowed
   // This is mostly a shallow copy that shares the pointer to `NVSHMEMPeerAllocInfo` which has been created by `other`
   NVSHMEMSymmetricMemory(const NVSHMEMSymmetricMemory& other, size_t offset)
+<<<<<<< HEAD
       : allocation_(other.allocation_), device_idx_(other.device_idx_), group_name_(other.group_name_), pai_(other.pai_) {
+=======
+      : device_idx_(other.device_idx_), group_name_(other.group_name_), pai_(other.pai_) {
+>>>>>>> upstream/main
     offset_ = offset;
   }
 
@@ -240,12 +254,19 @@ class NVSHMEMSymmetricMemory : public SymmetricMemory {
     return pai_->rank_to_global_rank_dev_;
   };
 
+<<<<<<< HEAD
   bool world_within_direct_access() {
+=======
+  bool world_within_direct_access() override {
+>>>>>>> upstream/main
     return pai_->world_within_cuda_p2p_;
   }
 
  private:
+<<<<<<< HEAD
   std::shared_ptr<NVSHMEMAllocation> allocation_;
+=======
+>>>>>>> upstream/main
   int device_idx_;
   std::string group_name_;
   c10::intrusive_ptr<NVSHMEMPeerAllocInfo> pai_;
@@ -335,10 +356,15 @@ class NVSHMEMSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     auto ptr = nvshmem_malloc(size);
     // If size is 0 (which is legal allocation request) we shouldn't error out
     TORCH_CHECK(ptr != nullptr || size == 0, "nvshmem_malloc failed");
+<<<<<<< HEAD
     auto allocation =
         std::make_shared<NVSHMEMAllocation>(ptr, size, device_idx);
+=======
+>>>>>>> upstream/main
     // TODO: thread safety
-    allocations_.try_emplace(ptr, std::move(allocation));
+    allocations_.try_emplace(
+      ptr,
+      std::make_unique<NVSHMEMAllocation>(ptr, size, device_idx));
     return ptr;
   }
 
@@ -390,7 +416,11 @@ class NVSHMEMSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     } else {
       // Create a new rendezvous
       symm_mem =
+<<<<<<< HEAD
           c10::make_intrusive<NVSHMEMSymmetricMemory>(allocation, *group_name);
+=======
+          c10::make_intrusive<NVSHMEMSymmetricMemory>(allocation.get(), *group_name);
+>>>>>>> upstream/main
     }
 
     // Cache rendezvous using allocation's base address as key
@@ -424,7 +454,11 @@ class NVSHMEMSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
   }
 
  private:
+<<<<<<< HEAD
   std::unordered_map<void*, std::shared_ptr<NVSHMEMAllocation>> allocations_;
+=======
+  std::unordered_map<void*, std::unique_ptr<NVSHMEMAllocation>> allocations_;
+>>>>>>> upstream/main
   std::map<std::tuple<void*, std::string>, c10::intrusive_ptr<NVSHMEMSymmetricMemory>>
       symm_mems_;
 };

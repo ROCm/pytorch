@@ -270,7 +270,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varle
 #endif
 
 TORCH_API
-inline std::tuple<
+std::tuple<
     at::Tensor,
     at::Tensor,
     at::Tensor,
@@ -294,6 +294,7 @@ mha_fwd(
     std::optional<int64_t> window_size_right,
     const float softcap,
     const bool return_softmax,
+<<<<<<< HEAD
     std::optional<at::Generator> gen_) {
 #if defined(USE_ROCM_CK_SDPA)
   if (at::globalContext().getROCmFAPreferredBackend() ==
@@ -330,6 +331,9 @@ mha_fwd(
       return_softmax,
       gen_);
 }
+=======
+    std::optional<at::Generator> gen_);
+>>>>>>> upstream/main
 
 inline std::tuple<
     at::Tensor,

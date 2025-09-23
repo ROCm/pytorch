@@ -1049,9 +1049,11 @@ class CppMicroGemmAMX(CppMicroGemm):
         {{input2_t}}* base_addr = const_cast<{{input2_t}}*>(B) + base_idx;
         for (int idx_dq = 0, idx_q = 0; idx_dq < buf_size; idx_q += ldb, idx_dq += {{block_n}}) {
         {%- for vec_idx in range(0, block_n, 32) %}
+            _mm_prefetch(base_addr + idx_q + 64 * ldb, _MM_HINT_T0);
             {%- if (block_n - vec_idx) >= 32 %}
             // 1) Load 32 x int8
             __m256i v8  = _mm256_loadu_si256((const __m256i*)(base_addr + idx_q + {{vec_idx}}));
+<<<<<<< HEAD
             // 2) Widen: 32 x i8 -> 32 x i16
             __m512i v16 = _mm512_cvtepi8_epi16(v8);  // sign-extend. Use _mm512_cvtepu8_epi16 for unsigned
             // Split the 32 x i16 into two 16-lane halves
@@ -1060,6 +1062,14 @@ class CppMicroGemmAMX(CppMicroGemm):
             // 3) Widen each half to i32
             __m512i v32_lo = _mm512_cvtepi16_epi32(v16_lo);
             __m512i v32_hi = _mm512_cvtepi16_epi32(v16_hi);
+=======
+            // 2) Extract two halves
+            __m128i v8_lo = _mm256_extracti128_si256(v8, 0);
+            __m128i v8_hi = _mm256_extracti128_si256(v8, 1);
+            // 3) Widen each half to i32
+            __m512i v32_lo = _mm512_cvtepi8_epi32(v8_lo);
+            __m512i v32_hi = _mm512_cvtepi8_epi32(v8_hi);
+>>>>>>> upstream/main
             // 4) Convert to f32
             __m512 f_lo = _mm512_cvtepi32_ps(v32_lo);
             __m512 f_hi = _mm512_cvtepi32_ps(v32_hi);
@@ -1071,6 +1081,7 @@ class CppMicroGemmAMX(CppMicroGemm):
             {%- elif (block_n - vec_idx) >= 16 %}
             // 1) Load 16 x int8 (128 bits)
             __m128i v8 = _mm_loadu_si128((const __m128i*)(base_addr + idx_q + {{vec_idx}}));
+<<<<<<< HEAD
             // 2) Widen: 16 x i8 -> 16 x i16
             __m256i v16 = _mm256_cvtepi8_epi16(v8);   // for signed
             // use _mm256_cvtepu8_epi16 for unsigned
@@ -1081,6 +1092,15 @@ class CppMicroGemmAMX(CppMicroGemm):
             // 5) Convert f32 -> bf16 (round-to-nearest-even)
             __m256i bf16 = (__m256i)_mm512_cvtneps_pbh(f32);
             // 6) Store 16 x bf16 (256 bits)
+=======
+            // 2) Widen: 16 x i8 -> 16 x i32
+            __m512i v32 = _mm512_cvtepi8_epi32(v8);
+            // 3) Convert to f32
+            __m512 f32 = _mm512_cvtepi32_ps(v32);
+            // 4) Convert f32 -> bf16 (round-to-nearest-even)
+            __m256i bf16 = (__m256i)_mm512_cvtneps_pbh(f32);
+            // 5) Store 16 x bf16 (256 bits)
+>>>>>>> upstream/main
             _mm256_storeu_si256((__m256i*)(dequantized_B_buf + idx_dq + {{vec_idx}}), bf16);
             {%- else %}
             auto b_int8_tail = at::vec::Vectorized<int8_t>::loadu(

@@ -5,10 +5,17 @@
 
 #include <memory>
 
+<<<<<<< HEAD
 using DeleterFnPtr = void (*)(void*);
 
 namespace torch::stable::accelerator {
 
+=======
+namespace torch::stable::accelerator {
+
+using DeleterFnPtr = void (*)(void*);
+
+>>>>>>> upstream/main
 namespace {
 inline void delete_device_guard(void* ptr) {
   TORCH_ERROR_CODE_CHECK(

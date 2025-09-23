@@ -11,7 +11,11 @@ from typing import Any
 
 from cli.lib.common.cli_helper import BaseRunner
 from cli.lib.common.envs_helper import env_path_field, env_str_field, get_env
+<<<<<<< HEAD
 from cli.lib.common.path_helper import copy, remove_dir
+=======
+from cli.lib.common.path_helper import copy, get_path, remove_dir
+>>>>>>> upstream/main
 from cli.lib.common.pip_helper import (
     pip_install_first_match,
     pip_install_packages,
@@ -43,6 +47,13 @@ class VllmTestParameters:
 
     torch_cuda_arch_list: str = env_str_field("TORCH_CUDA_ARCH_LIST", "8.9")
 
+<<<<<<< HEAD
+=======
+    cleaning_script: Path = env_path_field(
+        "cleaning_script", ".github/ci_configs/vllm/use_existing_torch.py"
+    )
+
+>>>>>>> upstream/main
     def __post_init__(self):
         if not self.torch_whls_path.exists():
             raise ValueError("missing torch_whls_path")
@@ -92,11 +103,19 @@ class VllmTestRunner(BaseRunner):
         self._set_envs(params)
 
         clone_vllm(dst=self.work_directory)
+<<<<<<< HEAD
+=======
+        self.cp_torch_cleaning_script(params)
+>>>>>>> upstream/main
         with working_directory(self.work_directory):
             remove_dir(Path("vllm"))
             self._install_wheels(params)
             self._install_dependencies()
         # verify the torches are not overridden by test dependencies
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
         check_versions()
 
     def run(self):
@@ -125,6 +144,14 @@ class VllmTestRunner(BaseRunner):
             # double check the torches are not overridden by other packages
             check_versions()
 
+<<<<<<< HEAD
+=======
+    def cp_torch_cleaning_script(self, params: VllmTestParameters):
+        script = get_path(params.cleaning_script, resolve=True)
+        vllm_script = Path(f"./{self.work_directory}/use_existing_torch.py")
+        copy(script, vllm_script)
+
+>>>>>>> upstream/main
     def _install_wheels(self, params: VllmTestParameters):
         logger.info("Running vllm test with inputs: %s", params)
         if not pkg_exists("torch"):

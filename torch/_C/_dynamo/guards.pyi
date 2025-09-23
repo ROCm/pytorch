@@ -224,6 +224,15 @@ class GuardManager:
     def add_lambda_guard(
         self, user_lambda: Callable[..., Any], verbose_code_parts: list[str]
     ) -> None: ...
+<<<<<<< HEAD
+=======
+    def add_lambda_guard_no_args(
+        self, user_lambda: Callable[..., Any], verbose_code_parts: list[str]
+    ) -> None: ...
+    def add_lambda_guard_no_framelocals(
+        self, user_lambda: Callable[..., Any], verbose_code_parts: list[str]
+    ) -> None: ...
+>>>>>>> upstream/main
     def add_id_match_guard(
         self, id_val: int, verbose_code_parts: list[str]
     ) -> None: ...
@@ -310,6 +319,22 @@ class GuardManager:
         item: Any,
         verbose_code_parts: list[str],
     ) -> None: ...
+<<<<<<< HEAD
+=======
+    def add_dual_level_match_guard(
+        self,
+        level: int,
+        verbose_code_parts: list[str],
+    ) -> None: ...
+    def add_float_is_nan_guard(
+        self,
+        verbose_code_parts: list[str],
+    ) -> None: ...
+    def add_complex_is_nan_guard(
+        self,
+        verbose_code_parts: list[str],
+    ) -> None: ...
+>>>>>>> upstream/main
     def add_tuple_iterator_length_guard(
         self,
         length: int,

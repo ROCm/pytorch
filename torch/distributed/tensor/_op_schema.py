@@ -24,12 +24,16 @@ These schema definitions enable the DTensor system to:
 """
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, Optional, Union
 from typing_extensions import deprecated
 
 import torch
+from torch._C import (
+    _DTensor_OpSchema_post_init,
+    _DTensor_OpSchema_recompute_comparison_key,
+)
 from torch._ops import OpOverload
 from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
@@ -331,6 +335,11 @@ class OpSchema:
 
     _comparison_key: Optional[tuple[object, ...]] = None
 
+<<<<<<< HEAD
+=======
+    has_symints: bool = field(init=False)
+
+>>>>>>> upstream/main
     @property
     def args_spec(self) -> tuple[DTensorSpec, ...]:
         """
@@ -386,6 +395,7 @@ class OpSchema:
         return f"Op(op={self.op}, args_schema={', '.join(args_schema)} @ mesh: {mesh_shape})"
 
     def __post_init__(self) -> None:
+<<<<<<< HEAD
         has_symints = False
         for a in self.args_schema:
             if isinstance(a, DTensorSpec) and a.tensor_meta is not None:
@@ -394,6 +404,9 @@ class OpSchema:
                     break
         self.has_symints = has_symints
         self._recompute_comparison_key()
+=======
+        _DTensor_OpSchema_post_init(self)
+>>>>>>> upstream/main
 
     def arg_type_tensor_or_tensor_list_like(self, arg: object) -> bool:
         is_tensor = isinstance(arg, DTensorSpec)
@@ -478,6 +491,7 @@ class OpSchema:
 
     def is_view_op(self) -> bool:
         return self.op._schema._is_view_op()
+<<<<<<< HEAD
 
     def _recompute_comparison_key(self):
         if not self.schema_info:
@@ -499,6 +513,11 @@ class OpSchema:
             self._comparison_key = (self.op, args_to_hash, kwargs_to_hash)
         else:
             self._comparison_key = (self.op, args_to_hash)
+=======
+
+    def _recompute_comparison_key(self) -> None:
+        _DTensor_OpSchema_recompute_comparison_key(self)
+>>>>>>> upstream/main
 
     def __hash__(self) -> int:
         return hash(self._comparison_key)

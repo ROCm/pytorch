@@ -41,7 +41,10 @@ def sample_vllm_test_library():
                 "pytest -v -s basic_correctness/test_cumem.py",
                 "pytest -v -s basic_correctness/test_basic_correctness.py",
                 "pytest -v -s basic_correctness/test_cpu_offload.py",
+<<<<<<< HEAD
                 "VLLM_TEST_ENABLE_ARTIFICIAL_PREEMPT=1 pytest -v -s basic_correctness/test_preemption.py",
+=======
+>>>>>>> upstream/main
             ],
         },
         "vllm_basic_models_test": {
@@ -68,6 +71,7 @@ def sample_vllm_test_library():
                         "-v",
                         "-s",
                         "entrypoints/llm",
+<<<<<<< HEAD
                         "--ignore=entrypoints/llm/test_lazy_outlines.py",
                         "--ignore=entrypoints/llm/test_generate.py",
                         "--ignore=entrypoints/llm/test_generate_multiple_loras.py",
@@ -77,6 +81,14 @@ def sample_vllm_test_library():
                 "pytest -v -s entrypoints/llm/test_lazy_outlines.py",
                 "pytest -v -s entrypoints/llm/test_generate.py ",
                 "VLLM_USE_V1=0 pytest -v -s entrypoints/offline_mode",
+=======
+                        "--ignore=entrypoints/llm/test_generate.py",
+                        "--ignore=entrypoints/llm/test_collective_rpc.py",
+                    ]
+                ),
+                "pytest -v -s entrypoints/llm/test_generate.py",
+                "pytest -v -s entrypoints/offline_mode",
+>>>>>>> upstream/main
             ],
         },
         "vllm_regression_test": {

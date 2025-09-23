@@ -1086,7 +1086,11 @@ class ExportedProgram:
         # Validate should be always the last step of the constructor.
         self.validate()
 
+<<<<<<< HEAD
         self._guards_code = _convert_guards_to_code(_get_shape_env(self._graph_module))
+=======
+        self._guards_code = _convert_guards_to_code(self._graph_module)
+>>>>>>> upstream/main
 
     @property
     @compatibility(is_backward_compatible=False)
@@ -1690,7 +1694,12 @@ def _create_graph_module_for_export(root, graph):
     return gm
 
 
+<<<<<<< HEAD
 def _convert_guards_to_code(shape_env):
+=======
+def _convert_guards_to_code(graph_module):
+    shape_env = _get_shape_env(graph_module)
+>>>>>>> upstream/main
     if shape_env is None:
         return []
 

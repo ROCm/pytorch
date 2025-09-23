@@ -146,6 +146,8 @@ def rmse(ref, res):
     """
     Calculate root mean squared error
     """
+    ref = ref.to(torch.float64)
+    res = res.to(torch.float64)
     return torch.sqrt(torch.mean(torch.square(ref - res)))
 
 
@@ -1967,6 +1969,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
+=======
+    @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+>>>>>>> upstream/main
     @common_utils.parametrize(
         "score_mod", test_score_mods, name_fn=lambda score_mod: score_mod.__name__
     )
@@ -2060,6 +2066,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
+=======
+    @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+>>>>>>> upstream/main
     @common_utils.parametrize(
         "score_mod", test_score_mods, name_fn=lambda score_mod: score_mod.__name__
     )
@@ -2142,6 +2152,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
+=======
+    @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+>>>>>>> upstream/main
     @skip_on_cpu
     def test_return_aux_deprecation_warnings(self, device, dtype):
         """Test that deprecation warnings are issued for legacy parameters"""
@@ -2195,6 +2209,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
+=======
+    @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+>>>>>>> upstream/main
     @skip_on_cpu
     def test_dynamic_divisibility_guards(self, device, dtype):
         """Test guards for divisible/non-divisible shape transitions"""
@@ -4165,7 +4183,7 @@ class GraphModule(torch.nn.Module):
 
     class mask_graph0(torch.nn.Module):
         def forward(self, arg0_1: "i32[]", arg1_1: "i32[]", arg2_1: "i32[]", arg3_1: "i32[]"):
-            full_default: "b8[]" = torch.ops.aten.full.default([], True, dtype = torch.bool, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False)
+            full_default: "b8[]" = torch.ops.aten.full.default([], True, dtype = torch.bool, layout = torch.strided, device = device(type='GPU_TYPE', index=0), pin_memory = False)
             return full_default
 """.replace(  # noqa: B950
                 "GPU_TYPE", torch.device(device).type
@@ -4666,8 +4684,8 @@ class TestBlockMask(InductorTestCase):
 
         block_mask = create_block_mask(causal_mask, 4, 2, 2048, 2048, device=device)
         self.assertEqual(block_mask.shape, (4, 2, 2048, 2048))
-        self.assertEqual(block_mask[0].shape, (2, 2048, 2048))
-        self.assertEqual(block_mask[0, 0].shape, (2048, 2048))
+        self.assertEqual(block_mask[0].shape, (1, 2, 2048, 2048))
+        self.assertEqual(block_mask[0, 0].shape, (1, 1, 2048, 2048))
         self.assertEqual(block_mask.numel(), 4 * 2 * 2048 * 2048)
         self.assertEqual(block_mask.sparsity(), 46.875)
         self.assertEqual(block_mask[0].sparsity(), 46.875)
@@ -4711,13 +4729,26 @@ class TestBlockMask(InductorTestCase):
 
         # Index on batch dimension
         new_block_mask = block_mask[0]
-        assert new_block_mask.kv_num_blocks.shape == (2, 4)
-        assert new_block_mask.kv_indices.shape == (2, 4, 4)
+        assert new_block_mask.kv_num_blocks.shape == (1, 2, 4)
+        assert new_block_mask.kv_indices.shape == (1, 2, 4, 4)
 
         # Index on batch and head dimension
         new_block_mask = block_mask[0, 1]
-        assert new_block_mask.kv_num_blocks.shape == (4,)
-        assert new_block_mask.kv_indices.shape == (4, 4)
+        assert new_block_mask.kv_num_blocks.shape == (
+            1,
+            1,
+            4,
+        )
+        assert new_block_mask.kv_indices.shape == (1, 1, 4, 4)
+
+        # Index on batch and head dimension with -1 semantics
+        new_block_mask = block_mask[-1, -2]
+        assert new_block_mask.kv_num_blocks.shape == (
+            1,
+            1,
+            4,
+        )
+        assert new_block_mask.kv_indices.shape == (1, 1, 4, 4)
 
         # slicing on batch and head dimension
         new_block_mask = block_mask[0:2, 1:2]
@@ -5254,6 +5285,98 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
 
     @supported_platform
     @skip_on_cpu
+    def test_flex_attention_poisoned_rel_logits(self, device):
+        B = 1
+        H = 1
+        S = 1025
+        D = 64
+        q, k, v = [
+            torch.randn(B, H, S, D, requires_grad=True, device=device) for _ in range(3)
+        ]
+        rel_logits = torch.randn(2 * B, H, S, S, device=device)
+        rel_logits[B:] = float("nan")
+
+        def score_mod(score, b, h, q, kv):
+            return score + rel_logits[b, h, q, kv]
+
+        def causal(
+            b: torch.Tensor, h: torch.Tensor, q: torch.Tensor, kv: torch.Tensor
+        ) -> torch.Tensor:
+            return q >= kv
+
+        block_mask = create_block_mask(causal, B, H, S, S, device=device)
+        out = torch.compile(flex_attention)(
+            q, k, v, score_mod=score_mod, block_mask=block_mask
+        )
+        out.sum().backward()
+
+        assert out.isfinite().all().item()
+        assert q.grad.isfinite().all().item()
+        assert k.grad.isfinite().all().item()
+        assert v.grad.isfinite().all().item()
+
+    @supported_platform
+    @skip_on_cpu
+    def test_flex_attention_poison_mod_fwd(self, device):
+        """Div by score should cause our edge case handiling to NaN"""
+        B = 1
+        H = 1
+        S = 257
+        D = 16
+        q, k, v = [
+            torch.randn(B, H, S, D, requires_grad=True, device=device) for _ in range(3)
+        ]
+
+        def score_mod(score, b, h, q, kv):
+            return 1 / score
+
+        def causal(
+            b: torch.Tensor, h: torch.Tensor, q: torch.Tensor, kv: torch.Tensor
+        ) -> torch.Tensor:
+            return q >= kv
+
+        block_mask = create_block_mask(causal, B, H, S, S, device=device)
+        out = torch.compile(flex_attention, backend="inductor")(
+            q, k, v, score_mod=score_mod, block_mask=block_mask
+        )
+        out.sum().backward()
+        assert out.isfinite().all().item()
+        assert q.grad.isfinite().all().item()
+        # assert k.grad.isfinite().all().item()
+        assert v.grad.isfinite().all().item()
+
+    @supported_platform
+    @skip_on_cpu
+    def test_flex_attention_poison_mod_bwd(self, device):
+        """log score should cause our edge case handiling for NaN in grad score"""
+        B = 1
+        H = 1
+        S = 257
+        D = 16
+        q, k, v = [
+            torch.randn(B, H, S, D, requires_grad=True, device=device) for _ in range(3)
+        ]
+
+        def score_mod(score, b, h, q, kv):
+            return torch.where(score > 0, torch.log(score), score)
+
+        def causal(
+            b: torch.Tensor, h: torch.Tensor, q: torch.Tensor, kv: torch.Tensor
+        ) -> torch.Tensor:
+            return q >= kv
+
+        block_mask = create_block_mask(causal, B, H, S, S, device=device)
+        out = torch.compile(flex_attention, backend="inductor")(
+            q, k, v, score_mod=score_mod, block_mask=block_mask
+        )
+        out.sum().backward()
+        assert out.isfinite().all().item()
+        assert q.grad.isfinite().all().item()
+        # assert k.grad.isfinite().all().item()
+        assert v.grad.isfinite().all().item()
+
+    @supported_platform
+    @skip_on_cpu
     def test_forward_pass_with_none_q_indices(self, device):
         N_BLOCKS = 4
         B, H, S, D = 1, 1, 128, 64
@@ -5310,7 +5433,7 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
         self.assertEqual(block_mask.BLOCK_SIZE, (128, 128))
 
         sliced_mask = block_mask[0]
-        self.assertEqual(sliced_mask.shape, (1, 128, 512))
+        self.assertEqual(sliced_mask.shape, (1, 1, 128, 512))
         self.assertIsNone(sliced_mask.q_indices)
         self.assertIsNone(sliced_mask.q_num_blocks)
 
@@ -5320,7 +5443,70 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
             self.assertEqual(cpu_mask.kv_num_blocks.device.type, "cpu")
             self.assertIsNone(cpu_mask.q_indices)
 
+    @supported_platform
+    @skip_on_cpu
+    def test_broadcasted_head_block_mask(self, device):
+        torch.manual_seed(42)
 
+<<<<<<< HEAD
+=======
+        def causal_mask(b, h, q_idx, kv_idx):
+            return q_idx >= kv_idx
+
+        def get_mask_mod_with_offset(mask_mod, offset_tensor):
+            def _mask_mod(b, h, q, kv):
+                return mask_mod(b, h, q + offset_tensor, kv)
+
+            return _mask_mod
+
+        B, T, H, D, current_pos = 4, 512, 8, 64, 128
+        dtype = torch.float32
+
+        q = torch.randn(B, H, 1, D, device=device, dtype=dtype)
+        k_cache = torch.randn(B, H, T, D, device=device, dtype=dtype)
+        v_cache = torch.randn(B, H, T, D, device=device, dtype=dtype)
+
+        # Keep future tokens tiny to avoid numerical issues when using full caches
+        k_cache[:, :, current_pos + 1 :, :] = (
+            torch.randn_like(k_cache[:, :, current_pos + 1 :, :]) * 1e-10
+        )
+        v_cache[:, :, current_pos + 1 :, :] = (
+            torch.randn_like(v_cache[:, :, current_pos + 1 :, :]) * 1e-10
+        )
+
+        k_cropped = k_cache[:, :, : current_pos + 1, :]
+        v_cropped = v_cache[:, :, : current_pos + 1, :]
+        sdpa_output = torch.nn.functional.scaled_dot_product_attention(
+            q, k_cropped, v_cropped, attn_mask=None
+        )
+
+        base_mask = create_block_mask(
+            causal_mask,
+            B=B,
+            H=None,  # broadcast across heads
+            Q_LEN=T,
+            KV_LEN=T,
+            device=device,
+            _compile=True,
+        )
+
+        q_block_size = base_mask.BLOCK_SIZE[0]
+        block_offset = current_pos // q_block_size
+        mask_slice = base_mask[:, :, block_offset]
+
+        offset_tensor = torch.tensor(current_pos, device=device)
+        mask_slice.mask_mod = get_mask_mod_with_offset(
+            base_mask.mask_mod, offset_tensor
+        )
+        mask_slice.seq_lengths = (1, mask_slice.seq_lengths[1])
+
+        fa = torch.compile(flex_attention, dynamic=True)
+        flex_output = fa(q, k_cache, v_cache, block_mask=mask_slice)
+
+        self.assertEqual(flex_output, sdpa_output, atol=1e-3, rtol=1e-3)
+
+
+>>>>>>> upstream/main
 @large_tensor_test_class("2GB", device=test_device[0])
 class TestPagedAttention(InductorTestCase):
     def setUp(self):

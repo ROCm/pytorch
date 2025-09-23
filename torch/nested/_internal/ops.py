@@ -413,6 +413,36 @@ def jagged_torch_function(func, *args, **kwargs):
 
         return inp.reshape(*new_shape)
 
+    # Handle NestedTensor share_memory_.
+    if func.__name__ == "share_memory_":
+        nt = args[0]
+
+        if nt.is_cuda:
+            return nt
+
+        names, _ = nt.__tensor_flatten__()
+        with torch._C.DisableTorchFunctionSubclass():
+            for name in names:
+                component = getattr(nt, name, None)
+                if component is not None:
+                    component.share_memory_()
+        return nt
+
+    # Handle NestedTensor is_shared.
+    if func.__name__ == "is_shared":
+        nt = args[0]
+
+        if nt.is_cuda:
+            return False
+
+        names, _ = nt.__tensor_flatten__()
+        if not names:
+            return False
+        return all(
+            getattr(nt, name) is not None and getattr(nt, name).is_shared()
+            for name in names
+        )
+
     # Handle nested-specific input validation for CompositeImplicit rms_norm
     if func.__name__ == "rms_norm":
 
@@ -2101,6 +2131,19 @@ def all_any_max_min_default(func, *args, **kwargs):
     return func(inp._values, **new_kwargs)
 
 
+@register_jagged_func(
+    [torch.ops.aten._is_all_true.default, torch.ops.aten._is_any_true.default],
+    "self: jt_all",
+)
+def _is_true_default(func, *args, **kwargs):
+    _, new_kwargs = normalize_function(  # type: ignore[misc]
+        func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
+    )
+
+    inp = new_kwargs.pop("input")
+    return func(inp._values)
+
+
 @register_jagged_func(torch.ops.aten.min.dim, "self: jt_all, dim: any, keepdim: any?")
 def min_dim(func, *args, **kwargs):
     _, new_kwargs = normalize_function(  # type: ignore[misc]
@@ -2665,6 +2708,7 @@ def matmul_backward_default(func, *args, **kwargs):
     return (grad_self, grad_other)
 
 
+<<<<<<< HEAD
 from torch._higher_order_ops.flex_attention import (
     flex_attention as flex_attention_hop,
     flex_attention_backward as flex_attention_backward_hop,
@@ -2803,6 +2847,8 @@ def flex_njt_backward(
     return (njt_q_grad, njt_k_grad, njt_v_grad, score_mod_other_buffer_grads)
 
 
+=======
+>>>>>>> upstream/main
 # Make the dummy available on the C++ side.
 @register_jagged_func(torch.ops.aten._nested_get_jagged_dummy.default, "self: any")
 def _nested_get_jagged_dummy(func, *args, **kwargs):

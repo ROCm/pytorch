@@ -178,7 +178,11 @@ hf_T5_base,eager_fail_to_run,0
 
 
 
+<<<<<<< HEAD
 hf_T5_generate,pass,11
+=======
+hf_T5_generate,pass,7
+>>>>>>> upstream/main
 
 
 

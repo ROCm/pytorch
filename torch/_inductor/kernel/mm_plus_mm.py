@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 
 import logging
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import TYPE_CHECKING, Union
+>>>>>>> upstream/main
 
 import torch
 
@@ -19,6 +23,10 @@ from .mm_common import mm_args, mm_grid
 
 if TYPE_CHECKING:
     from torch._inductor.ir import ChoiceCaller
+<<<<<<< HEAD
+=======
+    from torch._inductor.select_algorithm import KernelTemplate
+>>>>>>> upstream/main
 
 log = logging.getLogger(__name__)
 
@@ -51,7 +59,7 @@ mm_plus_mm_template = TritonTemplate(
     stride_dn = {{stride("D", 1)}}
 
     # based on triton.ops.matmul
-    pid = tl.program_id(0)
+    pid = tl.program_id(0).to(INDEX_DTYPE)
     grid_m = (M + BLOCK_M - 1) // BLOCK_M
     grid_n = (N + BLOCK_N - 1) // BLOCK_N
 
@@ -117,7 +125,7 @@ mm_plus_mm_template = TritonTemplate(
     mask = (idx_m < M) & (idx_n < N)
 
     # inductor generates a suffix
-    {{store_output(("idx_m", "idx_n"), "acc", "mask")}}
+    {{store_output(("idx_m", "idx_n"), "acc", "mask", val_shape=("BLOCK_M", "BLOCK_N"))}}
 """,
     cache_codegen_enabled_for_template=True,
 )
@@ -155,6 +163,7 @@ def tuned_mm_plus_mm(mat1, mat2, mat3, mat4, *, layout=None):
     assert layout1 == layout2
     # options to tune from
     choices: list[ChoiceCaller] = []
+<<<<<<< HEAD
     if use_aten_gemm_kernels():
         choices.extend(
             V.choices.get_mm_configs(kernel_inputs, [aten_mm_plus_mm], "mm_plus_mm")
@@ -165,6 +174,21 @@ def tuned_mm_plus_mm(mat1, mat2, mat3, mat4, *, layout=None):
         choices.extend(
             V.choices.get_mm_configs(kernel_inputs, [mm_plus_mm_template], "mm_plus_mm")
         )
+=======
+
+    # Collect all templates for unified call
+    templates_to_use: list[Union[ExternKernelChoice, KernelTemplate]] = []
+    if use_aten_gemm_kernels():
+        templates_to_use.append(aten_mm_plus_mm)
+
+    if use_triton_template(layout1, check_max_autotune=False):
+        templates_to_use.append(mm_plus_mm_template)
+
+    # Single unified call for all templates
+    choices.extend(
+        V.choices.get_template_configs(kernel_inputs, templates_to_use, "mm_plus_mm")
+    )
+>>>>>>> upstream/main
 
     return autotune_select_algorithm(
         "mm_plus_mm", choices, kernel_inputs.nodes(), layout1

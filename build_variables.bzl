@@ -638,10 +638,19 @@ libtorch_nativert_sources = [
     "torch/nativert/kernels/KernelHandlerRegistry.cpp",
     "torch/nativert/kernels/TritonKernel.cpp",
     "torch/nativert/executor/triton/CpuTritonKernelManager.cpp",
+<<<<<<< HEAD
+=======
+    "torch/nativert/executor/AOTInductorDelegateExecutor.cpp",
+    "torch/nativert/kernels/ETCallDelegateKernel.cpp",
+>>>>>>> upstream/main
 ]
 
 libtorch_nativert_cuda_sources = [
     "torch/nativert/executor/triton/CudaTritonKernelManager.cpp",
+<<<<<<< HEAD
+=======
+    "torch/nativert/executor/AOTInductorModelContainerCudaShim.cpp",
+>>>>>>> upstream/main
 ]
 
 torch_mobile_tracer_sources = [

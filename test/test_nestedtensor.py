@@ -26,7 +26,6 @@ from torch.nested._internal.nested_tensor import (
     NestedTensor,
     ViewNestedFromBuffer,
 )
-from torch.nn.attention.flex_attention import create_nested_block_mask, flex_attention
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FUSED_ATTENTION,
     SM70OrLater,
@@ -36,7 +35,6 @@ from torch.testing._internal.common_cuda import (
 from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfCUDA,
-    flex_attention_supported_platform,
     instantiate_device_type_tests,
     onlyCPU,
     onlyCUDA,
@@ -60,7 +58,6 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     serialTest,
-    skipIfRocm,
     skipIfSlowGradcheckEnv,
     skipIfTorchDynamo,
     subtest,
@@ -1230,6 +1227,24 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
         is_cuda = "cuda" in str(device)
         self.assertEqual(nt.is_cuda, is_cuda)
 
+    @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
+    def test_share_memory(self, device):
+        a = torch.randn(3, 4, device=device)
+        b = torch.randn(5, 4, device=device)
+        nt = torch.nested.nested_tensor([a, b], layout=torch.jagged)
+
+        # Guard CUDA tensors
+        if "cuda" in device:
+            result = nt.share_memory_()
+            self.assertIs(result, nt)
+            return
+
+        result = nt.share_memory_()
+        self.assertIs(result, nt)
+
+        # Verify in shared memory
+        self.assertTrue(nt.is_shared())
+
     @dtypes(torch.float, torch.float16, torch.double)
     def test_nested_tensor_indexing(self, device, dtype):
         # edge case: empty nested tensor
@@ -1318,6 +1333,82 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
             "NestedTensor must be contiguous to get buffer.",
             lambda: func(nt_noncontiguous),
         )
+
+    def test_is_any_true_jagged(self, device):
+        B, Fin = 2, 6
+        start = torch.zeros(B, dtype=torch.int64, device=device)
+        lengths = torch.tensor([3, 2], dtype=torch.int64, device=device)
+
+        # NestedTensor reduction should operate on same data as .values().
+        with self.subTest("dispatch_matches_values_buffer"):
+            cond = torch.tensor(
+                [
+                    [True, False, False, True, True, False],
+                    [False, False, True, False, False, False],
+                ],
+                dtype=torch.bool,
+                device=device,
+            )
+            nt = torch.nested.narrow(
+                cond, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            out_nt = torch.ops.aten._is_any_true.default(nt).item()
+            out_vals = torch.ops.aten._is_any_true.default(nt.values()).item()
+            self.assertEqual(out_nt, out_vals)
+
+        # Verify jagged boolean behavior.
+        with self.subTest("all_false_returns_false"):
+            cond_false = torch.zeros(B, Fin, dtype=torch.bool, device=device)
+            nt_false = torch.nested.narrow(
+                cond_false, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            self.assertFalse(torch.ops.aten._is_any_true.default(nt_false).item())
+
+        with self.subTest("one_true_returns_true"):
+            cond_mixed = torch.zeros(B, Fin, dtype=torch.bool, device=device)
+            cond_mixed[0, 0] = True
+            nt_mixed = torch.nested.narrow(
+                cond_mixed, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            self.assertTrue(torch.ops.aten._is_any_true.default(nt_mixed).item())
+
+    def test_is_all_true_jagged(self, device):
+        B, Fin = 2, 6
+        start = torch.zeros(B, dtype=torch.int64, device=device)
+        lengths = torch.tensor([3, 2], dtype=torch.int64, device=device)
+
+        # NestedTensor reduction should operate on same data as .values().
+        with self.subTest("dispatch_matches_values_buffer"):
+            cond = torch.tensor(
+                [
+                    [True, True, True, False, False, False],
+                    [True, True, False, False, False, False],
+                ],
+                dtype=torch.bool,
+                device=device,
+            )
+            nt = torch.nested.narrow(
+                cond, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            out_nt = torch.ops.aten._is_all_true.default(nt).item()
+            out_vals = torch.ops.aten._is_all_true.default(nt.values()).item()
+            self.assertEqual(out_nt, out_vals)
+
+        # Verify jagged boolean behavior.
+        with self.subTest("all_true_returns_true"):
+            cond_true = torch.ones(B, Fin, dtype=torch.bool, device=device)
+            nt_true = torch.nested.narrow(
+                cond_true, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            self.assertTrue(torch.ops.aten._is_all_true.default(nt_true).item())
+
+        with self.subTest("any_false_returns_false"):
+            cond_mixed = torch.ones(B, Fin, dtype=torch.bool, device=device)
+            cond_mixed[0, 1] = False
+            nt_mixed = torch.nested.narrow(
+                cond_mixed, dim=1, start=start, length=lengths, layout=torch.jagged
+            )
+            self.assertFalse(torch.ops.aten._is_all_true.default(nt_mixed).item())
 
     @parametrize("func", [subtest(torch.ge, name="ge"), subtest(torch.eq, name="eq")])
     def test_binary_ops_with_scalar(self, device, func):
@@ -7285,6 +7376,7 @@ torch.cuda.synchronize()
 
         return query, key, value
 
+<<<<<<< HEAD
     @unittest.skip(
         "Temporarily skip - nested tensor backward pass broken after return-max-scores commit"
     )
@@ -7403,6 +7495,8 @@ torch.cuda.synchronize()
         # See https://github.com/pytorch/pytorch/issues/143788
         self.assertFalse(torch.allclose(output._values, output2._values))
 
+=======
+>>>>>>> upstream/main
     @dtypes(torch.float32)
     def test_apply_(self, device, dtype):
         nt = random_nt_from_dims(

@@ -136,6 +136,7 @@ from .source import (
     DefaultsSource,
     DictGetItemSource,
     DictSubclassGetItemSource,
+    DynamicScalarSource,
     FlattenScriptObjectSource,
     FloatTensorSource,
     FSDPNNModuleSource,
@@ -211,7 +212,11 @@ if TYPE_CHECKING:
     from sympy import Symbol
 
     from torch._C import DispatchKeySet
+<<<<<<< HEAD
     from torch._dynamo.output_graph import OutputGraph, OutputGraphGuardsState
+=======
+    from torch._dynamo.output_graph import OutputGraphCommon, OutputGraphGuardsState
+>>>>>>> upstream/main
 
 T = TypeVar("T")
 log = logging.getLogger(__name__)
@@ -234,6 +239,23 @@ dunder_attrs_assumed_constants = (
 )
 
 
+<<<<<<< HEAD
+=======
+def get_framelocals_idx(code: types.CodeType, var_name: str) -> int:
+    # Refer to index in the frame's localsplus directly.
+    # NOTE: name order for a code object doesn't change.
+    # NOTE: we need to find the LAST matching index because <= 3.10 contains
+    # duplicate names in the case of cells: a name can be both local and cell
+    # and will take up 2 slots of the frame's localsplus. The correct behavior
+    # is to refer to the cell, which has a higher index.
+    framelocals_names_reversed = code_framelocals_names_reversed_cached(code)
+    framelocals_idx = (
+        len(framelocals_names_reversed) - framelocals_names_reversed.index(var_name) - 1
+    )
+    return framelocals_idx
+
+
+>>>>>>> upstream/main
 class IndentedBufferWithPrefix(IndentedBuffer):
     def prefix(self) -> str:
         return "| " * (self._indent * self.tabwidth)
@@ -1031,6 +1053,7 @@ class GuardBuilder(GuardBuilderBase):
         self.already_guarded_not_present_in_generic_dict: OrderedSet[
             tuple[str, str]
         ] = OrderedSet()
+        self.guard_tree_values: dict[int, Any] = {}
 
     def guard_on_dict_keys_and_ignore_order(
         self, example_value: dict[Any, Any], guard: Guard
@@ -1324,6 +1347,7 @@ class GuardBuilder(GuardBuilderBase):
 
         if source_name != "":
             example_value = self.get(source_name)
+            self.guard_tree_values[id(example_value)] = example_value
 
         guard_manager_enum = self.get_guard_manager_type(source, example_value)
 
@@ -1342,20 +1366,7 @@ class GuardBuilder(GuardBuilderBase):
 
         # Use istype instead of isinstance to check for exact type of source.
         if istype(source, LocalSource):
-            # Refer to index in the frame's localsplus directly.
-            # NOTE: name order for a code object doesn't change.
-            # NOTE: we need to find the LAST matching index because <= 3.10 contains
-            # duplicate names in the case of cells: a name can be both local and cell
-            # and will take up 2 slots of the frame's localsplus. The correct behavior
-            # is to refer to the cell, which has a higher index.
-            framelocals_names_reversed = code_framelocals_names_reversed_cached(
-                self.f_code
-            )
-            framelocals_idx = (
-                len(framelocals_names_reversed)
-                - framelocals_names_reversed.index(source.local_name)
-                - 1
-            )
+            framelocals_idx = get_framelocals_idx(self.f_code, source.local_name)
             out = root_guard_manager.framelocals_manager(
                 key=(source.local_name, framelocals_idx),
                 source=source_name,
@@ -1713,6 +1724,14 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+        elif istype(source, DynamicScalarSource):
+            assert base_guard_manager
+            out = base_guard_manager.lambda_manager(
+                python_lambda=lambda x: int(x),
+                source=source_name,
+                example_value=example_value,
+                guard_manager_enum=guard_manager_enum,
+            )
         else:
             raise AssertionError(
                 f"missing guard manager builder {source} - {source.name()}"
@@ -2033,6 +2052,7 @@ class GuardBuilder(GuardBuilderBase):
         dual_level = self.check_fn_manager.output_graph.dual_level
         code = [f"torch.autograd.forward_ad._current_level == {dual_level}"]
         self._set_guard_export_info(guard, code)
+<<<<<<< HEAD
         # TODO(anijain2305) - Consider this moving this guard to C++
         forward_ad = torch.autograd.forward_ad
 
@@ -2041,6 +2061,10 @@ class GuardBuilder(GuardBuilderBase):
 
         self.guard_manager.root.add_lambda_guard(
             fn, get_verbose_code_parts(code, guard)
+=======
+        self.guard_manager.root.add_dual_level_match_guard(
+            dual_level, get_verbose_code_parts(code, guard)
+>>>>>>> upstream/main
         )
 
     def FUNCTORCH_STACK_MATCH(self, guard: Guard) -> None:
@@ -2055,10 +2079,14 @@ class GuardBuilder(GuardBuilderBase):
         # TODO(anijain2305) - Consider this moving this guard to C++
         compare_fn = torch._functorch.pyfunctorch.compare_functorch_state
 
+<<<<<<< HEAD
         def fn(x: Any) -> bool:
+=======
+        def fn() -> bool:
+>>>>>>> upstream/main
             return compare_fn(states)
 
-        self.guard_manager.root.add_lambda_guard(
+        self.guard_manager.root.add_lambda_guard_no_args(
             fn, get_verbose_code_parts(code, guard)
         )
 
@@ -2084,10 +2112,14 @@ class GuardBuilder(GuardBuilderBase):
         ]
         self._set_guard_export_info(guard, code)
 
+<<<<<<< HEAD
         def fn(x: Any) -> bool:
+=======
+        def fn() -> bool:
+>>>>>>> upstream/main
             return guard_hooks_ids == hooks_ids_fn(get_hooks())
 
-        self.guard_manager.root.add_lambda_guard(
+        self.guard_manager.root.add_lambda_guard_no_args(
             fn, get_verbose_code_parts(code, guard)
         )
 
@@ -2108,7 +2140,7 @@ class GuardBuilder(GuardBuilderBase):
                 return x.__tensor_flatten__()[1] == original_metadata
 
         global_name = f"___check_metadata_{id(metadata_checker)}_c{CompileContext.current_compile_id()}"
-        self.get_guard_manager(guard).add_lambda_guard(
+        self.get_guard_manager(guard).add_lambda_guard_no_framelocals(
             metadata_checker, get_verbose_code_parts(global_name, guard)
         )
 
@@ -2178,26 +2210,30 @@ class GuardBuilder(GuardBuilderBase):
 
         # Special case for nan because float("nan") == float("nan") evaluates to False
         if istype(val, float) and math.isnan(val):
-            self.TYPE_MATCH(guard)
-            code = []
-            code.append(f"__math_isnan({ref})")
+            code = [f"(type({ref}) is float and __math_isnan({ref}))"]
             self._set_guard_export_info(guard, code)
 
+<<<<<<< HEAD
             self.get_guard_manager(guard).add_lambda_guard(
                 _get_closure_vars()["__math_isnan"],  # type: ignore[arg-type]
+=======
+            self.get_guard_manager(guard).add_float_is_nan_guard(
+>>>>>>> upstream/main
                 get_verbose_code_parts(code, guard),
             )
             return
 
         # Python math library doesn't support complex nan, so we need to use numpy
         if istype(val, complex) and np.isnan(val):
-            self.TYPE_MATCH(guard)
-            code = []
-            code.append(f"__numpy_isnan({ref})")
+            code = [f"(type({ref}) is complex and __numpy_isnan({ref}))"]
             self._set_guard_export_info(guard, code)
 
+<<<<<<< HEAD
             self.get_guard_manager(guard).add_lambda_guard(
                 _get_closure_vars()["__numpy_isnan"],  # type: ignore[arg-type]
+=======
+            self.get_guard_manager(guard).add_complex_is_nan_guard(
+>>>>>>> upstream/main
                 get_verbose_code_parts(code, guard),
             )
             return
@@ -2456,7 +2492,11 @@ class GuardBuilder(GuardBuilderBase):
         )
 
     def SHAPE_ENV(self, guard: Guard) -> None:
+<<<<<<< HEAD
         from torch._dynamo.output_graph import OutputGraph
+=======
+        from torch._dynamo.output_graph import OutputGraphCommon
+>>>>>>> upstream/main
 
         assert guard.name == ""
         output_graph = self.check_fn_manager.output_graph
@@ -2473,8 +2513,14 @@ class GuardBuilder(GuardBuilderBase):
             # shape variables to sources from tracked_fakes.  This must happen after
             # tensor checks.
             # NB: self.output_graph can be None in the debug_nops tests
+<<<<<<< HEAD
             assert isinstance(output_graph, OutputGraph)
             fs = output_graph.tracked_fakes
+=======
+            assert isinstance(output_graph, OutputGraphCommon)
+            assert output_graph.shape_env is not None
+            fs = output_graph.shape_env.tracked_fakes or []
+>>>>>>> upstream/main
             input_contexts = [a.symbolic_context for a in fs]
 
             def get_sources(t_id: int, dim: int) -> list[Source]:
@@ -3076,11 +3122,39 @@ class _Missing:
     pass
 
 
+<<<<<<< HEAD
 class GuardsStatePickler(pickle.Pickler):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+=======
+@functools.cache
+def _get_unsupported_types() -> tuple[type, ...]:
+    # We only do ID_MATCH on C objects which is already banned from guards serialization.
+    ret: tuple[type, ...] = (
+        types.CodeType,
+        torch._C.Stream,
+        weakref.ReferenceType,
+    )
+    try:
+        ret += (torch._C._distributed_c10d.ProcessGroup,)
+    except AttributeError:
+        pass
+    return ret
+
+
+class GuardsStatePickler(pickle.Pickler):
+    def __init__(
+        self,
+        guard_tree_values: dict[int, Any],
+        empty_values: dict[int, Any],
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+>>>>>>> upstream/main
         super().__init__(*args, **kwargs)
         self.fake_mode = torch._subclasses.FakeTensorMode()
         self.tensor_converter = torch._subclasses.fake_tensor.FakeTensorConverter()
+        self.guard_tree_values = guard_tree_values
+        self.empty_values = empty_values
 
     @classmethod
     def _unpickle_module(cls, state: Any) -> torch.nn.Module:
@@ -3153,6 +3227,21 @@ class GuardsStatePickler(pickle.Pickler):
         return types.MappingProxyType(d)
 
     @classmethod
+<<<<<<< HEAD
+=======
+    def _unpickle_dict_keys(cls, elems: list[Any]) -> Any:
+        return dict.fromkeys(elems).keys()
+
+    @classmethod
+    def _unpickle_fsdp_module_type(
+        cls, original_type: type[torch.nn.Module]
+    ) -> type[torch.nn.Module]:
+        return torch.distributed.fsdp._fully_shard._fully_shard.get_cls_to_fsdp_cls()[
+            original_type
+        ]
+
+    @classmethod
+>>>>>>> upstream/main
     def _unpickle_c_op(cls, name: str) -> Any:
         return getattr(torch.ops._C, name)
 
@@ -3161,8 +3250,14 @@ class GuardsStatePickler(pickle.Pickler):
     ) -> Union[tuple[Callable[..., Any], tuple[Any, ...]], Any]:
         import sympy
 
+        if id(obj) in self.empty_values:
+            return type(obj).__new__, (type(obj),)
+
         if isinstance(obj, torch.Tensor) and obj.device.type != "meta":
             from torch.utils._python_dispatch import is_traceable_wrapper_subclass
+
+            if id(obj) not in self.guard_tree_values:
+                return _Missing, ()
 
             if is_traceable_wrapper_subclass(obj):
                 # inner_data is a list of tuples of:
@@ -3173,6 +3268,8 @@ class GuardsStatePickler(pickle.Pickler):
                 # recursively call for inner tensor components
                 for attr in attrs:
                     inner = getattr(obj, attr)
+                    if isinstance(inner, torch.Tensor):
+                        self.guard_tree_values[id(inner)] = inner
                     func, args_tuple = self.reducer_override(inner)
                     inner_data.append((attr, func, args_tuple))
 
@@ -3222,6 +3319,12 @@ class GuardsStatePickler(pickle.Pickler):
         elif isinstance(obj, types.MappingProxyType):
             return type(self)._unpickle_mapping_proxy, (obj.copy(),)
 
+<<<<<<< HEAD
+=======
+        elif isinstance(obj, torch._dynamo.utils.dict_keys):
+            return type(self)._unpickle_dict_keys, (list(obj),)
+
+>>>>>>> upstream/main
         elif isinstance(
             obj, torch._ops.OpOverloadPacket
         ) and obj._qualified_op_name.startswith("_C::"):
@@ -3234,6 +3337,7 @@ class GuardsStatePickler(pickle.Pickler):
             # Skipping PyCapsule since there isn't much to be guarded about them.
             return _Missing, ()
 
+<<<<<<< HEAD
         elif isinstance(obj, types.CodeType):
             # We only do ID_MATCH on code objects which is already banned from guards serialization.
             return _Missing, ()
@@ -3242,6 +3346,20 @@ class GuardsStatePickler(pickle.Pickler):
             # Skipping nested function since CLOSURE_MATCH is banned from guards serialization.
             assert obj.__qualname__ != obj.__name__
             return _Missing, ()
+=======
+        elif isinstance(obj, _get_unsupported_types()):
+            return _Missing, ()
+
+        elif inspect.isfunction(obj):
+            if obj.__code__.co_flags & inspect.CO_NESTED:
+                return _Missing, ()
+            if obj.__module__ in sys.modules:
+                f = sys.modules[obj.__module__]
+                for name in obj.__qualname__.split("."):
+                    f = getattr(f, name, None)  # type: ignore[assignment]
+                if f is not obj:
+                    return _Missing, ()
+>>>>>>> upstream/main
 
         if type(obj).__qualname__ != type(obj).__name__:
             raise torch._dynamo.exc.PackageError(
@@ -3250,12 +3368,44 @@ class GuardsStatePickler(pickle.Pickler):
                 + "Please define the class at global scope (top level of a module)."
             )
 
+        if hasattr(torch.distributed, "distributed_c10d") and isinstance(
+            obj, torch.distributed.distributed_c10d.Work
+        ):
+            if id(obj) not in self.guard_tree_values:
+                return _Missing, ()
+
+        if (
+            inspect.isclass(obj)
+            and hasattr(torch.distributed, "fsdp")
+            and issubclass(obj, torch.distributed.fsdp._fully_shard.FSDPModule)
+        ):
+            if obj is not torch.distributed.fsdp._fully_shard.FSDPModule:
+                original_type = obj.__mro__[2]
+                assert issubclass(original_type, torch.nn.Module)
+                assert (
+                    original_type
+                    in torch.distributed.fsdp._fully_shard._fully_shard.get_cls_to_fsdp_cls()
+                )
+                return type(self)._unpickle_fsdp_module_type, (original_type,)
+
         return NotImplemented
 
 
-def pickle_guards_state(state: GuardsState) -> bytes:
+def pickle_guards_state(state: GuardsState, guard_tree_values: dict[int, Any]) -> bytes:
     buf = io.BytesIO()
-    pickler = GuardsStatePickler(buf)
+    empty_values = {}
+
+    leaves = pytree.tree_leaves(state.output_graph.local_scope)
+    for leaf in leaves:
+        if inspect.ismethod(leaf) and hasattr(leaf, "__self__"):
+            base = leaf.__self__
+            if id(base) not in guard_tree_values:
+                try:
+                    type(base).__new__(type(base))
+                    empty_values[id(base)] = base
+                except:  # noqa: E722, B001
+                    pass
+    pickler = GuardsStatePickler(guard_tree_values, empty_values, buf)
     try:
         pickler.dump(state)
     except AttributeError as e:
@@ -3272,7 +3422,11 @@ class CheckFunctionManager:
     def __init__(
         self,
         f_code: types.CodeType,
+<<<<<<< HEAD
         output_graph: OutputGraphGuardsState,
+=======
+        output_graph: OutputGraphCommon,
+>>>>>>> upstream/main
         cache_entry: Optional[CacheEntry] = None,
         guard_fail_fn: Optional[Callable[[GuardFail], None]] = None,
         guard_filter_fn: Optional[
@@ -3289,7 +3443,11 @@ class CheckFunctionManager:
         existing_diff_guard_sources = (
             update_diff_guard_managers_for_existing_cache_entries(cache_entry)
         )
+<<<<<<< HEAD
         self.output_graph: Optional[OutputGraphGuardsState] = output_graph
+=======
+        self.output_graph: Optional[OutputGraphCommon] = output_graph
+>>>>>>> upstream/main
         assert self.output_graph is not None
 
         # Only used for serialization.
@@ -3318,8 +3476,15 @@ class CheckFunctionManager:
                     if not keep:
                         ret.append(False)
                     elif (
-                        g.guard_type in ("ID_MATCH", "CLOSURE_MATCH", "WEAKREF_ALIVE")
+                        g.guard_type
+                        in (
+                            "ID_MATCH",
+                            "CLOSURE_MATCH",
+                            "WEAKREF_ALIVE",
+                            "DICT_VERSION",
+                        )
                         or "ID_MATCH" in g.derived_guard_types
+                        or "DICT_VERSION" in g.derived_guard_types
                     ):
                         log.warning(
                             "%s guard on %s is dropped with caching_precompile=True.",
@@ -3447,9 +3612,15 @@ class CheckFunctionManager:
 
         self.guards_state: Optional[bytes] = None
         if save_guards:
+<<<<<<< HEAD
             from torch._dynamo.output_graph import OutputGraph
 
             assert isinstance(self.output_graph, OutputGraph)
+=======
+            from torch._dynamo.output_graph import OutputGraphCommon
+
+            assert isinstance(self.output_graph, OutputGraphCommon)
+>>>>>>> upstream/main
             try:
                 self.guards_state = self.serialize_guards(
                     builder, sorted_guards, self.output_graph
@@ -3491,7 +3662,11 @@ class CheckFunctionManager:
         self,
         builder: GuardBuilder,
         sorted_guards: list[Guard],
+<<<<<<< HEAD
         output_graph: OutputGraph,
+=======
+        output_graph: OutputGraphCommon,
+>>>>>>> upstream/main
     ) -> bytes:
         # We check whether our list of guards are serializable here
         for guard in sorted_guards:
@@ -3523,7 +3698,11 @@ class CheckFunctionManager:
                     f"{failed} guard cannot be serialized."
                 )
 
+<<<<<<< HEAD
         builtins_dict_name = output_graph.name_of_builtins_dict_key_in_fglobals
+=======
+        builtins_dict_name = output_graph.name_of_builtins_dict_key_in_fglobals or ""
+>>>>>>> upstream/main
         used_global_vars = set()
         used_local_vars = set()
 
@@ -3608,7 +3787,11 @@ class CheckFunctionManager:
             shape_code_parts=self.shape_code_parts,
         )
 
+<<<<<<< HEAD
         return pickle_guards_state(guards_state)
+=======
+        return pickle_guards_state(guards_state, builder.guard_tree_values)
+>>>>>>> upstream/main
 
     def build_guards(
         self,

@@ -388,6 +388,10 @@ class DTensorTestBase(MultiProcessTestCase):
             "hccl",
             "xccl",
             "fake",
+<<<<<<< HEAD
+=======
+            "cpu:gloo,xpu:xccl",
+>>>>>>> upstream/main
         ]:
             raise RuntimeError(f"Backend {backend} not supported!")
 

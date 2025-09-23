@@ -22,6 +22,16 @@ name: !{{ build_environment }}
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
 {%- endmacro %}
 
+{%- macro setup_python(py_ver) -%}
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          # TODO: Removeme once 3.14 is out
+          # .4 version is min minor for 3.10, and also no-gil version of 3.13 needs at least 3.13.3
+          python-version: "!{{ (py_ver.strip('t') + '.4') if '3.14' not in py_ver else '3.14.0-rc.2' }}"
+          freethreaded: !{{ "true" if py_ver.endswith('t') else "false" }}
+{%- endmacro %}
+
 on:
 # TODO: Migrate to new ciflow trigger, reference https://github.com/pytorch/pytorch/pull/70321
   push:
@@ -61,6 +71,7 @@ jobs:
     {%- endif %}
     steps:
       !{{ set_runner_specific_vars() }}
+<<<<<<< HEAD
       - name: Install conda and dependencies
         run: |
           # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
@@ -68,16 +79,15 @@ jobs:
           chmod +x "${RUNNER_TEMP}/conda.sh"
           /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
           echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+=======
+      !{{ setup_python(config.get("python_version", "3.10")) }}
+>>>>>>> upstream/main
       !{{ common.checkout(deep_clone=False, directory="pytorch") }}
       - name: Populate binary env
         run: |
-          # shellcheck disable=SC1091
-          source "${RUNNER_TEMP}/anaconda/bin/activate"
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
-          # shellcheck disable=SC1091
-          source "${RUNNER_TEMP}/anaconda/bin/activate"
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -94,8 +104,6 @@ jobs:
 {%- if config["package_type"] == "wheel" %}
       - name: Test PyTorch wheel
         run: |
-          # shellcheck disable=SC1091
-          source "${RUNNER_TEMP}/anaconda/bin/activate"
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -106,6 +114,7 @@ jobs:
 
           SMOKE_TEST_PARAMS=""
 
+<<<<<<< HEAD
           EXTRA_CONDA_INSTALL_FLAGS=""
           CONDA_ENV_CREATE_FLAGS=""
           # shellcheck disable=SC2153
@@ -133,6 +142,11 @@ jobs:
           # shellcheck disable=SC2086
           conda create -yn "test_conda_env" python="$desired_python" ${CONDA_ENV_CREATE_FLAGS} ${EXTRA_CONDA_INSTALL_FLAGS}
           conda activate test_conda_env
+=======
+          # shellcheck disable=SC2086
+          python -mvenv test_venv
+          source test_venv/bin/activate
+>>>>>>> upstream/main
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086

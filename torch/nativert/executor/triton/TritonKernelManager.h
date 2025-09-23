@@ -2,7 +2,13 @@
 
 #include <string>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+#include <c10/core/DeviceType.h>
+#include <c10/util/Exception.h>
+#include <c10/util/Registry.h>
+>>>>>>> upstream/main
 
 namespace torch::nativert {
 
@@ -69,7 +75,18 @@ class TritonKernelManager {
   std::string kernel_name_, kernel_bin_path_;
 };
 
+<<<<<<< HEAD
 inline std::unique_ptr<TritonKernelManager> (
     *create_cuda_triton_kernel_manager)(std::string, std::string) = nullptr;
+=======
+C10_DECLARE_TYPED_REGISTRY(
+    TritonKernelManagerRegistry,
+    c10::DeviceType,
+    TritonKernelManager,
+    std::unique_ptr,
+    std::string /* kernel_name */,
+    std::string /* kernel_bin_path */,
+    std::string /* kernel_launcher_bin_path */);
+>>>>>>> upstream/main
 
 } // namespace torch::nativert

@@ -183,7 +183,7 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         )
         torch.utils._pytree.register_constant(DeviceMesh)
 
-        ep = torch.export.export_for_training(
+        ep = torch.export.export(
             Foo(), (torch.randn(4, 4, dtype=torch.float64),), strict=False
         )
         self.assertExpectedInline(
@@ -317,6 +317,9 @@ def forward(self, b_parametrizations_buffer_original0, x):
         self.assertEqual(res, ref)
 
     @skipIfHpu
+    @unittest.skip(
+        "DTensor + dynamic fails - s77 + 8 is not tracked with proxy .. proxy_tensor.PythonKeyTracer"
+    )
     def test_dtensor_dynamic_slice(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
@@ -358,6 +361,12 @@ def forward(self, b_parametrizations_buffer_original0, x):
             res = opt_fn(x)
         self.assertEqual(res, ref)
 
+<<<<<<< HEAD
+=======
+    @unittest.skip(
+        "DTensor + dynamic fails - s77 + 8 is not tracked with proxy .. proxy_tensor.PythonKeyTracer"
+    )
+>>>>>>> upstream/main
     def test_dtensor_dynamic_cat(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
