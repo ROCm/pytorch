@@ -105,7 +105,6 @@ except ImportError:
 
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
-<<<<<<< HEAD
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
 
@@ -116,9 +115,6 @@ def is_navi3_arch():
         if gfx_arch in NAVI3_ARCH:
             return True
     return False
-=======
-NAVI4_ARCH = ("gfx1200", "gfx1201")
->>>>>>> 3b9e558b7c ([release/2.6] skip convolution tests on Navi (#2055))
 
 def freeze_rng_state(*args, **kwargs):
     return torch.testing._utils.freeze_rng_state(*args, **kwargs)
@@ -1930,19 +1926,11 @@ def skipIfRocm(func=None, *, msg="test doesn't currently work on the ROCm stack"
         return dec_fn(func)
     return dec_fn
 
-<<<<<<< HEAD
 def skipIfRocmArch(arch: tuple[str, ...]):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
             if TEST_WITH_ROCM:
-=======
-def skipIfRocmArch(arch: Tuple[str, ...]):
-    def dec_fn(fn):
-        @wraps(fn)
-        def wrap_fn(self, *args, **kwargs):
-            if TEST_WITH_ROCM:  # noqa: F821
->>>>>>> 3b9e558b7c ([release/2.6] skip convolution tests on Navi (#2055))
                 prop = torch.cuda.get_device_properties(0)
                 if prop.gcnArchName.split(":")[0] in arch:
                     reason = f"skipIfRocm: test skipped on {arch}"
