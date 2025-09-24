@@ -16,7 +16,7 @@ from torch.testing._internal.common_quantization import skipIfNoFBGEMM
 from torch.testing._internal.common_quantized import override_quantized_engine
 from torch.testing._internal.common_utils import (
     raise_on_run_directly,
-    NAVI_ARCH,
+    NAVI4_ARCH,
     set_default_dtype,
     skipCUDAMemoryLeakCheckIf,
     skipIfRocmArch,
@@ -2969,7 +2969,7 @@ class TestFrozenOptimizations(JitTestCase):
             self.assertEqual(frozen(inp), mod(inp))
 
     @unittest.skipIf(not (TEST_CUDNN or TEST_WITH_ROCM), "requires CUDNN")
-    @skipIfRocmArch(NAVI_ARCH)  # not supported by MIOPEN on NAVI
+    @skipIfRocmArch(NAVI4_ARCH)  # not supported by MIOPEN on NAVI4x
     def test_freeze_conv_relu_fusion(self):
         with set_default_dtype(torch.float):
             conv_bias = [True, False]
