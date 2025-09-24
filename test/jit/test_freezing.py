@@ -15,11 +15,8 @@ from torch.testing._internal.common_cuda import TEST_CUDA, TEST_CUDNN
 from torch.testing._internal.common_quantization import skipIfNoFBGEMM
 from torch.testing._internal.common_quantized import override_quantized_engine
 from torch.testing._internal.common_utils import (
-<<<<<<< HEAD
     raise_on_run_directly,
-=======
     NAVI_ARCH,
->>>>>>> 3b9e558b7c ([release/2.6] skip convolution tests on Navi (#2055))
     set_default_dtype,
     skipCUDAMemoryLeakCheckIf,
     skipIfRocmArch,
