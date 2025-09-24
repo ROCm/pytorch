@@ -1,6 +1,6 @@
 # Python dependencies required for development
 astunparse==1.6.3
-cmake>=3.31.4
+cmake==4.0.1
 expecttest==0.3.0
 filelock==3.18.0
 fsspec==2025.7.0
