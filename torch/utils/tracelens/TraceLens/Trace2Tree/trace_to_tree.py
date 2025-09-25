@@ -336,8 +336,51 @@ class JaxTraceToTree(BaseTraceToTree):
         if self.prune_nongpu_paths:
             self.label_non_gpu_paths()
 
+        self._categorize_gpu_kernel_ops()
 
-        
+
+    def _categorize_gpu_kernel_ops(self) -> None:
+        """
+        Categorizes GPU kernel operations in the event list based on their names and HLO operation types.
+
+        Iterates through each event in `self.events` with a process ID (pid) less than or equal to 100.
+        For events categorized as 'kernel', attempts to assign a GPU kernel operation category by matching
+        the event's name and, if available, its 'hlo_op' argument against predefined category filters in
+        `TraceEventUtils.JaxOpKeys.ClassCategories`. If no category is matched, assigns a default
+        'Uncategorized/XLA' category.
+
+        Modifies:
+            Each relevant event in `self.events` by adding or updating the 'gpu_kernel_op_cat' key.
+        """
+
+        for event in self.events:
+            if event.get('pid')<= 100:
+
+                if event.get('cat')=='kernel':
+                    name = event.get('name')
+
+                    gpu_kernel_op_cat_not_found = True
+
+                    for category, filters in TraceEventUtils.JaxOpKeys.ClassCategories.items():
+                        if any(f in name for f in filters):
+                             event['gpu_kernel_op_cat'] = category
+                             gpu_kernel_op_cat_not_found = False
+                             break
+
+                    if 'hlo_op' in event.get('args').keys():
+                        hlo_op = event.get('args').get('hlo_op')
+
+                        for category, filters in TraceEventUtils.JaxOpKeys.ClassCategories.items():
+                            if any(f in hlo_op for f in filters):
+                                event['gpu_kernel_op_cat'] = category
+                                gpu_kernel_op_cat_not_found = False
+                                break
+
+                    # if still not found, set to Uncategorized/XLA
+                    if gpu_kernel_op_cat_not_found:
+                        event['gpu_kernel_op_cat'] = TraceEventUtils.JaxOpKeys.UncategorizedEventKey + '/XLA'
+   
+    
     def _set_metadata(self, metadata: Dict) -> None:
         """
         Sets the metadata for the current object and updates each event in `self.events`
@@ -571,23 +614,25 @@ class TraceToTree:
                 dict_pidtid2num_cpu_ops[stack_key] += 1
 
     def add_gpu_ops_to_tree(self):
-        for event in self.events:
-            if self.event_to_category(event) not in {'cuda_runtime', 'cuda_driver'}:
+        for runtime_event in self.events:
+            if self.event_to_category(runtime_event) not in {'cuda_runtime', 'cuda_driver'}:
                 continue
-            corresponding_gpu_event = self._find_corresponding_output_event(event)
-            if not corresponding_gpu_event:
-                continue
-            event.setdefault('children', []).append(corresponding_gpu_event[TraceLens.util.TraceEventUtils.TraceKeys.UID])
-            corresponding_gpu_event['parent'] = event[TraceLens.util.TraceEventUtils.TraceKeys.UID]
-            corresponding_gpu_event['tree'] = True
-            self.name2event_uids[corresponding_gpu_event[TraceLens.util.TraceEventUtils.TraceKeys.Name]].append(corresponding_gpu_event[TraceLens.util.TraceEventUtils.TraceKeys.UID])
+            if runtime_event['name'] in {'cudaGraphLaunch', 'hipGraphLaunch'}:
+                corresponding_gpu_events = self._get_graph_gpu_events(runtime_event)
+            else:
+                gpu_evt = self._find_corresponding_output_event(runtime_event)
+                corresponding_gpu_events = [gpu_evt] if gpu_evt else []
+            for gpu_evt in corresponding_gpu_events:
+                runtime_event.setdefault('children', []).append(gpu_evt[TraceLens.util.TraceEventUtils.TraceKeys.UID])
+                gpu_evt['parent'] = runtime_event[TraceLens.util.TraceEventUtils.TraceKeys.UID]
+                gpu_evt['tree'] = True
+                self.name2event_uids[gpu_evt[TraceLens.util.TraceEventUtils.TraceKeys.Name]].append(gpu_evt[TraceLens.util.TraceEventUtils.TraceKeys.UID])
+                runtime_event.setdefault('gpu_events', []).append(gpu_evt[TraceLens.util.TraceEventUtils.TraceKeys.UID])
 
-            # set the parents['gpu_events'] to the corresponding gpu event
-            event['gpu_events'] = [corresponding_gpu_event[TraceLens.util.TraceEventUtils.TraceKeys.UID]] # runtime event will have only one corresponding gpu event
-            while self.get_parent_event(event):
-                parent = self.get_parent_event(event)
-                parent.setdefault('gpu_events', []).append(corresponding_gpu_event[TraceLens.util.TraceEventUtils.TraceKeys.UID])
-                event = parent
+                parent = self.get_parent_event(runtime_event)
+                while parent:
+                    parent.setdefault('gpu_events', []).append(gpu_evt[TraceLens.util.TraceEventUtils.TraceKeys.UID])
+                    parent = self.get_parent_event(parent)
 
     # TODO base class includes this, remove
     def label_non_gpu_paths(self):
@@ -765,6 +810,17 @@ class TraceToTree:
                 bwd_event['fwd_event'] = event_UID
                 break
         fwd_event['bwd_events'] = bwd_event_UIDs
+    
+    def _get_graph_gpu_events(self, graph_launch_evt):
+        corr = graph_launch_evt.get(TraceLens.util.TraceEventUtils.TraceKeys.Args, {}).get(self.linking_key)
+        if corr is None:
+            return []
+        gpu_cats = {'kernel', 'gpu_memset', 'gpu_memcpy'}
+        return [
+            evt for evt in self.events
+            if self.event_to_category(evt) in gpu_cats and
+               evt.get(TraceLens.util.TraceEventUtils.TraceKeys.Args, {}).get('correlation') == corr
+        ]
 
     def _find_corresponding_output_event(self, input_event):
         # 1. Get the linking id from the input event

@@ -1,10 +1,11 @@
-from typing import Any, Callable, Dict
+from typing import Any, Callable, cast, Dict, Optional
 
 import pandas as pd
 
 import TraceLens.util
 from TraceLens import TraceToTree
 from ..TreePerf import GPUEventAnalyser
+
 
 class TraceDiff:
     def __init__(self, tree1: TraceToTree, tree2: TraceToTree):
@@ -402,7 +403,98 @@ class TraceDiff:
         """
         return self.merged_uid_map.get((tree_num, uid), -1)
 
-    def print_merged_tree(self, output_file):
+    def print_merged_subtree(self, uid_tree1=None, uid_tree2=None):
+        if uid_tree1 is None and uid_tree2 is None:
+            raise ValueError("At least one of uid_tree1 or uid_tree2 must be provided.")
+        if self.merged_tree is None:
+            raise ValueError(
+                "merged_tree is not initialized. Call merge_trees() first."
+            )
+        merged_events, merged_root_ids = self.merged_tree
+        merged_id_to_event = {event["merged_id"]: event for event in merged_events}
+
+        # Find merged_id corresponding to the given uid
+        merged_id = None
+        if uid_tree1 is not None:
+            # Search for merged_id where uid1 matches
+            for event in merged_events:
+                if event["uid1"] == uid_tree1:
+                    merged_id = event["merged_id"]
+                    break
+        elif uid_tree2 is not None:
+            # Search for merged_id where uid2 matches
+            for event in merged_events:
+                if event["uid2"] == uid_tree2:
+                    merged_id = event["merged_id"]
+                    break
+        if merged_id is None:
+            raise ValueError("Could not find merged node for the given UID.")
+
+        # Helper to get op name
+        def get_op_name(uid, tree_uid2node):
+            node = tree_uid2node.get(uid)
+            if node is None:
+                return None
+            name = node.get("name") if "name" in node else node.get("Name")
+            if name is None:
+                try:
+                    name = node.get(TraceLens.util.TraceEventUtils.TraceKeys.Name)
+                except Exception:
+                    pass
+            return name if name else str(uid)
+
+        baseline_uid2node = {
+            event.get("UID"): event
+            for event in getattr(self.baseline, "events", [])
+            if isinstance(event, dict)
+        }
+        variant_uid2node = {
+            event.get("UID"): event
+            for event in getattr(self.variant, "events", [])
+            if isinstance(event, dict)
+        }
+
+        # Print merged subtree to console
+        def print_merged_tree_to_console(merged_id, prefix="", is_last=True):
+            node = merged_id_to_event[merged_id]
+            merge_type = node["merged_type"]
+            name1 = (
+                get_op_name(node["uid1"], baseline_uid2node)
+                if node["uid1"] is not None
+                else None
+            )
+            name2 = (
+                get_op_name(node["uid2"], variant_uid2node)
+                if node["uid2"] is not None
+                else None
+            )
+            connector = "└── " if is_last else "├── "
+            if merge_type == "combined":
+                if name1 == name2 and name1 is not None:
+                    line = f"{prefix}{connector}{name1}"
+                else:
+                    line = f"{prefix}{connector}{merge_type}: {name1} | {name2}"
+            elif merge_type == "trace1":
+                line = f"{prefix}{connector}>> {merge_type}: {name1}"
+            elif merge_type == "trace2":
+                line = f"{prefix}{connector}<< {merge_type}: {name2}"
+            else:
+                line = f"{prefix}{connector}{merge_type}: {name1} | {name2}"
+            print(line)
+            # Sort children by merge_type order: combined, trace1, trace2
+            children = [merged_id_to_event[cid] for cid in node["children"]]
+            combined = [c["merged_id"] for c in children if c["merged_type"] == "combined"]
+            trace1 = [c["merged_id"] for c in children if c["merged_type"] == "trace1"]
+            trace2 = [c["merged_id"] for c in children if c["merged_type"] == "trace2"]
+            sorted_children = combined + trace1 + trace2
+            child_count = len(sorted_children)
+            for i, cid in enumerate(sorted_children):
+                new_prefix = prefix + ("    " if is_last else "│   ")
+                print_merged_tree_to_console(cid, new_prefix, is_last=(i == child_count - 1))
+
+        print_merged_tree_to_console(merged_id, prefix="", is_last=True)
+
+    def print_merged_tree(self, output_file, prune_non_gpu=False):
         if self.merged_tree is None:
             raise ValueError(
                 "merged_tree is not initialized. Call merge_trees() first."
@@ -435,6 +527,23 @@ class TraceDiff:
             for event in getattr(self.variant, "events", [])
             if isinstance(event, dict)
         }
+
+        def subtree_has_gpu(merged_id: int) -> bool:
+            # Depending on the merge type, get the corresponsonding UIDs in both trees
+            node = merged_id_to_event[merged_id]
+            uid1 = node["uid1"]
+            uid2 = node["uid2"]
+
+            # Check in baseline tree
+            node1 = self.baseline.get_UID2event(uid1) if uid1 is not None else None
+            node2 = self.variant.get_UID2event(uid2) if uid2 is not None else None
+
+            if node1 and not node1.get("non_gpu_path", False):
+                return True
+            if node2 and not node2.get("non_gpu_path", False):
+                return True
+
+            return False
 
         def print_merged_tree_to_lines(merged_id, prefix="", is_last=True):
             node = merged_id_to_event[merged_id]
@@ -477,11 +586,14 @@ class TraceDiff:
                     cid, new_prefix, is_last=(i == child_count - 1)
                 )
 
-        for i, root_id in enumerate(merged_root_ids):
+        for i, root_id in enumerate(merged_root_ids): 
+            if prune_non_gpu and not subtree_has_gpu(root_id):
+                continue
+
             print_merged_tree_to_lines(
                 root_id, prefix="", is_last=(i == len(merged_root_ids) - 1)
             )
-
+            
         with open(output_file, "w") as f:
             for line in output_lines:
                 f.write(line + "\n")
@@ -892,7 +1004,9 @@ class TraceDiff:
         self.get_df_diff_stats_unique_args()
         self.get_df_diff_stats_by_name()
 
-    def print_tracediff_report_files(self, output_folder="rprt_diff"):
+    def print_tracediff_report_files(
+        self, output_folder="rprt_diff", prune_non_gpu=False
+    ):
         """
         Write all TraceDiff output reports to files in the specified output folder (default 'rprt_diff').
         Output file names are:
@@ -908,7 +1022,9 @@ class TraceDiff:
         # diff_stats_summary_file = os.path.join(output_folder, "diff_stats_summary.csv")
         diff_stats_unique_args_summary_file = os.path.join(output_folder, "diff_stats_unique_args_summary.csv")
         diff_stats_names_summary_file = os.path.join(output_folder, "diff_stats_names_summary.csv")
-        self.print_merged_tree(output_file=merged_tree_file)
+        self.print_merged_tree(
+            output_file=merged_tree_file, prune_non_gpu=prune_non_gpu
+        )
         if self.diff_stats_df is not None and not self.diff_stats_df.empty:
             self.diff_stats_df.to_csv(diff_stats_file, index=False)
         else:

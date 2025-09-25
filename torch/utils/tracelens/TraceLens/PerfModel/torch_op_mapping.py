@@ -39,14 +39,20 @@ op_to_perf_model_class_map = {
     'aten::bmm': perf_model.aten_bmm,
     'tex_ts::te_gemm_ts': perf_model.tex_ts_te_gemm_ts,
     'aten::baddbmm': perf_model.aten_baddbmm,
+    'vllm::gemm_with_dynamic_quant': perf_model.vllm_gemm_with_dynamic_quant,
     'FlashAttnFunc': perf_model.flash_attention,
     'flash_attn::_flash_attn_forward': perf_model.flash_attention,
+    'flash_attn::_flash_attn_varlen_forward': perf_model.flash_attention_varlen_forward,
+    'flash_attn::_flash_attn_varlen_backward': perf_model.flash_attention_varlen_backward,
     'aten::_scaled_dot_product_cudnn_attention': perf_model.aten__scaled_dot_product_cudnn_attention,
     'aten::_scaled_dot_product_efficient_attention': perf_model.aten__scaled_dot_product_efficient_attention,
     'aten::_scaled_dot_product_flash_attention': perf_model.aten__scaled_dot_product_flash_attention,
     'aten::convolution': perf_model.aten_conv,
     "aiter::_flash_attn_forward": perf_model.aiter__flash_attn_forward,
     "aiter::_flash_attn_backward": perf_model.aiter__flash_attn_backward,
+    "aiter::wrapper_fmha_v3_fwd": perf_model.aiter__fmha_v3_forward,
+    "aiter::wrapper_fmha_v3_bwd": perf_model.aiter__fmha_v3_backward,
+    "flash_attn_3::fwd": perf_model.flash_attn_v3_forward,
 }
 
 unary_elemwise_ops = [
@@ -115,10 +121,12 @@ def categorize_torch_op(row):
     sdpa_bwd_names = [
         "FlashAttnFuncBackward",
         "flash_attn::_flash_attn_backward",
+        "flash_attn::_flash_attn_varlen_backward",
         "aten::_scaled_dot_product_cudnn_attention_backward",
         "aten::_scaled_dot_product_efficient_attention_backward",
         "aten::_scaled_dot_product_flash_attention_backward",
         "aiter::_flash_attn_backward",
+        "aiter::wrapper_fmha_v3_bwd",
     ]
     if row["name"] in dict_cat2names["SDPA"]:
         if row["name"].endswith("_backward") or row["name"] in sdpa_bwd_names:
@@ -140,5 +148,6 @@ def categorize_torch_op(row):
             return 'reduce'
         elif 'multi_tensor_apply' in kernel_name:
             return 'multi_tensor_apply'
+
     # if none of the above cases match, return 'other'
     return 'other'

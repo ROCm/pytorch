@@ -31,7 +31,6 @@ class GPUEventAnalyser:
         """
         self.events = events
 
-
     @staticmethod
     def merge_intervals(intervals):
         """
@@ -48,7 +47,6 @@ class GPUEventAnalyser:
             else:
                 merged.append((start, end))
         return merged
-
 
     @staticmethod
     def subtract_intervalsA_from_B(intervals_to_subtract, intervals):
@@ -78,9 +76,7 @@ class GPUEventAnalyser:
                 temp_idx += 1
             if current < b_end:
                 result.append((current, b_end))
-
         return result
-
 
     all_gpu_key = 'all_gpu'
     computation_key = 'computation'
@@ -137,7 +133,6 @@ class GPUEventAnalyser:
             GPUEventAnalyser.memcpy_key: memcpy_events,
         }
 
-
     @staticmethod
     def verify_dict_gpu_event_lists(dict_gpu_event_lists):
         # first check if the keys are correct
@@ -168,7 +163,6 @@ class GPUEventAnalyser:
         # end of the last event - start of the first event
         total_time = all_intervals[-1][1] - all_intervals[0][0]
 
-
         comp_time = sum(end - start for start, end in comp_union)
 
         total_comm_time = sum(end - start for start, end in comm_union)
@@ -185,7 +179,6 @@ class GPUEventAnalyser:
 
         # assert that compute + exposed comm + exposed memcpy + idle = total time
         assert abs(comp_time + exposed_comm_time + exposed_memcpy_time + idle_time - total_time) < 1e-6
-
         return {
             "computation_time": comp_time,
             "exposed_comm_time": exposed_comm_time,
@@ -196,7 +189,6 @@ class GPUEventAnalyser:
             "total_comm_time": total_comm_time,
             "total_memcpy_time": total_memcpy_time,
         }
-
 
     def compute_metrics(self):
         """
@@ -221,7 +213,6 @@ class GPUEventAnalyser:
         df['time ms'] = df['time'] / 1e3
         df['percent'] = df['time'] / df.loc[df['type'] == 'total_time', 'time'].values[0] * 100
         df = df.drop(columns=['time'])
-
         return df
 
     def get_breakdown_df(self):
@@ -232,8 +223,12 @@ class GPUEventAnalyser:
 class PytorchGPUEventAnalyser(GPUEventAnalyser):
     pass
 
-# Jax GPU event analyser supports multiple GPUs
+# Jax GPU event analyser
 class JaxGPUEventAnalyser(GPUEventAnalyser):
+        
+    def __init__(self, events):
+        super().__init__(events) # Call the parent's __init__
+
     def get_gpu_event_lists(self, gpu_pid = None, event_filter = None):
         """
         Return a dictionory of GPU to dictionaries of lists of events,
@@ -248,6 +243,7 @@ class JaxGPUEventAnalyser(GPUEventAnalyser):
 
         # note all events are not gpu events
         # the events list contains gpu events as well as host side events
+
         return_dict = {}
         for event in self.events:
             if event_filter is not None and not event_filter(event):
@@ -265,7 +261,7 @@ class JaxGPUEventAnalyser(GPUEventAnalyser):
                         event['t_end'] = event['ts'] + event['dur']
                     cur_dict[GPUEventAnalyser.all_gpu_key].append(event)
                     name = event.get('name')
-                    if (any(name.lower().startswith(x) for x in ['copy', 'memcpy', 'memset'])):
+                    if (any(name.lower().startswith(x) for x in ['copy', 'memcpy', 'memset'])): 
                         cur_dict[GPUEventAnalyser.memcpy_key].append(event)
                     elif name.startswith('nccl'):
                         cur_dict[GPUEventAnalyser.communication_key].append(event)
@@ -281,31 +277,85 @@ class JaxGPUEventAnalyser(GPUEventAnalyser):
             return return_dict
         else:
             return return_dict.get(gpu_pid, {})
-
-    def compute_metrics(self):
-        """
-        Compute various metrics from the GPU event data.
-        Computation is defined as the time spent in computation kernels.
-        Communication is defined as the time spent in communication kernels.
-        Memcpy is defined as the time spent in memcpy kernels.
-        Exposed communication time is the time spent in communication kernels that is not overlapped by computation.
-        Exposed memcpy time is the time spent in memcpy kernels that is not overlapped by computation or communication.
-        """
-
-        # Categorize events.
-        # get GPU 0 (PID 1) for Jax
-        dict_gpu_event_lists = self.get_gpu_event_lists(1)
+    
+    def compute_metrics(self, gpu_pid = 1, event_filter = None):
+        # Default: use GPU0 (PID 1) for Jax
+        dict_gpu_event_lists = self.get_gpu_event_lists(gpu_pid=gpu_pid, event_filter=event_filter)
         GPUEventAnalyser.verify_dict_gpu_event_lists(dict_gpu_event_lists)
 
-        return GPUEventAnalyser.compute_metrics_dict(dict_gpu_event_lists)
-
+        return GPUEventAnalyser.compute_metrics_dict(dict_gpu_event_lists) 
+    
     def get_breakdown_df_multigpu(self, event_filter = None):
-        events = self.get_gpu_event_lists(event_filter = event_filter)
+        dict_gpu_event_lists = self.get_gpu_event_lists(event_filter=event_filter) 
         gpu_frames = {}
         print("Processing events by GPU")
-        for gpu_id, cur_events in tqdm.tqdm(filter(lambda x: x[0] < 100, events.items())):
-            self.verify_dict_gpu_event_lists(cur_events)
+        for gpu_id, cur_events in tqdm.tqdm(filter(lambda x: x[0] < 100, dict_gpu_event_lists.items())):
+            GPUEventAnalyser.verify_dict_gpu_event_lists(cur_events)
             cur_metrics = GPUEventAnalyser.compute_metrics_dict(cur_events)
             gpu_frames[gpu_id - 1] = GPUEventAnalyser.get_breakdown_df_from_dict(cur_metrics)
         return gpu_frames
+    
+    def comput_metrics_multigpu(self, gpu_pid = None, event_filter = None):
+        list_pids = [gpu_pid] if gpu_pid else range(1,9)  
+        return_dict = {}
+        for pid in list_pids:
+            return_dict[pid] = self.compute_metrics(gpu_pid=pid, event_filter=event_filter)
+        return return_dict
+    
+    def get_average_metrics(self, gpu_pid = None, event_filter = None):
+        """
+        Return average gpu metrics across GPUs or one gpu, if gpu_pid is provided.
+        """
+        gpu_metrics = self.comput_metrics_multigpu(gpu_pid=gpu_pid, event_filter=event_filter)
+        num_gpus = len(gpu_metrics.keys())  # 1 if gpu_pid else 8
+        average_gpu_metrics = None
+        for _pid, cur_metric in gpu_metrics.items():
+            if average_gpu_metrics is None:
+                average_gpu_metrics = cur_metric
+            else:
+                for k, v in cur_metric.items():
+                    average_gpu_metrics[k] += v
+        for k in average_gpu_metrics.keys():
+            average_gpu_metrics[k] /= num_gpus
+        return average_gpu_metrics
+
+    def get_breakdown_df(self, gpu_pid = None, event_filter = None):
+        """
+        Return performance breakdown across GPUs or one gpu, if gpu_pid is provided.
+
+        Similar to get_breakdown_df_multigpu but returns a dataframe for output.
+        """
+        # print("Processing events by GPU")
+        gpu_metrics = self.comput_metrics_multigpu(gpu_pid=gpu_pid, event_filter=event_filter)
+        list_pids = [gpu_pid] if gpu_pid else range(1,9)  
+        list_dfs = []
+        for _pid, cur_metric in gpu_metrics.items():
+            df = GPUEventAnalyser.get_breakdown_df_from_dict(cur_metric)
+            df['gpu_pid'] = _pid
+            list_dfs.append(df)
+        return pd.concat(list_dfs, ignore_index=True)
+
+    def get_average_df(self, gpu_pid = None, event_filter = None):
+        average_gpu_metrics = self.get_average_metrics(gpu_pid=gpu_pid, event_filter=event_filter )
+        return GPUEventAnalyser.get_breakdown_df_from_dict(average_gpu_metrics) 
+    
+    def get_average_df_verify_with_jax_analyses(self, gpu_pid = None, event_filter = None):
+        all_events = self.get_gpu_event_lists(gpu_pid=None, event_filter=event_filter)
+        # create an average across GPUs
+        average_gpu_metrics = None
+        num_gpus = 0
+        for pid, cur_events in all_events.items():
+            if pid <= 100:
+                num_gpus += 1
+                GPUEventAnalyser.verify_dict_gpu_event_lists(cur_events)
+                current_metrics = GPUEventAnalyser.compute_metrics_dict(cur_events)
+                if average_gpu_metrics is None:
+                    average_gpu_metrics = current_metrics
+                else:
+                    for k, v in current_metrics.items():
+                        average_gpu_metrics[k] += v
+        for k in average_gpu_metrics.keys():
+            average_gpu_metrics[k] /= num_gpus
+        return GPUEventAnalyser.get_breakdown_df_from_dict(average_gpu_metrics)
+    
 

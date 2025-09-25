@@ -251,7 +251,11 @@ class tev2_pseudo_gemm(GEMM):
         N = B_shape[1]
         K = A_shape[1]
 
-        dtype_A_B = 'fp8', 'fp8'
+        # Validate 'Input type' existence and length
+        input_type = event['args'].get('Input type')
+        if not isinstance(input_type, (list, tuple)) or len(input_type) < 2:
+            raise ValueError(f"Expected 'Input type' in event['args'] to be a list or tuple with at least 2 elements, got: {input_type}")
+        dtype_A_B = tuple(input_type[:2])
         stride_A, stride_B = None, None
         return {"M": M, "N": N, "K": K, "bias": False,
                 "stride_A": stride_A, "stride_B": stride_B,
@@ -261,8 +265,10 @@ class tev2_pseudo_gemm(GEMM):
         dtype_A_B = self.param_details['dtype_A_B']
         if dtype_A_B[0] != dtype_A_B[1]:
             raise ValueError(f"Data types of A and B are different: {dtype_A_B}")
-        self.bpe_in = 1 #for fp8 gemm
-        # irrespective of the input dtype, the output dtype is always fp16/bf16
+        self.bpe_in = name2bpe(dtype_A_B[0])
+        # irrespective of the input dtype (fp8/fp16/bf16), the output dtype is always fp16/bf16
+        if self.bpe_in not in [1, 2]:
+            raise ValueError(f"Expected bpe_in to be 1 or 2, got {self.bpe_in}")
         self.bpe_out = 2 
         return super().bytes(bpe_mat1=self.bpe_in, bpe_mat2=self.bpe_in,
                              bpe_bias=self.bpe_in, # does not matter

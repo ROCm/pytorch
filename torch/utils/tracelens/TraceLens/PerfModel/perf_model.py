@@ -22,6 +22,7 @@
 
 from math import prod
 import math
+import sys
 import os
 import re
 import subprocess
@@ -264,7 +265,6 @@ class GEMM:
                 pass
         return simulation_time
 
-
 class aten_mm(GEMM):
     """
     aten::mm the matrix multiplication primitive in PyTorch
@@ -302,7 +302,6 @@ class aten_mm(GEMM):
         raise NotImplementedError("Backward pass for aten::mm is not defined.")
     def bytes_bwd(self, bytes_per_element):
         raise NotImplementedError("Backward pass for aten::mm is not defined.")
-
 
 class aten_addmm(GEMM):
     """
@@ -512,6 +511,75 @@ class aten_baddbmm(GEMM):
         raise NotImplementedError("Backward pass for aten::baddbmm is not defined.")
 
 
+class vllm_gemm_with_dynamic_quant(GEMM):
+    @staticmethod
+    def get_param_details(event):
+        # Extract A and B by scanning for first two 2D tensors
+        input_dims = event['args'].get('Input Dims', [])
+        A_shape = None
+        B_shape = None
+        for shape in input_dims:
+            try:
+                if isinstance(shape, (list, tuple)) and len(shape) == 2:
+                    if A_shape is None:
+                        A_shape = tuple(shape)
+                    elif B_shape is None:
+                        B_shape = tuple(shape)
+                        break
+            except Exception:
+                continue
+        # Fallback: try first two entries if not caught above
+        if (A_shape is None or B_shape is None) and len(input_dims) >= 2:
+            try:
+                if A_shape is None and isinstance(input_dims[0], (list, tuple)):
+                    A_shape = tuple(input_dims[0])
+                if B_shape is None and isinstance(input_dims[1], (list, tuple)):
+                    B_shape = tuple(input_dims[1])
+            except Exception:
+                pass
+
+        if not A_shape or not B_shape or len(A_shape) != 2 or len(B_shape) != 2:
+            raise ValueError("vllm::gemm_with_dynamic_quant missing 2D A,B shapes in Input Dims")
+
+        M = A_shape[0]
+        K = A_shape[1]
+        N = B_shape[1]
+
+        # Dtypes
+        dtype_list = event['args'].get('Input type', [])
+        if not isinstance(dtype_list, (list, tuple)) or len(dtype_list) < 2:
+            raise ValueError("vllm::gemm_with_dynamic_quant missing A,B dtypes in 'Input type'")
+        dtype_A_B = tuple(dtype_list[:2])
+
+        # Strides (optional, match style of other models)
+        try:
+            stride_A = tuple(event['args']['Input Strides'][0])
+            stride_B = tuple(event['args']['Input Strides'][1])
+        except KeyError:
+            stride_A = stride_B = None
+
+        return {
+            "M": M,
+            "N": N,
+            "K": K,
+            "bias": False,
+            "stride_A": stride_A,
+            "stride_B": stride_B,
+            "dtype_A_B": dtype_A_B,
+        }
+
+    def bytes(self):
+        dtype_A_B = self.param_details['dtype_A_B']
+        if dtype_A_B[0] != dtype_A_B[1]:
+            warnings.warn(f"Data types of A and B are different: {dtype_A_B} for vllm_gemm_with_dynamic_quant. ")
+        self.bpe = name2bpe(dtype_A_B[0])
+        return super().bytes(
+            bpe_mat1=self.bpe,
+            bpe_mat2=self.bpe,
+            bpe_bias=self.bpe,   # bias not used; keep consistent call signature
+            bpe_output=self.bpe  # use input dtype unless explicit output dtype exists in traces
+        )
+
 class tex_ts_te_gemm_ts(GEMM):
     """
     tex_ts::te_gemm_ts is a matmul op in TransformerEngine
@@ -621,7 +689,6 @@ class tev2_pseudo_gemm(GEMM):
     def bytes_bwd(self, bytes_per_element):
         raise NotImplementedError("Backward pass for tev2_pseudo_gemm is not defined.")
 
-
 # 2. Convolution
 class CONV:
     # Conv perf model is based on: https://github.com/pytorch/pytorch/blob/main/torch/utils/flop_counter.py
@@ -712,6 +779,7 @@ class CONV:
         # for bias we read the output gradient and write the bias gradient
         bytes_bias_grad = prod(out_shape) + out_shape[1] if bias else 0
         return bytes_input_grad + bytes_weight_grad + bytes_bias_grad
+    
     def bytes_bwd(self, bytes_per_element):
         return self.bytes_bwd_func(self.x_shape, self.w_shape, self.out_shape, self.bias, bytes_per_element)
 
@@ -801,7 +869,6 @@ class aten_conv(CONV):
         self.bpe = name2bpe(dtype_input_weight[0])
         return super().bytes_bwd(self.bpe)
 
-
 class aten_conv_bwd(aten_conv):
     def __init__(self, event):
         super().__init__(event)
@@ -812,6 +879,7 @@ class aten_conv_bwd(aten_conv):
     def bytes(self, bytes_per_element):
         return self.bytes_bwd(bytes_per_element)
 
+# 3. Softmax
 class Softmax:
     """
     Softmax operation
@@ -870,6 +938,7 @@ class Softmax:
             memory_time = bytes_moved / (arch['mem_bw_gbps'] * 1000)
         return max(compute_time, memory_time)
 
+# 4. Scaled Dot Product Attention
 class SDPA:
 
     def __init__(self, event, arch=None, python_path=None):
@@ -1167,6 +1236,27 @@ def extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx):
         "d_h_v": d_h_V,
     }
 
+def extract_sdpa_varlen_cfg(q_shape, k_shape, v_shape, hnd_idx):
+    H_Q, N_Q, d_h_Q = tuple(q_shape[i] for i in hnd_idx)
+    H_K, N_K, d_h_K = tuple(k_shape[i] for i in hnd_idx)
+    H_V, N_V, d_h_V = tuple(v_shape[i] for i in hnd_idx)
+    B_q = 1
+    if H_K != H_V:
+        raise ValueError(f"Head sizes do not match for K and V: {H_K} != {H_V}")
+    if N_K != N_V:
+        raise ValueError(f"Length sizes do not match for K and V: {N_K} != {N_V}")
+    if d_h_Q != d_h_K:
+        raise ValueError(f"Head dimensions do not match for Q and K: {d_h_Q} != {d_h_K}")
+    return {
+        "B": B_q,
+        "N_Q": N_Q,
+        "H_Q": H_Q,
+        "N_KV": N_K,
+        "H_KV": H_K,
+        "d_h_qk": d_h_Q,
+        "d_h_v": d_h_V,
+    }
+
 class flash_attention(SDPA):
 
     @staticmethod
@@ -1196,6 +1286,117 @@ class flash_attention_backward(flash_attention):
         return self.flops_bwd()
 
     def bytes(self, bytes_per_element):
+        return self.bytes_bwd(bytes_per_element)
+
+class flash_attention_varlen_forward(SDPA):
+    def __init__(self, event, arch=None, python_path=None):
+        super().__init__(event, arch, python_path)
+        self.num_seqs_q, self.num_seqs_kv, self.max_seqlen_q, self.max_seqlen_kv = (self.param_details[key] for key in ['num_seqs_q', 'num_seqs_kv', 'max_seqlen_q', 'max_seqlen_kv'])
+
+    @staticmethod
+    def get_param_details(event):
+        # The order of arguments for flash_attn::_flash_attn_varlen_forward is:
+        # q: torch.Tensor
+        # k: torch.Tensor
+        # v: torch.Tensor
+        # cu_seqlens_q: torch.Tensor
+        # cu_seqlens_k: torch.Tensor
+        # max_seqlen_q: int
+        # max_seqlen_k: int
+        # dropout_p: float
+        # softmax_scale: float
+        # causal: bool
+        # ...
+        # ref: https://github.com/Dao-AILab/flash-attention/blob/dfb664994c1e5056961c90d5e4f70bf7acc8af10/flash_attn/flash_attn_interface.py#L143-L163
+        input_dims = event['args']['Input Dims']
+        q_idx, k_idx, v_idx = 0, 1, 2
+        q_shape, k_shape, v_shape = input_dims[q_idx], input_dims[k_idx], input_dims[v_idx]
+        hnd_idx = 1, 0, 2
+        sdpa_cfg = extract_sdpa_varlen_cfg(q_shape, k_shape, v_shape, hnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        
+        dtype_A_B = tuple(event['args']['Input type'][:2])
+        strides = event['args']['Input Strides']
+        q_stride, k_stride, v_stride = tuple(strides[q_idx]), tuple(strides[k_idx]), tuple(strides[v_idx])        
+        num_seqs_q = event['args']['Input Dims'][3][0] - 1
+        num_seqs_kv = event['args']['Input Dims'][4][0] - 1
+        max_seqlen_q = float(event['args']['Concrete Inputs'][5])
+        max_seqlen_kv = float(event['args']['Concrete Inputs'][6])
+        dropout = float(event['args']['Concrete Inputs'][7])
+        causal = eval(event['args']['Concrete Inputs'][9])
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                "q_stride": q_stride, "k_stride": k_stride, "v_stride": v_stride,
+                "dropout": dropout, "causal": causal, "flash_impl": True, "dtype_A_B": dtype_A_B, 
+                "num_seqs_q":num_seqs_q, "num_seqs_kv":num_seqs_kv, "max_seqlen_q":max_seqlen_q, "max_seqlen_kv": max_seqlen_kv}
+
+    def flops(self):
+        # The calculation of flops for varlen is different as B and S dimensions
+        # are collapsed into a single T dimension. In T dimension, there are 
+        # multiple sequences with variable sequence lengths. We don't know the 
+        # exact sequence lengths from the trace. We only know the number of 
+        # sequences and a max_seqlen (which is usually passed in based on the data).
+        # So we can only estimate the flops with a lower bound (assuming that all
+        # other sequences are of the same length except the longest sequence).
+        accum_flops = self.flops_func(self.B, self.max_seqlen_q, self.H_Q, self.max_seqlen_kv, self.H_KV, self.d_h_qk, self.d_h_v, self.param_details['causal'])
+        if self.num_seqs_q > 1:
+            accum_flops += (self.num_seqs_q-1) * self.flops_func(self.B, (self.N_Q-self.max_seqlen_q)//(self.num_seqs_q-1), self.H_Q, (self.N_KV-self.max_seqlen_kv)//(self.num_seqs_kv-1), self.H_KV, self.d_h_qk, self.d_h_v, self.param_details['causal'])
+        return accum_flops
+        
+
+class flash_attention_varlen_backward(SDPA):
+    def __init__(self, event, arch=None, python_path=None):
+        super().__init__(event, arch, python_path)
+        self.num_seqs_q, self.num_seqs_kv, self.max_seqlen_q, self.max_seqlen_kv = (self.param_details[key] for key in ['num_seqs_q', 'num_seqs_kv', 'max_seqlen_q', 'max_seqlen_kv'])
+
+    @staticmethod
+    def get_param_details(event):
+        # The order of arguments for flash_attn::_flash_attn_varlen_forward is:
+        # dout: torch.Tensor
+        # q: torch.Tensor
+        # k: torch.Tensor
+        # v: torch.Tensor
+        # out: torch.Tensor
+        # softmax_lse: torch.Tensor
+        # dq: Optional[torch.Tensor]
+        # dk: Optional[torch.Tensor]
+        # dv: Optional[torch.Tensor]
+        # cu_seqlens_q: torch.Tensor
+        # cu_seqlens_k: torch.Tensor
+        # max_seqlen_q: int
+        # max_seqlen_k: int
+        # dropout_p: float
+        # softmax_scale: float
+        # causal: bool
+        # ...
+        # ref: https://github.com/Dao-AILab/flash-attention/blob/dfb664994c1e5056961c90d5e4f70bf7acc8af10/flash_attn/flash_attn_interface.py#L330-L354
+        input_dims = event['args']['Input Dims']
+        q_idx, k_idx, v_idx = 1, 2, 3
+        q_shape, k_shape, v_shape = input_dims[q_idx], input_dims[k_idx], input_dims[v_idx]
+        hnd_idx = 1, 0, 2
+        sdpa_cfg = extract_sdpa_varlen_cfg(q_shape, k_shape, v_shape, hnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        
+        dtype_A_B = tuple(event['args']['Input type'][:2])
+        strides = event['args']['Input Strides']
+        q_stride, k_stride, v_stride = tuple(strides[q_idx]), tuple(strides[k_idx]), tuple(strides[v_idx])        
+        num_seqs_q = event['args']['Input Dims'][9][0] - 1
+        num_seqs_kv = event['args']['Input Dims'][10][0] - 1
+        max_seqlen_q = float(event['args']['Concrete Inputs'][11]) 
+        max_seqlen_kv = float(event['args']['Concrete Inputs'][12])
+        dropout = float(event['args']['Concrete Inputs'][13])
+        causal = eval(event['args']['Concrete Inputs'][15])
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                "q_stride": q_stride, "k_stride": k_stride, "v_stride": v_stride,
+                "dropout": dropout, "causal": causal, "flash_impl": True, "dtype_A_B": dtype_A_B,
+                "num_seqs_q":num_seqs_q, "num_seqs_kv":num_seqs_kv, "max_seqlen_q":max_seqlen_q, "max_seqlen_kv": max_seqlen_kv}
+
+    def flops(self):
+        accum_flops = self.flops_bwd_func(self.B, self.max_seqlen_q, self.H_Q, self.max_seqlen_kv, self.H_KV, self.d_h_qk, self.d_h_v, self.param_details['causal'], self.param_details['flash_impl'])
+        if self.num_seqs_q > 1:
+            accum_flops += (self.num_seqs_q-1) * self.flops_bwd_func(self.B, (self.N_Q-self.max_seqlen_q)//(self.num_seqs_q-1), self.H_Q, (self.N_KV-self.max_seqlen_kv)//(self.num_seqs_kv-1), self.H_KV, self.d_h_qk, self.d_h_v, self.param_details['causal'], self.param_details['flash_impl'])
+        return accum_flops
+
+    def bytes(self, bytes_per_element=2):
         return self.bytes_bwd(bytes_per_element)
 
 class aten__scaled_dot_product_cudnn_attention(SDPA):
@@ -1371,6 +1572,69 @@ class aiter__flash_attn_backward(SDPA):
     def bytes(self, bytes_per_element=2):
         return self.bytes_bwd(bytes_per_element)
 
+class flash_attn_v3_forward(SDPA):
+    
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        concrete_inputs = event['args']['Concrete Inputs']
+        q_shape, k_shape, v_shape = input_dims[0], input_dims[1], input_dims[2]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        dropout_p = 0.0 # dropout currently not implemented
+        is_causal = concrete_inputs[24].lower() == 'true' if concrete_inputs[24] not in ('', 'None') else False
+
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
+
+class aiter__fmha_v3_forward(SDPA):
+    
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        concrete_inputs = event['args']['Concrete Inputs']
+        q_shape, k_shape, v_shape = input_dims[1], input_dims[2], input_dims[3]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        dropout_p = 0.0
+        if concrete_inputs[4] not in ('', 'None'):
+            try:
+                dropout_p = float(concrete_inputs[4])
+            except (ValueError, TypeError):
+                pass
+        is_causal = concrete_inputs[6].lower() == 'true' if concrete_inputs[6] not in ('', 'None') else False
+
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
+
+class aiter__fmha_v3_backward(SDPA):
+    
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        concrete_inputs = event['args']['Concrete Inputs']
+        q_shape, k_shape, v_shape = input_dims[1], input_dims[2], input_dims[3]
+        bhnd_idx = 0, 2, 1, 3
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx)
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        dropout_p = 0.0
+        if concrete_inputs[7] not in ('', 'None'):
+            try:
+                dropout_p = float(concrete_inputs[7])
+            except (ValueError, TypeError):
+                pass
+        is_causal = concrete_inputs[9].lower() == 'true' if concrete_inputs[9] not in ('', 'None') else False
+
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                "dropout": dropout_p, "causal": is_causal, "flash_impl": True}
+
+    def flops(self):
+        return self.flops_bwd()
+    
+    def bytes(self, bytes_per_element=2):
+        return self.bytes_bwd(bytes_per_element)
 
 class UnaryElementwise:
 
@@ -1419,6 +1683,7 @@ class aten_unary_elementwise(UnaryElementwise):
             stride_output = None
         return {"op_shape": op_shape, "dtype_in_out" : (dtype_in, dtype_out),
                 "stride_input": stride_input, "stride_output": stride_output}
+
 class BinaryElementwise:
 
     def __init__(self, event, arch=None, python_path=None):
@@ -1588,3 +1853,214 @@ class GroupedGemm:
     def bytes_bwd(self):
         return self.bytes_bwd_func(self.M, self.K, self.N, self.G, 
                                  self.bpe_in, self.bpe_out)
+
+# Jax Perf Models
+def jax_dtype2bpe(name):
+    """
+    This function maps a data type name to the number of bytes per element.
+    Args:
+        name (str): The name of the data type.
+    Returns:
+        int: The number of bytes per element.
+    """
+    dict_jax_dtype2bpe = {
+    "f32": 4,
+    "f16": 2,
+    "bf16": 2,
+    "f8": 1,
+    "fp8": 1,
+    }
+    return dict_jax_dtype2bpe.get(name.lower(), None)
+
+def jax_dtype_map(dtype):
+    """
+    This function maps a Jax data type to a gemmologist data type.
+    Args:
+        dtype (str): The name of the Jax data type.
+    Returns:
+        str: The name of the gemmologist data type.
+    """
+    dict_jax_dtype2gemmologist = {
+        'f32': 'fp32',
+        'f16': 'fp16',
+        'bf16': 'bf16',
+        'f8': 'fp8',
+        'fp8': 'fp8',
+    }
+    return dict_jax_dtype2gemmologist.get(dtype.lower(), None)
+
+def dtype_jax2torch(dtype):
+    """
+    This function maps a Jax data type to a PyTorch data type.
+    Args:
+        dtype (str): The name of the Jax data type.
+    Returns:
+        str: The name of the pytorch data type.
+    """
+    dict_dtype_jax2torch = {
+        'f32': 'float',
+        'f64': 'double',
+        'f16': 'c10::half',
+        'bf16': 'c10::bfloat16',
+        'f8': 'c10::float8_e4m3fnuz',
+        'fp8': 'fp8',
+    }
+    return dict_dtype_jax2torch.get(dtype.lower(), None)
+
+class jax_gemm(GEMM):
+    """
+    Jax GEMM — batch matrix multiplication with bias
+    (B, M, K) × (B, K, N) + (B, M, N) → (B, M, N)
+    Inherits FLOP/byte analytics from GEMM and scales them by the batch size.
+    """
+    @staticmethod
+    def get_param_details(event):
+        """
+        gemm_dict = JaxTreePerfAnalyzer.parse_JaxGemm_metadata(event) 
+        
+        gemm_dict = { "Batch": int(batch),
+                    "M": int(m),
+                    "N": int(n),
+                    "K": int(k),
+                    "Beta": int(beta),
+                    "Type": op["type"],
+                    "Computation": "gemm",
+                    }
+        """
+        return {
+            "B": event['args']['Batch'],
+            "M": event['args']['M'],
+            "N": event['args']['N'],
+            "K": event['args']['K'],
+            "bias": event['args']['Beta'] != 0,
+            "dtype_A_B": (event['args']['Type'], event['args']['Type']),
+            "gemmologist_dtype": jax_dtype_map(event['args']['Type']),
+        }
+        
+    # ---------------------- FLOPs / Bytes ----------------------
+    def flops(self):
+        """Total FLOPs for the entire batch."""
+        return self.param_details["B"] * super().flops()
+
+    def bytes(self):
+        """Total DRAM traffic for the entire batch (read+write)."""
+        dtype_A_B = self.param_details['dtype_A_B']
+        if dtype_A_B[0] != dtype_A_B[1]:
+            warnings.warn(f"Data types of A and B are different: {dtype_A_B} for aten_baddbmm. ")
+        bpe = jax_dtype2bpe(dtype_A_B[0]) # == name2bpe(dtype_jax2torch(dtype_A_B[0]))
+        per_batch = super().bytes(bpe_mat1=bpe, bpe_mat2=bpe,
+                                bpe_bias=bpe,   # not used, but keeps call signature
+                                bpe_output=bpe)
+        return None if per_batch is None else self.param_details['B'] * per_batch
+    
+    def flops_bwd(self):
+        raise NotImplementedError("Backward pass for JaxGemm is not defined.")
+    def bytes_bwd(self, _):
+        raise NotImplementedError("Backward pass for JaxGemm is not defined.")
+
+class jax_te_fused_attn(SDPA):
+    """
+    Jax TE fused attention:
+
+    TODO: Verify "causal": False, "flash_impl": True,  bytes_per_element= dict_jax_dtype2bpe # todo
+    """
+
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        q_idx, k_idx, v_idx = 0, 1, 2
+        q_shape, k_shape, v_shape = input_dims[q_idx], input_dims[k_idx], input_dims[v_idx]
+        bhnd_idx = 0, 2, 1, 3 # BSHD 
+        sdpa_cfg = extract_sdpa_cfg(q_shape, k_shape, v_shape, bhnd_idx) 
+        B, N_Q, H_Q, N_KV, H_KV, d_h_qk, d_h_v = (sdpa_cfg[key] for key in ['B', 'N_Q', 'H_Q', 'N_KV', 'H_KV', 'd_h_qk', 'd_h_v'])
+        
+        bytes_per_element = jax_dtype2bpe(event['args']['Input type'][0])
+        dtype_A_B = tuple(dtype_jax2torch(_type) for _type in event['args']['Input type'][0:2])
+        bias = tuple(event['args']['Concrete Inputs'][0:1])   
+
+        
+        return {"B": B, "N_Q": N_Q, "H_Q": H_Q, "N_KV": N_KV, "H_KV": H_KV, "d_h_qk": d_h_qk, "d_h_v": d_h_v,
+                 "bias": bias, "dtype_A_B": dtype_A_B, "causal": False, "flash_impl": True, "fused": True, 
+                 "bytes_per_element": bytes_per_element}
+
+    # ---------------------- FLOPs / Bytes ----------------------
+    def flops(self):
+        """Total FLOPs for the entire batch."""
+        return super().flops()
+
+    def bytes(self):
+        return super().bytes(bytes_per_element=self.param_details["bytes_per_element"])
+    
+    def bytes_bwd(self):
+        return super().bytes_bwd(bytes_per_element=self.param_details["bytes_per_element"])
+
+class jax_conv:
+    """
+    Convolutions - FLOPs = 2x Number of Kernel x Kernel Shape x Output Shape
+    
+    https://github.com/pytorch/pytorch/blob/main/torch/utils/flop_counter.py 
+    
+    conv_flops_count
+    Args:
+        x_shape (list(int)): The input shape before convolution.
+        w_shape (list(int)): The filter shape.
+        out_shape (list(int)): The output shape after convolution.
+        transposed (bool): is the convolution transposed
+    Returns:
+        int: the number of flops
+    """
+    
+    def __init__(self, event, arch=None, python_path=None):
+        self.event = event
+        self.param_details = self.get_param_details(event)
+        self.x_shape = self.param_details['input_shape']
+        self.filter_shape = self.param_details['filter_shape']
+        self.out_shape = self.param_details['output_shape']
+        self.bias = self.param_details['bias']
+        self.bytes_per_element = self.param_details['bytes_per_element']
+        self.transposed_conv = False # TODO
+
+    @staticmethod
+    def get_param_details(event):
+        input_dims = event['args']['Input Dims']
+        output_dims = event['args']['Output Dims']
+        filter_shape = event['args']['Filter Shape']
+
+        input_shape = tuple(input_dims[0]) # first two dimensions are batch and channel
+        filter_shape = tuple(filter_shape) # first two dimensions are output and input channel
+        bias = len(input_dims) == 3
+        output_shape = tuple(output_dims[0])
+        bytes_per_element = jax_dtype2bpe(event['args']['Input type'][0])
+        transposed_conv = False # TODO
+
+        if len(input_shape) == 3:
+            convNd = 'conv1d'
+        elif len(input_shape) == 4:
+            convNd = 'conv2d'
+        elif len(input_shape) == 5:
+            convNd = 'conv3d'
+        else:
+            raise ValueError(f"Unknown convolution dimension: {len(input_shape)}")
+
+        return {"convNd": convNd, 
+                "input_shape": input_shape, 
+                "filter_shape": filter_shape,
+                "output_shape": output_shape,
+                "bias": bias, 
+                "bytes_per_element": bytes_per_element,
+                "transposed_conv": transposed_conv,
+                }
+
+    def flops(self):
+        return CONV.flops_func(self.x_shape, self.filter_shape, self.out_shape, self.bias, self.transposed_conv)
+
+    def bytes(self):
+        return CONV.bytes_func(self.x_shape, self.filter_shape, self.out_shape, self.bias, bytes_per_element=self.bytes_per_element)
+    
+    def flops_bwd(self):
+        return CONV.flops_bwd_func(self.out_shape, self.x_shape, self.filter_shape, self.bias, self.transposed_conv)
+
+    def bytes_bwd(self):
+        return CONV.bytes_bwd_func(self.x_shape, self.filter_shape, self.out_shape, self.bias, bytes_per_element=self.bytes_per_element)
+    
+

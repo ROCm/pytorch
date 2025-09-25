@@ -132,7 +132,6 @@ class JaxProfileProcessor:
                         dict_line["type"]="fp8"
                         dict_line["computation"]="gemm"
                     else:
-                        # use the input type to determine the GEMM type
                         gemm_type = JaxProfileProcessor.get_operand_type(hlo_ops, operands[0])
                         if not all(JaxProfileProcessor.get_operand_type(hlo_ops, o) == gemm_type for o in operands[1:]):
                             raise Exception("Input operand type mismatch", line)
@@ -141,6 +140,8 @@ class JaxProfileProcessor:
         return (key,dict_line)
     @staticmethod
     def get_operand_type(hlo_ops: dict, operand : str) -> str:
+        if 'fusion,' in operand:
+            operand = operand.strip("fusion,")
         dtypes = ["bf16", "f16", "f32", "f8", "fp8"]
         # if the operand is a slice of something else, then the type might be at the beginning of the operand name
         for t in dtypes:
@@ -239,6 +240,28 @@ class JaxProfileProcessor:
 # https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview?tab=t.0
 # This trace event format includes both Pytorch and Jax traces (and anything that can be viewed in Perfetto)
 class TraceEventUtils:
+        
+    class JaxOpKeys:
+
+        # keywords for splitting jax events
+        GemmKeys = ["Cijk", "gemm", "nvjet", "cublasLt"]
+        FABwdKeys = ["FmhaBwd", "flash_bprop", "ck_fused_attn::dk_dv_reduce_thd"]
+        FAFwdKeys = ["FmhaFwd", "flash_fprop"]
+        FAV3Keys = ["kernel_func"] # find a more precise way to do this
+        ConvKeys = ["FillBuffer", "conv_", "conv.", "conv-"]
+        TEKeys = ["transformer_engine"]
+        CommunicationKeys = ["rccl", "nccl"]
+        ClassCategories = {
+            "GEMM": GemmKeys,
+            "FA BWD": FABwdKeys,
+            "FA FWD": FAFwdKeys,
+            "FA V3": FAV3Keys,
+            "Conv": ConvKeys,
+            "TE": TEKeys,
+            "Communication rccl/nccl": CommunicationKeys,
+        }
+        UncategorizedEventKey = "Uncategorized Events"
+
     class TraceKeys(StrEnum):
         PID       = 'pid'
         TID       = 'tid'
@@ -399,17 +422,4 @@ class TraceEventUtils:
     def compute_single_event_end_time(event: dict) -> None:
         if TraceEventUtils.TraceKeys.TimeStamp in event and TraceEventUtils.TraceKeys.Duration in event and TraceEventUtils.TraceKeys.TimeEnd not in event:
             event[TraceEventUtils.TraceKeys.TimeEnd] = event[TraceEventUtils.TraceKeys.TimeStamp] + event[TraceEventUtils.TraceKeys.Duration]
-
-
-
-
-
-
-
-
-
-
-
-
-
 

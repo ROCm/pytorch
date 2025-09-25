@@ -36,7 +36,6 @@ def gemm_name_parser(kernel_name):
     elif is_cuda_gemm(kernel_name):
         return parse_cuda_gemm(kernel_name)
 
-
 def is_rocm_gemm(kernel_name):
     """
     Check if a kernel name matches the more general ROCm GEMM naming pattern.

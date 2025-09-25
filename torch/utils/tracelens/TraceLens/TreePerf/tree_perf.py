@@ -22,7 +22,7 @@
 
 import json
 import gzip
-import os
+import os, re, sys
 from functools import partial
 import copy
 from collections import defaultdict
@@ -35,10 +35,11 @@ import pandas as pd
 import numpy as np
 
 from ..PerfModel.torch_op_mapping import op_to_perf_model_class_map, categorize_torch_op, dict_cat2names
+from ..PerfModel.jax_op_mapping import jax_op_to_perf_model_class_map
 from .gpu_event_analyser import GPUEventAnalyser, JaxGPUEventAnalyser
 from .jax_analyses import JaxAnalyses
-from ..Trace2Tree.trace_to_tree import TraceToTree
-from ..util import DataLoader, TraceEventUtils
+from ..Trace2Tree.trace_to_tree import TraceToTree, JaxTraceToTree
+from ..util import DataLoader, TraceEventUtils, JaxProfileProcessor
 
 class TreePerfAnalyzer:
     @staticmethod
@@ -54,7 +55,7 @@ class TreePerfAnalyzer:
         tree = TraceToTree(data, event_to_category=categorizer)
         return TreePerfAnalyzer(tree, jax=jax, event_to_category=categorizer, *args, **kwargs)
 
-    def __init__(self, tree: TraceToTree, add_python_func=False, arch=None, jax = False, python_path=None, event_to_category: Callable[[dict], str] = TraceEventUtils.default_categorizer):
+    def __init__(self, tree: TraceToTree, add_python_func=False, arch=None, jax=False, python_path=None, event_to_category: Callable[[dict], str] = TraceEventUtils.default_categorizer):
         self.jax = jax
         self.GPUEventAnalyser = GPUEventAnalyser if not jax else JaxGPUEventAnalyser
         self.tree = tree
@@ -116,12 +117,12 @@ class TreePerfAnalyzer:
         list_kernels = [self.tree.events_by_uid[uid] for uid in list_kernelUIDS]
         busy_kernel_time = 0
         if len(list_kernels) > 0:
-            busy_kernel_time = GPUEventAnalyser(list_kernels).compute_metrics()['busy_time']
+            busy_kernel_time = self.GPUEventAnalyser(list_kernels).compute_metrics()['busy_time']
         _, list_non_data_mov_kernelUIDs = self.loop_and_aggregate_kernels(cpu_op_list, filter_func=self.non_data_mov_filter)
         list_non_data_mov_kernels = [self.tree.events_by_uid[uid] for uid in list_non_data_mov_kernelUIDs]
         busy_non_data_mov_time = 0
         if len(list_non_data_mov_kernels) > 0:
-            busy_non_data_mov_time = GPUEventAnalyser(list_non_data_mov_kernels).compute_metrics()['busy_time']
+            busy_non_data_mov_time = self.GPUEventAnalyser(list_non_data_mov_kernels).compute_metrics()['busy_time']
         event['kernel_details'] = [ {'name': kernel['name'],
                                      'dur': kernel['dur'],
                                      'stream': kernel.get('args', {}).get('stream', None)}
@@ -308,16 +309,23 @@ class TreePerfAnalyzer:
         return df_perf_metrics_summary
 
     def get_kernel_launchers(self, include_nccl=False):
-        # This method traverses the event tree to identify CPU operations that serve as
-        # "kernel launchers." These are operations that result in GPU kernel
-        # execution without further cpu op calls.
-        # Note that kernels are called through runtime events.
-        # This is why, this method identifies such cases
-        # by checking if grandchildren of CPU operations are kernel events.
+        # This method identifies kernel launchers, which are the events directly responsible for launching GPU kernels.
+        #
+        # In the ideal case, ops are routed through torch dispatcher to create a clear hierarchy
+        # where a "leaf" CPU operation is the caller for runtime events that launch kernels. These CPU ops are
+        # valuable for analysis as they contain rich argument information (e.g., input dimensions, strides, dtypes).
+        # The method identifies these as the primary kernel launchers.
+        #
+        # However, some edge cases exist where the calling CPU context is hidden, and a runtime event appears
+        # unlinked to a parent CPU op. While not ideal for a detailed breakdown (as argument info is missing),
+        # these unlinked events still launch kernels and must be captured for a complete analysis. This method
+        # processes them separately to ensure all kernel launchers are included in the output.
+        #
+        # Special handling for 'execute' operations for a special customer case
+
         kernel_launchers = []
-        for event in self.tree.events:
-            if self.event_to_category(event) != 'cpu_op':
-                continue
+        cpu_ops = [evt for evt in self.tree.events if self.event_to_category(evt) == 'cpu_op']
+        for event in cpu_ops:
 
             if event['name'] == 'execute':
                 parent = self.tree.get_parent_event(event)
@@ -341,13 +349,17 @@ class TreePerfAnalyzer:
                 child = self.tree.events_by_uid[child_UID]
                 for grand_child_UID in child.get('children', []):
                     grand_child = self.tree.events_by_uid[grand_child_UID]
-                    is_kernel = self.event_to_category(grand_child) == 'kernel'
+                    is_kernel = self.event_to_category(grand_child) in {'kernel', 'gpu_memcpy', 'gpu_memset'}
                     is_nccl = 'nccl' in grand_child['name']
                     should_include = is_kernel and (include_nccl or not is_nccl)
                     if should_include:
                         kernel_launcher = True
                         list_kernels.append(grand_child)
             if kernel_launcher:
+                for kernel_evt in list_kernels:
+                    kernel_evt['args']['leaf_op'] = event['UID']
+                    runtime_evt = self.tree.get_parent_event(kernel_evt)
+                    runtime_evt['args']['leaf_op'] = event['UID']
                 event['total_direct_kernel_time'] = GPUEventAnalyser(list_kernels).compute_metrics()['busy_time']
                 event['direct_kernel_count'] = len(list_kernels)
                 event['kernel_details'] = [{'name': kernel['name'],
@@ -356,6 +368,29 @@ class TreePerfAnalyzer:
                                           for kernel in list_kernels]
                 event['op category'] = self.op_categorizer(event)
                 kernel_launchers.append(event)
+
+        # Now handle the case where runtime events are not linked to any cpu_op
+        runtime_evts = [evt for evt in self.tree.events if self.event_to_category(evt) in {'cuda_runtime', 'cuda_driver'}]
+        for runtime_evt in runtime_evts:
+            if 'leaf_op' in runtime_evt.get('args', {}):
+                continue # already processed as part of a cpu_op
+            list_kernel_uids = runtime_evt.get('gpu_events', [])
+            if len(list_kernel_uids) == 0:
+                continue # no kernels launched
+            # for non graph runtime events, we skip nccl kernels unless include_nccl is True
+            elif len(list_kernel_uids) == 1:
+                is_nccl = 'nccl' in self.tree.get_UID2event(list_kernel_uids[0])['name']
+                if is_nccl and not include_nccl:
+                    continue # skip nccl kernels
+            list_kernels = [self.tree.get_UID2event(uid) for uid in list_kernel_uids]
+            runtime_evt['total_direct_kernel_time'] = GPUEventAnalyser(list_kernels).compute_metrics()['busy_time']
+            runtime_evt['direct_kernel_count'] = len(list_kernels)
+            runtime_evt['kernel_details'] = [{'name': kernel['name'],
+                                             'dur': kernel['dur'],
+                                             'stream': kernel.get('args', {}).get('stream', None)}
+                                            for kernel in list_kernels]
+            runtime_evt['op category'] = self.op_categorizer(runtime_evt)
+            kernel_launchers.append(runtime_evt)
         return kernel_launchers
 
     def get_df_kernel_launchers(self, id_cols=False, include_kernel_details=False):
@@ -364,7 +399,7 @@ class TreePerfAnalyzer:
             if isinstance(obj, list):
                 return tuple(list_to_tuple(item) for item in obj)
             return obj
-
+        
         kernel_launchers = self.get_kernel_launchers()
         rows = []
         for event in kernel_launchers:
@@ -643,6 +678,7 @@ class TreePerfAnalyzer:
         kernel_details = {
             'UID': kernel_event['UID'],
             'Kernel name': kernel_event['name'],
+            'Kernel t start': kernel_event['ts'],
             'Kernel duration (µs)': kernel_event['dur'],
             'Kernel stream': kernel_event['args'].get('stream')
         }
@@ -799,3 +835,501 @@ class TreePerfAnalyzer:
             gpu_time_remaining = GPUEventAnalyser(gpu_events_remaining).compute_metrics()['busy_time']
             node['Non-nn.Module GPU Time'] = gpu_time_remaining
         return
+
+class JaxTreePerfAnalyzer(TreePerfAnalyzer):
+    """
+    JaxPerfAnalyser is a specialized performance analyser for JAX traces.
+    It extends the TreePerfAnalyzer to provide JAX-specific performance analysis features.
+    This class is designed to work with JAX traces and provides methods to analyze
+    GPU events, categorize events, and compute performance metrics.
+
+    Jax GPU event analyser supports multiple GPUs. Legacy of TreePerf/jax_analyses.py 
+    """
+    
+    @staticmethod
+    def from_file(profile_filepath, *args, **kwargs) -> "JaxTreePerfAnalyzer":
+        data = DataLoader.load_data(profile_filepath)
+        data_pb = data['traceEvents']
+        categorizer = TraceEventUtils.prepare_event_categorizer(data_pb)
+        events = TraceEventUtils.non_metadata_events(data_pb)
+        linking_key = 'correlation_id'
+        metadata = TraceEventUtils.get_metadata(data_pb)
+        tree = JaxTraceToTree(events, 
+                              linking_key=linking_key, 
+                              event_to_category=categorizer)
+        return JaxTreePerfAnalyzer(tree,
+                               event_to_category=categorizer, 
+                               metadata=metadata,
+                               pb_file_name=profile_filepath,
+                               *args, **kwargs)
+
+    def __init__(self, 
+                 tree: JaxTraceToTree, 
+                 event_to_category: Callable[[dict], str]=TraceEventUtils.default_categorizer,
+                 metadata = None,
+                 pb_file_name = None,
+                 arch=None,
+                 python_path=None):
+        #super.__init__(*args, **kwargs)
+        self.tree = tree
+        self.arch = arch
+        self.python_path = python_path
+        self.event_to_category = event_to_category 
+        self.metadata = metadata
+        self.pb_file_name = pb_file_name
+        self.arch = arch
+        self.tree.build_tree(metadata=metadata, pb_file_name=pb_file_name)
+        self.gpu_event_filter = JaxAnalyses.default_gpu_event_filter
+        self.gpu_event_analyser = JaxGPUEventAnalyser(self.tree.events)
+        self.jax_op_to_perf_model_class_map = jax_op_to_perf_model_class_map
+    
+    #####################################
+    ## Parsers for JaxTree Event Metadata
+    #####################################
+    
+    @staticmethod
+    def get_event_metadata(event, args_cols = ['Input Dims', 'Input type', 'Input Strides', 'Concrete Inputs']):
+        """
+        Parse jax event metadata to get perf model class name, input dims, input types for kernels.
+
+        Input: JaxTree.event.
+        Output: dictionary for event metadata: dims, type, etc.
+        
+        Example GEMM:
+        'metadata': {'output': '(bf16[67320,3072]{1,0},s8[4194304]{0})',
+                    'operands': ['bf16[67320,12288]{1,0}', 'bf16[12288,3072]{0,1}'],
+                    'computation': 'gemm',
+                    ...
+                    "lhs_contracting_dimensions":["1"],
+                    "rhs_contracting_dimensions":["0"],
+
+        Returns 
+        dict = {
+            'Input Dims' : ((67320,12288), (12288,3072))
+            'Input type' : ('bf16', 'bf16')
+            'Input indices' : ((1,0), (0,1))
+            'M' : 67320
+            'N' : 3072
+            'K' : 12288
+            ...}
+        """ 
+        
+        # initialize dict
+        dict_metadata = {}
+        for _key in args_cols:
+            dict_metadata[_key] = () 
+        perf_model_name = JaxTreePerfAnalyzer.get_event_perf_model_name(event)  
+        if 'gemm' in perf_model_name:
+            _dict_gemm_meta = JaxTreePerfAnalyzer.parse_gemm_metadata(event)
+            _dict_jax_gemm = JaxTreePerfAnalyzer.parse_JaxGemm_metadata(event) 
+            _dict = _dict_gemm_meta | _dict_jax_gemm
+        elif 'te_fused_attn' in perf_model_name:
+            _dict = JaxTreePerfAnalyzer.parse_te_fused_attn_metadata(event)
+        elif 'conv' in perf_model_name:
+            _dict = JaxTreePerfAnalyzer.parse_conv_metadata(event)
+        else:
+            # print('Use default parser for event', perf_model_name, event['gpu_kernel_op_cat'])
+            _dict = JaxTreePerfAnalyzer.parse_metadata(event)    
+        if _dict: 
+            dict_metadata.update(_dict)
+        return dict_metadata
+    
+    @staticmethod
+    def get_event_perf_model_name(event):
+        """
+        Get perf model class name based on operands shape and 'custom_call_target' in metadata.
+
+        Similar to event['computation']. e.g. 'gemm' for events when 'cublas' or 'matmul' in 'custom_call_target'.
+        """
+        gemm_keys = ["matmul", "cublas"] # Used in JaxTrace2Tree
+        te_fused_attn_keys = ['te_fused_attn_forward_ffi', ]
+        te_fused_attn_bwd_keys = ['te_fused_attn_backward_ffi', ]
+        conv_keys = ['cudnn$convForward', 'cudnn$convBiasActivationForward'] 
+        conv_bwd_keys = ['cudnn$convBackward', ] 
+        _operands = event.get('metadata', {}).get('operands', None)
+        _event_custom_call = event.get('metadata', {}).get('custom_call_target', None) 
+        if _operands and _event_custom_call:
+            if  any (k in _event_custom_call for k in gemm_keys) and event['gpu_kernel_op_cat'].lower() == 'gemm':
+                return 'jax_gemm'
+            elif any(k in _event_custom_call for k in te_fused_attn_keys):
+                return 'jax_te_fused_attn' 
+            elif any(k in _event_custom_call for k in te_fused_attn_bwd_keys):
+                return 'jax_te_fused_attn_bwd' 
+            elif any(k in _event_custom_call for k in conv_keys) and event['gpu_kernel_op_cat'].lower() == 'conv':
+                return 'jax_conv'
+            elif any(k in _event_custom_call for k in conv_bwd_keys) and event['gpu_kernel_op_cat'].lower() == 'conv':
+                return 'jax_conv_bwd'
+            else:
+                return 'rest' # TODO: PerfModel: 'jax_' + event['gpu_kernel_op_cat'] 
+        else:
+            return 'rest'
+    
+    @staticmethod
+    def parse_operands(event, metadata_key='operands'):
+        """
+        Example:
+        # event[12540] Cijk_Alik_Bljk_BBS_BH_Bias_HAS_SAV_
+        # 'metadata': {'output': '(bf16[67320,3072]{1,0},s8[4194304]{0})',
+        # 'operands': ['bf16[67320,12288]{1,0}', 'bf16[3072,12288]{1,0}'],
+        # ... }
+        """
+        operand_list = ()
+        operand_type = ()
+        operand_idx = ()
+        operands = event['metadata'].get(metadata_key, None)
+        if metadata_key == 'output': operands = [operands, ] 
+        assert isinstance(operands, list) # filter out incomplete metadata field in JaxTree
+        operands = list(filter(None, operands)) # filter out empty strings in list e.g. ['']
+        try:
+            if len(operands) > 0:
+                for _operand in operands:
+                    # indx
+                    _idx_pattern = r"\{([0-9,]+)\}"
+                    _idx = re.findall(_idx_pattern, _operand)
+                    if len(_idx) > 0:
+                        _operand_idx = tuple(int(_id) for _id in _idx[0].split(',') if _id)
+                        operand_idx += (_operand_idx, )
+                    # dims
+                    _dim_pattern = r"\[([0-9,]+)\]" 
+                    _dims = re.findall(_dim_pattern, _operand)
+                    if len(_dims) > 0:
+                        _operand_dim = tuple(int(_dim) for _dim in _dims[0].split(',') if _dim)
+                        # _operand_dim_reorder = tuple(_operand_dim[_id] for _id in _operand_idx)
+                        operand_list += (_operand_dim,)
+                    # types
+                    _pattern = r"([A-Za-z0-9]+)\[" 
+                    _type = re.findall(_pattern, _operand)
+                    if len(_type) > 0:
+                        operand_type += (_type[0],)
+        except Exception as e:
+            print(f"\nException occurred at event parser: {e}. \n Event: {event} \
+                  \n Event metadata: {event['metadata']}, operands: {operands}")
+            sys.exit(0)
+        return operand_list, operand_type, operand_idx
+    
+    @staticmethod
+    def parse_metadata(event):
+        dict_metadata = {}
+        if event.get('metadata', {}).get('operands', None):
+            operand_list, operand_type, _ = JaxTreePerfAnalyzer.parse_operands(event)
+            dict_metadata['Input Dims'] = operand_list
+            dict_metadata['Input type'] = operand_type
+        return dict_metadata
+    
+    @staticmethod
+    def parse_conv_metadata(event, bwd=False):
+        """
+        Source: /home/guangphu/perf-profiling/tutorials/jax_conv_profiling.py
+        
+        Example:
+        # Parameters for the 3D convolution
+        # batch_size = 1 * jax.local_device_count()
+        time_dim = 32       # 5120 # 32
+        height = 60         # 32 # 60
+        width = 104         # 30 # 104
+        in_channels = 16    # 52 # 16
+        out_channels = 5120 # 104 # 5120
+        # dtype = jax.numpy.bfloat16
+
+        # Kernel parameters
+        kernel_t = 1
+        kernel_h = 2
+        kernel_w = 2
+        stride = (1, 2, 2)
+
+        conv_events[0]
+        # 'output': '(bf16[1,5120,34,31,53]{4,3,2,1,0},u8[7150336]{0})',
+        # 'operands': ['bf16[1,16,32,60,104]{4,3,2,1,0}', 'bf16[5120,16,1,2,2]{4,3,2,1,0}']
+
+        """
+        dict_metadata = {}
+        perf_model_name = JaxTreePerfAnalyzer.get_event_perf_model_name(event)
+        bwd = 'bwd' in perf_model_name
+        if event.get('metadata', {}).get('operands', None):
+            operand_list, operand_types, _ = JaxTreePerfAnalyzer.parse_operands(event)
+            dict_metadata['Input Dims'] = operand_list
+            dict_metadata['Input type'] = operand_types
+            output_list, _, _= JaxTreePerfAnalyzer.parse_operands(event, metadata_key='output')
+            dict_metadata['Output Dims'] = output_list
+            dict_metadata['Filter Shape'] = operand_list[1][2:]
+            if bwd:
+                dict_metadata['Filter Shape'] = output_list[0][2:]
+        return dict_metadata
+    
+    @staticmethod
+    def parse_te_fused_attn_metadata(event):
+        """
+        Ref:
+         - https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/api/c/fused_attn.html#nvte_fused_attn_fwd
+         - https://github.com/ROCm/TransformerEngine/blob/a1e66aae34e023070c04f9e46fe75bf947f207e1/transformer_engine/common/include/transformer_engine/fused_attn.h#L326
+         - https://github.com/ROCm/TransformerEngine/blob/a1e66aae34e023070c04f9e46fe75bf947f207e1/transformer_engine/common/fused_attn_rocm/fused_attn.cpp#L775
+
+
+        nvte_fused_attn_fwd, _bwd 
+        qkv layout | bias | mask | dropout |  sequence length  | head_dim
+
+        Example: 
+        Hunyuan video
+            - Attention  Heads 24
+            - Head dim 128
+            - fwd operands: ['bf16[1,67576,24,128]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 'bf16[0]{0}', 's32[2]{0}', 's32[2]{0}', 'bf16[0]{0}', 'bf16[0]{0}']
+            - bwd operands: ['bf16[1,67576,24,128]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 'bf16[0]{0}', 'f32[1,24,67576,1]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 'bf16[1,67576,24,128]{3,2,1,0}', 's32[2]{0}', 's32[2]{0}', 'bf16[0]{0}', 'bf16[0]{0}']
+        """
+
+        dict_metadata = {}
+        if event.get('metadata', {}).get('operands', None):
+            operand_list, operand_type, _ = JaxTreePerfAnalyzer.parse_operands(event)
+            dict_metadata['Input Dims'] = operand_list[:3]
+            dict_metadata['Input type'] = operand_type[:3]
+            dict_metadata['Concrete Inputs'] = operand_list[3:4] # bias
+        return dict_metadata
+    
+    @staticmethod
+    def parse_gemm_metadata(event):
+        """
+        Ideally it Whould output the same as parse_JaxGemm_metadata(event).
+        
+        Example:
+        beta=re.search(r"\"beta\":[01],",backend_config)[0].split(":")[1].split(",")[0]
+        lhs_dim=re.search(r"\"lhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
+        rhs_dim=re.search(r"\"rhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
+        """
+        backend_config=event.get('metadata', {}).get('backend_config', None)
+        if backend_config is None:
+            beta = 0        
+            raise ValueError("backend config information missing!", event['metadata'])
+        else:
+            dict_backend_config = json.loads(backend_config.split('=')[1]) # Note: missing '}' in some jax metadata
+            beta = dict_backend_config.get('gemm_backend_config', {}).get('beta', 0)
+        operand_list, operand_type, operand_idx = JaxTreePerfAnalyzer.parse_operands(event)
+        if int(beta)==1 and len(operand_list)<3:
+            print("Bias is set, however only two operands found!", event['metadata'])
+        if len(operand_list)>3 or len(operand_list) == 0:
+            raise ValueError("Invalid operand list",event['metadata'], operand_list)
+        output_list, _, output_idx = JaxTreePerfAnalyzer.parse_operands(event, metadata_key='output')
+        dict_metadata = {}
+        dict_metadata['Input Dims'] = operand_list
+        dict_metadata['Input type'] = operand_type
+        dict_metadata['Input indices'] = operand_idx
+        dict_metadata['Output Dims'] = output_list
+        dict_metadata['Output indices'] = output_idx
+        dict_metadata['Beta'] = beta 
+        return dict_metadata
+    
+    @staticmethod
+    def parse_JaxGemm_metadata(event):
+        """
+        JaxAnalyses uses JaxProfileProcessor.process_gemm_ops to parse event metadata.
+        The output was previously used for JaxAnalyses JaxGemm model class.
+        It is reused here for consistency. 
+        Replicating the function is also possile with parse_gemm_metadata via manipulating the operands, output, and contracting dims.
+
+        Return: 
+        gemm_dict = { "Batch": int(batch),
+                    "M": int(m),
+                    "N": int(n),
+                    "K": int(k),
+                    "Beta": int(beta),
+                    "Type": op["type"],
+                    "Computation": "gemm",
+                    }
+
+        Usage: gemm_dict = JaxTreePerfAnalyzer.parse_JaxGemm_metadata(event) # JaxAnalyses for JaxGemm
+        """
+        _dict_hlo_op = {'op_name' : event['metadata']}
+        gemm_dict = JaxProfileProcessor.process_gemm_ops(_dict_hlo_op).get('op_name', None)
+        return gemm_dict
+
+    ##############
+    ## GPU metrics
+    ##############
+    def get_df_gpu_timeline(self, gpu_pid = None):
+        return self.gpu_event_analyser.get_breakdown_df(gpu_pid=gpu_pid, event_filter=self.gpu_event_filter)
+    
+    def get_df_gpu_events_averages(self, gpu_pid = None): 
+        return self.gpu_event_analyser.get_average_df(gpu_pid=gpu_pid, event_filter=self.gpu_event_filter)
+    
+    #################
+    ## Kernel metrics
+    #################    
+    def get_kernel_launchers(self, gpu_pid = None, gpu_kernel_op_cats = None):
+        kernel_launchers = []
+        # filter out event op cats
+        kernel_events =  [event for event in self.tree.events if event['cat'] == 'kernel']
+        # filter out gpu kernel op cats
+        if gpu_kernel_op_cats:
+            kernel_events = [event for event in kernel_events if event['gpu_kernel_op_cat'] in gpu_kernel_op_cats]
+        if len(kernel_events) == 0:
+            warnings.warn("Input list of events is empty. Returning an empty DataFrame.")
+            return pd.DataFrame()
+        for event in kernel_events:
+            event['op category'] = event['gpu_kernel_op_cat']
+            event['total_direct_kernel_time'] = event['dur']
+            event['direct_kernel_count'] = int(1)
+            # Note: 'dur' in 'kernel_details' is required from tree perf. 
+            event['kernel_details'] = [{'name': event['name'], 
+                                        'dur': event['dur'],
+                                        'custom_call_target': event.get('metadata', {}).get('custom_call_target', 'NA'),
+                                        'operands': event.get('metadata', {}).get('operands', 'NA'),
+                                        'outputs': event.get('metadata', {}).get('outputs', 'NA'),
+                                        'metadata': event.get('metadata', {}).get('metadata', 'NA')
+                                        }] 
+            event['perf_model_name'] = JaxTreePerfAnalyzer.get_event_perf_model_name(event)
+            dict_jax_metadata = JaxTreePerfAnalyzer.get_event_metadata(event) 
+            for _key, _val in dict_jax_metadata.items():
+                event['args'][_key] = _val
+            kernel_launchers.append(event)
+
+        if gpu_pid:
+            return [event for event in kernel_launchers if event['pid'] == int(gpu_pid)]
+        else:
+            return kernel_launchers
+        
+    def get_df_kernel_launchers(self, id_cols = True, gpu_pid = None, gpu_kernel_op_cats=None, 
+                                include_kernel_details=False, include_args=True,
+                                args_cols = ['Input Dims', 'Input type', 'Input Strides', 'Concrete Inputs']):   
+        kernel_launchers = self.get_kernel_launchers(gpu_pid=gpu_pid, gpu_kernel_op_cats=gpu_kernel_op_cats)
+        rows = []
+        for event in kernel_launchers:
+            metrics_event = {'name': event['name'],
+                             'UID': event['UID'],
+                             'op category': event['gpu_kernel_op_cat'],
+                             'total_direct_kernel_time': event['total_direct_kernel_time'],
+                             'direct_kernel_count': event['direct_kernel_count']}
+            if id_cols:
+                metrics_event['pid'] = event['pid']
+                metrics_event['tid'] = event['tid']
+            if include_args:
+                metrics_event.update((arg, event['args'].get(arg)) for arg in args_cols)
+            if include_kernel_details:
+                metrics_event['kernel_details'] = event['kernel_details']
+            rows.append(metrics_event)
+        df = pd.DataFrame(rows)
+        return df
+
+    @staticmethod
+    def get_df_kernel_launchers_summary(df_kernel_launchers):
+        df = TreePerfAnalyzer.get_df_kernel_launchers_summary(df_kernel_launchers)
+        num_gpus = df_kernel_launchers['pid'].nunique()
+        df['time ms per gpu'] = df['total_direct_kernel_time_ms'] / num_gpus
+        return df 
+    
+    @staticmethod
+    def get_df_kernel_launchers_summary_by_category(df_kernel_launchers):
+        num_gpus = df_kernel_launchers['pid'].nunique()
+        df = TreePerfAnalyzer.get_df_kernel_launchers_summary_by_category(df_kernel_launchers)
+        df['time ms per gpu'] = df['total_direct_kernel_time_ms'] / num_gpus
+        return df 
+    
+    #############
+    ## OP metrics
+    #############
+    def compute_perf_metrics(self, event, bwd=False):
+        list_warn_non_zero_flops_and_zero_time = []
+        list_warn_perf_metrics_failed = []
+        list_no_bwd_events = []
+        # Select the appropriate dictionary for FLOPS and memory functions
+        perf_model_name = JaxTreePerfAnalyzer.get_event_perf_model_name(event)
+        perf_model_class = self.jax_op_to_perf_model_class_map.get(perf_model_name , None)
+        if perf_model_class is None:
+            print(f"\nPerf model does not exist. \n\nEvent: {event}")
+        else:
+            perf_model = perf_model_class(event, arch=self.arch, python_path=self.python_path)
+
+        gflops = (perf_model.flops() if not bwd else perf_model.flops_bwd())/ 1e9
+        busy_kernel_time = event[TraceEventUtils.TraceKeys.Duration]
+
+        tflops_per_s = (gflops / 1e3) / (busy_kernel_time / 1e6) if busy_kernel_time > 0 else float('nan')
+
+        bytes_moved = perf_model.bytes() if not bwd else perf_model.bytes_bwd()
+
+        dict_metrics = {
+            'GFLOPS': gflops,
+            'Kernel Time (µs)': busy_kernel_time,
+            'TFLOPS/s': tflops_per_s,
+        }         
+        if bytes_moved is not None:
+            dict_metrics['Data Moved (MB)'] = bytes_moved / (1024 * 1024)
+            dict_metrics['FLOPS/Byte'] = (gflops * 1e9) / bytes_moved if bytes_moved > 0 else float('nan')
+            dict_metrics['TB/s'] = (bytes_moved / 1e12) / (busy_kernel_time / 1e6) if busy_kernel_time > 0 else float('nan')
+        else:
+            dict_metrics['Data Moved (MB)'] = float('nan')
+            dict_metrics['FLOPS/Byte'] = float('nan')
+            dict_metrics['TB/s'] = float('nan')
+
+        #JaxGemm
+        if hasattr(perf_model, "gemmologist_time"):
+            dict_metrics['Gemmologist Time (µs)'] = perf_model.gemmologist_time
+            dict_metrics['Gemmologist TFLOPS/s'] = (gflops / 1e3) / (perf_model.gemmologist_time / 1e6) if perf_model.gemmologist_time > 0 else float('nan')
+        
+        if hasattr(perf_model, "get_simulation_time") and not bwd:
+            # This is for the case where we have a simulated time
+            # for the forward pass, but not for the backward pass
+            simulated_time = perf_model.get_simulation_time()
+            if simulated_time:
+                dict_metrics['Simulated Time (µs)']= simulated_time
+                dict_metrics['Simulated TFLOPS/s'] = (gflops / 1e3) / (simulated_time / 1e6) if simulated_time > 0 else float('nan')
+
+        if hasattr(perf_model, "get_simulation_time_bwd") and bwd:
+            # This is for the case where we have a simulated time
+            # for the forward pass, but not for the backward pass
+            simulated_time = perf_model.get_simulation_time_bwd()
+            if simulated_time:
+                dict_metrics['Simulated Time (µs)'] = simulated_time
+                dict_metrics['Simulated TFLOPS/s'] = (gflops / 1e3) / (simulated_time / 1e6) if simulated_time > 0 else float('nan')
+
+        for key, value in perf_model.param_details.items():
+            dict_metrics[f"param: {key}"] = value
+        
+        return dict_metrics
+    
+    def build_df_perf_metrics(self, events, include_kernel_details=False, include_args=False, 
+                              args_cols = ['Input Dims', 'Input type']):
+        rows = []
+        list_warn_non_zero_flops_and_zero_time = []
+        list_warn_perf_metrics_failed = []
+        list_no_bwd_events = []
+        for event in events: 
+            # update event metadata, required for perf model: perf_model_name, kernel names, args['Input Dims']
+            event['kernel_details'] = [{'name': event['name'], 
+                                        'dur': event['dur'], }] 
+            perf_model_name = JaxTreePerfAnalyzer.get_event_perf_model_name(event)
+            dict_jax_metadata = JaxTreePerfAnalyzer.get_event_metadata(event) 
+            for _key, _val in dict_jax_metadata.items():
+                event['args'][_key] = _val
+            dict_perf_metrics = None
+            try:
+                if not perf_model_name  == 'rest':
+                    bwd = perf_model_name.endswith('_bwd')
+                    dict_perf_metrics = self.compute_perf_metrics(event, bwd=bwd)
+            except Exception as e:
+                print(f"\nException occurred at compute perf metrics: {e}, \n\nEvent: {event}")
+                list_warn_perf_metrics_failed.append(event)
+                sys.exit(0)
+            if dict_perf_metrics is not None:
+                metrics_event = {'name': event['name'],
+                             'UID': event['UID'],
+                             'pid': event['pid'], 
+                             'dur': event['dur'],
+                             'cat': event['cat'],
+                             'op category': event['gpu_kernel_op_cat'], 
+                             'perf model': perf_model_name,
+                             }
+                metrics_event.update(dict_perf_metrics)
+                if dict_perf_metrics['GFLOPS'] > 0 and dict_perf_metrics['Kernel Time (µs)'] == 0:
+                    list_warn_non_zero_flops_and_zero_time.append(event)
+                if include_args:
+                    metrics_event.update((arg, event['args'].get(arg, None)) for arg in args_cols)
+                if include_kernel_details:
+                    metrics_event['kernel_details'] = event['kernel_details']
+                rows.append(metrics_event)
+            else:
+                list_warn_perf_metrics_failed.append(event)
+            
+        self._show_warnings(list_warn_non_zero_flops_and_zero_time,
+                            list_no_bwd_events,
+                            list_warn_perf_metrics_failed,
+                            len(events))
+        df_perf_metrics = pd.DataFrame(rows)
+        
+        return df_perf_metrics

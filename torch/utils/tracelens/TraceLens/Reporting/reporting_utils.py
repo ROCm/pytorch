@@ -1,5 +1,7 @@
 import pandas as pd
 from pathlib import Path
+import sys
+import subprocess
 
 def export_data_df(
     data_df: pd.DataFrame,
@@ -46,3 +48,30 @@ def export_data_df(
             if verbose:
                 print(f"Exporting summary statistics to {output_path}")
             data_df.to_csv(output_path, index=False)
+
+def request_install(package_name):
+    """
+    Prompts the user to install a Python package via pip. If the user agrees, attempts installation.
+    Exits the program if the user declines or if installation fails.
+
+    Args:
+        package_name (str): The name of the package to install.
+
+    Returns:
+        None
+
+    Side Effects:
+        - Prompts the user for input.
+        - May install a package using pip.
+        - Exits the program (calls sys.exit(1)) if the user declines or installation fails.
+    """
+    choice = input(f"Do you want to install '{package_name}' via pip? [y/N]: ").strip().lower()
+    if choice == 'y':
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        except subprocess.CalledProcessError:
+            print(f"Failed to install '{package_name}'. Please install it manually. Exiting.")
+            sys.exit(1)
+    else:
+        print(f"Skipping installation of '{package_name}' and exiting.")
+        sys.exit(1)
