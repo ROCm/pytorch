@@ -2908,6 +2908,14 @@ def _persistent_reduction_configs(
                 )
             )
 
+    tiny_configs = [
+        triton_config_reduction(
+            size_hints,
+            2 * (256 // rnumel) if rnumel <= 256 else 1,
+            rnumel,
+        )
+    ]
+
     # defer to more autotuning, initially
     if "y" in size_hints:
         pass
@@ -2932,7 +2940,7 @@ def _persistent_reduction_configs(
                 configs.append(conf)
     elif reduction_hint == ReductionHint.OUTER_TINY:
         configs = tiny_configs
-
+    
     for c in configs:
         # we don't need Rn_BLOCK for persistent reduction
         for prefix in size_hints:
