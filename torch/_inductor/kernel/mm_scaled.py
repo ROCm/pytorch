@@ -469,7 +469,9 @@ def scaled_mm_options(  # type: ignore[no-untyped-def]
         f"or 1-dimensional tensors with the same size. Got scale_a: {len(size_a)} and scale_b: {len(size_b)}."
     )
     return dict(
-        GROUP_M=8,
+        # this change is incompatible with vllm, can't make it into our release
+        # should be fixed by them
+        # GROUP_M=8,
         EVEN_K=even_k_symbolic,
         ACC_TYPE="tl.float32",
         USE_FAST_ACCUM=use_fast_accum,
