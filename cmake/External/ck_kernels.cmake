@@ -38,7 +38,7 @@ if(NOT __ck_kernels_included)
         message(FATAL_ERROR "Failed to get submodule status for composable_kernel.")
     endif()
 
-    set(ck_kernels_package_full_url "$ENV{CK_KERNELS_PACKAGE_BASE_URL}/torch_ck_gen_lib/ck_${ck_commit_hash}/rocm_${ROCM_VERSION_DEV}/libck_kernels.tar.gz")
+    set(ck_kernels_package_full_url "$ENV{CK_KERNELS_PACKAGE_BASE_URL}/torch_ck_gen_lib/ck_${ck_commit_hash}/hip_${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR}/libck_kernels.tar.gz")
     set(ck_kernels_install_path "${ck_kernels_install_dir}/libck_kernels.so")
 
     ExternalProject_Add(ck_kernels_external
