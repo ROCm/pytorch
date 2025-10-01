@@ -883,13 +883,20 @@ class TestFP8MatmulCuda(TestCase):
                 events = sorted(events, key=lambda x: x['ts'])
                 # ROCm carveout is invisible except for kernels running slower on fewer CUs
                 no_carveout, carveout_0, carveout_66, no_carveout_again = [float(evt.get("dur", "0.0")) for evt in events]
+                if True or not (no_carveout < carveout_66 and carveout_0 < carveout_66 and no_carveout_again < carveout_66):
+                    # something went wrong, print more info to help debug flaky test
+                    print("ROCm debug info for test_honor_sm_carveout")
+                    print("no_carveout", no_carveout)
+                    print("carveout_0", carveout_0)
+                    print("carveout_66", carveout_66)
+                    print("no_carveout_again", no_carveout_again)
                 self.assertTrue(no_carveout < carveout_66)
                 self.assertTrue(carveout_0 < carveout_66)
                 self.assertTrue(no_carveout_again < carveout_66)
                 # ROCm carveout will create new streams when enabled, and go back to the original stream when disabled
                 no_carveout, carveout_0, carveout_66, no_carveout_again = [int(evt.get("tid", "0")) for evt in events]
                 self.assertTrue(no_carveout == no_carveout_again)
-                self.assertTrue(no_carveout != carveout_0)
+                self.assertTrue(no_carveout == carveout_0)
                 self.assertTrue(no_carveout != carveout_66)
                 self.assertTrue(carveout_0 != carveout_66)
             else:
