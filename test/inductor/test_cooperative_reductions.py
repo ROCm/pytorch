@@ -151,6 +151,7 @@ class CooperativeReductionTests(TestCase):
                 torch._inductor.metrics.generated_kernel_count, expect_kernel_count
             )
         return source_code
+
     @parametrize(
         "name",
         [
