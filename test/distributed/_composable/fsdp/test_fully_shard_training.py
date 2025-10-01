@@ -44,7 +44,7 @@ from torch.testing._internal.common_fsdp import (
 )
 from torch.testing._internal.common_utils import (
     get_cycles_per_ms,
-    NAVI_ARCH,
+    NAVI4_ARCH,
     run_tests,
     skipIfRocmArch,
     wrapSwapTensorsTest,
@@ -99,7 +99,7 @@ class TestFullyShardRegisteredParams(FSDPTestMultiThread):
         return 4
 
     @unittest.skipIf(not TEST_CUDA, "no cuda")
-    @skipIfRocmArch(NAVI_ARCH)  # Supported in future releaes
+    @skipIfRocmArch(NAVI4_ARCH)  # Supported in future releaes
     def test_param_registration_after_forward(self):
         """Tests the parameter registration after forward."""
         device = torch.device("cuda", 0)
@@ -206,7 +206,7 @@ class TestFullyShardCastAfterInit(FSDPTestMultiThread):
 
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     @wrapSwapTensorsTest(True)
-    @skipIfRocmArch(NAVI_ARCH)  # Supported in future releaes
+    @skipIfRocmArch(NAVI4_ARCH)  # Supported in future releaes
     def test_to_float64_after_init(self):
         """Tests that the user can cast the module to float64 after init."""
         # NOTE: Test fp64 instead of a lower precision dtype like bf16 for
