@@ -1,10 +1,8 @@
-import glob
 import math
-import os
 import pandas as pd
 import re
 import string
-from typing import Callable
+from itertools import chain
 try:
     from enum import StrEnum
 except ImportError:
@@ -291,12 +289,13 @@ class JaxAnalyses:
         gemm_ops = JaxProfileProcessor.process_gemm_ops(hlo_ops)
         # the keys in gemm ops start with % while the keys in the events don't - strip out the %
         gemm_ops = dict((x[0][1:], x[1]) for x in gemm_ops.items())
-        main_thread_id = TraceEventUtils.find_thread_by_item_in_metadata(
+        # the first "Stream" thread is not always the thread with GEMMs - merge all of them
+        thread_ids = TraceEventUtils.find_threads_by_item_in_metadata(
             metadata[1],
             lambda x: x[0] is not None and x[1][TraceEventUtils.MetadataFields.ThreadName].startswith(TraceEventUtils.JaxSpecialThreads.StreamPrefix))
-        main_thread_events = events[1][main_thread_id]
-        main_thread_gemms = filter(lambda x: TraceEventUtils.TraceKeys.Args in x and x[TraceEventUtils.TraceKeys.Args][TraceEventUtils.JaxKernelEventArgs.hlo_op] in gemm_ops, main_thread_events)
-        metrics = [JaxAnalyses.gemm_perf_metrics(event, gemm_ops[event[TraceEventUtils.TraceKeys.Args][TraceEventUtils.JaxKernelEventArgs.hlo_op]], False, arch) for event in main_thread_gemms]
+        gpu_0_events = chain.from_iterable(map(lambda x: events[1][x], thread_ids))
+        gpu_0_gemms = filter(lambda x: TraceEventUtils.TraceKeys.Args in x and TraceEventUtils.JaxKernelEventArgs.hlo_op in x[TraceEventUtils.TraceKeys.Args] and x[TraceEventUtils.TraceKeys.Args][TraceEventUtils.JaxKernelEventArgs.hlo_op] in gemm_ops, gpu_0_events)
+        metrics = [JaxAnalyses.gemm_perf_metrics(event, gemm_ops[event[TraceEventUtils.TraceKeys.Args][TraceEventUtils.JaxKernelEventArgs.hlo_op]], False, arch) for event in gpu_0_gemms]
         return pd.DataFrame(metrics)
 
     class JaxGemm(perf_model.GEMM):
@@ -385,10 +384,12 @@ class JaxAnalyses:
             dict_metrics['FLOPS/Byte'] = float('nan')
             dict_metrics['TB/s'] = float('nan')
 
-        if hasattr(perf_model, "gemmologist_time"):
-            dict_metrics['Gemmologist Time (µs)'] = perf_model.gemmologist_time
-            dict_metrics['Gemmologist TFLOPS/s'] = (gflops / 1e3) / (perf_model.gemmologist_time / 1e6) if perf_model.gemmologist_time > 0 else float('nan')
-            # dict_metrics['Gemmologist cmd'] = perf_model.gemmologist_cmd
+        if hasattr(perf_model, "get_simulation_time"):
+            simulated_time = perf_model.get_simulation_time()
+            if simulated_time:
+                dict_metrics['Simulated Time (µs)']= simulated_time
+                dict_metrics['Simulated TFLOPS/s'] = (gflops / 1e3) / (
+                            simulated_time / 1e6) if simulated_time > 0 else float('nan')
 
         for key, value in perf_model.param_details.items():
             dict_metrics[f"param: {key}"] = value

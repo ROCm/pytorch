@@ -12,7 +12,7 @@ except ImportError:
     # fallback for Python 3.10
     except ImportError:
         from strenum import StrEnum
-from typing import List, Dict, Callable, Tuple
+from typing import List, Dict, Callable, Iterable
 
 # generic data loader class for json, json.gz, or tensorboard pb files
 # tensorboard pb files are useful for Jax in particular because the json.gz traces produced by jax can have incorrect timestamps and missing information
@@ -411,7 +411,11 @@ class TraceEventUtils:
 
     @staticmethod
     def find_thread_by_item_in_metadata(metadata: dict[int, dict], select_item: Callable[[int], bool]) -> int:
-        return next(filter(select_item, metadata.items()))[0]
+        return next(TraceEventUtils.find_threads_by_item_in_metadata(metadata, select_item))
+
+    @staticmethod
+    def find_threads_by_item_in_metadata(metadata: dict[int, dict], select_item: Callable[[int], bool]) -> Iterable[int]:
+        return map(lambda x: x[0], filter(select_item, metadata.items()))
 
     @staticmethod
     def compute_event_end_times(events: List[dict]) -> None:
