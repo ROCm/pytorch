@@ -2478,6 +2478,15 @@ def pointwise(
                 triton_config_with_settings(size_hints, 1, bs),
                 *hinted_configs,
             ]
+            """
+            configs = [
+                # triton_config_with_settings(size_hints, 1, bs)
+                # triton_config_with_settings(size_hints, 32, 32)
+                Config({"XBLOCK":2, "YBLOCK": 1024}, num_warps=2, num_stages=1) # from our brute-force search for triton_poi_fused_clone_21
+                # Config({"XBLOCK":16, "YBLOCK": 1024}, num_warps=2, num_stages=1) # what inductor uses..
+                 ]
+            """
+                 
     if len(size_hints) == 3:
         if disable_pointwise_autotuning(inductor_meta):
             configs = [triton_config_with_settings(size_hints, 16, 16, 16)]
