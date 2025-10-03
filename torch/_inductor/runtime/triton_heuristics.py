@@ -2389,10 +2389,10 @@ def pointwise(
     inductor_meta = {} if inductor_meta is None else inductor_meta
     assert not inductor_meta.get("no_x_dim")
 
-    if torch.version.hip:
+    if torch.version.hip and ('SKIP_ORACLE' not in os.environ):
         print("KernelOracle: Behold! Oracle has entered the pointwise building..")
         if (KernelOracle.canDo(size_hints, inductor_meta["kernel_name"])):
-            print("KernelOracle: Oracle will predict..")
+            print("KernelOracle: Oracle will predict using size_hints=", size_hints)
             configs = []
             KernelOracle.configClass = Config
             oracle_config = oracle.getBest(size_hints, inductor_meta["kernel_name"])
@@ -2428,8 +2428,10 @@ def pointwise(
             inductor_meta.get("max_autotune")
             or inductor_meta.get("max_autotune_pointwise")
         ):
+            print("1D pointwise: just a single config")
             configs = [triton_config_with_settings(size_hints, bs)]
         else:
+            print("1D pointwise adding lots of configs")
             configs = [
                 triton_config_with_settings(size_hints, bs, num_elements_per_warp=256),
                 triton_config_with_settings(
@@ -2459,8 +2461,10 @@ def pointwise(
             inductor_meta.get("max_autotune")
             or inductor_meta.get("max_autotune_pointwise")
         ):
+            print("2D pointwise: just a single config")
             configs = [triton_config_with_settings(size_hints, 32, 32)]
         else:
+            print("2D pointwise adding lots of configs")
             configs = [
                 triton_config_with_settings(size_hints, 32, 32),
                 triton_config_with_settings(size_hints, 64, 32), # wrt: better for some kernels
@@ -2493,6 +2497,10 @@ def pointwise(
         raise NotImplementedError(f"size_hints: {size_hints}")
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
+
+    print("Inductor using pointwise configs:")
+    for config in configs:
+        print(config)
 
     return cached_autotune(
         size_hints,
@@ -2705,7 +2713,7 @@ def reduction(
 
     assert triton_meta is not None
 
-    if torch.version.hip:
+    if torch.version.hip and ('SKIP_ORACLE' not in os.environ):
         print("KernelOracle: Behold! Oracle has entered the reduction building..")
         if (KernelOracle.canDo(size_hints, inductor_meta["kernel_name"])):
             print("KernelOracle: Oracle will predict..")

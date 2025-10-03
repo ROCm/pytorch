@@ -426,16 +426,18 @@ class KernelOracle:
         """Generate configs and rank them using the ML regressor.  Return the best configs.
         """
         # here we go again..
+        size_hints_sorted = sort_size_hints(size_hints)
+        # print("sorted size_hints>", size_hints_sorted)
         blockmap = [None, None, None] # give index -> spits out "XBLOCK", "YBLOCK", etc.
         i=0
-        for key, value in size_hints.items():
+        for key, value in size_hints_sorted.items():
             blockname = key + "block" # i.e. r0_block, xblock, etc
             blockname = blockname.upper() # R0_BLOCK, XBLOCK, etc.
             blockmap[i] = key.upper() + "BLOCK" # i.e. XBLOCK, YBLOCK, R0_BLOCK, etc.
             i+=1
 
         input_df = self.genConfigs2(
-            size_hints,
+            size_hints_sorted,
             nametag= self.generate_filetag(name)
         ).astype(float) # NOTE: float
 
