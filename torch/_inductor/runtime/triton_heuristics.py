@@ -80,6 +80,9 @@ from .triton_compat import (
     triton,
 )
 
+from .kernel_oracle import KernelOracle
+KernelOracle.installPkgsIf()
+oracle = KernelOracle(fetch_model=True)
 
 class NoTritonConfigsError(RuntimeError):
     pass
@@ -2382,8 +2385,28 @@ def pointwise(
     """
     Construct @triton.heuristics() based on size_hints.
     """
+
     inductor_meta = {} if inductor_meta is None else inductor_meta
     assert not inductor_meta.get("no_x_dim")
+
+    if torch.version.hip:
+        print("KernelOracle: Behold! Oracle has entered the pointwise building..")
+        if (KernelOracle.canDo(size_hints, inductor_meta["kernel_name"])):
+            print("KernelOracle: Oracle will predict..")
+            configs = []
+            KernelOracle.configClass = Config
+            oracle_config = oracle.getBest(size_hints, inductor_meta["kernel_name"])
+            # we could also get N best and do autotuning with oracle.rankConfigs
+            print("KernelOracle: Oracle predicted", oracle_config)
+            configs = [oracle_config]
+            return cached_autotune(
+                size_hints,
+                configs,
+                triton_meta=triton_meta,
+                inductor_meta=inductor_meta,
+                heuristic_type=HeuristicType.POINTWISE,
+                filename=filename,
+            )
 
     numel = functools.reduce(operator.mul, size_hints.values())
     bs = max(256, min(numel // 128, 1024))
@@ -2681,6 +2704,25 @@ def reduction(
         size_hints["x"] = 1
 
     assert triton_meta is not None
+
+    if torch.version.hip:
+        print("KernelOracle: Behold! Oracle has entered the reduction building..")
+        if (KernelOracle.canDo(size_hints, inductor_meta["kernel_name"])):
+            print("KernelOracle: Oracle will predict..")
+            configs = []
+            KernelOracle.configClass = Config
+            oracle_config = oracle.getBest(size_hints, inductor_meta["kernel_name"])
+            # we could also get N best and do autotuning with oracle.rankConfigs
+            print("KernelOracle: Oracle predicted", oracle_config)
+            configs = [oracle_config]
+            return cached_autotune(
+                size_hints,
+                configs,
+                triton_meta=triton_meta,
+                inductor_meta=inductor_meta,
+                heuristic_type=HeuristicType.POINTWISE,
+                filename=filename,
+            )
 
     configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
