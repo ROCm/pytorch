@@ -55,7 +55,8 @@ class TreePerfAnalyzer:
         tree = TraceToTree(data, event_to_category=categorizer)
         return TreePerfAnalyzer(tree, jax=jax, event_to_category=categorizer, *args, **kwargs)
 
-    def __init__(self, tree: TraceToTree, add_python_func=False, arch=None, jax=False, python_path=None, event_to_category: Callable[[dict], str] = TraceEventUtils.default_categorizer):
+    def __init__(self, tree: TraceToTree, add_python_func=False, arch=None, jax=False, python_path=None, 
+                 event_to_category: Callable[[dict], str] = TraceEventUtils.default_categorizer, include_unlinked_kernels=False):
         self.jax = jax
         self.GPUEventAnalyser = GPUEventAnalyser if not jax else JaxGPUEventAnalyser
         self.tree = tree
@@ -63,6 +64,8 @@ class TreePerfAnalyzer:
         self.arch = arch
         self.python_path = python_path
         self.event_to_category = event_to_category
+        # include unlinked kernels in gpu timeline
+        self.include_unlinked_kernels = include_unlinked_kernels
         # we check if profile contains python func events
         self.with_python_stack = next((True for event in self.tree.events if self.event_to_category(event) == 'python_func'), False)
         self.tree.build_tree(add_python_func=add_python_func)
@@ -642,7 +645,9 @@ class TreePerfAnalyzer:
         return df_agg
 
     def get_df_gpu_timeline(self):
-        kernel_events =  [event for event in self.tree.events if self.event_to_category(event) in {'kernel', 'gpu_memcpy', 'gpu_memset'} and event.get('tree')]
+        kernel_events =  [event for event in self.tree.events if self.event_to_category(event) in {'kernel', 'gpu_memcpy', 'gpu_memset'}]
+        if not self.include_unlinked_kernels:
+            kernel_events = [event for event in kernel_events if event.get('tree')]
         gpu_event_analyser = self.GPUEventAnalyser(kernel_events)
         df = gpu_event_analyser.get_breakdown_df()
         return df
@@ -869,7 +874,8 @@ class JaxTreePerfAnalyzer(TreePerfAnalyzer):
                  metadata = None,
                  pb_file_name = None,
                  arch=None,
-                 python_path=None):
+                 python_path=None,
+                 kernel_metadata_keyword_filters: list[str]=None):
         #super.__init__(*args, **kwargs)
         self.tree = tree
         self.arch = arch
@@ -882,6 +888,7 @@ class JaxTreePerfAnalyzer(TreePerfAnalyzer):
         self.gpu_event_filter = JaxAnalyses.default_gpu_event_filter
         self.gpu_event_analyser = JaxGPUEventAnalyser(self.tree.events)
         self.jax_op_to_perf_model_class_map = jax_op_to_perf_model_class_map
+        self.kernel_metadata_keyword_filters = kernel_metadata_keyword_filters
     
     #####################################
     ## Parsers for JaxTree Event Metadata
@@ -1087,25 +1094,16 @@ class JaxTreePerfAnalyzer(TreePerfAnalyzer):
     @staticmethod
     def parse_gemm_metadata(event):
         """
-        Ideally it Whould output the same as parse_JaxGemm_metadata(event).
-        
-        Example:
-        beta=re.search(r"\"beta\":[01],",backend_config)[0].split(":")[1].split(",")[0]
-        lhs_dim=re.search(r"\"lhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
-        rhs_dim=re.search(r"\"rhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
+        Ideally it would output the same as parse_JaxGemm_metadata(event).
         """
         backend_config=event.get('metadata', {}).get('backend_config', None)
         if backend_config is None:
             beta = 0        
-            raise ValueError("backend config information missing!", event['metadata'])
+            raise ValueError("Backend config information missing!", event['metadata'])
         else:
             dict_backend_config = json.loads(backend_config.split('=')[1]) # Note: missing '}' in some jax metadata
             beta = dict_backend_config.get('gemm_backend_config', {}).get('beta', 0)
         operand_list, operand_type, operand_idx = JaxTreePerfAnalyzer.parse_operands(event)
-        if int(beta)==1 and len(operand_list)<3:
-            print("Bias is set, however only two operands found!", event['metadata'])
-        if len(operand_list)>3 or len(operand_list) == 0:
-            raise ValueError("Invalid operand list",event['metadata'], operand_list)
         output_list, _, output_idx = JaxTreePerfAnalyzer.parse_operands(event, metadata_key='output')
         dict_metadata = {}
         dict_metadata['Input Dims'] = operand_list
@@ -1203,7 +1201,17 @@ class JaxTreePerfAnalyzer(TreePerfAnalyzer):
                 metrics_event.update((arg, event['args'].get(arg)) for arg in args_cols)
             if include_kernel_details:
                 metrics_event['kernel_details'] = event['kernel_details']
-            rows.append(metrics_event)
+
+            metadata = event.get('metadata')
+            
+            if self.kernel_metadata_keyword_filters is not None:
+                if metadata:
+                    metadata = metadata.get('metadata', '')
+                    if any(kernel_metadata_keyword_filter in metadata for kernel_metadata_keyword_filter in self.kernel_metadata_keyword_filters):
+                        rows.append(metrics_event)
+            else:
+                rows.append(metrics_event)
+
         df = pd.DataFrame(rows)
         return df
 

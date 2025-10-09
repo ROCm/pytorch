@@ -213,6 +213,8 @@ class GEMM:
         # Add the python executable path if it is given
         if python_path:
             cmd.insert(0, python_path)
+        else:
+            cmd.insert(0, "python")  # default to python3
 
         if "freq_mhz" in arch:
             cmd.append("--freq_mhz")

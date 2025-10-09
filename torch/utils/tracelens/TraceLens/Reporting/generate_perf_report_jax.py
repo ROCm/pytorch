@@ -1,10 +1,11 @@
 import argparse, os, sys
 import json
 from pathlib import Path
+import pandas as pd
 
-from TraceLens.PerfModel import dict_cat2names, jax_op_mapping
+from TraceLens.PerfModel import jax_op_mapping
 from TraceLens.TreePerf import TreePerfAnalyzer, JaxTreePerfAnalyzer
-from TraceLens.Reporting.reporting_utils import export_data_df
+from TraceLens.Reporting.reporting_utils import request_install
 
 def perf_analysis(profile_path: str, arch = None, agg_metrics = ['mean', 'median', 'std', 'min', 'max'], *args, **kwargs) -> dict:
     """
@@ -29,7 +30,7 @@ def perf_analysis(profile_path: str, arch = None, agg_metrics = ['mean', 'median
     """
     # Get input trace type
     assert profile_path.endswith('.xplane.pb')
-    perf_analyzer = JaxTreePerfAnalyzer.from_file(profile_filepath=profile_path)
+    perf_analyzer = JaxTreePerfAnalyzer.from_file(profile_filepath=profile_path, kernel_metadata_keyword_filters=kwargs.get('kernel_metadata_keyword_filters', None))
 
     dict_dfs = {}
 
@@ -63,10 +64,58 @@ def perf_analysis(profile_path: str, arch = None, agg_metrics = ['mean', 'median
     df_op_detailed = perf_analyzer.build_df_perf_metrics(op_events, include_kernel_details=True, include_args=True)
     for op_cat in ['jax_gemm', 'jax_conv', 'jax_te' ]: # jax_op_mapping.jax_op_to_perf_model_class_map.keys():
         df_op_perf_model = df_op_detailed[df_op_detailed['perf model'].str.contains(op_cat)]
-        df_op = perf_analyzer.summarize_df_perf_metrics(df_op_perf_model, agg_metrics)
+        df_op_perf_model_cleaned = df_op_perf_model.dropna(how='all', axis=1) # remove empty columns. Not all perf model classes share the same params.
+        df_op = perf_analyzer.summarize_df_perf_metrics(df_op_perf_model_cleaned, agg_metrics)
         dict_dfs[f"op_{op_cat}"] = df_op
     return dict_dfs
 
+def generate_perf_report_jax(profile_path: str,  gpu_arch_json_path = None, num_cus = None, 
+                             output_path = './', output_table_formats = ['.csv'],  output_filename = 'trace_analysis_results', kernel_metadata_keyword_filters=None):
+    # Load the arch json
+    gpu_arch_json = None
+    if gpu_arch_json_path:
+        with open(gpu_arch_json_path, 'r') as f:
+            gpu_arch_json = json.load(f)
+
+    # Analyze trace profile
+    assert profile_path.endswith('.xplane.pb')
+    dict_dfs = {}
+    dict_dfs = perf_analysis(profile_path, arch=gpu_arch_json, num_cus=num_cus, kernel_metadata_keyword_filters=kernel_metadata_keyword_filters)
+
+    # Save the output
+    output_folder_path = Path(output_path)
+    output_filename = output_filename
+    try:
+        output_folder_path.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        print(f"Error: Insufficient permissions to create the directory at {output_path}.", file=sys.stderr)
+        sys.exit(1)
+    except FileNotFoundError:
+        print(f"Error: The specified path {output_path} is invalid.", file=sys.stderr)
+        sys.exit(1)
+        
+    # Write all DataFrames to separate csv
+    if 'csv' in output_table_formats:
+        for name_df, data_df in dict_dfs.items():
+            suffix = '_' + '_'.join(name_df.lower().split())
+            csv_path = os.path.join(output_path, f"{output_filename + suffix}.csv") # output_folder_path.joinpath(output_filename + suffix).with_suffix(".csv")
+            data_df.to_csv(csv_path, index=False)
+            print(f"DataFrame '{name_df}' written to {output_path}")       
+
+    # Write all DataFrames to separate sheets in one Excel workbook
+    if 'xlsx' in output_table_formats:
+        try:
+            import openpyxl
+        except (ImportError, ModuleNotFoundError) as e:
+            print(f"Error importing openpyxl: {e}")
+            request_install('openpyxl')
+        
+        output_xlsx_path = os.path.join(output_path, f"{output_filename}.xlsx")
+        with pd.ExcelWriter(output_xlsx_path, engine='openpyxl') as writer:
+            for name_df, data_df in dict_dfs.items():
+                data_df.to_excel(writer, sheet_name=name_df, index=False)
+            print(f"DataFrames successfully written to {output_xlsx_path}")
+    
 def main():
     """
     Usage:
@@ -85,37 +134,19 @@ def main():
     parser.add_argument('--gpu_arch_json_path', type=str, default=None, help='Path to the GPU architecture JSON file')
     parser.add_argument("--num_cus", type=str, default=304, help="Number of compute units, MI300X - 304; MI210: 104")
     parser.add_argument("--output_path", type=str, required=True, help="Path to the output folder")
-    parser.add_argument("--output_table_formats", type=str, nargs="+", default=[".csv", ], choices=[".xlsx", ".csv"], help="Output table save formats. You can select one or both formats: .xlsx and/or .csv.")
+    parser.add_argument("--output_table_formats", type=str, nargs="+", default=["csv", ], choices=["xlsx", "csv"], help="Output table save formats. You can select one or both formats: .xlsx and/or .csv.")
     parser.add_argument("--output_filename", type=str, default="trace_analysis_results", help="Base name for output files")
+    parser.add_argument("--kernel_metadata_keyword_filters", type=str, nargs="+", default=None, help="Kernel metadata keyword filters, performance analysis is computed only for the events containing the kerword in the metadata e.g. in framework name scope, e.g. --kernel_metadata_keyword_filters remat checkpoint")
     args = parser.parse_args()
 
-    # Load the arch json
-    gpu_arch_json = None
-    if args.gpu_arch_json_path:
-        with open(args.gpu_arch_json_path, 'r') as f:
-            gpu_arch_json = json.load(f)
-
-    # Analyze trace profile
-    assert args.profile_path.endswith('.xplane.pb')
-    dict_dfs = {}
-    dict_dfs = perf_analysis(args.profile_path, arch=gpu_arch_json, num_cus=args.num_cus)
-
-    # Save the output
-    output_folder = Path(args.output_path)
-    output_filename = args.output_filename
-    try:
-        output_folder.mkdir(parents=True, exist_ok=True)
-    except PermissionError:
-        print(f"Error: Insufficient permissions to create the directory at {args.output_path}.", file=sys.stderr)
-        sys.exit(1)
-    except FileNotFoundError:
-        print(f"Error: The specified path {args.output_path} is invalid.", file=sys.stderr)
-        sys.exit(1)
-    for name_df, df in dict_dfs.items():
-        suffix = '_' + '_'.join(name_df.lower().split())
-        export_data_df(df, output_folder, output_filename, output_table_format=args.output_table_formats, suffix=suffix,)
-
-    print(f"DataFrames successfully written to {args.output_path}")
+    generate_perf_report_jax(profile_path=args.profile_path,
+                            gpu_arch_json_path=args.gpu_arch_json_path,
+                            num_cus=args.num_cus,
+                            output_path=args.output_path,
+                            output_table_formats=args.output_table_formats,
+                            output_filename=args.output_filename,
+                            kernel_metadata_keyword_filters=args.kernel_metadata_keyword_filters,
+                            )
 
 if __name__ == "__main__":
     main()

@@ -47,7 +47,7 @@ def calculate_gpu_event_statistics(profile_xplane_pb_path: str) -> tuple:
     return df_gpu_events_averages, df_gpu_events_categorized_mean, df_xla_grouped
 
 
-def generate_perf_report_jax_analysis(profile_xplane_pb_path: str, output_path: str, output_filename: str, output_table_formats: list, num_cus: int = 304) -> None:
+def generate_perf_report_jax_analysis(profile_xplane_pb_path: str, output_path: str, output_filename: str, output_table_formats: list, num_cus: int = 304, name: str = "mi300x") -> None:
     """
     Generates a performance report for JAX analysis from a given XPlane profile protobuf file.
     This function processes GPU event statistics and GEMM (General Matrix Multiply) performance data
@@ -65,7 +65,7 @@ def generate_perf_report_jax_analysis(profile_xplane_pb_path: str, output_path: 
         to the specified output directory in the requested formats, with appropriate suffixes.
     """
     
-    num_cus = {"num_cus": num_cus}
+    arch = {"num_cus": num_cus, "name": name}
 
     output_folder = Path(output_path)
     try:
@@ -84,7 +84,7 @@ def generate_perf_report_jax_analysis(profile_xplane_pb_path: str, output_path: 
     gemms = JaxAnalyses.summarize_gpu_gemm_events_from_pb(profile_xplane_pb_path)
     gemms = gemms.reset_index().rename(columns={'index': 'name'})
 
-    gemms_detailed = JaxAnalyses.gemm_performance_from_pb(profile_xplane_pb_path, arch = num_cus)
+    gemms_detailed = JaxAnalyses.gemm_performance_from_pb(profile_xplane_pb_path, arch = arch)
 
     export_data_df(
             df_gpu_events_averages,
@@ -148,11 +148,12 @@ def main():
     parser.add_argument("--output_path", type=str, required=True, help="Path to the output folder")
     parser.add_argument("--output_table_formats", type=str, nargs="+", default=[".xlsx", ".csv"], choices=[".xlsx", ".csv"], help="Output table save formats. You can select one or both formats: .xlsx and/or .csv.")
     parser.add_argument("--num_cus", type=str, default=304, help="Number of compute units, MI300X - 304; MI210: 104")
+    parser.add_argument("--name", type=str, default="mi300x", help="Architecture name")
     parser.add_argument("--output_filename", type=str, default="trace_analysis_results", help="Base name for output files")
     
     args = parser.parse_args()
 
-    generate_perf_report_jax_analysis(args.profile_xplane_pb_path, args.output_path, args.output_filename, args.output_table_formats, args.num_cus)
+    generate_perf_report_jax_analysis(args.profile_xplane_pb_path, args.output_path, args.output_filename, args.output_table_formats, args.num_cus, args.name)
 
     
 if __name__ == "__main__":

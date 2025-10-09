@@ -26,6 +26,7 @@ import json
 import pandas as pd
 import warnings
 import gzip
+import logging
 
 from ..util import DataLoader
 
@@ -36,6 +37,7 @@ def list_to_tuple(obj):
 
 class NcclAnalyser:
     def __init__(self, list_profile_filepaths, world_size):
+        self.logger = logging.getLogger(__name__)
         self.list_profile_filepaths = list_profile_filepaths
         self.world_size = world_size
 
@@ -82,11 +84,11 @@ class NcclAnalyser:
 
     def load_trace_data(self):
         """Loads NCCL JSON trace data and extracts relevant events."""
-        print(f"Make sure the rank to file mapping is correct as incorrect mapping may lead to unexpected results.")
-        print('Also note that we need all ranks for the analysis. We will add a fallback soon for lesser features for single rank or partial data.')
+        self.logger.warning("Make sure the rank to file mapping is correct as incorrect mapping may lead to unexpected results.")
+        self.logger.info('Also note that we need all ranks for the analysis. We will add a fallback soon for lesser features for single rank or partial data.')
         self.rank2trace_data.clear()
         for rank, filepath in enumerate(self.list_profile_filepaths):
-            print(f"Loading rank {rank} from {filepath}")
+            self.logger.info(f"Loading rank {rank} from {filepath}")
             raw_data = DataLoader.load_data(filepath)
 
             nccl_events = [e for e in raw_data['traceEvents'] if self._nccl_filter_event_fn(e)]
@@ -125,6 +127,11 @@ class NcclAnalyser:
                 rows.append(row)
 
         df_long = pd.DataFrame(rows)
+        if df_long.empty:
+            self.logger.warning("No NCCL collective events found in the trace data.")
+            self.df_per_rank_coll = df_long
+            return df_long
+
         df_long = df_long.reset_index(drop=True)
 
         # Assign an index within each process group and rank
@@ -172,7 +179,10 @@ class NcclAnalyser:
         """
         if not hasattr(self, 'df_per_rank_coll'):
             self.build_df_long()
-        
+
+        if self.df_per_rank_coll.empty:
+            self.logger.warning("Per-rank collective dataframe is empty. Returning empty summary.")
+            return self.df_per_rank_coll
         df = self.df_per_rank_coll
         
         # Define aggregations for different column types
@@ -217,6 +227,9 @@ class NcclAnalyser:
             self.build_df_long()
 
         df = self.df_per_rank_coll
+        if df.empty:
+            self.logger.warning("Per-rank collective dataframe is empty. Cannot build implicit sync dataframe.")
+            return pd.DataFrame()
 
         metadata_fields = ['Process Group Name', 'Process Group Ranks', 'Collective name', 'Group size',
                            'dtype', 'In msg nelems', 'Out msg nelems', 'In msg size (MB)', 'Out msg size (MB)']
@@ -237,9 +250,11 @@ class NcclAnalyser:
             for field in metadata_fields:
                 unique_values = rank_events[field].unique()
                 if len(unique_values) > 1:
+                    msg_mismatch = f"Metadata mismatch in '{field}' for collective {cid}: {unique_values}"
                     if strict_metadata_check:
-                        raise ValueError(f"Metadata mismatch in '{field}' for collective {cid}: {unique_values}")
-                    warnings.warn(f"Metadata mismatch in '{field}' for collective {cid}: {unique_values}")
+                        self.logger.error(msg_mismatch)
+                        raise ValueError(msg_mismatch)
+                    self.logger.warning(msg_mismatch)
 
             row = {'collective_id': cid, **ref_metadata}
 
@@ -277,6 +292,9 @@ class NcclAnalyser:
             rows.append(row)
 
         df = pd.DataFrame(rows).reset_index(drop=True)
+        if df.empty:
+            self.logger.warning("No implicit sync collectives found. DataFrame is empty.")
+            return df
 
         # Separate per-rank columns
         per_rank_cols = [col for col in df.columns if col.startswith('rank_')]
@@ -423,7 +441,7 @@ class NcclAnalyser:
             rows.append(row)
 
         if len(rows) == 0:
-            warnings.warn("No all_to_allv collectives found in the trace data.")
+            self.logger.warning("No all_to_allv collectives found in the trace data.")
             return None
 
         df = pd.DataFrame(rows).reset_index(drop=True)

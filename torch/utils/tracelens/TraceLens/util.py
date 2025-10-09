@@ -174,6 +174,7 @@ class JaxProfileProcessor:
                 if "backend_config" not in op:
                     raise ValueError("Gemm backend config information mnissing!", op)
                 backend_config=op["backend_config"]
+                epilogue_bias = json.loads(backend_config[len("backend_config="):])['gemm_backend_config']['epilogue']=='BIAS'
                 beta=re.search(r"\"beta\":[01],",backend_config)[0].split(":")[1].split(",")[0]
                 lhs_dim=re.search(r"\"lhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
                 rhs_dim=re.search(r"\"rhs_contracting_dimensions\":\[[\"012]*\]",backend_config)[0].split(":")[1].split("\"")[1]
@@ -191,7 +192,6 @@ class JaxProfileProcessor:
                     sizes_string[0] = sizes_string[0] + "}" # restore the } that was removed
                 else:
                     sizes_string = outputs
-
                 operand_list=[]
                 for opid in op["operands"]:
                     if ("[" in opid and "]" in opid):
@@ -202,9 +202,11 @@ class JaxProfileProcessor:
                         if any(output.startswith(d) for d in dtypes + ["f8"]) and not output.endswith("[]"):
                             operand_list.append(hlo_ops[opid]["output"])
                 if int(beta)==1 and len(operand_list)<3:
-                    print("Bias is set, however on;y two operands found!",op)
-                if len(operand_list)>3 or len(operand_list) == 0:
+                    print("Bias is set, however onLy two operands found!",op) # Warning?
+                if len(operand_list)>4 or len(operand_list) == 0:
                     raise ValueError("Invalid operand list",op,operand_list)
+                if (len(operand_list)==4 and not epilogue_bias):
+                    raise ValueError("Found 4 operands, however beta and bias epilogue is nto set!",op,operand_list)
                 c_order=re.search(r"\{[012,]*",sizes_string[0])[0].split("{")[1]
                 c=get_sizes(sizes_string[0])
                 a=get_sizes(operand_list[0])
