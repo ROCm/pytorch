@@ -29,6 +29,8 @@ from ..util import TraceEventUtils, JaxProfileProcessor
 
 
 from abc import ABC, abstractmethod
+import logging
+logger = logging.getLogger(__name__)
 
 class BaseTraceToTree(ABC):
     def __init__(self, events_data,
@@ -483,8 +485,8 @@ class JaxTraceToTree(BaseTraceToTree):
                                     if (hlo_module in self.hlo_ops.keys()) and (hlo_op in self.hlo_ops.get(hlo_module).keys()):
                                         GPU_event['metadata'] = self.hlo_ops.get(hlo_module).get(hlo_op)
                                     else:
-                                        print('Missing hlo_op: ', hlo_op)
-                                        print('in hlo_module: ', GPU_event['args']['hlo_module'])
+                                        logger.warning(f"Missing hlo_op: {hlo_op}")
+                                        logger.warning(f"in hlo_module: {GPU_event['args']['hlo_module']}")
 
 class TraceToTree:
     def __init__(self, events_data,

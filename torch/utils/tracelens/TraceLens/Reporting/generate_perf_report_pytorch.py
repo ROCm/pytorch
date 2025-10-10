@@ -179,6 +179,9 @@ def generate_perf_report_pytorch(profile_json_path: str,
                                 # include unlinked kernels in gpu timeline
                                 include_unlinked_kernels: bool = False,
 
+                                # threshold in microseconds for micro idle time
+                                micro_idle_thresh_us: int = None,
+
                                 # collective analysis
                                 collective_analysis: bool = True,
 
@@ -211,7 +214,7 @@ def generate_perf_report_pytorch(profile_json_path: str,
     agg_metrics = ['mean', 'median', 'std', 'min', 'max']
 
     # Generate base DataFrames
-    df_gpu_timeline = perf_analyzer.get_df_gpu_timeline()
+    df_gpu_timeline = perf_analyzer.get_df_gpu_timeline(micro_idle_thresh_us=micro_idle_thresh_us)
 
     # TODO: move this to the TreePerfAnalyzer class
     total_time_row = df_gpu_timeline[df_gpu_timeline['type'] == 'total_time']
@@ -324,6 +327,9 @@ def main():
     # Optional arguments
     parser.add_argument('--include_unlinked_kernels', action='store_true',
                         help='Include unlinked kernels in the GPU timeline analysis.')
+    parser.add_argument('--micro_idle_thresh_us', type=int, default=None,
+                        help='Threshold in microseconds to classify idle interval as micro idle in GPU timeline analysis. ' \
+                        'Default is None and all idle times are included in one category.')
     parser.add_argument('--disable_coll_analysis', action='store_false', dest='collective_analysis',
                         default=True,
                         help='Disable collective analysis section in the report. Enabled by default.')
@@ -352,6 +358,7 @@ def main():
                                  output_xlsx_path=args.output_xlsx_path,
                                  output_csvs_dir=args.output_csvs_dir,
                                  include_unlinked_kernels=args.include_unlinked_kernels,
+                                 micro_idle_thresh_us=args.micro_idle_thresh_us,
                                  collective_analysis=args.collective_analysis,
                                  short_kernel_study=args.short_kernel_study,
                                  short_kernel_threshold_us=args.short_kernel_threshold_us,

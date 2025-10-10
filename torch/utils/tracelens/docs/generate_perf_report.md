@@ -46,6 +46,7 @@ The script supports several optional arguments to customize the output report. B
 | `--topk_roofline_ops N`           | `None`            | Limit the number of rows in the roofline sheet.                             |
 | `--extension_file`           | `None`            | Path to extension python file   
 | `--include_unlinked_kernels`            | `False`           | Include all kernels in the gpu timeline analysis -  including kernels not linked to host call stack. By default these unlinked kernels are excluded in the analysis. |
+`--micro_idle_thresh_us X`        | `None`            | Threshold (in microseconds) to classify idle intervals as micro idle in GPU timeline analysis. If None, all idle times are included in one category. |
 | `--short_kernel_study`            | `False`           | Include short-kernel analysis in the report.                                |
 | `--short_kernel_threshold_us X`   | `10`              | Threshold (in microseconds) to classify a kernel as "short".               |
 | `--short_kernel_histogram_bins B` | `100`             | Number of bins to use for the short-kernel duration histogram.             |
