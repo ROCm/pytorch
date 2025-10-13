@@ -2422,13 +2422,9 @@ def pointwise(
             ]
             # Additional reduction configs appended for ROCm builds
             if torch.version.hip:
-                configs.append(triton_config_with_settings(
-                    size_hints,
-                    2048,
-                    num_warps=8,
-                    num_stages=2,
-                    waves_per_eu=1
-                )) # 20% improvement
+                configs += [
+                    triton_config_with_settings(size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1) # 20% improvement # ..where?
+                ]
     if len(size_hints) == 2:
         if (
             disable_pointwise_autotuning(inductor_meta) # or tile_hint == TileHint.SQUARE
@@ -2440,17 +2436,24 @@ def pointwise(
         else:
             configs = [
                 triton_config_with_settings(size_hints, 32, 32),
-                triton_config_with_settings(size_hints, 64, 32), # wrt: better for some kernels
                 triton_config_with_settings(size_hints, 64, 64),  # ~8% better for fp16
                 triton_config_with_settings(size_hints, 256, 16),
                 triton_config_with_settings(size_hints, 16, 256),
-                triton_config_with_settings(size_hints, 128, 16), # wrt: +10% for some kernels
-                triton_config_with_settings(size_hints, 128, 32), # wrt: ..additional 10% more
-                triton_config_with_settings(size_hints, 32, 512), # wrt: +30% for some kernels
                 triton_config_with_settings(size_hints, bs, 1),
                 triton_config_with_settings(size_hints, 1, bs),
                 *hinted_configs,
             ]
+            if torch.version.hip:
+                configs += [ # add here
+                ]
+                # bypass triton_config_with_settings -> triton_config logic
+                if "x" in size_hints and "y" in size_hints:
+                    cfg = {"XBLOCK": 32, "YBLOCK": 128}
+                    configs += [
+                        Config({"XBLOCK": 32, "YBLOCK": 128}, num_warps=4), # wrt2: 570us : triton_poi_fused_add_transpose_view_52
+                        Config({"XBLOCK":64, "YBLOCK": 32}, num_warps=8), # wrt3: 150us: triton_poi_fused__to_copy_add_native_layer_norm_native_layer_norm_backward_permute_view_103
+                    ]
+
     if len(size_hints) == 3:
         if disable_pointwise_autotuning(inductor_meta):
             configs = [triton_config_with_settings(size_hints, 16, 16, 16)]
@@ -2470,6 +2473,12 @@ def pointwise(
         raise NotImplementedError(f"size_hints: {size_hints}")
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
+
+    print()
+    print("Pointwise will use following configs")
+    for config in configs:
+        print(">", config)
+    print()
 
     return cached_autotune(
         size_hints,
@@ -2583,9 +2592,14 @@ def _reduction_configs(
         if torch.version.hip:
             result_configs.extend([
                 make_config(1024, 8, num_warps=4, num_stages=1, waves_per_eu=2),
-                make_config(512, 8, num_warps=4, num_stages=1, waves_per_eu=1)
+                make_config(512, 8, num_warps=4, num_stages=1, waves_per_eu=1),
+                make_config(128, 4, num_warps=2, num_stages=1, waves_per_eu=1), # wrt2: 3X # triton_red_fused_index_add_index_select_mul_native_layer_norm_native_layer_norm_backward_new_zeros_sigmoid_8
+                make_config(1, 512, num_warps=8, num_stages=1, waves_per_eu=1), # wrt2: 2X # triton_red_fused_index_add_index_select_mul_native_layer_norm_native_layer_norm_backward_new_zeros_sigmoid_8-v2 & v3 & v4
+                make_config(1, 4096, num_warps=8, num_stages=1, waves_per_eu=1), # wrt3: 380 us # triton_red_fused__to_copy__unsafe_view_clone_native_layer_norm_native_layer_norm_backward_slice_tanh_tanh_backward_153
+                make_config(64, 128, num_warps=4, num_stages=1, waves_per_eu=1), # wrt3: 170 us # triton_red_fused__to_copy__unsafe_view_add_addmm_cat_clone_native_layer_norm_permute_tanh_view_16
+                make_config(2, 2048, num_warps=8, num_stages=1, waves_per_eu=1) # wrt3: 170 us # triton_red_fused__to_copy__unsafe_view_clone_native_layer_norm_native_layer_norm_backward_permute_tanh_tanh_backward_29
             ])
-    
+
     return result_configs
 
 
@@ -2684,6 +2698,12 @@ def reduction(
 
     configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
+
+    print()
+    print("Reduction will use following configs")
+    for config in configs:
+        print(">", config)
+    print()
 
     return cached_autotune(
         size_hints,
