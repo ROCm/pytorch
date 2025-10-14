@@ -2415,15 +2415,18 @@ def pointwise(
                 triton_config_with_settings(
                     size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
                 ),
-                triton_config_with_settings(
-                    size_hints, 4096 # wrt: better than the max_block for some kernel
-                ),
                 *hinted_configs,
             ]
             # Additional reduction configs appended for ROCm builds
             if torch.version.hip:
                 configs += [
-                    triton_config_with_settings(size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1) # 20% improvement # ..where?
+                    triton_config_with_settings(size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1), # 20% improvement # .. in where?
+                    triton_config_with_settings(size_hints, 4096), # wrt1: better than the max_block for some kernel
+                    triton_config_with_settings(size_hints, 128, num_warps=2, num_stages=2, waves_per_eu=1), 
+                    # -> wrt1/t18: 2X improvement: triton_poi_fused_index_put_new_zeros_37, 
+                    # triton_poi_fused_index_put_new_zeros_45 
+                    # triton_poi_fused_index_put_new_zeros_49
+                    # triton_poi_fused_index_put_new_zeros_54
                 ]
     if len(size_hints) == 2:
         if (
@@ -2437,7 +2440,7 @@ def pointwise(
             configs = [
                 triton_config_with_settings(size_hints, 32, 32),
                 triton_config_with_settings(size_hints, 64, 64),  # ~8% better for fp16
-                triton_config_with_settings(size_hints, 256, 16),
+                triton_config_with_settings(size_hints, 256, 16), 
                 triton_config_with_settings(size_hints, 16, 256),
                 triton_config_with_settings(size_hints, bs, 1),
                 triton_config_with_settings(size_hints, 1, bs),
@@ -2448,8 +2451,8 @@ def pointwise(
                 ]
                 # bypass triton_config_with_settings -> triton_config logic
                 if "x" in size_hints and "y" in size_hints:
-                    cfg = {"XBLOCK": 32, "YBLOCK": 128}
                     configs += [
+                        Config({"XBLOCK": 512, "YBLOCK": 8}, num_warps=8), # wrt1/t21 # triton_poi_fused__unsafe_view_add_addmm_cat_clone_permute_split_with_sizes_view_19
                         Config({"XBLOCK": 32, "YBLOCK": 128}, num_warps=4), # wrt2: 570us : triton_poi_fused_add_transpose_view_52
                         Config({"XBLOCK":64, "YBLOCK": 32}, num_warps=8), # wrt3: 150us: triton_poi_fused__to_copy_add_native_layer_norm_native_layer_norm_backward_permute_view_103
                     ]
@@ -2473,12 +2476,6 @@ def pointwise(
         raise NotImplementedError(f"size_hints: {size_hints}")
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
-
-    print()
-    print("Pointwise will use following configs")
-    for config in configs:
-        print(">", config)
-    print()
 
     return cached_autotune(
         size_hints,
@@ -2698,12 +2695,6 @@ def reduction(
 
     configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
-
-    print()
-    print("Reduction will use following configs")
-    for config in configs:
-        print(">", config)
-    print()
 
     return cached_autotune(
         size_hints,
