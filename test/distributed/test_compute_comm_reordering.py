@@ -122,8 +122,8 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             # above the 2nd matmul.
             (
                 FileCheck()
-                .check("torch.ops._c10d_functional.all_reduce_.default")
                 .check("extern_kernels.mm")
+                .check("torch.ops._c10d_functional.all_reduce_.default")
                 .check("torch.ops._c10d_functional.wait_tensor.default")
                 .check("extern_kernels.mm")
                 .run(code)
