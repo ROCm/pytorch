@@ -103,7 +103,7 @@ std::tuple<Tensor, Tensor, Tensor> miopen_batch_norm(
     mode = miopenBNSpatial;
   }
 
-  auto output_t = at::empty(input_t, input_t.options(), input_t.suggest_memory_format());
+  auto output_t = at::empty_like(input_t, input_t.options(), input_t.suggest_memory_format());
   TensorArg output{ output_t, "output", 0 };
 
   auto handle = getMiopenHandle();
