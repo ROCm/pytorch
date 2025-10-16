@@ -2868,12 +2868,11 @@ def _persistent_reduction_configs(
 ):
     xnumel = size_hints["x"]
     rnumel = get_total_reduction_numel(size_hints)
+    loads_and_stores = inductor_meta.get("num_load", 0) + inductor_meta.get(
+        "num_store", 0
+    )
 
     MAX_PERSISTENT_BLOCK_NUMEL = 4096
-    max_autotune_enabled = not disable_pointwise_autotuning(inductor_meta) or (
-        inductor_meta.get("max_autotune")
-        or inductor_meta.get("max_autotune_pointwise")
-    )
 
     max_autotune_enabled = not disable_pointwise_autotuning(inductor_meta) or (
         inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
@@ -2920,28 +2919,6 @@ def _persistent_reduction_configs(
     if "y" in size_hints:
         pass
     # TODO(jansel): we should be able to improve these heuristics
-    if not max_autotune_enabled: # Don't filter if tuning enabled
-        if reduction_hint == ReductionHint.INNER and rnumel >= 256:
-            configs = configs[:1]
-        elif reduction_hint == ReductionHint.OUTER:
-            configs = configs[-1:]
-
-    tiny_configs = [
-        triton_config_reduction(
-            size_hints,
-            2 * (256 // rnumel) if rnumel <= 256 else 1,
-            rnumel,
-        )
-    ]
-
-    if max_autotune_enabled:
-        for conf in tiny_configs:
-            if conf not in configs:
-                configs.append(conf)
-    elif reduction_hint == ReductionHint.OUTER_TINY:
-        configs = tiny_configs
-    
-=======
     elif not max_autotune_enabled:  # Do not filter configs when tuning
         if reduction_hint == ReductionHint.INNER:
             if rnumel > 1024:
