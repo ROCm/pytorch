@@ -1,22 +1,6 @@
 cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-set(_rocm_ver "")
-if(DEFINED ROCM_VERSION AND ROCM_VERSION)
-    set(_rocm_ver "${ROCM_VERSION}")
-elseif(DEFINED HIP_VERSION AND HIP_VERSION)
-    set(_rocm_ver "${HIP_VERSION}")
-else()
-    # Fall back to hipconfig --version
-    find_program(HIPCONFIG_EXECUTABLE hipconfig HINTS ENV ROCM_PATH /opt/rocm/bin)
-    if(HIPCONFIG_EXECUTABLE)
-        execute_process(
-            COMMAND ${HIPCONFIG_EXECUTABLE} --version
-            OUTPUT_VARIABLE _rocm_ver
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-endif()
-
 if(NOT MSVC)
   string(APPEND CMAKE_CXX_FLAGS " -Wno-ignored-qualifiers")
   string(APPEND CMAKE_C_FLAGS " -Wno-ignored-qualifiers")
@@ -318,15 +302,12 @@ IF(USE_FBGEMM_GENAI)
       # Add additional HIPCC compiler flags for performance
       set(FBGEMM_GENAI_EXTRA_HIPCC_FLAGS
         -mllvm
+        -amdgpu-coerce-illegal-types=1
+        -mllvm
         -enable-post-misched=0
         -mllvm
         -greedy-reverse-local-assignment=1
         -fhip-new-launch-api)
-      if(_rocm_ver AND _rocm_ver VERSION_LESS "7.2.0")
-        list(PREPEND FBGEMM_GENAI_EXTRA_HIPCC_FLAGS
-          -mllvm
-          -amdgpu-coerce-illegal-types=1)
-      endif()
 
       hip_add_library(
         fbgemm_genai STATIC
