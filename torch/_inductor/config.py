@@ -1166,11 +1166,12 @@ class triton:
     disallow_failing_autotune_kernels_TESTING_ONLY = False
 
     # Map for storing the amount of kernel runs with dumped imput tensors
-    # based on hash of Triton source code
+    # Based on hash of Triton source code to avoid bloating the folder
     kernel_dump_occurency_map: dict[str, int] = {}
 
     # Value for the maximum amount of runs with dumped kernel input tensors
-    # When the maximum is reached i
+    # When the maximum is reached the first values get overwritten
+    # This ensures the last N runs are saved, where N is this value
     max_kernel_dump_occurencies = 3
 
 
