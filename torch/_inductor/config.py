@@ -1165,6 +1165,14 @@ class triton:
     # Note: it may also need to be used with config.compile_threads = 1
     disallow_failing_autotune_kernels_TESTING_ONLY = False
 
+    # Map for storing the amount of kernel runs with dumped imput tensors
+    # based on hash of Triton source code
+    kernel_dump_occurency_map: dict[str, int] = {}
+
+    # Value for the maximum amount of runs with dumped kernel input tensors
+    # When the maximum is reached i
+    max_kernel_dump_occurencies = 3
+
 
 class aot_inductor:
     # AOTInductor output path
