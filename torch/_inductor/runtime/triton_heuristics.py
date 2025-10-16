@@ -292,6 +292,7 @@ class CachingAutotuner(KernelInterface):
         self.dump_launch_tensors = (
             os.environ.get("TORCHINDUCTOR_DUMP_LAUNCH_TENSORS", "0") == "1"
         )
+        self.kernels_to_dump = os.environ.get("TORCHINDUCTOR_KERNELS_TO_DUMP", "").split(",")
 
         self.triton_interpret = os.environ.get("TRITON_INTERPRET", "0") == "1"
 
@@ -963,7 +964,9 @@ class CachingAutotuner(KernelInterface):
             _dump_launch_params(new_args, kwargs, launcher, self.fn.__name__, grid)
 
         if self.dump_launch_tensors:
-            _dump_launch_tensors(args, self.filename, self.kernel_hash, self.fn.__name__)
+            # Check the kernel name if the list was provided
+            if not self.kernels_to_dump or any(kernel_name in self.fn.__name__ for kernel_name in self.kernels_to_dump):
+                _dump_launch_tensors(args, self.filename, self.kernel_hash, self.fn.__name__)
 
         # it is faster than entering and exiting a context manager, even if the context
         # manager is a nullcontext.
