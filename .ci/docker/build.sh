@@ -56,10 +56,14 @@ elif [[ "$image" == *-noble* ]]; then
   UBUNTU_VERSION=24.04
 elif [[ "$image" == *ubuntu* ]]; then
   extract_version_from_image_name ubuntu UBUNTU_VERSION
+elif [[ "$image" == *centos* ]]; then
+  extract_version_from_image_name centos CENTOS_VERSION
 fi
 
 if [ -n "${UBUNTU_VERSION}" ]; then
   OS="ubuntu"
+elif [ -n "${CENTOS_VERSION}" ]; then
+  OS="centos"
 else
   echo "Unable to derive operating system base..."
   exit 1
