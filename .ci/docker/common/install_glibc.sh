@@ -12,7 +12,7 @@ yum install -y wget sed
 mkdir -p /packages && cd /packages
 wget -q http://ftp.gnu.org/gnu/glibc/glibc-$GLIBC_VERSION.tar.gz
 tar xzf glibc-$GLIBC_VERSION.tar.gz
-if [[ "$GLIBC_VERSION" == "2.26" ]]; then
+if [[ "$GLIBC_VERSION" == "2.28" ]]; then
   cd glibc-$GLIBC_VERSION
   sed -i 's/$name ne "nss_test1"/$name ne "nss_test1" \&\& $name ne "nss_test2"/' scripts/test-installation.pl
   cd ..
