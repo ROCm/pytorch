@@ -66,15 +66,9 @@ EOF
                    roctracer-dev \
                    amd-smi-lib
 
-    # precompiled miopen kernels added in ROCm 3.5, renamed in ROCm 5.5
-    # search for all unversioned packages
-    # if search fails it will abort this script; use true to avoid case where search fails
-    MIOPENHIPGFX=$(apt-cache search --names-only miopen-hip-gfx | awk '{print $1}' | grep -F -v . || true)
-    if [[ "x${MIOPENHIPGFX}" = x ]]; then
-      echo "miopen-hip-gfx package not available" && exit 1
-    else
-      DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated ${MIOPENHIPGFX}
-    fi
+    # precompiled miopen kernels is too old and never updated from last 3+yrs so removing the logic to install
+    # Also, these kernels are not generating for MI300X, MI350 and also not reliable anymore
+    
 
     # ROCm 6.0 had a regression where journal_mode was enabled on the kdb files resulting in permission errors at runtime
     for kdb in /opt/rocm/share/miopen/db/*.kdb
@@ -184,14 +178,8 @@ install_centos() {
                    roctracer-dev \
                    amd-smi-lib
   fi
-  # precompiled miopen kernels; search for all unversioned packages
-  # if search fails it will abort this script; use true to avoid case where search fails
-  MIOPENHIPGFX=$(yum -q search miopen-hip-gfx | grep miopen-hip-gfx | awk '{print $1}'| grep -F kdb. || true)
-  if [[ "x${MIOPENHIPGFX}" = x ]]; then
-    echo "miopen-hip-gfx package not available" && exit 1
-  else
-    yum install -y ${MIOPENHIPGFX}
-  fi
+    # precompiled miopen kernels is too old and never updated from last 3+yrs so removing the logic to install
+    # Also, these kernels are not generating for MI300X, MI350 and also not reliable anymore
 
   # ROCm 6.0 had a regression where journal_mode was enabled on the kdb files resulting in permission errors at runtime
   for kdb in /opt/rocm/share/miopen/db/*.kdb
