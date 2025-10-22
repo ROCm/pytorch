@@ -376,7 +376,6 @@ docker build \
        --build-arg "UCX_COMMIT=${UCX_COMMIT}" \
        --build-arg "UCC_COMMIT=${UCC_COMMIT}" \
        --build-arg "CONDA_CMAKE=${CONDA_CMAKE}" \
-       --build-arg "PIP_CMAKE=${PIP_CMAKE}" \
        --build-arg "TRITON=${TRITON}" \
        --build-arg "TRITON_CPU=${TRITON_CPU}" \
        --build-arg "ONNX=${ONNX}" \
