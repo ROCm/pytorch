@@ -1,5 +1,6 @@
 # Owner(s): ["module: linear algebra"]
 
+from contextlib import nullcontext
 import unittest
 from itertools import product
 from functools import partial
@@ -356,7 +357,8 @@ class TestFP8MatmulCuda(TestCase):
             self._test_tautological_mm(device, e4m3_type, e5m2_type, size=32)
             self._test_tautological_mm(device, e5m2_type, e4m3_type, size=48)
         # According to https://docs.nvidia.com/cuda/cublas/#id99 8F_E5M2 MM is unsupported
-        with self.assertRaises(RuntimeError):
+        # supported on ROCm but fails on CUDA
+        with self.assertRaises(RuntimeError) if torch.version.hip is None else nullcontext():
             self._test_tautological_mm(device, e5m2_type, e5m2_type)
 
         self._test_tautological_mm(device, size=64, out_dtype=torch.float16)

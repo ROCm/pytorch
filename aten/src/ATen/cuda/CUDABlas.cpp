@@ -1447,6 +1447,12 @@ void scaled_gemm(
 #if defined(USE_ROCM)
 #if defined(HIPBLASLT_OUTER_VEC)
   // this case is handled later as hipified CUBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F
+  if (use_rowwise) {
+    // swapped
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_A_SCALE_POINTER, mat2_scale_ptr);
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_B_SCALE_POINTER, mat1_scale_ptr);
+  }
+  else
 #elif defined(HIPBLASLT_VEC_EXT)
   if (use_rowwise) {
     // swapped
