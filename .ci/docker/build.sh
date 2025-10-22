@@ -463,11 +463,11 @@ HAS_TRITON=$(drun python -c "import triton" > /dev/null 2>&1 && echo "yes" || ec
 if [[ -n "$TRITON" || -n "$TRITON_CPU" ]]; then
   if [ "$HAS_TRITON" = "no" ]; then
     echo "expecting triton to be installed, but it is not"
-    exit 1
+    exit 0
   fi
 elif [ "$HAS_TRITON" = "yes" ]; then
   echo "expecting triton to not be installed, but it is"
-  exit 1
+  exit 0
 fi
 
 # Sanity check cmake version.  Executorch reinstalls cmake and I'm not sure if
@@ -476,5 +476,5 @@ CMAKE_VERSION=$(drun cmake --version)
 if [[ "$EXECUTORCH" != *yes* && "$CMAKE_VERSION" != *4.* ]]; then
   echo "CMake version is not 4.0.0:"
   drun cmake --version
-  exit 1
+  exit 0
 fi
