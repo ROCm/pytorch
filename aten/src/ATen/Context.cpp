@@ -472,7 +472,7 @@ at::BlasBackend Context::blasPreferredBackend() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
 #if ROCM_VERSION >= 60400
-          "gfx1200", "gfx1201",
+          "gfx1100", "gfx1101", "gfx1151", "gfx1200", "gfx1201",
 #endif
 #if ROCM_VERSION >= 60500
           "gfx950"
@@ -502,7 +502,7 @@ at::BlasBackend Context::blasPreferredBackend() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
 #if ROCM_VERSION >= 60300
-          "gfx1100", "gfx1101", "gfx1200", "gfx1201", "gfx908",
+          "gfx1100", "gfx1101", "gfx1151", "gfx1200", "gfx1201", "gfx908",
 #endif
 #if ROCM_VERSION >= 60500
           "gfx950"
