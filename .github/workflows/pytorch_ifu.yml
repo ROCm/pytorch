@@ -127,17 +127,17 @@ jobs:
         run: |
           git push ${DOWNSTREAM_REMOTE} "${{ steps.tag.outputs.TAG }}"
 
-      - name: Authenticate gh (non-interactive)
-        working-directory: ${{ env.DOWNSTREAM_REPO }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.output.token }}
-        run: |
-          echo "$GH_TOKEN"
-          gh auth status -t
+      # - name: Authenticate gh (non-interactive)
+      #   working-directory: ${{ env.DOWNSTREAM_REPO }}
+      #   env:
+      #     GH_TOKEN: ${{ steps.app-token.output.token }}
+      #   run: |
+      #     echo "$GH_TOKEN"
+      #     gh auth status -t
           
-          # The GitHub-hosted runner has gh preinstalled.
-          gh auth status || echo "$GH_TOKEN" | gh auth login --with-token
-          gh repo set-default "${{ env.DOWNSTREAM_REPO }}"
+      #     # The GitHub-hosted runner has gh preinstalled.
+      #     gh auth status || echo "$GH_TOKEN" | gh auth login --with-token
+      #     gh repo set-default "${{ env.DOWNSTREAM_REPO }}"
 
       - name: Create Pull Request with gh
         working-directory: ${{ env.DOWNSTREAM_REPO }}
