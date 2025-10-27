@@ -132,6 +132,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.output.token }}
         run: |
+          echo "$GH_TOKEN"
+          gh auth status -t
+          
           # The GitHub-hosted runner has gh preinstalled.
           gh auth status || echo "$GH_TOKEN" | gh auth login --with-token
           gh repo set-default "${{ env.DOWNSTREAM_REPO }}"
