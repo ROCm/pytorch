@@ -12,10 +12,15 @@ from torch._inductor.utils import run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
+<<<<<<< HEAD
     patch_test_members,
     NAVI3_ARCH,
     is_arch,
+=======
+    is_navi3_arch,
+>>>>>>> upstream/main
     parametrize,
+    patch_test_members,
     TEST_XPU,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA_AND_TRITON
@@ -74,7 +79,11 @@ class TestDecomposeAddMM(torch.nn.Module):
 )
 @instantiate_parametrized_tests
 class TestDecomposeMemMM(TestCase):
+<<<<<<< HEAD
     def __init__(self, method_name='runTest', methodName='runTest'):
+=======
+    def __init__(self, method_name="runTest", methodName="runTest"):
+>>>>>>> upstream/main
         super().__init__(method_name, methodName)
         self.atol = 1e-3
         self.rtol = 1e-3
@@ -83,7 +92,13 @@ class TestDecomposeMemMM(TestCase):
         if rtol is None:
             rtol = self.rtol
         if atol is None:
+<<<<<<< HEAD
             atol = self.rtol
+=======
+            atol = self.atol
+        self.rtol = rtol
+        self.atol = atol
+>>>>>>> upstream/main
 
     def compare_dict_tensors(self, ref_dict, res_dict, rtol=None, atol=None):
         self.setup_tolerance(rtol, atol)
@@ -92,7 +107,13 @@ class TestDecomposeMemMM(TestCase):
         for key1 in ref_dict.keys():
             key2 = "_orig_mod." + key1
             assert key2 in res_dict, f"{key1} does not exist in traced module"
+<<<<<<< HEAD
             if not torch.allclose(ref_dict[key1], res_dict[key2], rtol=self.rtol, atol=self.atol):
+=======
+            if not torch.allclose(
+                ref_dict[key1], res_dict[key2], rtol=self.rtol, atol=self.atol
+            ):
+>>>>>>> upstream/main
                 return False
         return True
 
@@ -106,14 +127,28 @@ class TestDecomposeMemMM(TestCase):
         self.setup_tolerance(rtol, atol)
         ref_params = dict(module.named_parameters())
         res_params = dict(traced.named_parameters())
+<<<<<<< HEAD
         self.assertTrue(self.compare_dict_tensors(ref_params, res_params, rtol=self.rtol, atol=self.atol))
+=======
+        self.assertTrue(
+            self.compare_dict_tensors(
+                ref_params, res_params, rtol=self.rtol, atol=self.atol
+            )
+        )
+>>>>>>> upstream/main
 
     def compare_gradients(self, module, traced, rtol=None, atol=None):
         self.setup_tolerance(rtol, atol)
         ref_grad = {key: param.grad for key, param in module.named_parameters()}
         res_grad = {key: param.grad for key, param in traced.named_parameters()}
         self.assertTrue(
+<<<<<<< HEAD
             self.compare_dict_tensors(ref_grad, res_grad, rtol=self.rtol, atol=self.atol)
+=======
+            self.compare_dict_tensors(
+                ref_grad, res_grad, rtol=self.rtol, atol=self.atol
+            )
+>>>>>>> upstream/main
         )
 
     @parametrize(
@@ -222,10 +257,19 @@ class TestDecomposeMemMM(TestCase):
 
     # We have to increase tolerance for navi3 because all fp16, bf16
     # GEMMs operations have an accuracy issue caused by hardware limitation
+<<<<<<< HEAD
     @patch_test_members({
         "atol": 2e-3 if is_arch(NAVI3_ARCH) else 1e-3,
         "rtol": 2e-3 if is_arch(NAVI3_ARCH) else 1e-3
     })
+=======
+    @patch_test_members(
+        {
+            "atol": 2e-3 if is_navi3_arch() else 1e-3,
+            "rtol": 2e-3 if is_navi3_arch() else 1e-3,
+        }
+    )
+>>>>>>> upstream/main
     @parametrize(
         "m,k,n, should_decompose",
         [(20480, 5, 2, True), (20480, 32, 2, False), (2048, 2, 2, False)],
@@ -336,10 +380,19 @@ class TestDecomposeMemMM(TestCase):
 
     # We have to increase tolerance for navi3 because all fp16, bf16
     # GEMMs operations have an accuracy issue caused by hardware limitation
+<<<<<<< HEAD
     @patch_test_members({
         "atol": 3e-3 if is_arch(NAVI3_ARCH) else 1e-3,
         "rtol": 4e-3 if is_arch(NAVI3_ARCH) else 1e-3
     })
+=======
+    @patch_test_members(
+        {
+            "atol": 3e-3 if is_navi3_arch() else 1e-3,
+            "rtol": 4e-3 if is_navi3_arch() else 1e-3,
+        }
+    )
+>>>>>>> upstream/main
     @parametrize(
         "m,k,n, should_decompose",
         [(20480, 5, 2, True), (20480, 32, 2, False), (2048, 2, 2, False)],

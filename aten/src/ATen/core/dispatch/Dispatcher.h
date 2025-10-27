@@ -96,7 +96,7 @@ class TORCH_API Dispatcher final {
   friend class TypedOperatorHandle;
 
   struct Guard final {
-    Guard() : alive(true), mutex() {}
+    Guard() : alive(true) {}
     std::atomic<bool> alive;
     std::mutex mutex;
   };
@@ -492,7 +492,7 @@ class TORCH_API OperatorHandle {
   }
 
   void checkInvariants() const {
-    return operatorDef_->op.checkInvariants();
+    operatorDef_->op.checkInvariants();
   }
 
   c10::ArrayRef<at::Tag> getTags() const {
@@ -581,7 +581,7 @@ class TORCH_API OperatorHandle {
 
   // We need to store this iterator in order to make
   // Dispatcher::cleanup() fast -- it runs a lot on program
-  // termination (and presuambly library unloading).
+  // termination (and presumably library unloading).
   std::list<Dispatcher::OperatorDef>::iterator operatorIterator_;
 };
 
@@ -629,7 +629,7 @@ class TypedOperatorHandle<Return(Args...)> final : public OperatorHandle {
 
 namespace detail {
 template <class... Args>
-inline void unused_arg_(const Args&...) {}
+inline void unused_arg_(const Args&... /*unused*/) {}
 
 // CaptureKernelCall is intended to capture return values from Dispatcher
 // unboxed kernel calls. A record function may request to get outputs from the
@@ -928,7 +928,7 @@ inline void Dispatcher::redispatchBoxed(
   }
 #endif
   const auto& kernel = entry.lookup(dispatchKeySet);
-  return kernel.callBoxed(op, dispatchKeySet, stack);
+  kernel.callBoxed(op, dispatchKeySet, stack);
 }
 
 } // namespace c10

@@ -63,7 +63,7 @@
 #include <vector>
 #include <iostream>
 
-static const int MIOPEN_DIM_MAX = 5;
+static constexpr int MIOPEN_DIM_MAX = 5;
 
 namespace at::meta {
 
@@ -93,7 +93,7 @@ namespace {
              arg_name, " should contain ", expected, " elements not ", actual);
   }
 
-  static inline Tensor repeat_if_defined(const Tensor& t, const SymInt& repeat) {
+  inline Tensor repeat_if_defined(const Tensor& t, const SymInt& repeat) {
     if (t.defined()) {
       return t.repeat_symint(repeat);
     }
