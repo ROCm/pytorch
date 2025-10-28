@@ -556,6 +556,17 @@ _efficient_attention_backward(
       }
 #endif
     }
+    bool deterministic = false;
+    auto& ctx = at::globalContext();
+    if (ctx.deterministicAlgorithms()) {
+      if (ctx.deterministicAlgorithmsWarnOnly()) {
+        TORCH_WARN_ONCE(
+            "Memory Efficient attention defaults to a non-deterministic algorithm. ",
+            "To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False).");
+      } else {
+        deterministic = true;
+      }
+    }
     at::Tensor q_t = query.permute({0,2,1,3});
     at::Tensor k_t = key.permute({0,2,1,3});
     at::Tensor v_t = value.permute({0,2,1,3});
@@ -624,9 +635,17 @@ _efficient_attention_backward(
       } else {
         params.varlen_type = VarlenType::None;
       }
+#if AOTRITON_SUPPORT_DETERMINISTIC_SDPA
+      aotriton::v3::flash::attn_options options;
+      options.deterministic = deterministic;
+      const auto* options_ptr = &options;
+#else
+      const aotriton::v3::flash::attn_options* options_ptr = nullptr;
+#endif  // AOTRITON_SUPPORT_DETERMINISTIC_SDPA
       err = aotriton::v3::flash::attn_bwd(params,
                                           aotriton::v3::flash::attn_bwd_params::kVersion,
-                                          stream);
+                                          stream,
+                                          options_ptr);
 #endif  // AOTRITON_V3_API
     } else if (cu_seqlens_q.has_value()) {
       at::Tensor delta = at::empty_like(softmax_lse).contiguous();

@@ -708,11 +708,19 @@ mha_bwd_aot(const at::Tensor &dout,  // batch_size x seqlen_q x num_heads, x hea
 #else
     at::Tensor delta = at::empty_like(softmax_lse_cont).contiguous();
     params.D = mk_aotensor<2>(delta, "delta");
-#endif
+#endif  // AOTRITON_ALWAYS_V3_API
+#if AOTRITON_SUPPORT_DETERMINISTIC_SDPA
+    aotriton::v3::flash::attn_options options;
+    options.deterministic = deterministic;
+    const auto* options_ptr = &options;
+#else
+    const aotriton::v3::flash::attn_options* options_ptr = nullptr;
+#endif  // AOTRITON_SUPPORT_DETERMINISTIC_SDPA
     err = aotriton::v3::flash::attn_bwd(params,
                                         aotriton::v3::flash::attn_bwd_params::kVersion,
-                                        stream);
-#endif
+                                        stream,
+                                        options_ptr);
+#endif  // AOTRITON_V3_API
   } else if (use_fused_bwd) {
     using aotriton::v2::flash::attn_bwd_fused;
     using sdp::aotriton_adapter::cast_dtype;
@@ -961,11 +969,19 @@ mha_varlen_bwd_aot(const at::Tensor &dout,  // total_q x num_heads, x head_size
 #else
       at::Tensor delta = at::empty_like(softmax_lse_cont).contiguous();
       params.D = mk_aotensor<2>(delta, "delta");
-#endif
+#endif  // AOTRITON_ALWAYS_V3_API
+#if AOTRITON_SUPPORT_DETERMINISTIC_SDPA
+      aotriton::v3::flash::attn_options options;
+      options.deterministic = deterministic;
+      const auto* options_ptr = &options;
+#else
+      const aotriton::v3::flash::attn_options* options_ptr = nullptr;
+#endif  // AOTRITON_SUPPORT_DETERMINISTIC_SDPA
       err = aotriton::v3::flash::attn_bwd(params,
                                           aotriton::v3::flash::attn_bwd_params::kVersion,
-                                          stream);
-#endif  // AOTRITON_ALWAYS_V3_API
+                                          stream,
+                                          options_ptr);
+#endif  // AOTRITON_V3_API
     } else {
       using aotriton::v2::flash::attn_bwd_compact_varlen;
       using sdp::aotriton_adapter::cast_dtype;
