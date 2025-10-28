@@ -39,11 +39,7 @@ from torch.testing._internal.common_utils import (
     DeterministicGuard,
     freeze_rng_state,
     IS_FBCODE,
-<<<<<<< HEAD
-    skipIfRocm,
-=======
     MI350_ARCH,
->>>>>>> upstream/main
     skipIfRocmArch,
     TEST_WITH_ASAN,
     TEST_WITH_ROCM,

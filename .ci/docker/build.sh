@@ -288,7 +288,7 @@ case "$tag" in
     ;;
   *)
     # Catch-all for builds that are not hardcoded.
-    PROTOBUF=yes    
+    PROTOBUF=yes
     VISION=yes
     echo "image '$image' did not match an existing build configuration"
     if [[ "$image" == *py* ]]; then
@@ -460,15 +460,3 @@ elif [ "$HAS_TRITON" = "yes" ]; then
   echo "expecting triton to not be installed, but it is"
   exit 0
 fi
-<<<<<<< HEAD
-
-# Sanity check cmake version.  Executorch reinstalls cmake and I'm not sure if
-# they support 4.0.0 yet, so exclude them from this check.
-CMAKE_VERSION=$(drun cmake --version)
-if [[ "$EXECUTORCH" != *yes* && "$CMAKE_VERSION" != *4.* ]]; then
-  echo "CMake version is not 4.0.0:"
-  drun cmake --version
-  exit 0
-fi
-=======
->>>>>>> upstream/main

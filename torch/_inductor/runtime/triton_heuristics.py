@@ -3292,13 +3292,8 @@ def _persistent_reduction_configs(
         configs = []
         assert "tiling_scores" in inductor_meta
         x_y_scores = {dim: inductor_meta["tiling_scores"][dim] for dim in ("x", "y")}
-<<<<<<< HEAD
-        for target_block_size in (1, 8, 32, 64, 128):
-            if target_block_size * rnumel > 4096:
-=======
         for target_block_size in xblock_vals:
             if target_block_size * rnumel > MAX_PERSISTENT_BLOCK_NUMEL:
->>>>>>> upstream/main
                 continue
 
             block_sizes = match_target_block_product(
@@ -3315,38 +3310,20 @@ def _persistent_reduction_configs(
             size_hints,
             2 * (256 // rnumel) if rnumel <= 256 else 1,
             rnumel,
-<<<<<<< HEAD
-            reduction_hint=reduction_hint,
-        )
-    ]
-=======
         )
     ]
 
->>>>>>> upstream/main
     # defer to more autotuning, initially
     if "y" in size_hints:
         pass
     # TODO(jansel): we should be able to improve these heuristics
-<<<<<<< HEAD
-    elif not max_autotune_enabled: # Don't filter if tuning enabled
-        if reduction_hint == ReductionHint.INNER:
-=======
     elif not max_autotune_enabled:  # Do not filter configs when tuning
         if reduction_hint == ReductionHint.INNER and rnumel >= 256:
->>>>>>> upstream/main
             if rnumel > 1024:
                 configs = configs[:1]
             else:
                 x_block = 8
-<<<<<<< HEAD
-                if xnumel // x_block < 128 or (loads_and_stores >= 5 and rnumel >= 256):
-                    # If loads/stores greater than 5, a lot of register pressure
-                    # rnumel < 256 means no vectorized loads if we split up r dim
-                    # so xblock still needs to be larger
-=======
                 if xnumel // x_block < 128 or loads_and_stores >= 5:
->>>>>>> upstream/main
                     x_block = 1
 
                 configs = [
@@ -3355,10 +3332,6 @@ def _persistent_reduction_configs(
                         x_block,
                         rnumel,
                         register_intensive=True,
-<<<<<<< HEAD
-                        reduction_hint=reduction_hint,
-=======
->>>>>>> upstream/main
                     )
                 ]
 
@@ -3367,18 +3340,11 @@ def _persistent_reduction_configs(
         elif reduction_hint == ReductionHint.OUTER_TINY:
             configs = tiny_configs
     else:
-<<<<<<< HEAD
-		# If autotune is enabled append tiny configs
-        for conf in tiny_configs:
-            if conf not in configs:
-                configs.append(conf)
-=======
         if torch.version.hip:
             # If autotune is enabled append tiny configs
             for conf in tiny_configs:
                 if conf not in configs:
                     configs.append(conf)
->>>>>>> upstream/main
 
     for c in configs:
         # we don't need Rn_BLOCK for persistent reduction
@@ -3579,16 +3545,10 @@ def foreach(triton_meta, filename=None, inductor_meta=None):
     Compile a triton foreach kernel
     """
     configs = []
-<<<<<<< HEAD
-    if disable_pointwise_autotuning(inductor_meta) and not (
-        inductor_meta.get("max_autotune") or
-        inductor_meta.get("max_autotune_pointwise")
-=======
 
     # Naive autotuning path for num_warps
     if not inductor_meta.get("autotune_pointwise", True) and not (
         inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
->>>>>>> upstream/main
     ):
         configs.append(triton.Config({}, num_stages=1, num_warps=8))
     else:

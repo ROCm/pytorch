@@ -21,11 +21,7 @@ import torch.fx as fx
 from torch._inductor.test_case import TestCase
 from torch._logging._internal import TorchLogsFormatter
 from torch.nn.parallel import DistributedDataParallel as DDP
-<<<<<<< HEAD
-from torch.testing._internal.common_utils import find_free_port, skipIfRocm
-=======
 from torch.testing._internal.common_utils import find_free_port, xfailIfS390X
->>>>>>> upstream/main
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
 
 

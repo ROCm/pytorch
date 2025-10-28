@@ -48,11 +48,6 @@ from pathlib import Path
 from statistics import mean
 from typing import (
     Any,
-<<<<<<< HEAD
-    Callable,
-    Dict,
-=======
->>>>>>> upstream/main
     Optional,
     TypeVar,
     Union,
@@ -105,26 +100,23 @@ try:
 except ImportError:
     has_pytest = False
 
-<<<<<<< HEAD
 
-MI300_ARCH = ("gfx940", "gfx941", "gfx942")
-=======
 SEED = 1234
 MI350_ARCH = ("gfx950",)
-MI300_ARCH = ("gfx942",)
->>>>>>> upstream/main
+MI300_ARCH = ("gfx940", "gfx941", "gfx942")
 MI200_ARCH = ("gfx90a")
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
 
-<<<<<<< HEAD
 def is_arch(arch_list):
     if torch.cuda.is_available():
         prop = torch.cuda.get_device_properties(0)
         gfx_arch = prop.gcnArchName.split(":")[0]
         if gfx_arch in arch_list:
-=======
+            return True
+    return False
+
 class ProfilingMode(Enum):
     LEGACY = 1
     SIMPLE = 2
@@ -150,14 +142,6 @@ TEST_SAVE_XML = ""
 UNITTEST_ARGS : list[str] = []
 USE_PYTEST = False
 
-def is_navi3_arch():
-    if torch.cuda.is_available():
-        prop = torch.cuda.get_device_properties(0)
-        gfx_arch = prop.gcnArchName.split(":")[0]
-        if gfx_arch in NAVI3_ARCH:
->>>>>>> upstream/main
-            return True
-    return False
 
 def freeze_rng_state(*args, **kwargs):
     return torch.testing._utils.freeze_rng_state(*args, **kwargs)
