@@ -122,8 +122,8 @@ jobs:
 
       - name: Push branch & tag to fork
         working-directory: ${{ env.DOWNSTREAM_REPO }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.output.token }}
+        # env:
+        #   GH_TOKEN: ${{ steps.app-token.output.token }}
         run: |
           git push ${DOWNSTREAM_REMOTE} "${{ steps.tag.outputs.TAG }}"
 
