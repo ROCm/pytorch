@@ -40,6 +40,12 @@ jobs:
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
 
+          # For release branches, local branch is same as remote branch. But, for rocm/pytorch's
+          # develop branch, we want to use main branch upstream
+          if [ "$BASE_REF" == "develop" ]; then
+            BASE_REF="main"
+          fi
+    
           # The ROCm base commit is the first parent of the merge commit that landed the PR
           # (i.e., the base branch tip BEFORE this PR merged).
           ROCM_BASE_SHA=$(git rev-parse "${MERGE_SHA}^1")
