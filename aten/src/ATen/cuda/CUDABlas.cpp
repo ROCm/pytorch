@@ -15,6 +15,7 @@
 #include <c10/util/env.h>
 #include <c10/util/irange.h>
 #include <c10/core/ScalarType.h>
+#include <iostream>
 
 #include <ATen/cuda/detail/BLASConstants.h>
 
@@ -398,9 +399,11 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
     computeType = CUBLAS_COMPUTE_64F;
     scaleType = CUDA_R_64F;
   } else if constexpr (std::is_same_v<Dtype, float>) {
-    if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32) {
+    const auto precision = at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL);
+    if (precision == at::Float32Precision::TF32) {
       computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
     }
+    std::cout << "Effective cuda.matmul.fp32_precision = " << precision2str(precision) << std::endl;
   } else if constexpr (std::is_same_v<Dtype, c10::complex<double>>) {
     abType = CUDA_C_64F;
     cType = CUDA_C_64F;
@@ -1616,9 +1619,11 @@ bool gemm_and_bias(
     computeType = CUBLAS_COMPUTE_64F;
     scaleType = CUDA_R_64F;
   } else if constexpr (std::is_same_v<Dtype, float>) {
-    if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32) {
+    const auto precision = at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL);
+    if (precision == at::Float32Precision::TF32) {
       computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
     }
+    std::cout << "Effective cuda.matmul.fp32_precision = " << precision2str(precision) << std::endl;
   } else if constexpr (std::is_same_v<Dtype, at::Half>) {
 #ifndef USE_ROCM
     cudaDeviceProp* prop = at::cuda::getCurrentDeviceProperties();
