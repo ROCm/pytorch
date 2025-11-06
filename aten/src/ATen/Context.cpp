@@ -449,7 +449,10 @@ at::BlasBackend Context::blasPreferredBackend() {
           "gfx1150", "gfx1151",
 #endif
 #if ROCM_VERSION >= 60500
-          "gfx950"
+          "gfx950",
+#endif
+#if ROCM_VERSION >= 70200
+          "gfx1250"
 #endif
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
@@ -484,6 +487,9 @@ at::BlasBackend Context::blasPreferredBackend() {
 #if ROCM_VERSION >= 60500
           "gfx950",
 #endif
+#if ROCM_VERSION >= 70200
+          "gfx1250",
+#endif
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
         if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
@@ -504,7 +510,7 @@ at::BlasBackend Context::blasPreferredBackend() {
 bool Context::ckSupported() {
 #ifdef USE_ROCM
   static const std::vector<std::string> supported_archs = {
-    "gfx90a", "gfx942", "gfx950"
+    "gfx90a", "gfx942", "gfx950", "gfx1250",
   };
   for (auto index : c10::irange(detail::getCUDAHooks().deviceCount())) {
     if(!detail::getCUDAHooks().isGPUArch(supported_archs, index)) {
