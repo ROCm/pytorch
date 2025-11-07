@@ -346,7 +346,11 @@ std::tuple<Tensor, std::optional<int64_t>> slice_batch_rule(
   return std::make_tuple(std::move(result), 0);
 }
 
+<<<<<<< HEAD
 bool is_allowed_dim_on_scalar_tensor(int64_t dim) {
+=======
+static bool is_allowed_dim_on_scalar_tensor(int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return dim == 0 || dim == -1;
 }
 

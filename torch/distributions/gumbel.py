@@ -32,7 +32,10 @@ class Gumbel(TransformedDistribution):
     """
 
     arg_constraints = {"loc": constraints.real, "scale": constraints.positive}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     support = constraints.real
 
     def __init__(

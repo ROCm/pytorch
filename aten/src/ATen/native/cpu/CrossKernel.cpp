@@ -15,7 +15,11 @@ namespace at::native {
 namespace {
 
 template<typename scalar_t>
+<<<<<<< HEAD
 void apply_cross(const Tensor& result, const Tensor& a, const Tensor& b, const int64_t dim) {
+=======
+static void apply_cross(const Tensor& result, const Tensor& a, const Tensor& b, const int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t total = a.numel() / 3;
   int64_t a_stride = a.stride(dim);
   int64_t b_stride = b.stride(dim);
@@ -68,7 +72,11 @@ void apply_cross(const Tensor& result, const Tensor& a, const Tensor& b, const i
   });
 }
 
+<<<<<<< HEAD
 void cross_kernel_impl(const Tensor& result, const Tensor& a, const Tensor& b, const int64_t dim) {
+=======
+static void cross_kernel_impl(const Tensor& result, const Tensor& a, const Tensor& b, const int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND2(kBFloat16, kHalf, result.scalar_type(), "cross", [&]() {
     apply_cross<scalar_t>(result, a, b, dim);
   });

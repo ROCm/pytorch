@@ -29,7 +29,11 @@ class PagedAttention:
     """
     PagedAttention supports flex attention inference with a large batch size.
     With PagedAttention, a batch of key/value tensors with varying kv length
+<<<<<<< HEAD
     is split into tensor blocks of fixed length and cached in a compact way.
+=======
+    is splitted into tensor blocks of fixed length and cached in a compact way.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Thus we can avoid redundant memory consumption due to varying kv length and
     support a larger batch size.
     """
@@ -198,7 +202,10 @@ class PagedAttention:
         self,
         block_mask: BlockMask,
         batch_idx: Optional[torch.Tensor] = None,
+<<<<<<< HEAD
         kv_len: Optional[torch.Tensor] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> BlockMask:
         """
         Converts a logical block mask by mapping its logical kv indices to the corresponding
@@ -211,8 +218,11 @@ class PagedAttention:
                 batch dimension. This provides flexibility to convert a
                 block mask with smaller batch size than the page table;
                 shape :math:`(B)`.
+<<<<<<< HEAD
             kv_len (Optional[Tensor]): actual KV sequence length for upper bound check;
                 shape :math:`(B,)` to handle multiple batches.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         B, H, ROWS, MAX_BLOCKS_IN_COL = block_mask.kv_indices.shape
 
@@ -264,7 +274,11 @@ class PagedAttention:
                 .to(torch.int32)
             )
 
+<<<<<<< HEAD
         new_mask_mod = self.get_mask_mod(block_mask.mask_mod, kv_len)
+=======
+        new_mask_mod = self.get_mask_mod(block_mask.mask_mod)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         seq_lengths = (block_mask.seq_lengths[0], self.n_pages * self.page_size)
         return BlockMask.from_kv_blocks(
@@ -278,9 +292,13 @@ class PagedAttention:
         )
 
     def get_mask_mod(
+<<<<<<< HEAD
         self,
         mask_mod: Optional[_mask_mod_signature],
         kv_len: Optional[torch.Tensor] = None,
+=======
+        self, mask_mod: Optional[_mask_mod_signature]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> _mask_mod_signature:
         """
         Converts a mask_mod based on mapping from the physical block index to the logical
@@ -288,7 +306,10 @@ class PagedAttention:
 
         Args:
             mask_mod (_mask_mod_signature): mask_mod based on the logical block index.
+<<<<<<< HEAD
             kv_len (Optional[torch.Tensor]): actual KV sequence length for upper bound check.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if mask_mod is None:
             mask_mod = noop_mask
@@ -303,6 +324,7 @@ class PagedAttention:
             physical_kv_offset = physical_kv_idx % self.page_size
             logical_block_idx = self.physical_to_logical[b, physical_kv_block]
             logical_kv_idx = logical_block_idx * self.page_size + physical_kv_offset
+<<<<<<< HEAD
             live_block = logical_block_idx >= 0
             within_upper_bound = (
                 logical_kv_idx < kv_len[b] if kv_len is not None else True
@@ -311,13 +333,22 @@ class PagedAttention:
             is_valid = live_block & within_upper_bound & within_lower_bound
 
             return torch.where(is_valid, mask_mod(b, h, q_idx, logical_kv_idx), False)
+=======
+            return torch.where(
+                logical_block_idx >= 0, mask_mod(b, h, q_idx, logical_kv_idx), False
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return new_mask_mod
 
     def get_score_mod(
+<<<<<<< HEAD
         self,
         score_mod: Optional[_score_mod_signature],
         kv_len: Optional[torch.Tensor] = None,
+=======
+        self, score_mod: Optional[_score_mod_signature]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> _score_mod_signature:
         """
         Converts a score_mod based on mapping from the physical block index to the logical
@@ -325,8 +356,11 @@ class PagedAttention:
 
         Args:
             score_mod (_score_mod_signature): score_mod based on the logical block index.
+<<<<<<< HEAD
             `kv_len (Optional[torch.Tensor]): actual KV sequence length for upper bound check.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if score_mod is None:
             score_mod = _identity
@@ -342,6 +376,7 @@ class PagedAttention:
             physical_kv_offset = physical_kv_idx % self.page_size
             logical_block_idx = self.physical_to_logical[b, physical_kv_block]
             logical_kv_idx = logical_block_idx * self.page_size + physical_kv_offset
+<<<<<<< HEAD
             live_block = logical_block_idx >= 0
             within_upper_bound = (
                 logical_kv_idx < kv_len[b] if kv_len is not None else True
@@ -351,6 +386,10 @@ class PagedAttention:
 
             return torch.where(
                 is_valid,
+=======
+            return torch.where(
+                logical_block_idx >= 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 score_mod(score, b, h, q_idx, logical_kv_idx),
                 float("-inf"),
             )

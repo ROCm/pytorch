@@ -23,6 +23,13 @@ if [[ "${DRY_RUN}" = "disabled" ]]; then
   AWS_S3_CP="aws s3 cp"
 fi
 
+<<<<<<< HEAD
+=======
+if [[ "${USE_SPLIT_BUILD:-false}" == "true" ]]; then
+  UPLOAD_SUBFOLDER="${UPLOAD_SUBFOLDER}_pypi_pkg"
+fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # this is special build with all dependencies packaged
 if [[ ${BUILD_NAME} == *-full* ]]; then
   UPLOAD_SUBFOLDER="${UPLOAD_SUBFOLDER}_full"
@@ -51,12 +58,23 @@ s3_upload() {
     s3_upload_dir="${s3_root_dir}/${UPLOAD_SUBFOLDER}/"
   fi
   (
+<<<<<<< HEAD
+=======
+    cache_control_flag=""
+    if [[ "${UPLOAD_CHANNEL}" = "test" ]]; then
+      cache_control_flag="--cache-control='no-cache,no-store,must-revalidate'"
+    fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for pkg in ${PKG_DIR}/*.${extension}; do
       (
         set -x
         shm_id=$(sha256sum "${pkg}" | awk '{print $1}')
         ${AWS_S3_CP} --no-progress --acl public-read "${pkg}" "${s3_upload_dir}" \
+<<<<<<< HEAD
           --metadata "checksum-sha256=${shm_id}"
+=======
+          --metadata "checksum-sha256=${shm_id}" ${cache_control_flag}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       )
     done
   )

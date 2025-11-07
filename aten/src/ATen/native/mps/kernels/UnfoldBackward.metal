@@ -70,4 +70,10 @@ kernel void unfold_backward(
 
 INSTANTIATE_UNFOLD_BACKWARD(float);
 INSTANTIATE_UNFOLD_BACKWARD(half);
+<<<<<<< HEAD
 INSTANTIATE_UNFOLD_BACKWARD(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_UNFOLD_BACKWARD(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -83,7 +83,11 @@ def _quantize_weight(float_wt, observer):
             torch.qint8,
         )
         qweight = _clamp_weights(qweight, observer, wt_scale, wt_zp)
+<<<<<<< HEAD
     elif observer.qscheme == torch.per_channel_affine_float_qparams:
+=======
+    elif observer.qscheme in [torch.per_channel_affine_float_qparams]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qweight = torch.quantize_per_channel(
             float_wt,
             wt_scale.to(torch.float),

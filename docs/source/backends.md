@@ -54,23 +54,33 @@ These backends include:
 .. attribute::  allow_tf32
 
     A :class:`bool` that controls whether TensorFloat-32 tensor cores may be used in matrix
+<<<<<<< HEAD
     multiplications on Ampere or newer GPUs. allow_tf32 is going to be deprecated. See :ref:`tf32_on_ampere`.
+=======
+    multiplications on Ampere or newer GPUs. See :ref:`tf32_on_ampere`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
 .. attribute::  allow_fp16_reduced_precision_reduction
 
     A :class:`bool` that controls whether reduced precision reductions (e.g., with fp16 accumulation type) are allowed with fp16 GEMMs.
+<<<<<<< HEAD
     Assigning a tuple ``(allow_reduced_precision, allow_splitk)`` lets you also toggle whether
     split-K heuristics may be used when dispatching to cuBLASLt. ``allow_splitk`` defaults to ``True``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
 .. attribute::  allow_bf16_reduced_precision_reduction
 
     A :class:`bool` that controls whether reduced precision reductions are allowed with bf16 GEMMs.
+<<<<<<< HEAD
     Assigning a tuple ``(allow_reduced_precision, allow_splitk)`` lets you also toggle whether
     split-K heuristics may be used when dispatching to cuBLASLt. ``allow_splitk`` defaults to ``True``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
@@ -197,7 +207,11 @@ These backends include:
 .. attribute::  allow_tf32
 
     A :class:`bool` that controls where TensorFloat-32 tensor cores may be used in cuDNN
+<<<<<<< HEAD
     convolutions on Ampere or newer GPUs. allow_tf32 is going to be deprecated. See :ref:`tf32_on_ampere`.
+=======
+    convolutions on Ampere or newer GPUs. See :ref:`tf32_on_ampere`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
@@ -257,6 +271,7 @@ These backends include:
 
 ```
 
+<<<<<<< HEAD
 ## torch.backends.miopen
 
 ```{eval-rst}
@@ -270,6 +285,8 @@ These backends include:
     (https://rocm.docs.amd.com/projects/MIOpen/en/latest/how-to/find-and-immediate.html).
 ```
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## torch.backends.mps
 
 ```{eval-rst}

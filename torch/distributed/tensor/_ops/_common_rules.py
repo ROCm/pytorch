@@ -171,7 +171,10 @@ def einop_rule(
                             global_shape, input_spec.mesh, input_spec.placements
                         )
                         cost += prod(local_shape) * input_spec.mesh.size(mesh_dim)
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 costs.append(cost)
             d_to_keep_sharding = dims[costs.index(max(costs))]
             for d in dims:

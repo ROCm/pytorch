@@ -703,7 +703,11 @@ struct TORCH_API NLLLossImpl : public Cloneable<NLLLossImpl> {
   /// The options with which this `Module` was constructed.
   NLLLossOptions options;
 
+<<<<<<< HEAD
   /// A manual rescaling weight given to each class.
+=======
+  /// A manual rescaling weight given to to each class.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor weight;
 };
 
@@ -743,7 +747,11 @@ struct TORCH_API CrossEntropyLossImpl : public Cloneable<CrossEntropyLossImpl> {
   /// The options with which this `Module` was constructed.
   CrossEntropyLossOptions options;
 
+<<<<<<< HEAD
   /// A manual rescaling weight given to each class.
+=======
+  /// A manual rescaling weight given to to each class.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor weight;
 };
 

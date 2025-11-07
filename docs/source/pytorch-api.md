@@ -1,4 +1,5 @@
 (pytorch_api)=
+<<<<<<< HEAD
 # Reference API
 
 ```{toctree}
@@ -6,11 +7,17 @@
 
 C++ <https://docs.pytorch.org/cppdocs/>
 ```
+=======
+# Python API
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```{toctree}
 :glob:
 :maxdepth: 1
+<<<<<<< HEAD
 :caption: Python API
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 torch
 nn
@@ -41,7 +48,10 @@ torch.distributed.fsdp.fully_shard <distributed.fsdp.fully_shard>
 torch.distributed.tensor.parallel <distributed.tensor.parallel>
 torch.distributed.optim <distributed.optim>
 torch.distributed.pipelining <distributed.pipelining>
+<<<<<<< HEAD
 torch.distributed._symmetric_memory <symmetric_memory>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch.distributed.checkpoint <distributed.checkpoint>
 torch.distributions <distributions>
 torch.compiler <torch.compiler>
@@ -57,7 +67,10 @@ torch.monitor <monitor>
 torch.signal <signal>
 torch.special <special>
 torch.overrides
+<<<<<<< HEAD
 torch.nativert <nativert>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch.package <package>
 profiler
 nn.init
@@ -77,6 +90,10 @@ storage
 torch.testing <testing>
 torch.utils <utils>
 torch.utils.benchmark <benchmark_utils>
+<<<<<<< HEAD
+=======
+torch.utils.bottleneck <bottleneck>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch.utils.checkpoint <checkpoint>
 torch.utils.cpp_extension <cpp_extension>
 torch.utils.data <data>

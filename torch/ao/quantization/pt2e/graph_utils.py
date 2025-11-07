@@ -2,8 +2,13 @@
 import itertools
 import operator
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, Union
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.export import ExportedProgram
@@ -124,6 +129,7 @@ def _get_submodule(
     graph_module: torch.fx.GraphModule, node: torch.fx.Node, arg_index: int
 ) -> tuple[str, torch.nn.Module, torch.fx.Node]:
     submod_node = node.args[arg_index]
+<<<<<<< HEAD
     if not isinstance(submod_node, torch.fx.Node):
         raise AssertionError(
             f"Expected submod_node to be a torch.fx.Node, got {type(submod_node)}"
@@ -136,6 +142,11 @@ def _get_submodule(
         raise AssertionError(
             f"Expected submod_node.target to be a string attribute name, got {type(submod_node.target)}"
         )
+=======
+    assert isinstance(submod_node, torch.fx.Node)
+    assert submod_node.op == "get_attr"
+    assert isinstance(submod_node.target, str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     submodule = graph_module.get_submodule(submod_node.target)
     # pyre-ignore
     return submod_node.target, submodule, node
@@ -170,10 +181,16 @@ def bfs_trace_with_node_process(
 ) -> None:
     """Traverse the graph module and apply node_op to each node."""
 
+<<<<<<< HEAD
     if not isinstance(model, (ExportedProgram, torch.fx.GraphModule)):
         raise AssertionError(
             f"Expected GraphModule or ExportedProgram, got {type(model)}"
         )
+=======
+    assert isinstance(model, (ExportedProgram, torch.fx.GraphModule)), (
+        f"Expected GraphModule or ExportedProgram, got {type(model)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gm = model.graph_module if isinstance(model, ExportedProgram) else model
     queue = [gm]
     while queue:

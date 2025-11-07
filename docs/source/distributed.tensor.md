@@ -100,12 +100,15 @@ DTensor supports the following types of {class}`Placement` on each {class}`Devic
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. autoclass:: MaskPartial
   :members:
   :undoc-members:
 ```
 
 ```{eval-rst}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. autoclass:: Placement
   :members:
   :undoc-members:
@@ -185,6 +188,7 @@ specifying the {class}`DeviceMesh` and {class}`Placement` for the {class}`DTenso
 
 ```
 
+<<<<<<< HEAD
 ### Random Operations
 
 DTensor provides distributed RNG functionality to ensure that random operations on sharded tensors get unique values, and random operations on replicated tensors get the same values. This system requires that all participating
@@ -197,6 +201,8 @@ When using DTensor together with Pipeline Parallelism, ranks for each pipeline s
 
 DTensor's RNG infra is based on the philox based RNG algorithm, and supports any philox based backend (cuda, and other cuda-like devices), but unfortunately does not yet support the CPU backend.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## Debugging
 
 ```{eval-rst}
@@ -266,6 +272,7 @@ these features.
 ```{eval-rst}
 .. py:module:: torch.distributed.tensor.device_mesh
 ```
+<<<<<<< HEAD
 
 ## Mixed Tensor and DTensor operations
 
@@ -336,3 +343,5 @@ can lead to silent incorrectness.
 
 - [Turning on implicit replication in Python](https://github.com/pytorch/pytorch/blob/d8e6b2fddc54c748d976e8f0ebe4b63ebe36d85b/torch/distributed/tensor/experimental/__init__.py#L15)
 - [Turning on implicit replication in C++](https://github.com/pytorch/pytorch/blob/7a0f93344e2c851b9bcf2b9c3225a323d48fde26/aten/src/ATen/DTensorState.h#L10)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

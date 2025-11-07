@@ -4,7 +4,10 @@ import argparse
 import contextlib
 import logging
 import os
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import subprocess
 import sys
 import tempfile
@@ -17,11 +20,19 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+<<<<<<< HEAD
 logger.setLevel(logging.INFO)
 
 ROOT_PATH = Path(__file__).absolute().parent.parent.parent
 REQUIREMENTS_PATH = ROOT_PATH / "requirements.txt"
 PYPROJECT_TOML_PATH = ROOT_PATH / "pyproject.toml"
+=======
+logger.setLevel(logging.DEBUG)
+
+ROOT_PATH = Path(__file__).absolute().parent.parent.parent
+SETUP_PY_PATH = ROOT_PATH / "setup.py"
+REQUIREMENTS_PATH = ROOT_PATH / "requirements.txt"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def run_cmd(
@@ -46,6 +57,7 @@ def interpreter_version(interpreter: str) -> str:
     return str(version_string.split(" ")[1])
 
 
+<<<<<<< HEAD
 def get_supported_python_versions() -> list[str]:
     """Extract supported Python versions from pyproject.toml classifiers."""
     with open(PYPROJECT_TOML_PATH) as f:
@@ -119,6 +131,8 @@ def _find_manylinux_interpreters() -> list[str]:
     return interpreters
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextlib.contextmanager
 def venv(interpreter: str) -> Iterator[str]:
     # Should this use EnvBuilder? Probably, maybe a good todo in the future
@@ -142,6 +156,7 @@ class Builder:
     def __init__(self, interpreter: str) -> None:
         self.interpreter = interpreter
 
+<<<<<<< HEAD
     def build_wheel(self, destination: str) -> bool:
         logger.info("Running bdist_wheel -d %s", destination)
         return (
@@ -163,6 +178,20 @@ class Builder:
     def clean(self) -> bool:
         logger.info("Running clean")
         return run_cmd([self.interpreter, "setup.py", "clean"]).returncode == 0
+=======
+    def setup_py(self, cmd_args: list[str]) -> bool:
+        return (
+            run_cmd([self.interpreter, str(SETUP_PY_PATH), *cmd_args]).returncode == 0
+        )
+
+    def bdist_wheel(self, destination: str) -> bool:
+        logger.info("Running bdist_wheel -d %s", destination)
+        return self.setup_py(["bdist_wheel", "-d", destination])
+
+    def clean(self) -> bool:
+        logger.info("Running clean")
+        return self.setup_py(["clean"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def install_requirements(self) -> None:
         logger.info("Installing requirements")
@@ -184,6 +213,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--find-python",
         type=str,
         choices=["manylinux"],
@@ -194,6 +224,8 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "-d",
         "--destination",
         default="dist/",
@@ -205,6 +237,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+<<<<<<< HEAD
 
     if args.find_python:
         if args.python:
@@ -225,6 +258,9 @@ def main() -> None:
     else:
         pythons = args.python or [sys.executable]
 
+=======
+    pythons = args.python or [sys.executable]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     build_times: dict[str, float] = dict()
 
     if len(pythons) > 1 and args.destination == "dist/":
@@ -242,7 +278,11 @@ def main() -> None:
 
             start_time = time.time()
 
+<<<<<<< HEAD
             builder.build_wheel(args.destination)
+=======
+            builder.bdist_wheel(args.destination)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             end_time = time.time()
 

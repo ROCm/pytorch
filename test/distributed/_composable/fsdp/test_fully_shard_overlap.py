@@ -3,29 +3,41 @@
 import copy
 import functools
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed.fsdp import fully_shard
 from torch.distributed.tensor.experimental import implicit_replication
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     skip_if_lt_x_gpu,
     skip_if_rocm_arch_multiprocess,
 )
+=======
+from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_fsdp import (
     FSDPTest,
     get_devtype,
     patch_all_gather,
     patch_reduce_scatter,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     get_cycles_per_ms,
     MI200_ARCH,
     run_tests,
     TEST_HPU,
 )
+=======
+from torch.testing._internal.common_utils import get_cycles_per_ms, run_tests, TEST_HPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 device_type = torch.device(get_devtype())
@@ -51,7 +63,10 @@ class TestFullyShardOverlap(FSDPTest):
     def world_size(self) -> int:
         return min(2, torch.get_device_module(device_type).device_count())
 
+<<<<<<< HEAD
     @skip_if_rocm_arch_multiprocess(MI200_ARCH)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @unittest.skipIf(TEST_HPU, "Sleep is not supported on HPU")
     def test_fully_shard_training_overlap(self):

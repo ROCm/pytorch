@@ -1,10 +1,14 @@
 from collections import OrderedDict
+<<<<<<< HEAD
 from typing import Any
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._C import _disabled_torch_function_impl
 
 
+<<<<<<< HEAD
 __all__ = [
     "Parameter",
     "UninitializedParameter",
@@ -15,6 +19,8 @@ __all__ = [
 ]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Metaclass to combine _TensorMeta and the instance check override for Parameter.
 class _ParameterMeta(torch._C._TensorMeta):
     # Make `isinstance(t, Parameter)` return True for custom tensor instances that have the _is_param flag.
@@ -81,7 +87,10 @@ class Parameter(torch.Tensor, metaclass=_ParameterMeta):
             memo[id(self)] = result
             return result
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __repr__(self):
         return "Parameter containing:\n" + super().__repr__()
 
@@ -144,7 +153,10 @@ class UninitializedTensorMixin:
         if dtype is None:
             dtype = self.data.dtype
         self.data = torch.empty(shape, device=device, dtype=dtype)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.__class__ = self.cls_to_become
 
     @property
@@ -168,7 +180,10 @@ class UninitializedTensorMixin:
 
     def __reduce_ex__(self, proto):
         # See Note [Don't serialize hooks]
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (self.__class__, (self.requires_grad,))
 
     @classmethod
@@ -178,7 +193,10 @@ class UninitializedTensorMixin:
         if func in cls._allowed_methods or func.__class__.__name__ == "method-wrapper":
             if kwargs is None:
                 kwargs = {}
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return super().__torch_function__(func, types, args, kwargs)
         raise ValueError(
             f"Attempted to use an uninitialized parameter in {func}. "
@@ -189,6 +207,7 @@ class UninitializedTensorMixin:
         )
 
 
+<<<<<<< HEAD
 def is_lazy(param: Any) -> bool:
     """
     Returns whether ``param`` is an ``UninitializedParameter`` or ``UninitializedBuffer``.
@@ -196,6 +215,9 @@ def is_lazy(param: Any) -> bool:
     Args:
         param (Any): the input to check.
     """
+=======
+def is_lazy(param):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return isinstance(param, UninitializedTensorMixin)
 
 
@@ -220,7 +242,10 @@ class UninitializedParameter(UninitializedTensorMixin, Parameter):
     def __new__(cls, requires_grad=True, device=None, dtype=None) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
         data = torch.empty(0, **factory_kwargs)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.Tensor._make_subclass(cls, data, requires_grad)
 
     def __deepcopy__(self, memo):
@@ -266,9 +291,13 @@ class Buffer(torch.Tensor, metaclass=_BufferMeta):
             data = torch.empty(0)
 
         t = data.detach().requires_grad_(data.requires_grad)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         t.persistent = persistent
         # pyrefly: ignore [missing-attribute]
+=======
+        t.persistent = persistent
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t._is_buffer = True
         return t
 
@@ -299,9 +328,14 @@ class UninitializedBuffer(UninitializedTensorMixin, torch.Tensor):
         factory_kwargs = {"device": device, "dtype": dtype}
         data = torch.empty(0, **factory_kwargs)
         ret = torch.Tensor._make_subclass(cls, data, requires_grad)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         ret.persistent = persistent
         # pyrefly: ignore [missing-attribute]
         ret._is_buffer = True
         # pyrefly: ignore [bad-return]
+=======
+        ret.persistent = persistent
+        ret._is_buffer = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ret

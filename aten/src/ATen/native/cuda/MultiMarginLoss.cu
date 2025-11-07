@@ -121,7 +121,10 @@ __global__ void MultiMarginLoss_backward_kernel(
     gradInput_k[target_k] = static_cast<scalar_t>(gradInput_target_k);
   }
 
+<<<<<<< HEAD
   __syncthreads();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (int i=i_start; i<i_end; i+= i_step) {
     gradInput_k[i] *= * gradOutput_k;
   }

@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_list.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -101,31 +104,51 @@ class ListTest(list_tests.CommonTest):
             list(sequence=[])
 
     def test_keywords_in_subclass(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass(list):
                 pass
+=======
+        class subclass(list):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass([1, 2])
         self.assertIs(type(u), subclass)
         self.assertEqual(list(u), [1, 2])
         with self.assertRaises(TypeError):
             subclass(sequence=())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_init(list):
                 def __init__(self, seq, newarg=None):
                     super().__init__(seq)
                     self.newarg = newarg
+=======
+        class subclass_with_init(list):
+            def __init__(self, seq, newarg=None):
+                super().__init__(seq)
+                self.newarg = newarg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_init([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_init)
         self.assertEqual(list(u), [1, 2])
         self.assertEqual(u.newarg, 3)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_new(list):
                 def __new__(cls, seq, newarg=None):
                     self = super().__new__(cls, seq)
                     self.newarg = newarg
                     return self
+=======
+        class subclass_with_new(list):
+            def __new__(cls, seq, newarg=None):
+                self = super().__new__(cls, seq)
+                self.newarg = newarg
+                return self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_new([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_new)
         self.assertEqual(list(u), [1, 2])
@@ -172,6 +195,7 @@ class ListTest(list_tests.CommonTest):
             lst *= size
 
     def test_repr_mutate(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Obj:
                 @staticmethod
@@ -181,6 +205,16 @@ class ListTest(list_tests.CommonTest):
                     except IndexError:
                         pass
                     return 'obj'
+=======
+        class Obj:
+            @staticmethod
+            def __repr__():
+                try:
+                    mylist.pop()
+                except IndexError:
+                    pass
+                return 'obj'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         mylist = [Obj() for _ in range(5)]
         self.assertEqual(repr(mylist), '[obj, obj, obj]')
@@ -276,13 +310,18 @@ class ListTest(list_tests.CommonTest):
         # Issue 8847: In the PGO build, the MSVC linker's COMDAT folding
         # optimization causes failures in code that relies on distinct
         # function addresses.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class L(list): pass
+=======
+        class L(list): pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(TypeError):
             (3,) + L([1,2])
 
     def test_equal_operator_modifying_operand(self):
         # test fix for seg fault reported in bpo-38588 part 2.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __eq__(self,other) :
@@ -298,6 +337,22 @@ class ListTest(list_tests.CommonTest):
                 def __eq__(self, other):
                     list3.clear()
                     return NotImplemented
+=======
+        class X:
+            def __eq__(self,other) :
+                list2.clear()
+                return NotImplemented
+
+        class Y:
+            def __eq__(self, other):
+                list1.clear()
+                return NotImplemented
+
+        class Z:
+            def __eq__(self, other):
+                list3.clear()
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         list1 = [X()]
         list2 = [Y()]
@@ -308,18 +363,27 @@ class ListTest(list_tests.CommonTest):
         self.assertFalse(list3 == list4)
 
     def test_lt_operator_modifying_operand(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             # See gh-120298
             class evil:
                 def __lt__(self, other):
                     other.clear()
                     return NotImplemented
+=======
+        # See gh-120298
+        class evil:
+            def __lt__(self, other):
+                other.clear()
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         a = [[evil()]]
         with self.assertRaises(TypeError):
             a[0] < a
 
     def test_list_index_modifing_operand(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             # See gh-120384
             class evil:
@@ -328,6 +392,15 @@ class ListTest(list_tests.CommonTest):
                 def __iter__(self):
                     yield from self.lst
                     self.lst.clear()
+=======
+        # See gh-120384
+        class evil:
+            def __init__(self, lst):
+                self.lst = lst
+            def __iter__(self):
+                yield from self.lst
+                self.lst.clear()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         lst = list(range(5))
         operand = evil(lst)
@@ -346,21 +419,35 @@ class ListTest(list_tests.CommonTest):
         # bpo-38610: The count(), index(), and remove() methods were not
         # holding strong references to list elements while calling
         # PyObject_RichCompareBool().
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __eq__(self, other):
                     lst.clear()
                     return NotImplemented
+=======
+        class X:
+            def __eq__(self, other):
+                lst.clear()
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         lst = [X()]
         with self.assertRaises(ValueError):
             lst.index(lst)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class L(list):
                 def __eq__(self, other):
                     str(other)
                     return NotImplemented
+=======
+        class L(list):
+            def __eq__(self, other):
+                str(other)
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         lst = L([X()])
         lst.count(lst)

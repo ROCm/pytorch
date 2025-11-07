@@ -439,7 +439,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor> mkldnn_rnn_la
 // I. Memory Formats
 //   a. mkldnn will use plain formats for input, hx/cx, output, hy/cy
 //      and possibly use blocked formats for weights depending shape info.
+<<<<<<< HEAD
 //   b. All mkldnn memories are created (in plain format) as views on ATen tensor,
+=======
+//   b. All mkldnn memorys are created (in plain format) as views on ATen tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //      the weight reorder(if any) is handed automatically inside ideep (mkldnn bridge)
 //
 // II. MKLDNN Primitive Mapping

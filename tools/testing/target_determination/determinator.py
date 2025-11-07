@@ -4,9 +4,15 @@ import sys
 from typing import Any
 
 from tools.testing.target_determination.heuristics import (
+<<<<<<< HEAD
     AggregatedHeuristics,
     HEURISTICS,
     TestPrioritizations,
+=======
+    AggregatedHeuristics as AggregatedHeuristics,
+    HEURISTICS,
+    TestPrioritizations as TestPrioritizations,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 

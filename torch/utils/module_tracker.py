@@ -49,7 +49,10 @@ class ModuleTracker:
             def my_linear(m1, m2, bias):
                 print(f"Current modules: {tracker.parents}")
                 return torch.mm(m1, m2.t()) + bias
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.nn.functional.linear = my_linear
 
             mod(torch.rand(2, 2))

@@ -2,11 +2,14 @@
 
 set -ex
 
+<<<<<<< HEAD
 # for pip_install function
 source "$(dirname "${BASH_SOURCE[0]}")/common_utils.sh"
 
 ROCM_COMPOSABLE_KERNEL_VERSION="$(cat $(dirname $0)/../ci_commit_pins/rocm-composable-kernel.txt)"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ver() {
     printf "%3d%03d%03d%03d" $(echo "$1" | tr '.' ' ');
 }
@@ -35,6 +38,7 @@ EOF
 
     # we want the patch version of 6.4 instead
     if [[ $(ver $ROCM_VERSION) -eq $(ver 6.4) ]]; then
+<<<<<<< HEAD
         ROCM_VERSION="${ROCM_VERSION}.2"
     fi
 
@@ -48,6 +52,18 @@ EOF
 
     # Add rocm repository
     wget -qO - http://repo.radeon.com/rocm/rocm.gpg.key | apt-key add -
+=======
+        ROCM_VERSION="${ROCM_VERSION}.1"
+    fi
+
+    # Add amdgpu repository
+    UBUNTU_VERSION_NAME=`cat /etc/os-release | grep UBUNTU_CODENAME | awk -F= '{print $2}'`
+    echo "deb [arch=amd64] https://repo.radeon.com/amdgpu/${ROCM_VERSION}/ubuntu ${UBUNTU_VERSION_NAME} main" > /etc/apt/sources.list.d/amdgpu.list
+
+    # Add rocm repository
+    wget -qO - http://repo.radeon.com/rocm/rocm.gpg.key | apt-key add -
+    local rocm_baseurl="http://repo.radeon.com/rocm/apt/${ROCM_VERSION}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     echo "deb [arch=amd64] ${rocm_baseurl} ${UBUNTU_VERSION_NAME} main" > /etc/apt/sources.list.d/rocm.list
     apt-get update --allow-insecure-repositories
 
@@ -60,9 +76,25 @@ EOF
                    roctracer-dev \
                    amd-smi-lib
 
+<<<<<<< HEAD
     # precompiled miopen kernels is too old and never updated from last 3+yrs so removing the logic to install
     # Also, these kernels are not generating for MI300X, MI350 and also not reliable anymore
     
+=======
+    if [[ $(ver $ROCM_VERSION) -ge $(ver 6.1) ]]; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated rocm-llvm-dev
+    fi
+
+    # precompiled miopen kernels added in ROCm 3.5, renamed in ROCm 5.5
+    # search for all unversioned packages
+    # if search fails it will abort this script; use true to avoid case where search fails
+    MIOPENHIPGFX=$(apt-cache search --names-only miopen-hip-gfx | awk '{print $1}' | grep -F -v . || true)
+    if [[ "x${MIOPENHIPGFX}" = x ]]; then
+      echo "miopen-hip-gfx package not available" && exit 1
+    else
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated ${MIOPENHIPGFX}
+    fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # ROCm 6.0 had a regression where journal_mode was enabled on the kdb files resulting in permission errors at runtime
     for kdb in /opt/rocm/share/miopen/db/*.kdb
@@ -71,6 +103,7 @@ EOF
     done
 
     # ROCm 6.3 had a regression where initializing static code objects had significant overhead
+<<<<<<< HEAD
     # CI no longer builds for ROCm 6.3, but
     # ROCm 6.4 did not yet fix the regression, also HIP branch names are different
     if [[ $(ver $ROCM_VERSION) -ge $(ver 6.4) ]] && [[ $(ver $ROCM_VERSION) -lt $(ver 7.0) ]]; then
@@ -98,12 +131,40 @@ EOF
         cmake .. -DPython3_EXECUTABLE=/opt/conda/envs/py_${ANACONDA_PYTHON_VERSION}/bin/python3 -DCLR_BUILD_HIP=ON -DHIP_COMMON_DIR=$HIP_COMMON_DIR
         make -j
         cp hipamd/lib/libamdhip64.so.6.4.* /opt/rocm/lib/libamdhip64.so.6.4.*
+=======
+    # ROCm 6.4 did not yet fix the regression, also HIP branch names are different
+    if [[ $(ver $ROCM_VERSION) -ge $(ver 6.3) ]] && [[ $(ver $ROCM_VERSION) -lt $(ver 7.0) ]]; then
+        if [[ $(ver $ROCM_VERSION) -eq $(ver 6.4.1) ]]; then
+            HIP_BRANCH=release/rocm-rel-6.4
+            VER_STR=6.4
+            VER_PATCH=.1
+        elif [[ $(ver $ROCM_VERSION) -eq $(ver 6.4) ]]; then
+            HIP_BRANCH=release/rocm-rel-6.4
+            VER_STR=6.4
+        elif [[ $(ver $ROCM_VERSION) -eq $(ver 6.3) ]]; then
+            HIP_BRANCH=rocm-6.3.x
+            VER_STR=6.3
+        fi
+        # clr build needs CppHeaderParser but can only find it using conda's python
+        /opt/conda/bin/python -m pip install CppHeaderParser
+        git clone https://github.com/ROCm/HIP -b $HIP_BRANCH
+        HIP_COMMON_DIR=$(readlink -f HIP)
+        git clone https://github.com/jeffdaily/clr -b release/rocm-rel-${VER_STR}${VER_PATCH}-statco-hotfix
+        mkdir -p clr/build
+        pushd clr/build
+        cmake .. -DCLR_BUILD_HIP=ON -DHIP_COMMON_DIR=$HIP_COMMON_DIR
+        make -j
+        cp hipamd/lib/libamdhip64.so.${VER_STR}.* /opt/rocm/lib/libamdhip64.so.${VER_STR}.*
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         popd
         rm -rf HIP clr
     fi
 
+<<<<<<< HEAD
     pip_install "git+https://github.com/rocm/composable_kernel@$ROCM_COMPOSABLE_KERNEL_VERSION"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Cleanup
     apt-get autoclean && apt-get clean
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -114,6 +175,7 @@ install_centos() {
   yum update -y
   yum install -y kmod
   yum install -y wget
+<<<<<<< HEAD
 
   if [[ $OS_VERSION == 9 ]]; then
       dnf install -y openblas-serial
@@ -150,6 +212,28 @@ install_centos() {
   else
       local rocm_baseurl="http://repo.radeon.com/rocm/yum/${ROCM_VERSION}/main"
   fi
+=======
+  yum install -y openblas-devel
+
+  yum install -y epel-release
+  yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
+
+  # Add amdgpu repository
+  local amdgpu_baseurl
+  if [[ $OS_VERSION == 9 ]]; then
+      amdgpu_baseurl="https://repo.radeon.com/amdgpu/${ROCM_VERSION}/rhel/9.0/main/x86_64"
+  else
+      amdgpu_baseurl="https://repo.radeon.com/amdgpu/${ROCM_VERSION}/rhel/7.9/main/x86_64"
+  fi
+  echo "[AMDGPU]" > /etc/yum.repos.d/amdgpu.repo
+  echo "name=AMDGPU" >> /etc/yum.repos.d/amdgpu.repo
+  echo "baseurl=${amdgpu_baseurl}" >> /etc/yum.repos.d/amdgpu.repo
+  echo "enabled=1" >> /etc/yum.repos.d/amdgpu.repo
+  echo "gpgcheck=1" >> /etc/yum.repos.d/amdgpu.repo
+  echo "gpgkey=http://repo.radeon.com/rocm/rocm.gpg.key" >> /etc/yum.repos.d/amdgpu.repo
+
+  local rocm_baseurl="http://repo.radeon.com/rocm/yum/${ROCM_VERSION}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   echo "[ROCm]" > /etc/yum.repos.d/rocm.repo
   echo "name=ROCm" >> /etc/yum.repos.d/rocm.repo
   echo "baseurl=${rocm_baseurl}" >> /etc/yum.repos.d/rocm.repo
@@ -157,6 +241,7 @@ install_centos() {
   echo "gpgcheck=1" >> /etc/yum.repos.d/rocm.repo
   echo "gpgkey=http://repo.radeon.com/rocm/rocm.gpg.key" >> /etc/yum.repos.d/rocm.repo
 
+<<<<<<< HEAD
   if [[ $OS_VERSION == 9 ]]; then
       yum update -y --nogpgcheck
       dnf --enablerepo=crb install -y perl-File-BaseDir python3-wheel
@@ -164,6 +249,11 @@ install_centos() {
   else
       yum update -y
       yum install -y \
+=======
+  yum update -y
+
+  yum install -y \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                    rocm-dev \
                    rocm-utils \
                    rocm-libs \
@@ -171,9 +261,21 @@ install_centos() {
                    rocprofiler-dev \
                    roctracer-dev \
                    amd-smi-lib
+<<<<<<< HEAD
   fi
     # precompiled miopen kernels is too old and never updated from last 3+yrs so removing the logic to install
     # Also, these kernels are not generating for MI300X, MI350 and also not reliable anymore
+=======
+
+  # precompiled miopen kernels; search for all unversioned packages
+  # if search fails it will abort this script; use true to avoid case where search fails
+  MIOPENHIPGFX=$(yum -q search miopen-hip-gfx | grep miopen-hip-gfx | awk '{print $1}'| grep -F kdb. || true)
+  if [[ "x${MIOPENHIPGFX}" = x ]]; then
+    echo "miopen-hip-gfx package not available" && exit 1
+  else
+    yum install -y ${MIOPENHIPGFX}
+  fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # ROCm 6.0 had a regression where journal_mode was enabled on the kdb files resulting in permission errors at runtime
   for kdb in /opt/rocm/share/miopen/db/*.kdb
@@ -181,8 +283,11 @@ install_centos() {
       sqlite3 $kdb "PRAGMA journal_mode=off; PRAGMA VACUUM;"
   done
 
+<<<<<<< HEAD
   pip_install "git+https://github.com/rocm/composable_kernel@$ROCM_COMPOSABLE_KERNEL_VERSION"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Cleanup
   yum clean all
   rm -rf /var/cache/yum
@@ -190,8 +295,11 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
+<<<<<<< HEAD
 OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Install Python packages depending on the base OS
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 case "$ID" in

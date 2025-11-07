@@ -64,7 +64,13 @@ def _is_symmetric_quant(qscheme: "torch.qscheme") -> bool:
 
 
 def _is_float_qparams(qscheme: "torch.qscheme") -> bool:
+<<<<<<< HEAD
     return qscheme == torch.per_channel_affine_float_qparams
+=======
+    return qscheme in [
+        torch.per_channel_affine_float_qparams,
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class FakeQuantizeBase(ABC, Module):
@@ -185,9 +191,13 @@ class FakeQuantize(FakeQuantizeBase):
                 dtype = getattr(getattr(observer, "p", {}), "keywords", {}).get(
                     "dtype", dtype
                 )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             assert torch.iinfo(dtype).min <= quant_min, "quant_min out of bound"
             # pyrefly: ignore [bad-argument-type]
+=======
+            assert torch.iinfo(dtype).min <= quant_min, "quant_min out of bound"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert quant_max <= torch.iinfo(dtype).max, "quant_max out of bound"
             observer_kwargs.update({"quant_min": quant_min, "quant_max": quant_max})
         observer_kwargs["is_dynamic"] = is_dynamic
@@ -329,7 +339,11 @@ class FixedQParamsFakeQuantize(FakeQuantize):
     # TODO: rename observer to observer_ctr
     def __init__(self, observer):
         super().__init__(observer=observer)
+<<<<<<< HEAD
         assert type(self.activation_post_process) is FixedQParamsObserver, (
+=======
+        assert type(self.activation_post_process) == FixedQParamsObserver, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{self.__class__.__name__}'s observer must be a {FixedQParamsObserver.__name__}"
         )
         self._observer_ctr = observer

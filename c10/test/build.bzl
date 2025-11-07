@@ -46,7 +46,11 @@ def define_targets(rules):
                 "util/typeid_test.cpp",
             ],
         ),
+<<<<<<< HEAD
         copts = ["-Wno-deprecated-declarations", "-Wno-ctad-maybe-unsupported"],
+=======
+        copts = ["-Wno-deprecated-declarations"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         deps = [
             ":Macros",
             ":complex_math_test_common",

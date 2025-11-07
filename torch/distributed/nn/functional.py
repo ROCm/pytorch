@@ -225,7 +225,10 @@ def all_reduce(tensor, op=ReduceOp.SUM, group=group.WORLD):
 
 class _Broadcast(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, src, group, tensor):
         ctx.src = src
         ctx.group = group
@@ -237,7 +240,10 @@ class _Broadcast(Function):
         return tensor
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         gx = _Reduce.apply(ctx.src, ReduceOp.SUM, ctx.group, grad_output)
         if ctx.src != ctx.rank:
@@ -247,7 +253,10 @@ class _Broadcast(Function):
 
 class _Gather(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, dst, group, tensor):
         ctx.dst = dst
         ctx.group = group
@@ -273,7 +282,10 @@ class _Gather(Function):
 
 class _Scatter(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, src, group, *tensors):
         ctx.src = src
         ctx.group = group
@@ -286,14 +298,20 @@ class _Scatter(Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         return (None, None) + _Gather.apply(ctx.src, ctx.group, grad_output)
 
 
 class _Reduce(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, src, op, group, tensor):
         ctx.src = src
         ctx.group = group
@@ -302,14 +320,20 @@ class _Reduce(Function):
         return tensor
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         return (None, None, None) + (_Broadcast.apply(ctx.src, ctx.group, grad_output),)
 
 
 class _Reduce_Scatter(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, op, group, tensor, *input_tensor_list):
         ctx.group = group
         # Need contiguous tensors for collectives.
@@ -319,14 +343,20 @@ class _Reduce_Scatter(Function):
         return tensor
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         return (None, None, None) + _AllGather.apply(ctx.group, grad_output)
 
 
 class _AllGather(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, group, tensor):
         # Need contiguous tensors for collectives.
         tensor = tensor.contiguous()
@@ -356,14 +386,20 @@ class _AllGather(Function):
 
 class _AllGatherBase(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, output_tensor, input_tensor, group):
         ctx.group = group
         dist._all_gather_base(output_tensor, input_tensor.contiguous(), group=group)
         return output_tensor
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         if dist.get_backend(group=ctx.group) is dist.Backend.NCCL:
             world_size = dist.get_world_size(group=ctx.group)
@@ -385,7 +421,10 @@ class _AllGatherBase(Function):
 
 class _AlltoAll(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, group, out_tensor_list, *tensors):
         ctx.group = group
         ctx.input_tensor_size_list = [
@@ -421,7 +460,10 @@ class _AlltoAll(Function):
 
 class _AlltoAllSingle(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, group, output, output_split_sizes, input_split_sizes, input):
         ctx.group = group
         ctx.input_size = input.size()
@@ -437,7 +479,10 @@ class _AlltoAllSingle(Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         tensor = torch.empty(
             ctx.input_size, device=grad_output.device, dtype=grad_output.dtype
@@ -455,7 +500,10 @@ class _AlltoAllSingle(Function):
 
 class _AllReduce(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, op, group, tensor):
         ctx.group = group
         ctx.op = op
@@ -464,6 +512,9 @@ class _AllReduce(Function):
         return tensor
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         return (None, None) + (_AllReduce.apply(ctx.op, ctx.group, grad_output),)

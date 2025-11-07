@@ -1128,6 +1128,12 @@ def forward(self, y_1, x_1):
             a = _a.item()
             b = _b.item()
             stride = _stride.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(a)
+            torch._check_is_size(b)
+            torch._check_is_size(stride)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ta = torch.randn(a * stride)
             tb = torch.randn(b * stride)
             r = torch.cat([ta, tb])
@@ -1367,8 +1373,13 @@ def forward(self, crop_camera_1, mask_1):
     view_1 = torch.ops.aten.view.default(expand_1, [sym_size_int, sym_size_int_1, sym_size_int_2]);  expand_1 = sym_size_int_1 = sym_size_int_2 = None
     bmm = torch.ops.aten.bmm.default(view, view_1);  view = view_1 = None
     view_2 = torch.ops.aten.view.default(bmm, [sym_size_int, 3, 3]);  bmm = None
+<<<<<<< HEAD
     mul_9 = sym_size_int * 3
     view_3 = torch.ops.aten.view.default(view_2, [mul_9, 3]);  view_2 = mul_9 = None
+=======
+    mul_6 = sym_size_int * 3
+    view_3 = torch.ops.aten.view.default(view_2, [mul_6, 3]);  view_2 = mul_6 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mm = torch.ops.aten.mm.default(view_3, eye);  view_3 = eye = None
     _unsafe_view = torch.ops.aten._unsafe_view.default(mm, [sym_size_int, 3, 3]);  mm = sym_size_int = None
     index_put_ = torch.ops.aten.index_put_.default(crop_camera_1, [mask_1], _unsafe_view);  crop_camera_1 = mask_1 = _unsafe_view = index_put_ = None
@@ -1473,9 +1484,15 @@ def forward(self, x_1, y_1):
         # See https://github.com/pytorch/pytorch/issues/123651
         def f(x):
             i0 = x.item()
+<<<<<<< HEAD
             # To trigger the original issue, the max bound has to
             # be chosen such that 448 / 447 < 2 (which it is.)
             torch._check(i0 > 0)
+=======
+            torch._check_is_size(i0)
+            # To trigger the original issue, the max bound has to
+            # be chosen such that 448 / 447 < 2 (which it is.)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._check(i0 <= 448)
             return torch.zeros(256 * i0).view(-1, 447)
         make_fx(f, tracing_mode="symbolic")(torch.tensor(256 * 447, device="cuda"))
@@ -1556,6 +1573,12 @@ def forward(self, x_1, y_1):
         def f(lengths, values):
             # tolist not directly supported atm
             sizes = [lengths[i].item() for i in range(lengths.size(0))]
+<<<<<<< HEAD
+=======
+            for s in sizes:
+                # TODO(avik): no assertion generated with torch._check_is_size?
+                torch._constrain_as_size(s)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return torch.split(values, sizes)
 
         r = str(make_fx(f, tracing_mode="symbolic")(
@@ -1570,6 +1593,12 @@ def forward(self, lengths_1, values_1):
     _local_scalar_dense_1 = torch.ops.aten._local_scalar_dense.default(select_1);  select_1 = None
     select_2 = torch.ops.aten.select.int(lengths_1, 0, 2);  lengths_1 = None
     _local_scalar_dense_2 = torch.ops.aten._local_scalar_dense.default(select_2);  select_2 = None
+<<<<<<< HEAD
+=======
+    sym_constrain_range_for_size = torch.ops.aten.sym_constrain_range_for_size.default(_local_scalar_dense);  sym_constrain_range_for_size = None
+    sym_constrain_range_for_size_1 = torch.ops.aten.sym_constrain_range_for_size.default(_local_scalar_dense_1);  sym_constrain_range_for_size_1 = None
+    sym_constrain_range_for_size_2 = torch.ops.aten.sym_constrain_range_for_size.default(_local_scalar_dense_2);  sym_constrain_range_for_size_2 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     split_with_sizes = torch.ops.aten.split_with_sizes.default(values_1, [_local_scalar_dense, _local_scalar_dense_1, _local_scalar_dense_2]);  values_1 = _local_scalar_dense = _local_scalar_dense_1 = _local_scalar_dense_2 = None
     getitem = split_with_sizes[0]
     getitem_1 = split_with_sizes[1]
@@ -1858,7 +1887,11 @@ L['a'].size()[1] > L['a'].size()[0]
             show_guards(tensor),
             """\
 L['a'].size()[1] < L['a'].size()[0]
+<<<<<<< HEAD
 3 <= L['a'].size()[0] and L['a'].size()[0] <= 19
+=======
+L['a'].size()[0] <= 19
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 L['a'].size()[1] <= 18""")
 
     def test_sym_storage_offset(self):
@@ -1964,6 +1997,10 @@ make_fx_failures = {
     skip('item'),
     xfail('cov'),
     xfail('nn.functional.gaussian_nll_loss'),
+<<<<<<< HEAD
+=======
+    xfail('tensor_split'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail('corrcoef'),
     xfail('quantile'),
     xfail('nanquantile'),
@@ -1983,12 +2020,18 @@ make_fx_failures = {
 
 only_real_tensor_failures = {
     xfail('narrow'),
+<<<<<<< HEAD
     xfail('tensor_split'),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 only_fake_tensor_failures = {
     xfail('narrow'),
+<<<<<<< HEAD
     xfail('tensor_split'),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 fake_tensor_failures = set()

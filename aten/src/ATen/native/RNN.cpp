@@ -108,6 +108,7 @@ bool use_mkldnn(const Tensor& input, TensorList params, TensorList hx) {
   return false;
 }
 
+<<<<<<< HEAD
 bool use_cudnn(const Tensor& t) {
   bool acceptable = at::cudnn_is_acceptable(t);
   auto st = t.scalar_type();
@@ -115,6 +116,8 @@ bool use_cudnn(const Tensor& t) {
   return acceptable && (bfloat16_cond || st == kDouble || st == kFloat || st == kHalf);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<typename T>
 using pair_of = std::pair<T, T>;
 
@@ -538,7 +541,11 @@ c10::intrusive_ptr<CellParamsBase> make_quantized_cell_params_fp16(
       std::move(w_ih_packed), std::move(w_hh_packed));
 }
 
+<<<<<<< HEAD
 std::unordered_map<
+=======
+static std::unordered_map<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::string,
     c10::intrusive_ptr<CellParamsBase> (*)(CellParamsSerializationType)>
     cell_params_deserializers = {
@@ -578,7 +585,11 @@ struct QRNNCellParamsWrapper {
 
 // Gathers every two elements of a vector in a vector of pairs
 template<typename T>
+<<<<<<< HEAD
 std::vector<pair_of<T>> pair_vec(const std::vector<T>& vals) {
+=======
+static std::vector<pair_of<T>> pair_vec(const std::vector<T>& vals) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(vals.size() % 2 == 0, "Odd number of params or hiddens given to a bidirectional RNN");
   std::vector<pair_of<T>> result;
   result.reserve(vals.size() / 2);
@@ -590,7 +601,11 @@ std::vector<pair_of<T>> pair_vec(const std::vector<T>& vals) {
 
 // Flattens a vector of pairs
 template<typename T>
+<<<<<<< HEAD
 std::vector<T> unpair_vec(std::vector<pair_of<T>>&& vals) {
+=======
+static std::vector<T> unpair_vec(std::vector<pair_of<T>>&& vals) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<T> result;
   result.reserve(vals.size() * 2);
   for (const auto i : c10::irange(vals.size())) {
@@ -601,7 +616,11 @@ std::vector<T> unpair_vec(std::vector<pair_of<T>>&& vals) {
 }
 
 // Parses a flat list of parameter tensors into a list of CellParams
+<<<<<<< HEAD
 std::vector<CellParams> gather_params(TensorList params, bool has_biases, bool has_projections = false) {
+=======
+static std::vector<CellParams> gather_params(TensorList params, bool has_biases, bool has_projections = false) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static at::Tensor undefined;
   std::vector<CellParams> result;
   if (has_biases) {
@@ -1207,7 +1226,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> _thnn_fused_lstm_cell_backwar
       bool train,                                                           \
       bool bidirectional,                                                   \
       bool batch_first) {                                                   \
+<<<<<<< HEAD
     if (use_cudnn(_input)) {                                                \
+=======
+    if (at::cudnn_is_acceptable(_input)) {                                  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       Tensor output, hy;                                                    \
       NAME##_cudnn_stub(                                                    \
           _input.device().type(),                                           \
@@ -1269,7 +1292,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> _thnn_fused_lstm_cell_backwar
       double dropout_p,                                                     \
       bool train,                                                           \
       bool bidirectional) {                                                 \
+<<<<<<< HEAD
     if (use_cudnn(data)) {                                                  \
+=======
+    if (at::cudnn_is_acceptable(data)) {                                    \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       Tensor output, hy;                                                    \
       NAME##_packed_cudnn_stub(                                             \
           data.device().type(),                                             \
@@ -1437,7 +1464,11 @@ std::tuple<Tensor, Tensor, Tensor> lstm(
       TensorList _params, bool has_biases,
       int64_t num_layers, double dropout_p, bool train, bool bidirectional, bool batch_first) {
   TORCH_CHECK(hx.size() == 2, "lstm expects two hidden states");
+<<<<<<< HEAD
   if (use_cudnn(_input)) {
+=======
+  if (at::cudnn_is_acceptable(_input)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor output, hy, cy;
     lstm_cudnn_stub(_input.device().type(), output, hy, cy, _input, hx, _params, has_biases,
             num_layers, dropout_p, train, bidirectional, batch_first);
@@ -1498,7 +1529,11 @@ std::tuple<Tensor, Tensor, Tensor> lstm(
       TensorList _params, bool has_biases,
       int64_t num_layers, double dropout_p, bool train, bool bidirectional) {
   TORCH_CHECK(hx.size() == 2, "lstm expects two hidden states");
+<<<<<<< HEAD
   if (use_cudnn(data)) {
+=======
+  if (at::cudnn_is_acceptable(data)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor output, hy, cy;
     lstm_packed_cudnn_stub(data.device().type(), output, hy, cy, data, batch_sizes, hx,
             _params, has_biases, num_layers, dropout_p, train, bidirectional);
@@ -1894,10 +1929,17 @@ static DEFINE_QUANTIZED_RNN_CELL_DYNAMIC(quantized_rnn_tanh_cell_dynamic, simple
 
 namespace {
 
+<<<<<<< HEAD
 [[maybe_unused]] auto ensure_linear_params_registered =
     register_linear_params();
 
 auto cell_params_base_registry =
+=======
+[[maybe_unused]] static auto ensure_linear_params_registered =
+    register_linear_params();
+
+static auto cell_params_base_registry =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::selective_class_<CellParamsBase>("rnn", TORCH_SELECTIVE_CLASS("CellParamsBase"))
         .def_pickle(
             [](const c10::intrusive_ptr<CellParamsBase>& self)

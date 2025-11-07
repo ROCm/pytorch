@@ -1,7 +1,12 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 """Light smoke test switching between numpy to pytorch random streams."""
 
+=======
+"""Light smoke test switching between numpy to pytorch random streams.
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from functools import partial
 

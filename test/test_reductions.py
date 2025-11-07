@@ -735,7 +735,11 @@ class TestReductions(TestCase):
         res2 = x1.sum(axis=(0, 2), keepdims=True)
         self.assertEqual(res1, res2)
 
+<<<<<<< HEAD
     # TODO: kill this and replace with common creation ops
+=======
+    # TODO: kill this ane replace with common creation ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _make_tensors(self, shape, val_range=(-100, 100), use_floating=True, use_integral=True,
                       use_complex=False) -> dict[str, list[torch.Tensor]]:
         float_types = [torch.double,
@@ -1629,7 +1633,11 @@ class TestReductions(TestCase):
                 RuntimeError, "only when boundaries tensor dimension is 1"):
             torch.searchsorted(boundaries, 1)
 
+<<<<<<< HEAD
         # incompatible output tensor's dtype
+=======
+        # incompatiable output tensor's dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_output_dtype(dtype, is_int32):
             output = values_1d.to(dtype)
             with self.assertRaisesRegex(
@@ -1710,7 +1718,11 @@ class TestReductions(TestCase):
                                             with_extremal=False, atol=None, rtol=None,
                                             exact_dtype=True, with_keepdim=False):
         # Test 0-d to 3-d tensors.
+<<<<<<< HEAD
         for ndims in range(4):
+=======
+        for ndims in range(0, 4):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shape = _rand_shape(ndims, min_size=5, max_size=10)
             for n in range(ndims + 1):
                 for c in combinations(list(range(ndims)), n):
@@ -1899,7 +1911,11 @@ class TestReductions(TestCase):
         # Note [all, any uint8 compatibility]: However for compatibility reason,
         # for `uint8`, they return Tensor of same dtype `uint8`.
         # Reference: https://github.com/pytorch/pytorch/pull/47878#issuecomment-747108561
+<<<<<<< HEAD
         exact_dtype = dtype != torch.uint8
+=======
+        exact_dtype = True if dtype != torch.uint8 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def _test_all_any(x):
             self.compare_with_numpy(torch.all, np.all, x)
@@ -2018,7 +2034,11 @@ class TestReductions(TestCase):
                 with self.assertRaisesRegex(RuntimeError, error_msg):
                     op(x, dim=dim)
 
+<<<<<<< HEAD
     # TODO: update this test to compare against NumPy
+=======
+    # TODO: update this test to comapre against NumPy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     def test_var(self, device):
         cpu_tensor = torch.randn(2, 3, 3)
@@ -2513,7 +2533,11 @@ class TestReductions(TestCase):
             k = int((t.numel() - 1) / 2)
             self.assertEqual(res, t.view(-1).sort()[0][k])
             if t.numel() % 2 == 1:
+<<<<<<< HEAD
                 # We can only test against numpy for odd reductions because numpy
+=======
+                # We can only test agains numpy for odd reductions because numpy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # returns the mean of the two medians and torch returns the lower
                 self.assertEqual(res.cpu().numpy(), np.median(t_numpy))
             for dim in range(t.ndim):
@@ -2524,7 +2548,11 @@ class TestReductions(TestCase):
                 self.assertEqual(res[0], (t.sort(dim)[0]).select(dim, k).unsqueeze_(dim))
                 self.assertEqual(res[0], t.gather(dim, res[1]))
                 if size % 2 == 1:
+<<<<<<< HEAD
                     # We can only test against numpy for odd reductions because numpy
+=======
+                    # We can only test agains numpy for odd reductions because numpy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # returns the mean of the two medians and torch returns the lower
                     self.assertEqual(res[0].cpu().numpy(), np.median(t_numpy, dim, keepdims=True), exact_dtype=False)
 
@@ -2548,7 +2576,11 @@ class TestReductions(TestCase):
                     k = int((t.numel() - num_nan - 1) / 2)
                 self.assertEqual(res, t.view(-1).sort()[0][k])
                 if (t.numel() - num_nan) % 2 == 1:
+<<<<<<< HEAD
                     # We can only test against numpy for odd reductions because numpy
+=======
+                    # We can only test agains numpy for odd reductions because numpy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # returns the mean of the two medians and torch returns the lower
                     self.assertEqual(res.item(), numpy_op(t.cpu().numpy()))
                 for dim in range(t.ndim):
@@ -2561,7 +2593,11 @@ class TestReductions(TestCase):
                         k = ((size - num_nan - 1) / 2).type(torch.long)
                     self.assertEqual(res[0], (t.sort(dim)[0]).gather(dim, k))
                     self.assertEqual(res[0], t.gather(dim, res[1]))
+<<<<<<< HEAD
                     # We can only test against numpy for odd reductions because numpy
+=======
+                    # We can only test agains numpy for odd reductions because numpy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # returns the mean of the two medians and torch returns the lower
                     mask = (size - num_nan) % 2 == 1
                     res = res[0].masked_select(mask).cpu()
@@ -2623,7 +2659,11 @@ class TestReductions(TestCase):
         # Generate some random test cases
         ops = ['quantile', 'nanquantile']
         inputs = [tuple(np.random.randint(2, 10, size=i)) for i in range(1, 4)]
+<<<<<<< HEAD
         quantiles = [tuple(np.random.rand(i)) for i in range(5)]
+=======
+        quantiles = [tuple(np.random.rand(i)) for i in range(0, 5)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         keepdims = [True, False]
 
         # Add corner cases
@@ -3047,6 +3087,7 @@ class TestReductions(TestCase):
             torch.tensor([1], dtype=torch.float, device=device),
             actual)
         # tensors with inf; min, max not provided -- should throw a RuntimeError
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, r'range of \[[\w,+\-\.\ ]+\] is not finite'):
             torch.histc(torch.tensor([float("inf")], dtype=torch.float, device=device))
         with self.assertRaisesRegex(RuntimeError, r'range of \[[\w,+\-\.\ ]+\] is not finite'):
@@ -3054,6 +3095,11 @@ class TestReductions(TestCase):
         with self.assertRaisesRegex(RuntimeError, r'range of \[[\w,+\-\.\ ]+\] is not finite'):
             torch.histc(torch.tensor([float("-inf"), float("inf")], dtype=torch.float, device=device))
         with self.assertRaisesRegex(RuntimeError, r'range of \[[\w,+\-\.\ ]+\] is not finite'):
+=======
+        with self.assertRaisesRegex(RuntimeError, r'range of \[inf, inf\] is not finite'):
+            torch.histc(torch.tensor([float("inf")], dtype=torch.float, device=device))
+        with self.assertRaisesRegex(RuntimeError, r'range of \[1, inf\] is not finite'):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.histc(torch.tensor([1., 2., float("inf")], dtype=torch.float, device=device))
         # tensors with inf; min, max provided
         self.assertEqual(
@@ -3134,6 +3180,7 @@ class TestReductions(TestCase):
             torch.tensor([2, 0, 0, 1], dtype=dtype, device=device),
             actual)
 
+<<<<<<< HEAD
     @onlyCPU
     @dtypes(torch.float, torch.double)
     def test_histc_value_corner_cases(self, device, dtype):
@@ -3148,6 +3195,8 @@ class TestReductions(TestCase):
             bins=4)
         self.assertEqual(3.0, actual.sum())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     @dtypes(torch.uint8, torch.int8, torch.int, torch.long)
     def test_histc_min_max_corner_cases_cuda(self, device, dtype):
@@ -3327,7 +3376,11 @@ class TestReductions(TestCase):
     """
     def _test_histogramdd_numpy(self, t, bins, bin_range, weights, density):
         def to_np(t):
+<<<<<<< HEAD
             if type(t) is list:
+=======
+            if type(t) == list:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return list(map(to_np, t))
             if not torch.is_tensor(t):
                 return t
@@ -3544,7 +3597,11 @@ as the input tensor excluding its innermost dimension'):
     # raises an error if no `dim` parameter is specified. This exists separately from tests in
     # test_tensot_compare_ops_empty because not specifying a `dim` parameter in the former tests does
     # not throw errors. Also, checking the return type of argmax requires supplying a different dtype
+<<<<<<< HEAD
     # argument than that for the input tensor. There is also variation in numpy testing.
+=======
+    # argument than that for the input tensor. There is also variantion in numpy testing.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tensor_compare_ops_argmax_argmix_kthvalue_dim_empty(self, device):
         shape = (2, 0, 4)
         master_input = torch.randn(shape, device=device)

@@ -12,19 +12,27 @@ from itertools import product
 import numpy as np
 
 import torch
+<<<<<<< HEAD
 import torch._inductor.decomposition
 from torch._higher_order_ops.out_dtype import out_dtype
 from torch.fx.experimental.proxy_tensor import make_fx
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing import make_tensor
 from torch.testing._internal.common_device_type import (
     dtypes,
     instantiate_device_type_tests,
+<<<<<<< HEAD
     onlyNativeDeviceTypes,
     precisionOverride,
 )
 from torch.testing._internal.common_quantization import (
     _dynamically_quantize_per_channel,
 )
+=======
+    precisionOverride,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     iter_indices,
     parametrize,
@@ -238,7 +246,11 @@ class TestBasicGEMM(TestCase):
                 )
 
     @precisionOverride({torch.float: 1e-4, torch.double: 1e-6, torch.half: 1e-1})
+<<<<<<< HEAD
     @dtypes(torch.float32, torch.half, torch.double, torch.complex64)
+=======
+    @dtypes(torch.float32, torch.half, torch.double)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.05)
     def test_addmm(self, device, dtype):
         self._test_addmm_impl(torch.addmm, None, device, dtype)
@@ -313,7 +325,10 @@ class TestBasicGEMM(TestCase):
         torch.half,
         torch.float32,
         torch.float64,
+<<<<<<< HEAD
         torch.complex64,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     @tf32_on_and_off(0.05)
     def test_mm(self, device, dtype):
@@ -417,7 +432,11 @@ class TestBasicGEMM(TestCase):
             _test_mm(n, m, p, dtype, genf)
 
     @precisionOverride({torch.half: 0.05, torch.bfloat16: 0.05})
+<<<<<<< HEAD
     @dtypes(torch.float32, torch.bfloat16, torch.half, torch.float64, torch.complex64)
+=======
+    @dtypes(torch.float32, torch.bfloat16, torch.half, torch.float64)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.05)
     def test_bmm(self, device, dtype):
         batch_sizes = [1, 10]
@@ -534,7 +553,11 @@ class TestBasicGEMM(TestCase):
         self.assertEqual(res7, ref)
 
     @precisionOverride({torch.half: 0.05, torch.bfloat16: 0.05})
+<<<<<<< HEAD
     @dtypes(torch.float64, torch.float32, torch.bfloat16, torch.half, torch.complex64)
+=======
+    @dtypes(torch.float64, torch.float32, torch.bfloat16, torch.half)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.005)
     def test_addbmm(self, device, dtype):
         num_batches = 2
@@ -638,7 +661,11 @@ class TestBasicGEMM(TestCase):
             self._test_addbmm_baddbmm("addbmm", b1, b2, ref, out_tensor)
 
     @precisionOverride({torch.half: 0.1, torch.bfloat16: 0.5, torch.float64: 1e-6})
+<<<<<<< HEAD
     @dtypes(torch.float64, torch.float32, torch.bfloat16, torch.half, torch.complex64)
+=======
+    @dtypes(torch.float64, torch.float32, torch.bfloat16, torch.half)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.01)
     def test_baddbmm(self, device, dtype):
         num_batches = 10
@@ -1372,6 +1399,7 @@ class TestBasicGEMM(TestCase):
         cpu_out = torch.matmul(a.cpu(), b.cpu())
         self.assertEqual(gpu_out.cpu(), cpu_out)
 
+<<<<<<< HEAD
     @parametrize("m", [0, 8, 17])
     @parametrize("k", [0, 16, 32])
     @parametrize("n", [16, 32])
@@ -1495,6 +1523,8 @@ def forward(self, x_1, w_1):
         mean_err = ((res - ref).abs() / ref).mean()
         self.assertTrue(mean_err < 0.05)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(TestBasicGEMM, globals(), only_for="xpu", allow_xpu=True)
 

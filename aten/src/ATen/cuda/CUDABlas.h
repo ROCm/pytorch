@@ -14,7 +14,10 @@
  */
 
 #include <ATen/cuda/CUDAContext.h>
+<<<<<<< HEAD
 #include <ATen/BlasBackend.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/OpMathType.h>
 
 namespace at::cuda::blas {
@@ -148,13 +151,19 @@ void scaled_gemm(
     int64_t mat1_ld,
     ScalarType mat1_dtype,
     ScalarType mat1_scale_dtype,
+<<<<<<< HEAD
     at::blas::ScalingType mat1_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const void* mat2_ptr,
     const void* mat2_scale_ptr,
     int64_t mat2_ld,
     ScalarType mat2_dtype,
     ScalarType mat2_scale_dtype,
+<<<<<<< HEAD
     at::blas::ScalingType mat2_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const void* bias_ptr,
     ScalarType bias_dtype,
     void* result_ptr,
@@ -162,7 +171,11 @@ void scaled_gemm(
     int64_t result_ld,
     ScalarType result_dtype,
     bool use_fast_accum,
+<<<<<<< HEAD
     const std::optional<Tensor>& alpha);
+=======
+    bool use_rowwise);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define CUDABLAS_BGEMM_ARGTYPES(Dtype)  CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(Dtype, Dtype)
 
@@ -336,6 +349,12 @@ void vdot<c10::complex<double>>(CUDABLAS_DOT_ARGTYPES(c10::complex<double>));
   int m, int n, int nrhs, Dtype** dA_array, int ldda, \
   Dtype** dC_array, int lddc, int* info, int *devInfoArray, int batchSize
 
+<<<<<<< HEAD
+=======
+// HIP on Windows does not support getrs, geqrf, getrf, gels
+#if !(defined(USE_ROCM) && defined(_MSC_VER))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<class Dtype>
 void getrsBatched(CUDABLAS_GETRS_ARGTYPES(Dtype)) {
   static_assert(false&&sizeof(Dtype),"at::cuda::blas::getrsBatched: not implemented");
@@ -390,4 +409,31 @@ TORCH_CUDA_CU_API void gelsBatched<c10::complex<double>>(CUDABLAS_GELS_BATCHED_A
 template<>
 TORCH_CUDA_CU_API void gelsBatched<c10::complex<float>>(CUDABLAS_GELS_BATCHED_ARGTYPES(c10::complex<float>));
 
+<<<<<<< HEAD
+=======
+#else // !(defined(USE_ROCM) && defined(_MSC_VER))
+
+template<class Dtype>
+void getrsBatched(CUDABLAS_GETRS_ARGTYPES(Dtype)) {
+  TORCH_CHECK(false, "at::cuda::blas::getrsBatched: not supported for HIP on Windows");
+}
+
+template <class Dtype>
+void geqrfBatched(CUDABLAS_GEQRF_BATCHED_ARGTYPES(Dtype)) {
+  TORCH_CHECK(false, "at::cuda::blas::geqrfBatched: not supported for HIP on Windows");
+}
+
+template<class Dtype>
+void getrfBatched(CUDABLAS_GETRF_ARGTYPES(Dtype)) {
+  TORCH_CHECK(false, "at::cuda::blas::getrfBatched: not supported for HIP on Windows");
+}
+
+template <class Dtype>
+void gelsBatched(CUDABLAS_GELS_BATCHED_ARGTYPES(Dtype)) {
+  TORCH_CHECK(false, "at::cuda::blas::gelsBatched: not supported for HIP on Windows");
+}
+
+#endif // !(defined(USE_ROCM) && defined(_MSC_VER))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::cuda::blas

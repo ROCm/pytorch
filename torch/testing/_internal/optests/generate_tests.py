@@ -10,8 +10,13 @@ import re
 import tempfile
 import threading
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, Union
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo

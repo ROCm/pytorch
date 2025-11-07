@@ -7,9 +7,14 @@
 # LICENSE file in the root directory of this source tree.
 
 import contextlib
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import partial, wraps
 from typing import Any, Optional, Union
+=======
+from functools import partial, wraps
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.autograd.forward_ad as fwAD
@@ -234,7 +239,11 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
         >>> x = torch.randn([5])
         >>> f = lambda x: x.sin().sum()
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
+<<<<<<< HEAD
         >>> grad = vjpfunc(torch.tensor(1.0))[0]
+=======
+        >>> grad = vjpfunc(torch.tensor(1.))[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> assert torch.allclose(grad, torch.func.grad(f)(x))
 
     However, :func:`vjp` can support functions with multiple outputs by
@@ -249,9 +258,15 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
     :func:`vjp` can even support outputs being Python structs
 
         >>> x = torch.randn([5])
+<<<<<<< HEAD
         >>> f = lambda x: {"first": x.sin(), "second": x.cos()}
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
         >>> cotangents = {"first": torch.ones([5]), "second": torch.ones([5])}
+=======
+        >>> f = lambda x: {'first': x.sin(), 'second': x.cos()}
+        >>> (_, vjpfunc) = torch.func.vjp(f, x)
+        >>> cotangents = {'first': torch.ones([5]), 'second': torch.ones([5])}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> vjps = vjpfunc(cotangents)
         >>> assert torch.allclose(vjps[0], x.cos() + -x.sin())
 
@@ -275,7 +290,11 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
         >>>
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
         >>> vjps = vjpfunc(torch.ones_like(x))
+<<<<<<< HEAD
         >>> assert torch.allclose(vjps[0], torch.full(x.shape, 4.0))
+=======
+        >>> assert torch.allclose(vjps[0], torch.full(x.shape, 4.))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note::
         Using PyTorch ``torch.no_grad`` together with ``vjp``.
@@ -931,7 +950,12 @@ def assert_output_is_tensor_or_tensors(output: Any, api: str) -> None:
         return
     if not isinstance(output, tuple):
         raise RuntimeError(
+<<<<<<< HEAD
             f"{api}: Expected output of f to be a Tensor or Tensors, got {type(output)}"
+=======
+            f"{api}: Expected output of f to be a Tensor or Tensors, got "
+            f"{type(output)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if len(output) == 0:
         raise RuntimeError(
@@ -1023,10 +1047,17 @@ def jvp(
 
         >>> from torch.func import jvp
         >>> x = torch.randn([])
+<<<<<<< HEAD
         >>> f = lambda x: x * torch.tensor([1.0, 2.0, 3])
         >>> value, grad = jvp(f, (x,), (torch.tensor(1.0),))
         >>> assert torch.allclose(value, f(x))
         >>> assert torch.allclose(grad, torch.tensor([1.0, 2, 3]))
+=======
+        >>> f = lambda x: x * torch.tensor([1., 2., 3])
+        >>> value, grad = jvp(f, (x,), (torch.tensor(1.),))
+        >>> assert torch.allclose(value, f(x))
+        >>> assert torch.allclose(grad, torch.tensor([1., 2, 3]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     :func:`jvp` can support functions with multiple inputs by passing in the
     tangents for each of the inputs
@@ -1594,7 +1625,11 @@ def functionalize(func: Callable, *, remove: str = "mutations") -> Callable:
           If you call `functionalize(f)` on a function that takes views / mutations of
           non-local state, functionalization will simply no-op and pass the view/mutation
           calls directly to the backend.
+<<<<<<< HEAD
           One way to work around this is to ensure that any non-local state creation
+=======
+          One way to work around this is is to ensure that any non-local state creation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           is wrapped into a larger function, which you then call functionalize on.
       (3) `resize_()` has some limitations: functionalize will only work on programs
           that use resize_()` as long as the tensor being resized is not a view.

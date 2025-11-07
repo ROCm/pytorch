@@ -42,7 +42,10 @@ class Embedding(nn.Embedding, ReferenceQuantizedModule):
             scale_grad_by_freq,
             sparse,
             _weight,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device,
             dtype,
         )

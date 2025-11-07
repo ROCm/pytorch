@@ -6,17 +6,31 @@ from typing import Any
 @functools.cache
 def has_triton_package() -> bool:
     try:
+<<<<<<< HEAD
         import triton  # noqa: F401
 
         return True
     except ImportError:
         return False
+=======
+        from triton.compiler.compiler import triton_key
+
+        return triton_key is not None
+    except ImportError:
+        return False
+    except RuntimeError:
+        return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @functools.cache
 def get_triton_version(fallback: tuple[int, int] = (0, 0)) -> tuple[int, int]:
     try:
+<<<<<<< HEAD
         import triton
+=======
+        import triton  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         major, minor = tuple(int(v) for v in triton.__version__.split(".")[:2])
         return (major, minor)
@@ -82,7 +96,11 @@ def has_triton_tma_device() -> bool:
             torch.cuda.is_available()
             and torch.cuda.get_device_capability() >= (9, 0)
             and not torch.version.hip
+<<<<<<< HEAD
         ) or torch.xpu.is_available():
+=======
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # old API
             try:
                 from triton.language.extra.cuda import (  # noqa: F401
@@ -105,6 +123,7 @@ def has_triton_tma_device() -> bool:
     return False
 
 
+<<<<<<< HEAD
 @functools.cache
 def has_datacenter_blackwell_tma_device() -> bool:
     import torch
@@ -120,6 +139,8 @@ def has_datacenter_blackwell_tma_device() -> bool:
     return False
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache(None)
 def has_triton_stable_tma_api() -> bool:
     if has_triton_package():
@@ -129,7 +150,11 @@ def has_triton_stable_tma_api() -> bool:
             torch.cuda.is_available()
             and torch.cuda.get_device_capability() >= (9, 0)
             and not torch.version.hip
+<<<<<<< HEAD
         ) or torch.xpu.is_available():
+=======
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 from triton.language import make_tensor_descriptor  # noqa: F401
 
@@ -144,11 +169,14 @@ def has_triton() -> bool:
     if not has_triton_package():
         return False
 
+<<<<<<< HEAD
     from torch._inductor.config import triton_disable_device_detection
 
     if triton_disable_device_detection:
         return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._dynamo.device_interface import get_interface_for_device
 
     def cuda_extra_check(device_interface: Any) -> bool:
@@ -166,7 +194,10 @@ def has_triton() -> bool:
         "cuda": cuda_extra_check,
         "xpu": _return_true,
         "cpu": cpu_extra_check,
+<<<<<<< HEAD
         "mtia": _return_true,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     def is_device_compatible_with_triton() -> bool:
@@ -190,7 +221,11 @@ def triton_backend() -> Any:
 
 @functools.cache
 def triton_hash_with_backend() -> str:
+<<<<<<< HEAD
     from torch._inductor.runtime.triton_compat import triton_key
+=======
+    from triton.compiler.compiler import triton_key
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     backend = triton_backend()
     key = f"{triton_key()}-{backend.hash()}"

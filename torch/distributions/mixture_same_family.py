@@ -124,7 +124,10 @@ class MixtureSameFamily(Distribution):
         return new
 
     @constraints.dependent_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         return MixtureSameFamilyConstraint(self._component_distribution.support)
 

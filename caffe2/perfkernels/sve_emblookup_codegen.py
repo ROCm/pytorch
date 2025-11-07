@@ -38,7 +38,11 @@ def unroll(num_unrolls, IndexType, InType, OutType):
     code = []
 
     if num_unrolls == 1:
+<<<<<<< HEAD
         code.append("    // tail loop")
+=======
+        code.append(f"    // tail loop")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code.append("    if (j < end_offset) {")
     else:
         code.append(f"    // unrolling {num_unrolls} times")

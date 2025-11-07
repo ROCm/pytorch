@@ -11,7 +11,11 @@
 #include <string>
 
 PyObject* THPLayout_New(at::Layout layout, const std::string& name) {
+<<<<<<< HEAD
   auto type = &THPLayoutType;
+=======
+  auto type = (PyTypeObject*)&THPLayoutType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{type->tp_alloc(type, 0)};
   if (!self)
     throw python_error();
@@ -36,7 +40,11 @@ PyTypeObject THPLayoutType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPLayout_repr), /* tp_repr */
+=======
+    (reprfunc)THPLayout_repr, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
@@ -72,8 +80,12 @@ void THPLayout_init(PyObject* module) {
     throw python_error();
   }
   Py_INCREF(&THPLayoutType);
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "layout", reinterpret_cast<PyObject*>(&THPLayoutType)) != 0) {
+=======
+  if (PyModule_AddObject(module, "layout", (PyObject*)&THPLayoutType) != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

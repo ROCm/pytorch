@@ -11,8 +11,11 @@ export TERM=vt100
 
 # shellcheck source=./common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+<<<<<<< HEAD
 # shellcheck source=./common-build.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common-build.sh"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Do not change workspace permissions for ROCm and s390x CI jobs
 # as it can leave workspace with bad permissions for cancelled jobs
@@ -32,6 +35,7 @@ if [[ "$BUILD_ENVIRONMENT" != *rocm* && "$BUILD_ENVIRONMENT" != *s390x* && -d /v
   git config --global --add safe.directory /var/lib/jenkins/workspace
 fi
 
+<<<<<<< HEAD
 
 # Patch numba to avoid CUDA-13 crash, see https://github.com/pytorch/pytorch/issues/162878
 if [[ "$BUILD_ENVIRONMENT" == *cuda* ]]; then
@@ -44,6 +48,8 @@ if [[ "$BUILD_ENVIRONMENT" == *cuda* ]]; then
   fi
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 echo "Environment variables:"
 env
 
@@ -103,7 +109,10 @@ if [[ "$BUILD_ENVIRONMENT" == *clang9* || "$BUILD_ENVIRONMENT" == *xpu* ]]; then
   export VALGRIND=OFF
 fi
 
+<<<<<<< HEAD
 detect_cuda_arch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if [[ "$BUILD_ENVIRONMENT" == *s390x* ]]; then
   # There are additional warnings on s390x, maybe due to newer gcc.
@@ -178,6 +187,11 @@ elif [[ "$BUILD_ENVIRONMENT" == *xpu* ]]; then
   export PYTORCH_TESTING_DEVICE_ONLY_FOR="xpu"
   # setting PYTHON_TEST_EXTRA_OPTION
   export PYTHON_TEST_EXTRA_OPTION="--xpu"
+<<<<<<< HEAD
+=======
+  # Disable sccache for xpu test due to flaky issue https://github.com/pytorch/pytorch/issues/143585
+  sudo rm -rf /opt/cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 if [[ "$TEST_CONFIG" == *crossref* ]]; then
@@ -302,12 +316,15 @@ elif [[ $TEST_CONFIG == 'nogpu_AVX512' ]]; then
   export ATEN_CPU_CAPABILITY=avx2
 fi
 
+<<<<<<< HEAD
 if [[ "${TEST_CONFIG}" == "legacy_nvidia_driver" ]]; then
   # Make sure that CUDA can be initialized
   (cd test && python -c "import torch; torch.rand(2, 2, device='cuda')")
   export USE_LEGACY_DRIVER=1
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test_python_legacy_jit() {
   time python test/run_test.py --include test_jit_legacy test_jit_fuser_legacy --verbose
   assert_git_not_dirty
@@ -324,18 +341,27 @@ test_python_shard() {
 
   # modify LD_LIBRARY_PATH to ensure it has the conda env.
   # This set of tests has been shown to be buggy without it for the split-build
+<<<<<<< HEAD
   time python test/run_test.py --exclude-jit-executor --exclude-distributed-tests --exclude-quantization-tests $INCLUDE_CLAUSE --shard "$1" "$NUM_TEST_SHARDS" --verbose $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+=======
+  time python test/run_test.py --exclude-jit-executor --exclude-distributed-tests $INCLUDE_CLAUSE --shard "$1" "$NUM_TEST_SHARDS" --verbose $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   assert_git_not_dirty
 }
 
 test_python() {
   # shellcheck disable=SC2086
+<<<<<<< HEAD
   time python test/run_test.py --exclude-jit-executor --exclude-distributed-tests --exclude-quantization-tests $INCLUDE_CLAUSE --verbose $PYTHON_TEST_EXTRA_OPTION
+=======
+  time python test/run_test.py --exclude-jit-executor --exclude-distributed-tests $INCLUDE_CLAUSE --verbose $PYTHON_TEST_EXTRA_OPTION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   assert_git_not_dirty
 }
 
 test_python_smoke() {
+<<<<<<< HEAD
   # Smoke tests for H100/B200
   time python test/run_test.py --include test_matmul_cuda test_scaled_matmul_cuda inductor/test_fp8 inductor/test_max_autotune $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
   assert_git_not_dirty
@@ -344,6 +370,10 @@ test_python_smoke() {
 test_python_smoke_b200() {
   # Targeted smoke tests for B200 - staged approach to avoid too many failures
   time python test/run_test.py --include test_matmul_cuda test_scaled_matmul_cuda inductor/test_fp8 $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+=======
+  # Smoke tests for H100
+  time python test/run_test.py --include test_matmul_cuda inductor/test_fp8 inductor/test_max_autotune $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   assert_git_not_dirty
 }
 
@@ -352,6 +382,7 @@ test_h100_distributed() {
   time python test/run_test.py --include distributed/_composable/test_composability/test_pp_composability.py  $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
   # This test requires multicast support
   time python test/run_test.py --include distributed/_composable/fsdp/test_fully_shard_comm.py -k TestFullyShardAllocFromPG $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+<<<<<<< HEAD
   assert_git_not_dirty
 }
 
@@ -370,6 +401,14 @@ test_h100_cutlass_backend() {
   TORCHINDUCTOR_CUTLASS_DIR=$(realpath "./third_party/cutlass") python test/run_test.py --include inductor/test_cutlass_evt $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
 }
 
+=======
+  # symmetric memory test
+  time python test/run_test.py --include distributed/test_symmetric_memory.py  $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+  time python test/run_test.py --include distributed/test_nvshmem.py $PYTHON_TEST_EXTRA_OPTION --upload-artifacts-while-running
+  assert_git_not_dirty
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test_lazy_tensor_meta_reference_disabled() {
   export TORCH_DISABLE_FUNCTIONALIZATION_META_REFERENCE=1
   echo "Testing lazy tensor operations without meta reference"
@@ -392,7 +431,10 @@ test_dynamo_wrapped_shard() {
     --exclude-distributed-tests \
     --exclude-torch-export-tests \
     --exclude-aot-dispatch-tests \
+<<<<<<< HEAD
     --exclude-quantization-tests \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     --shard "$1" "$NUM_TEST_SHARDS" \
     --verbose \
     --upload-artifacts-while-running
@@ -413,10 +455,16 @@ test_einops() {
 test_inductor_distributed() {
   # Smuggle a few multi-gpu tests here so that we don't have to request another large node
   echo "Testing multi_gpu tests in test_torchinductor"
+<<<<<<< HEAD
   python test/run_test.py -i inductor/test_aot_inductor.py -k test_replicate_on_devices --verbose
   python test/run_test.py -i inductor/test_aot_inductor.py -k test_on_gpu_device1 --verbose
   python test/run_test.py -i inductor/test_aot_inductor.py -k test_non_default_gpu_device --verbose
   python test/run_test.py -i inductor/test_aot_inductor.py -k test_load_package_multiple_gpus --verbose
+=======
+  python test/run_test.py -i inductor/test_torchinductor.py -k test_multi_gpu --verbose
+  python test/run_test.py -i inductor/test_aot_inductor.py -k test_non_default_cuda_device --verbose
+  python test/run_test.py -i inductor/test_aot_inductor.py -k test_replicate_on_devices --verbose
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python test/run_test.py -i distributed/test_c10d_functional_native.py --verbose
   python test/run_test.py -i distributed/tensor/test_dtensor_compile.py --verbose
   python test/run_test.py -i distributed/tensor/parallel/test_micro_pipeline_tp.py --verbose
@@ -437,7 +485,11 @@ test_inductor_distributed() {
 
   # this runs on both single-gpu and multi-gpu instance. It should be smart about skipping tests that aren't supported
   # with if required # gpus aren't available
+<<<<<<< HEAD
   python test/run_test.py --include distributed/test_dynamo_distributed distributed/test_inductor_collectives distributed/test_aten_comm_compute_reordering distributed/test_compute_comm_reordering --verbose
+=======
+  python test/run_test.py --include distributed/test_dynamo_distributed distributed/test_inductor_collectives distributed/test_compute_comm_reordering --verbose
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   assert_git_not_dirty
 }
 
@@ -460,12 +512,19 @@ test_inductor_shard() {
     --verbose
 }
 
+<<<<<<< HEAD
 test_inductor_aoti_cpp() {
+=======
+test_inductor_aoti() {
+  # docker build uses bdist_wheel which does not work with test_aot_inductor
+  # TODO: need a faster way to build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
     # We need to hipify before building again
     python3 tools/amd_build/build_amd.py
   fi
   if [[ "$BUILD_ENVIRONMENT" == *sm86* ]]; then
+<<<<<<< HEAD
     # TODO: Replace me completely, as one should not use conda libstdc++, nor need special path to TORCH_LIB
     TEST_ENVS=(CPP_TESTS_DIR="${BUILD_BIN_DIR}" LD_LIBRARY_PATH="/opt/conda/envs/py_3.10/lib:${TORCH_LIB_DIR}:${LD_LIBRARY_PATH}")
   else
@@ -489,6 +548,16 @@ test_inductor_aoti_cross_compile_for_windows() {
   ls -lah "$(pwd)/win-torch-wheel-extracted/lib/x64/" || true
 
   python test/inductor/test_aoti_cross_compile_windows.py -k compile --package-dir "$TEST_REPORTS_DIR" --win-torch-lib-dir "$(pwd)/win-torch-wheel-extracted/torch/lib"
+=======
+    BUILD_AOT_INDUCTOR_TEST=1 TORCH_CUDA_ARCH_LIST=8.6 USE_FLASH_ATTENTION=OFF python setup.py develop
+    # TODO: Replace me completely, as one should not use conda libstdc++, nor need special path to TORCH_LIB
+    LD_LIBRARY_PATH=/opt/conda/envs/py_3.10/lib/:${TORCH_LIB_DIR}:$LD_LIBRARY_PATH
+    CPP_TESTS_DIR="${BUILD_BIN_DIR}" python test/run_test.py --cpp --verbose -i cpp/test_aoti_abi_check cpp/test_aoti_inference -dist=loadfile
+  else
+    BUILD_AOT_INDUCTOR_TEST=1 python setup.py develop
+    CPP_TESTS_DIR="${BUILD_BIN_DIR}" LD_LIBRARY_PATH="${TORCH_LIB_DIR}" python test/run_test.py --cpp --verbose -i cpp/test_aoti_abi_check cpp/test_aoti_inference -dist=loadfile
+  fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 test_inductor_cpp_wrapper_shard() {
@@ -501,6 +570,7 @@ test_inductor_cpp_wrapper_shard() {
   TEST_REPORTS_DIR=$(pwd)/test/test-reports
   mkdir -p "$TEST_REPORTS_DIR"
 
+<<<<<<< HEAD
   # Run certain inductor unit tests with cpp wrapper. In the end state, we
   # should be able to run all the inductor unit tests with cpp_wrapper.
   #
@@ -528,6 +598,48 @@ test_inductor_cpp_wrapper_shard() {
       -k 'xpu' \
       --shard "$1" "$NUM_TEST_SHARDS" \
       --verbose
+=======
+  if [[ "$1" -eq "2" ]]; then
+    # For now, manually put the opinfo tests in shard 2, and all other tests in
+    # shard 1.  Run all CPU tests, as well as specific GPU tests triggering past
+    # bugs, for now.
+    python test/run_test.py \
+      --include inductor/test_torchinductor_opinfo \
+      -k 'linalg or to_sparse or TestInductorOpInfoCPU' \
+      --verbose
+    exit
+  fi
+
+  # Run certain inductor unit tests with cpp wrapper. In the end state, we
+  # should be able to run all the inductor unit tests with cpp_wrapper.
+  python test/run_test.py \
+    --include inductor/test_torchinductor inductor/test_max_autotune inductor/test_cpu_repro \
+    --verbose
+  python test/run_test.py --inductor --include test_torch -k 'take' --verbose
+
+  # Run inductor benchmark tests with cpp wrapper.
+  # Skip benchmark tests if it's in rerun-disabled-mode.
+  if [[ "${PYTORCH_TEST_RERUN_DISABLED_TESTS}" == "1" ]]; then
+    echo "skip dynamo benchmark tests for rerun-disabled-test"
+  else
+    echo "run dynamo benchmark tests with cpp wrapper"
+    python benchmarks/dynamo/timm_models.py --device cuda --accuracy --amp \
+    --training --inductor --disable-cudagraphs --only vit_base_patch16_224 \
+    --output "$TEST_REPORTS_DIR/inductor_cpp_wrapper_training.csv"
+    python benchmarks/dynamo/check_accuracy.py \
+      --actual "$TEST_REPORTS_DIR/inductor_cpp_wrapper_training.csv" \
+      --expected "benchmarks/dynamo/ci_expected_accuracy/${MAYBE_ROCM}inductor_timm_training.csv"
+
+    python benchmarks/dynamo/torchbench.py --device cuda --accuracy \
+      --bfloat16 --inference --inductor --only hf_T5 --output "$TEST_REPORTS_DIR/inductor_cpp_wrapper_inference.csv"
+    python benchmarks/dynamo/torchbench.py --device cuda --accuracy \
+      --bfloat16 --inference --inductor --only llama --output "$TEST_REPORTS_DIR/inductor_cpp_wrapper_inference.csv"
+    python benchmarks/dynamo/torchbench.py --device cuda --accuracy \
+      --bfloat16 --inference --inductor --only moco --output "$TEST_REPORTS_DIR/inductor_cpp_wrapper_inference.csv"
+    python benchmarks/dynamo/check_accuracy.py \
+      --actual "$TEST_REPORTS_DIR/inductor_cpp_wrapper_inference.csv" \
+      --expected "benchmarks/dynamo/ci_expected_accuracy/${MAYBE_ROCM}inductor_torchbench_inference.csv"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   fi
 }
 
@@ -649,8 +761,13 @@ test_perf_for_dashboard() {
 
   local device=cuda
   if [[ "${TEST_CONFIG}" == *cpu* ]]; then
+<<<<<<< HEAD
     if [[ "${TEST_CONFIG}" == *cpu_x86_zen* ]]; then
       device=cpu_x86_zen
+=======
+    if [[ "${TEST_CONFIG}" == *zen_cpu_x86* ]]; then
+      device=zen_cpu_x86
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif [[ "${TEST_CONFIG}" == *cpu_x86* ]]; then
       device=cpu_x86
     elif [[ "${TEST_CONFIG}" == *cpu_aarch64* ]]; then
@@ -661,19 +778,26 @@ test_perf_for_dashboard() {
     device=cuda_a10g
   elif [[ "${TEST_CONFIG}" == *h100* ]]; then
     device=cuda_h100
+<<<<<<< HEAD
   elif [[ "${TEST_CONFIG}" == *b200* ]]; then
     device=cuda_b200
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   elif [[ "${TEST_CONFIG}" == *rocm* ]]; then
     device=rocm
   fi
 
   for mode in "${modes[@]}"; do
     if [[ "$mode" == "inference" ]]; then
+<<<<<<< HEAD
       if [[ "$device" == "cpu_x86" ]]; then
         dtype=amp
       else
         dtype=bfloat16
       fi
+=======
+      dtype=bfloat16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif [[ "$mode" == "training" ]]; then
       dtype=amp
     fi
@@ -685,10 +809,13 @@ test_perf_for_dashboard() {
         target_flag+=( --no-translation-validation)
       fi
 
+<<<<<<< HEAD
       if [[ "$DASHBOARD_TAG" == *freezing-true* ]]; then
         target_flag+=( --freezing)
       fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if [[ "$DASHBOARD_TAG" == *default-true* ]]; then
         $TASKSET python "benchmarks/dynamo/$suite.py" \
             "${target_flag[@]}" --"$mode" --"$dtype" --backend "$backend" --disable-cudagraphs "$@" \
@@ -837,6 +964,7 @@ test_dynamo_benchmark() {
   if [[ "${TEST_CONFIG}" == *perf_compare* ]]; then
     test_single_dynamo_benchmark "training" "$suite" "$shard_id" --training --amp "$@"
   elif [[ "${TEST_CONFIG}" == *perf* ]]; then
+<<<<<<< HEAD
     # TODO (huydhn): Just smoke test some sample models
     if [[ "${TEST_CONFIG}" == *b200* ]]; then
       if [[ "${suite}" == "huggingface" ]]; then
@@ -847,6 +975,8 @@ test_dynamo_benchmark() {
         export TORCHBENCH_ONLY_MODELS="BERT_pytorch"
       fi
     fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     test_single_dynamo_benchmark "dashboard" "$suite" "$shard_id" "$@"
   else
     if [[ "${TEST_CONFIG}" == *cpu* ]]; then
@@ -875,13 +1005,21 @@ test_inductor_torchbench_smoketest_perf() {
   mkdir -p "$TEST_REPORTS_DIR"
 
   python benchmarks/dynamo/torchbench.py --device cuda --performance --backend inductor --float16 --training \
+<<<<<<< HEAD
     --batch-size-file "$(realpath benchmarks/dynamo/torchbench_models_list.txt)" --only BERT_pytorch \
+=======
+    --batch-size-file "$(realpath benchmarks/dynamo/torchbench_models_list.txt)" --only hf_Bert \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     --output "$TEST_REPORTS_DIR/inductor_training_smoketest.csv"
   # The threshold value needs to be actively maintained to make this check useful
   python benchmarks/dynamo/check_perf_csv.py -f "$TEST_REPORTS_DIR/inductor_training_smoketest.csv" -t 1.4
 
   # Check memory compression ratio for a few models
+<<<<<<< HEAD
   for test in BERT_pytorch yolov3; do
+=======
+  for test in hf_Albert timm_vision_transformer; do
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     python benchmarks/dynamo/torchbench.py --device cuda --performance --backend inductor --amp --training \
       --disable-cudagraphs --batch-size-file "$(realpath benchmarks/dynamo/torchbench_models_list.txt)" \
       --only $test --output "$TEST_REPORTS_DIR/inductor_training_smoketest_$test.csv"
@@ -892,7 +1030,11 @@ test_inductor_torchbench_smoketest_perf() {
   done
 
   # Perform some "warm-start" runs for a few huggingface models.
+<<<<<<< HEAD
   for test in AllenaiLongformerBase DistilBertForMaskedLM DistillGPT2 GoogleFnet YituTechConvBert; do
+=======
+  for test in AlbertForQuestionAnswering AllenaiLongformerBase DistilBertForMaskedLM DistillGPT2 GoogleFnet YituTechConvBert; do
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     python benchmarks/dynamo/huggingface.py --accuracy --training --amp --inductor --device cuda --warm-start-latency \
       --only $test --output "$TEST_REPORTS_DIR/inductor_warm_start_smoketest_$test.csv"
     python benchmarks/dynamo/check_accuracy.py \
@@ -906,7 +1048,11 @@ test_inductor_set_cpu_affinity(){
   export LD_PRELOAD="$JEMALLOC_LIB":"$LD_PRELOAD"
   export MALLOC_CONF="oversize_threshold:1,background_thread:true,metadata_thp:auto,dirty_decay_ms:-1,muzzy_decay_ms:-1"
 
+<<<<<<< HEAD
   if [[ "$(uname -m)" != "aarch64" ]]; then
+=======
+  if [[ "${TEST_CONFIG}" != *aarch64* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Use Intel OpenMP for x86
     IOMP_LIB="$(dirname "$(which python)")/../lib/libiomp5.so"
     export LD_PRELOAD="$IOMP_LIB":"$LD_PRELOAD"
@@ -920,7 +1066,11 @@ test_inductor_set_cpu_affinity(){
   cores=$((cpus / thread_per_core))
 
   # Set number of cores to 16 on aarch64 for performance runs
+<<<<<<< HEAD
   if [[ "$(uname -m)" == "aarch64" && $cores -gt 16 ]]; then
+=======
+  if [[ "${TEST_CONFIG}" == *aarch64* && $cores -gt 16 ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cores=16
   fi
   export OMP_NUM_THREADS=$cores
@@ -974,6 +1124,15 @@ test_torchbench_gcp_smoketest(){
   popd
 }
 
+<<<<<<< HEAD
+=======
+test_python_gloo_with_tls() {
+  source "$(dirname "${BASH_SOURCE[0]}")/run_glootls_test.sh"
+  assert_git_not_dirty
+}
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test_aten() {
   # Test ATen
   # The following test(s) of ATen have already been skipped by caffe2 in rocm environment:
@@ -1020,8 +1179,11 @@ test_without_numpy() {
   if [[ "${TEST_CONFIG}" == *dynamo_wrapped* ]]; then
     python -c "import sys;sys.path.insert(0, 'fake_numpy');import torch;torch.compile(lambda x:print(x))('Hello World')"
   fi
+<<<<<<< HEAD
   # Regression test for https://github.com/pytorch/pytorch/pull/157734 (torch.onnx should be importable without numpy)
   python -c "import sys;sys.path.insert(0, 'fake_numpy');import torch; import torch.onnx"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   popd
 }
 
@@ -1085,10 +1247,26 @@ test_libtorch_api() {
     mkdir -p $TEST_REPORTS_DIR
 
     OMP_NUM_THREADS=2 TORCH_CPP_TEST_MNIST_PATH="${MNIST_DIR}" "$TORCH_BIN_DIR"/test_api --gtest_filter='-IMethodTest.*' --gtest_output=xml:$TEST_REPORTS_DIR/test_api.xml
+<<<<<<< HEAD
+=======
+    "$TORCH_BIN_DIR"/test_tensorexpr --gtest_output=xml:$TEST_REPORTS_DIR/test_tensorexpr.xml
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else
     # Exclude IMethodTest that relies on torch::deploy, which will instead be ran in test_deploy
     OMP_NUM_THREADS=2 TORCH_CPP_TEST_MNIST_PATH="${MNIST_DIR}" python test/run_test.py --cpp --verbose -i cpp/test_api -k "not IMethodTest"
 
+<<<<<<< HEAD
+=======
+    # On s390x, pytorch is built without llvm.
+    # Even if it would be built with llvm, llvm currently doesn't support used features on s390x and
+    # test fails with errors like:
+    # JIT session error: Unsupported target machine architecture in ELF object pytorch-jitted-objectbuffer
+    # unknown file: Failure
+    # C++ exception with description "valOrErr INTERNAL ASSERT FAILED at "/var/lib/jenkins/workspace/torch/csrc/jit/tensorexpr/llvm_jit.h":34, please report a bug to PyTorch. Unexpected failure in LLVM JIT: Failed to materialize symbols: { (main, { func }) }
+    if [[ "${BUILD_ENVIRONMENT}" != *s390x* ]]; then
+      python test/run_test.py --cpp --verbose -i cpp/test_tensorexpr
+    fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   fi
 
   # quantization is not fully supported on s390x yet
@@ -1171,12 +1349,15 @@ test_distributed() {
   fi
 }
 
+<<<<<<< HEAD
 test_quantization() {
   echo "Testing quantization"
 
   python test/test_quantization.py
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test_rpc() {
   echo "Testing RPC C++ tests"
   # NB: the ending test_rpc must match the current function name for the current
@@ -1362,6 +1543,7 @@ EOF
 
   # Step 2. Make sure that the public API test "test_correct_module_names" fails when an existing
   # file is modified to introduce an invalid public API function.
+<<<<<<< HEAD
   # The filepath here must not have __all__ defined in it, otherwise the test will pass.
   # If your PR introduces __all__ to torch/cuda/streams.py please point this to another file
   # that does not have __all__ defined.
@@ -1369,6 +1551,12 @@ EOF
   cp -v "${EXISTING_FILEPATH}" "${EXISTING_FILEPATH}.orig"
   echo "${BAD_PUBLIC_FUNC}" >> "${EXISTING_FILEPATH}"
   invalid_api="torch.cuda.streams.new_public_func"
+=======
+  EXISTING_FILEPATH="${TORCH_INSTALL_DIR}/nn/parameter.py"
+  cp -v "${EXISTING_FILEPATH}" "${EXISTING_FILEPATH}.orig"
+  echo "${BAD_PUBLIC_FUNC}" >> "${EXISTING_FILEPATH}"
+  invalid_api="torch.nn.parameter.new_public_func"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   echo "Appended an invalid public API function to existing file ${EXISTING_FILEPATH}..."
 
   check_public_api_test_fails \
@@ -1423,7 +1611,11 @@ EOF
   pip3 install -r requirements.txt
   # shellcheck source=./common-build.sh
   source "$(dirname "${BASH_SOURCE[0]}")/common-build.sh"
+<<<<<<< HEAD
   python -m build --wheel --no-isolation -C--build-option=--bdist-dir="base_bdist_tmp" --outdir "base_dist"
+=======
+  python setup.py bdist_wheel --bdist-dir="base_bdist_tmp" --dist-dir="base_dist"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python -mpip install base_dist/*.whl
   echo "::endgroup::"
 
@@ -1571,10 +1763,21 @@ test_executorch() {
   install_torchvision
   install_torchaudio
 
+<<<<<<< HEAD
   INSTALL_SCRIPT="$(pwd)/.ci/docker/common/install_executorch.sh"
 
   pushd /executorch
   "${INSTALL_SCRIPT}" setup_executorch
+=======
+  pushd /executorch
+
+  export PYTHON_EXECUTABLE=python
+  export CMAKE_ARGS="-DEXECUTORCH_BUILD_PYBIND=ON -DEXECUTORCH_BUILD_XNNPACK=ON -DEXECUTORCH_BUILD_KERNELS_QUANTIZED=ON"
+
+  # NB: We need to rebuild ExecuTorch runner here because it depends on PyTorch
+  # from the PR
+  bash .ci/scripts/setup-linux.sh --build-tool cmake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   echo "Run ExecuTorch unit tests"
   pytest -v -n auto
@@ -1588,14 +1791,25 @@ test_executorch() {
 
   popd
 
+<<<<<<< HEAD
+=======
+  # Test torchgen generated code for Executorch.
+  echo "Testing ExecuTorch op registration"
+  "$BUILD_BIN_DIR"/test_edge_op_registration
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   assert_git_not_dirty
 }
 
 test_linux_aarch64() {
   python test/run_test.py --include test_modules test_mkldnn test_mkldnn_fusion test_openmp test_torch test_dynamic_shapes \
         test_transformers test_multiprocessing test_numpy_interop test_autograd test_binary_ufuncs test_complex test_spectral_ops \
+<<<<<<< HEAD
         test_foreach test_reductions test_unary_ufuncs test_tensor_creation_ops test_ops profiler/test_memory_profiler \
         distributed/elastic/timer/api_test distributed/elastic/timer/local_timer_example distributed/elastic/timer/local_timer_test \
+=======
+        test_foreach test_reductions test_unary_ufuncs test_tensor_creation_ops test_ops test_cpp_extensions_open_device_registration \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         --shard "$SHARD_NUMBER" "$NUM_TEST_SHARDS" --verbose
 
   # Dynamo tests
@@ -1621,12 +1835,19 @@ test_operator_benchmark() {
   TEST_REPORTS_DIR=$(pwd)/test/test-reports
   mkdir -p "$TEST_REPORTS_DIR"
   TEST_DIR=$(pwd)
+<<<<<<< HEAD
   ARCH=$(uname -m)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   test_inductor_set_cpu_affinity
 
   cd benchmarks/operator_benchmark/pt_extension
+<<<<<<< HEAD
   python -m pip install . -v --no-build-isolation
+=======
+  python setup.py install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   cd "${TEST_DIR}"/benchmarks/operator_benchmark
   $TASKSET python -m benchmark_all_test --device "$1" --tag-filter "$2" \
@@ -1636,6 +1857,7 @@ test_operator_benchmark() {
   pip_install pandas
   python check_perf_csv.py \
       --actual "${TEST_REPORTS_DIR}/operator_benchmark_eager_float32_cpu.csv" \
+<<<<<<< HEAD
       --expected "${ARCH}_expected_ci_operator_benchmark_eager_float32_cpu.csv"
 }
 
@@ -1658,6 +1880,11 @@ test_operator_microbenchmark() {
       --benchmark-name "PyTorch operator microbenchmark"
   done
 }
+=======
+      --expected "expected_ci_operator_benchmark_eager_float32_cpu.csv"
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if ! [[ "${BUILD_ENVIRONMENT}" == *libtorch* || "${BUILD_ENVIRONMENT}" == *-bazel-* ]]; then
   (cd test && python -c "import torch; print(torch.__config__.show())")
@@ -1665,6 +1892,7 @@ if ! [[ "${BUILD_ENVIRONMENT}" == *libtorch* || "${BUILD_ENVIRONMENT}" == *-baze
 fi
 if [[ "${TEST_CONFIG}" == *numpy_2* ]]; then
   # Install numpy-2.0.2 and compatible scipy & numba versions
+<<<<<<< HEAD
   # Force re-install of pandas to avoid error where pandas checks numpy version from initial install and fails upon import
   TMP_PANDAS_VERSION=$(python -c "import pandas; print(pandas.__version__)" 2>/dev/null)
   if [ -n "$TMP_PANDAS_VERSION" ]; then
@@ -1674,6 +1902,11 @@ if [[ "${TEST_CONFIG}" == *numpy_2* ]]; then
   fi
   python test/run_test.py --include dynamo/test_functions.py dynamo/test_unspec.py test_binary_ufuncs.py test_fake_tensor.py test_linalg.py test_numpy_interop.py test_tensor_creation_ops.py test_torch.py torch_np/test_basic.py
 elif [[ "${BUILD_ENVIRONMENT}" == *aarch64* && "${TEST_CONFIG}" == 'default' ]]; then
+=======
+  python -mpip install --pre numpy==2.0.2 scipy==1.13.1 numba==0.60.0
+  python test/run_test.py --include dynamo/test_functions.py dynamo/test_unspec.py test_binary_ufuncs.py test_fake_tensor.py test_linalg.py test_numpy_interop.py test_tensor_creation_ops.py test_torch.py torch_np/test_basic.py
+elif [[ "${BUILD_ENVIRONMENT}" == *aarch64* && "${TEST_CONFIG}" != *perf_cpu_aarch64* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   test_linux_aarch64
 elif [[ "${TEST_CONFIG}" == *backward* ]]; then
   test_forward_backward_compatibility
@@ -1682,16 +1915,22 @@ elif [[ "${TEST_CONFIG}" == *xla* ]]; then
   install_torchvision
   build_xla
   test_xla
+<<<<<<< HEAD
 elif [[ "$TEST_CONFIG" == *vllm* ]]; then
     echo "vLLM CI uses TORCH_CUDA_ARCH_LIST: $TORCH_CUDA_ARCH_LIST"
     (cd .ci/lumen_cli && python -m pip install -e .)
     python -m cli.run test external vllm --test-plan "$TEST_CONFIG" --shard-id "$SHARD_NUMBER" --num-shards "$NUM_TEST_SHARDS"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ "${TEST_CONFIG}" == *executorch* ]]; then
   test_executorch
 elif [[ "$TEST_CONFIG" == 'jit_legacy' ]]; then
   test_python_legacy_jit
+<<<<<<< HEAD
 elif [[ "$TEST_CONFIG" == 'quantization' ]]; then
   test_quantization
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ "${BUILD_ENVIRONMENT}" == *libtorch* ]]; then
   # TODO: run some C++ tests
   echo "no-op at the moment"
@@ -1714,8 +1953,11 @@ elif [[ "${TEST_CONFIG}" == *operator_benchmark* ]]; then
     test_operator_benchmark cpu ${TEST_MODE}
 
   fi
+<<<<<<< HEAD
 elif [[ "${TEST_CONFIG}" == *operator_microbenchmark* ]]; then
   test_operator_microbenchmark
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ "${TEST_CONFIG}" == *inductor_distributed* ]]; then
   test_inductor_distributed
 elif [[ "${TEST_CONFIG}" == *inductor-halide* ]]; then
@@ -1724,8 +1966,11 @@ elif [[ "${TEST_CONFIG}" == *inductor-triton-cpu* ]]; then
   test_inductor_triton_cpu
 elif [[ "${TEST_CONFIG}" == *inductor-micro-benchmark* ]]; then
   test_inductor_micro_benchmark
+<<<<<<< HEAD
 elif [[ "${TEST_CONFIG}" == *aoti_cross_compile_for_windows* ]]; then
   test_inductor_aoti_cross_compile_for_windows
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ "${TEST_CONFIG}" == *huggingface* ]]; then
   install_torchvision
   id=$((SHARD_NUMBER-1))
@@ -1735,6 +1980,7 @@ elif [[ "${TEST_CONFIG}" == *timm* ]]; then
   id=$((SHARD_NUMBER-1))
   test_dynamo_benchmark timm_models "$id"
 elif [[ "${TEST_CONFIG}" == cachebench ]]; then
+<<<<<<< HEAD
   install_torchaudio
   install_torchvision
   PYTHONPATH=/torchbench test_cachebench
@@ -1745,21 +1991,56 @@ elif [[ "${TEST_CONFIG}" == verify_cachebench ]]; then
 elif [[ "${TEST_CONFIG}" == *torchbench* ]]; then
   install_torchaudio
   install_torchvision
+=======
+  install_torchaudio cuda
+  install_torchvision
+  checkout_install_torchbench nanogpt BERT_pytorch resnet50 hf_T5 llama moco
+  PYTHONPATH=$(pwd)/torchbench test_cachebench
+elif [[ "${TEST_CONFIG}" == verify_cachebench ]]; then
+  install_torchaudio cpu
+  install_torchvision
+  checkout_install_torchbench nanogpt
+  PYTHONPATH=$(pwd)/torchbench test_verify_cachebench
+elif [[ "${TEST_CONFIG}" == *torchbench* ]]; then
+  if [[ "${TEST_CONFIG}" == *cpu* ]]; then
+    install_torchaudio cpu
+  else
+    install_torchaudio cuda
+  fi
+  install_torchvision
+  TORCH_CUDA_ARCH_LIST="8.0;8.6" install_torchao
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   id=$((SHARD_NUMBER-1))
   # https://github.com/opencv/opencv-python/issues/885
   pip_install opencv-python==4.8.0.74
   if [[ "${TEST_CONFIG}" == *inductor_torchbench_smoketest_perf* ]]; then
+<<<<<<< HEAD
     PYTHONPATH=/torchbench test_inductor_torchbench_smoketest_perf
   elif [[ "${TEST_CONFIG}" == *inductor_torchbench_cpu_smoketest_perf* ]]; then
     PYTHONPATH=/torchbench test_inductor_torchbench_cpu_smoketest_perf
   elif [[ "${TEST_CONFIG}" == *torchbench_gcp_smoketest* ]]; then
     TORCHBENCHPATH=/torchbench test_torchbench_gcp_smoketest
   else
+=======
+    checkout_install_torchbench hf_Bert hf_Albert timm_vision_transformer
+    PYTHONPATH=$(pwd)/torchbench test_inductor_torchbench_smoketest_perf
+  elif [[ "${TEST_CONFIG}" == *inductor_torchbench_cpu_smoketest_perf* ]]; then
+    checkout_install_torchbench timm_vision_transformer phlippe_densenet basic_gnn_edgecnn \
+      llama_v2_7b_16h resnet50 timm_efficientnet mobilenet_v3_large timm_resnest \
+      functorch_maml_omniglot yolov3 mobilenet_v2 resnext50_32x4d densenet121 mnasnet1_0
+    PYTHONPATH=$(pwd)/torchbench test_inductor_torchbench_cpu_smoketest_perf
+  elif [[ "${TEST_CONFIG}" == *torchbench_gcp_smoketest* ]]; then
+    checkout_install_torchbench
+    TORCHBENCHPATH=$(pwd)/torchbench test_torchbench_gcp_smoketest
+  else
+    checkout_install_torchbench
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Do this after checkout_install_torchbench to ensure we clobber any
     # nightlies that torchbench may pull in
     if [[ "${TEST_CONFIG}" != *cpu* ]]; then
       install_torchrec_and_fbgemm
     fi
+<<<<<<< HEAD
     PYTHONPATH=/torchbench test_dynamo_benchmark torchbench "$id"
   fi
 elif [[ "${TEST_CONFIG}" == *inductor_cpp_wrapper* ]]; then
@@ -1771,6 +2052,24 @@ elif [[ "${TEST_CONFIG}" == *inductor_cpp_wrapper* ]]; then
 elif [[ "${TEST_CONFIG}" == *inductor* ]]; then
   install_torchvision
   test_inductor_shard "${SHARD_NUMBER}"
+=======
+    PYTHONPATH=$(pwd)/torchbench test_dynamo_benchmark torchbench "$id"
+  fi
+elif [[ "${TEST_CONFIG}" == *inductor_cpp_wrapper* ]]; then
+  install_torchaudio cuda
+  install_torchvision
+  checkout_install_torchbench hf_T5 llama moco
+  PYTHONPATH=$(pwd)/torchbench test_inductor_cpp_wrapper_shard "$SHARD_NUMBER"
+  test_inductor_aoti
+elif [[ "${TEST_CONFIG}" == *inductor* ]]; then
+  install_torchvision
+  test_inductor_shard "${SHARD_NUMBER}"
+  if [[ "${SHARD_NUMBER}" == 1 ]]; then
+    if [[ "${BUILD_ENVIRONMENT}" != linux-jammy-py3.9-gcc11-build ]]; then
+      test_inductor_distributed
+    fi
+  fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ "${TEST_CONFIG}" == *einops* ]]; then
   test_einops
 elif [[ "${TEST_CONFIG}" == *dynamo_wrapped* ]]; then
@@ -1820,6 +2119,7 @@ elif [[ "${BUILD_ENVIRONMENT}" == *xpu* ]]; then
   test_xpu_bin
 elif [[ "${TEST_CONFIG}" == smoke ]]; then
   test_python_smoke
+<<<<<<< HEAD
 elif [[ "${TEST_CONFIG}" == smoke_b200 ]]; then
   test_python_smoke_b200
 elif [[ "${TEST_CONFIG}" == h100_distributed ]]; then
@@ -1830,6 +2130,10 @@ elif [[ "${TEST_CONFIG}" == "b200-symm-mem" ]]; then
   test_h100_symm_mem
 elif [[ "${TEST_CONFIG}" == h100_cutlass_backend ]]; then
   test_h100_cutlass_backend
+=======
+elif [[ "${TEST_CONFIG}" == h100_distributed ]]; then
+  test_h100_distributed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
   install_torchvision
   install_monkeytype

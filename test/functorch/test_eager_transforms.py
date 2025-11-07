@@ -71,6 +71,10 @@ from torch.testing._internal.common_utils import (
     markDynamoStrictTest,
     parametrize,
     run_tests,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     subtest,
     TEST_CUDA_MEM_LEAK_CHECK,
@@ -313,6 +317,7 @@ class TestGradTransform(TestCase):
     def test_numel(self, device):
         self._test_attributes(lambda x: x.numel(), device)
 
+<<<<<<< HEAD
     def test_layout_sparse(self, device):
         indices = torch.tensor([[0, 1, 1], [2, 0, 2]], device=device)
         values = torch.tensor([3.0, 4.0, 5.0], device=device)
@@ -331,6 +336,8 @@ class TestGradTransform(TestCase):
         # The gradient should also be sparse
         self.assertEqual(result.layout, torch.sparse_coo)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_inplace(self, device):
         x = torch.randn([], device=device)
 
@@ -5180,6 +5187,10 @@ def traceable(f):
 
 @markDynamoStrictTest
 class TestCompileTransforms(TestCase):
+<<<<<<< HEAD
+=======
+    @skipIfRocm(msg="test leaks memory on ROCm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.compile is not supported on Windows CUDA.
     # Triton only supports GPU with SM70 or later.
     @expectedFailureIf((IS_WINDOWS and TEST_CUDA) or (TEST_CUDA and not SM70OrLater))
@@ -5240,6 +5251,7 @@ class TestCompileTransforms(TestCase):
         self.assertEqual(actual, expected)
 
 
+<<<<<<< HEAD
 class TestGradTrackingTensorToList(TestCase):
     """Tests for tolist() method with GradTrackingTensor (functorch tensors)."""
 
@@ -5335,6 +5347,8 @@ class TestGradTrackingTensorToList(TestCase):
         self.assertEqual(result, [2.0 + 4.0j, 6.0 + 8.0j])
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 only_for = ("cpu", "cuda")
 instantiate_device_type_tests(
     TestGradTransform,
@@ -5414,9 +5428,12 @@ instantiate_device_type_tests(
     globals(),
     only_for=only_for,
 )
+<<<<<<< HEAD
 instantiate_device_type_tests(
     TestGradTrackingTensorToList, globals(), only_for=only_for
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

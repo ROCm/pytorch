@@ -59,7 +59,11 @@ class MultiprocessingRequestQueue(RequestQueue):
     def get(self, size, timeout: float) -> list[TimerRequest]:
         requests = []
         wait = timeout
+<<<<<<< HEAD
         for _ in range(size):
+=======
+        for _ in range(0, size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             start = time.time()
 
             try:

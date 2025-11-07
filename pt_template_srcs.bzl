@@ -156,7 +156,10 @@ def get_generate_code_bin_outs():
             "autograd/generated/python_torch_functions_1.cpp": ["autograd/generated/python_torch_functions_1.cpp"],
             "autograd/generated/python_torch_functions_2.cpp": ["autograd/generated/python_torch_functions_2.cpp"],
             "autograd/generated/python_variable_methods.cpp": ["autograd/generated/python_variable_methods.cpp"],
+<<<<<<< HEAD
             "functionalization/generated/ViewMetaClassesPythonBinding.cpp": ["functionalization/generated/ViewMetaClassesPythonBinding.cpp"],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         })
     return outs
 

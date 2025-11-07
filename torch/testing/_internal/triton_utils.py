@@ -2,6 +2,7 @@
 
 import unittest
 
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     HAS_CUDA_AND_TRITON,
     HAS_GPU,
@@ -16,12 +17,20 @@ requires_cuda_and_triton = unittest.skipUnless(
 requires_gpu_and_triton = unittest.skipUnless(
     HAS_XPU_AND_TRITON or HAS_CUDA_AND_TRITON, "requires gpu and triton"
 )
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA, HAS_GPU
+from torch.utils._triton import has_triton
+
+
+requires_cuda = unittest.skipUnless(HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 requires_gpu = unittest.skipUnless(HAS_GPU, "requires gpu")
 
 if has_triton():
     import triton
     from triton import language as tl
 
+<<<<<<< HEAD
     import torch
 
     def _get_strange_configs() -> list[triton.Config]:
@@ -79,6 +88,8 @@ if has_triton():
             ]
         return configs
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Define here so that multiple tests can take advantage of it
     @triton.jit
     def add_kernel(
@@ -912,7 +923,11 @@ if has_triton():
         b_ptrs = b_ptr + (offs_k[:, None] + offs_bn[None, :])
 
         accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
+<<<<<<< HEAD
         for k in range(tl.cdiv(K, BLOCK_SIZE_K)):
+=======
+        for k in range(0, tl.cdiv(K, BLOCK_SIZE_K)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = tl.load(a_ptrs, mask=offs_k[None, :] < K - k * BLOCK_SIZE_K, other=0.0)
             b = tl.load(b_ptrs, mask=offs_k[:, None] < K - k * BLOCK_SIZE_K, other=0.0)
             accumulator = tl.dot(a, b, accumulator)
@@ -994,6 +1009,7 @@ if has_triton():
         )
         tl.store(out_ptr + offsets, cos_pow, mask=offsets < numel)
 
+<<<<<<< HEAD
     @triton.jit
     def add_kernel_with_boolean_param(
         in_ptr0,
@@ -1015,6 +1031,8 @@ if has_triton():
             output = x
         tl.store(out_ptr + offsets, output, mask=mask)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # support the old (experimental) and new (tensor_descriptor) APIs
     def create_tensor_descriptor_shim(
         tensor, block_sizes: list[int], new_api: bool = True

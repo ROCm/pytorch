@@ -15,11 +15,19 @@
 #define DLPACK_EXTERN_C
 #endif
 
+<<<<<<< HEAD
 /*! \brief The current major version of dlpack */
 #define DLPACK_MAJOR_VERSION 1
 
 /*! \brief The current minor version of dlpack */
 #define DLPACK_MINOR_VERSION 1
+=======
+/*! \brief The current version of dlpack */
+#define DLPACK_VERSION 80
+
+/*! \brief The current ABI version of dlpack */
+#define DLPACK_ABI_VERSION 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /*! \brief DLPACK_DLL prefix for windows */
 #ifdef _WIN32
@@ -32,12 +40,19 @@
 #define DLPACK_DLL
 #endif
 
+<<<<<<< HEAD
 #include <stdint.h>
+=======
+// NOLINTNEXTLINE(modernize-deprecated-headers)
+#include <stdint.h>
+// NOLINTNEXTLINE(modernize-deprecated-headers)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+<<<<<<< HEAD
 
 /*!
  * \brief The DLPack version.
@@ -65,6 +80,8 @@ typedef struct {
   uint32_t minor;
 } DLPackVersion;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /*!
  * \brief The device type in DLDevice.
  */
@@ -116,7 +133,11 @@ typedef enum {
   kDLWebGPU = 15,
   /*! \brief Qualcomm Hexagon DSP */
   kDLHexagon = 16,
+<<<<<<< HEAD
   /*! \brief Microsoft MAIA devices */
+=======
+  /*! \brief Microsoft AI Accelerator */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   kDLMAIA = 17,
 } DLDeviceType;
 
@@ -157,6 +178,7 @@ typedef enum {
   kDLComplex = 5U,
   /*! \brief boolean */
   kDLBool = 6U,
+<<<<<<< HEAD
   /*! \brief FP8 data types */
   kDLFloat8_e3m4 = 7U,
   kDLFloat8_e4m3 = 8U,
@@ -177,6 +199,8 @@ typedef enum {
    * while the consumer must stop importing if the value is unexpected.
    */
   kDLFloat4_e2m1fn = 17U,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } DLDataTypeCode;
 
 /*!
@@ -190,12 +214,15 @@ typedef enum {
  *   - int8: type_code = 0, bits = 8, lanes = 1
  *   - std::complex<float>: type_code = 5, bits = 64, lanes = 1
  *   - bool: type_code = 6, bits = 8, lanes = 1 (as per common array library convention, the underlying storage size of bool is 8 bits)
+<<<<<<< HEAD
  *   - float8_e4m3: type_code = 8, bits = 8, lanes = 1 (packed in memory)
  *   - float6_e3m2fn: type_code = 16, bits = 6, lanes = 1 (packed in memory)
  *   - float4_e2m1fn: type_code = 17, bits = 4, lanes = 1 (packed in memory)
  *
  *  When a sub-byte type is packed, DLPack requires the data to be in little bit-endian, i.e.,
  *  for a packed data set D ((D >> (i * bits)) && bit_mask) stores the i-th element.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 typedef struct {
   /*!
@@ -223,7 +250,11 @@ typedef struct {
    * `byte_offset` field should be used to point to the beginning of the data.
    *
    * Note that as of Nov 2021, multiply libraries (CuPy, PyTorch, TensorFlow,
+<<<<<<< HEAD
    * TVM, perhaps others) do not adhere to this 256 byte alignment requirement
+=======
+   * TVM, perhaps others) do not adhere to this 256 byte aligment requirement
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    * on CPU/CUDA/ROCm, and always use `byte_offset=0`.  This must be fixed
    * (after which this note will be updated); at the moment it is recommended
    * to not rely on the data pointer being correctly aligned.
@@ -241,9 +272,12 @@ typedef struct {
    *   return size;
    * }
    * \endcode
+<<<<<<< HEAD
    *
    * Note that if the tensor is of size zero, then the data pointer should be
    * set to `NULL`.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    */
   void* data;
   /*! \brief The device of the tensor */
@@ -253,12 +287,20 @@ typedef struct {
   /*! \brief The data type of the pointer*/
   DLDataType dtype;
   /*! \brief The shape of the tensor */
+<<<<<<< HEAD
   int64_t* shape;
+=======
+  const int64_t* shape;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /*!
    * \brief strides of the tensor (in number of elements, not bytes)
    *  can be NULL, indicating tensor is compact and row-majored.
    */
+<<<<<<< HEAD
   int64_t* strides;
+=======
+  const int64_t* strides;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /*! \brief The offset in bytes to the beginning pointer to data */
   uint64_t byte_offset;
 } DLTensor;
@@ -269,6 +311,7 @@ typedef struct {
  *  not meant to transfer the tensor. When the borrowing framework doesn't need
  *  the tensor, it should call the deleter to notify the host that the resource
  *  is no longer needed.
+<<<<<<< HEAD
  *
  * \note This data structure is used as Legacy DLManagedTensor
  *       in DLPack exchange and is deprecated after DLPack v0.8
@@ -276,6 +319,8 @@ typedef struct {
  *       This data structure may get renamed or deleted in future versions.
  *
  * \sa DLManagedTensorVersioned
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 typedef struct DLManagedTensor {
   /*! \brief DLTensor which is being memory managed */
@@ -284,6 +329,7 @@ typedef struct DLManagedTensor {
    *   which DLManagedTensor is used in the framework. It can also be NULL.
    */
   void * manager_ctx;
+<<<<<<< HEAD
   /*!
    * \brief Destructor - this should be called
    * to destruct the manager_ctx  which backs the DLManagedTensor. It can be
@@ -360,6 +406,15 @@ struct DLManagedTensorVersioned {
   DLTensor dl_tensor;
 };
 
+=======
+  /*! \brief Destructor signature void (*)(void*) - this should be called
+   *   to destruct manager_ctx which holds the DLManagedTensor. It can be NULL
+   *   if there is no way for the caller to provide a reasonable destructor.
+   *   The destructors deletes the argument self as well.
+   */
+  void (*deleter)(struct DLManagedTensor * self);
+} DLManagedTensor;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef __cplusplus
 }  // DLPACK_EXTERN_C
 #endif

@@ -139,7 +139,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -158,7 +164,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -177,7 +189,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -196,7 +214,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -215,7 +239,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -234,7 +264,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -253,7 +289,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -272,7 +314,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -291,7 +339,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -310,7 +364,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 
@@ -331,7 +391,13 @@ class TestScriptModuleInstanceAttributeTypeAnnotation(JitTestCase):
         ):
             with self.assertWarnsRegex(
                 UserWarning,
+<<<<<<< HEAD
                 "doesn't support instance-level annotations on empty non-base types",
+=======
+                "doesn't support "
+                "instance-level annotations on "
+                "empty non-base types",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.jit.script(M())
 

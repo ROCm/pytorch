@@ -27,10 +27,13 @@
 #include "caffe2/serialize/versions.h"
 #include "miniz.h"
 
+<<<<<<< HEAD
 #ifdef _WIN32
 #include <Windows.h>
 #endif // _WIN32
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace caffe2 {
 namespace serialize {
 constexpr std::string_view kDebugPklSuffix(".debug_pkl");
@@ -715,6 +718,7 @@ void PyTorchStreamWriter::setup(const string& file_name) {
   if (archive_name_.size() == 0) {
     CAFFE_THROW("invalid file name: ", file_name);
   }
+<<<<<<< HEAD
 
   const std::string dir_name = parentdir(file_name);
   if (!dir_name.empty()) {
@@ -744,6 +748,23 @@ void PyTorchStreamWriter::setup(const string& file_name) {
 #endif // _WIN32
     }
 
+=======
+  if (!writer_func_) {
+    file_stream_.open(
+        file_name,
+        std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+    valid("opening archive ", file_name.c_str());
+
+    const std::string dir_name = parentdir(file_name);
+    if (!dir_name.empty()) {
+      struct stat st;
+      bool dir_exists =
+          (stat(dir_name.c_str(), &st) == 0 && (st.st_mode & S_IFDIR));
+      TORCH_CHECK(
+          dir_exists, "Parent directory ", dir_name, " does not exist.");
+    }
+    TORCH_CHECK(file_stream_, "File ", file_name, " cannot be opened.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     writer_func_ = [this](const void* buf, size_t nbytes) -> size_t {
       if (!buf) {
         // See [Note: write_record_metadata]

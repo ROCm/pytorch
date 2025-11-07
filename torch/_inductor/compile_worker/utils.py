@@ -23,11 +23,17 @@ def in_toplevel_process() -> bool:
 # This function cannot be an inner function since otherwise mp_context="spawn" would
 # not work for ProcessPoolExecutor since inner functions cannot be pickled.
 def _async_compile_initializer(orig_ppid: int) -> None:
+<<<<<<< HEAD
     import torch._C
 
     def run() -> None:
         while True:
             sleep(60)
+=======
+    def run() -> None:
+        while True:
+            sleep(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if orig_ppid != os.getppid():
                 os.kill(os.getpid(), signal.SIGKILL)
 
@@ -38,9 +44,12 @@ def _async_compile_initializer(orig_ppid: int) -> None:
     # Ignore Ctrl-C (i.e. SIGINT) sent to pool workers to avoid meaningless log spam.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+<<<<<<< HEAD
     # Install a crash handler to print out the stacktrace for SEGV
     torch._C._initCrashHandler()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Set a bit to distinguish async_compile subprocesses from the toplevel process.
     global _IN_TOPLEVEL_PROCESS
     _IN_TOPLEVEL_PROCESS = False

@@ -1,10 +1,19 @@
+<<<<<<< HEAD
+=======
+#include <filesystem>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <sstream>
 #include <unordered_map>
 
 #include <ATen/core/interned_strings.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 #include <c10/util/FileSystem.h>
 #include <c10/util/thread_name.h>
+=======
+#include <c10/util/thread_name.h>
+#include <caffe2/utils/threadpool/WorkersPool.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/distributed/c10d/control_plane/WorkerServer.hpp>
 #include <torch/csrc/distributed/c10d/logging.h>
 
@@ -144,6 +153,7 @@ WorkerServer::WorkerServer(const std::string& hostOrFile, int port) {
   if (port == -1) {
     // using unix sockets
     server_.set_address_family(AF_UNIX);
+<<<<<<< HEAD
     TORCH_CHECK(
         !c10::filesystem::exists(hostOrFile),
         fmt::format("{} already exists", hostOrFile));
@@ -157,13 +167,36 @@ WorkerServer::WorkerServer(const std::string& hostOrFile, int port) {
     TORCH_CHECK(
         server_.bind_to_port(hostOrFile, port),
         fmt::format("Error binding to {}:{}", hostOrFile, port));
+=======
+
+    if (std::filesystem::exists(hostOrFile)) {
+      throw std::runtime_error(fmt::format("{} already exists", hostOrFile));
+    }
+
+    C10D_WARNING("Server listening to UNIX {}", hostOrFile);
+    if (!server_.bind_to_port(hostOrFile, 80)) {
+      throw std::runtime_error(fmt::format("Error binding to {}", hostOrFile));
+    }
+  } else {
+    C10D_WARNING("Server listening to TCP {}:{}", hostOrFile, port);
+    if (!server_.bind_to_port(hostOrFile, port)) {
+      throw std::runtime_error(
+          fmt::format("Error binding to {}:{}", hostOrFile, port));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   serverThread_ = std::thread([this]() {
     c10::setThreadName("pt_workerserver");
 
     try {
+<<<<<<< HEAD
       TORCH_CHECK(server_.listen_after_bind(), "failed to listen");
+=======
+      if (!server_.listen_after_bind()) {
+        throw std::runtime_error("failed to listen");
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } catch (std::exception& e) {
       C10D_ERROR("Error while running server: {}", e.what());
       throw;

@@ -75,7 +75,33 @@ def setup_torchbench_cwd():
     return original_dir
 
 
+<<<<<<< HEAD
 process_train_model_output = {}
+=======
+def process_hf_reformer_output(out):
+    assert isinstance(out, list)
+    # second output is unstable
+    return [elem for i, elem in enumerate(out) if i != 1]
+
+
+def process_hf_whisper_output(out):
+    out_ret = []
+    for i, elem in enumerate(out):
+        if i == 0:
+            if elem is not None:
+                assert isinstance(elem, dict)
+                out_ret.append({k: v for k, v in elem.items() if k != "logits"})
+        elif i != 1:
+            out_ret.append(elem)
+
+    return out_ret
+
+
+process_train_model_output = {
+    "hf_Reformer": process_hf_reformer_output,
+    "hf_Whisper": process_hf_whisper_output,
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TorchBenchmarkRunner(BenchmarkRunner):
@@ -117,10 +143,13 @@ class TorchBenchmarkRunner(BenchmarkRunner):
         return self._skip["device"]["cpu"]
 
     @property
+<<<<<<< HEAD
     def skip_models_for_cpu_aarch64(self):
         return self._skip["device"]["cpu_aarch64"]
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def skip_models_for_cuda(self):
         return self._skip["device"]["cuda"]
 
@@ -205,10 +234,18 @@ class TorchBenchmarkRunner(BenchmarkRunner):
             "drq",
             "hf_Reformer",
             "DALLE2_pytorch",
+<<<<<<< HEAD
+=======
+            "hf_BigBird",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "detectron2_maskrcnn_r_50_fpn",
             "detectron2_maskrcnn_r_101_fpn",
             "vision_maskrcnn",
             "doctr_reco_predictor",
+<<<<<<< HEAD
+=======
+            "hf_T5_generate",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
     def load_model(
@@ -358,6 +395,7 @@ class TorchBenchmarkRunner(BenchmarkRunner):
         if self.args.trace_on_xla:
             # work around for: https://github.com/pytorch/xla/issues/4174
             import torch_xla  # noqa: F401
+<<<<<<< HEAD
 
         # Turning off kv cache for torchbench models. This is not the right
         # thing to do, but the torchbench models are way outdated, and since we
@@ -372,6 +410,8 @@ class TorchBenchmarkRunner(BenchmarkRunner):
         ):
             model.config.use_cache = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.validate_model(model, example_inputs)
         return device, benchmark.name, model, example_inputs, batch_size
 
@@ -432,8 +472,11 @@ class TorchBenchmarkRunner(BenchmarkRunner):
         if self.args.bfloat16:
             if name in self._tolerance["higher_bf16"]:
                 return 1e-2, cosine
+<<<<<<< HEAD
             elif current_device == "xpu" and name in self._tolerance["higher_bf16_xpu"]:
                 return 8 * 1e-2, cosine
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if is_training and (current_device == "cuda" or current_device == "xpu"):
             tolerance = 1e-3

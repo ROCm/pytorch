@@ -1,5 +1,6 @@
 # LibTorch Stable ABI
 
+<<<<<<< HEAD
 ## Overview
 
 The LibTorch Stable ABI (Application Binary Interface) provides an interface for extending PyTorch functionality without being tightly coupled to specific PyTorch versions. This enables the development of custom operators and extensions that remain compatible across PyTorch releases.
@@ -60,6 +61,9 @@ For a limited set of use cases, we also implicitly support any literal type that
 You can always work with StableIValue abstractions in your custom kernel for types such as c10::Device even if there is no standard defined representation of device in custom extensions by not introspecting into the StableIValue. For example, a custom operator can take as argument a StableIValue device and directly pass it through to an aten operator with `aoti_torch_call_dispatcher`.
 
 
+=======
+This note will eventually contain more details on how to use the APIs in torch/csrc/stable. For the moment, it contains a table of internal representations:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 1. type in custom extension: type used within the end user custom library.
 2. StableIValue representation: a stable conversion of the type to liaison between the user model vs libtorch.so in an ABI-stable manner.
 3. type in libtorch: type used within libtorch.so (or any code binary locked with libtorch).
@@ -68,9 +72,14 @@ You can always work with StableIValue abstractions in your custom kernel for typ
 |  type in custom extension    |   StableIValue representation   |   type in libtorch  |   Schema Type  |
 | -------- | ------- | ------- | ------- |
 | std::optional\<S> | if there is a value, raw bitwise copy into leading bytes of uint64_t of pointer to a new StableIValue representing S. if there is no value, nullptr. | std::optional\<T> | Type? |
+<<<<<<< HEAD
 | torch::stable::Tensor | raw bitwise copy of underlying AtenTensorHandle into leading bytes of uint64_t | at::Tensor |  Tensor |
 | RAIIATH (outdated) | raw bitwise copy of underlying AtenTensorHandle into leading bytes of uint64_t | at::Tensor |  Tensor |
 | torch::headeronly::ScalarType | raw bitwise copy of the translated underlying enum into leading bytes of uint64_t | torch::headeronly::ScalarType | ScalarType |
+=======
+| RAIIATH | raw bitwise copy of underlying AtenTensorHandle into leading bytes of uint64_t | at::Tensor |  Tensor |
+| int32_t | raw bitwise copy into leading bytes of uint64_t | at::ScalarType | ScalarType |
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 | int32_t | raw bitwise copy into leading bytes of uint64_t | at::Layout | Layout |
 | int32_t | raw bitwise copy into leading bytes of uint64_t | at::MemoryFormat | MemoryFormat |
 | bool | raw bitwise copy into leading bytes of uint64_t | bool | bool |
@@ -90,10 +99,23 @@ You can always work with StableIValue abstractions in your custom kernel for typ
 | ? | ? | c10::SymBool | SymBool |
 | ? | ? | at::QScheme | QScheme |
 
+<<<<<<< HEAD
 
 ### Stack Conventions
 
 There are two invariants for the stack:
+=======
+Our confidently supported types are the ones in the table that have completed rows. You can rely on this subset proper ABI stability.
+
+For a limited set of use cases, we also implicitly support any literal type that is representable within 64 bits as StableIValues, as the default reinterpret_cast will succeed. These types are currently ABI-stable on best effort but might break in the future and thus should be used for short term testing only.
+
+You can always work with StableIValue abstractions in your custom kernel for types such as c10::Device even if there is no standard defined representation of device in custom extensions by not introspecting into the StableIValue. For example, a custom operator can take as argument a StableIValue device and directly pass it through to an aten operator with `aoti_torch_call_dispatcher`.
+
+
+## How to use stack-based APIs
+
+`aoti_torch_call_dispatcher` is what we consider a stack-based API because it takes as input a stack of StableIValues. Working with the dispatcher will likely bring you into proximity with stack-based APIs, so we are documenting some invariants:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 1. The stack is populated left to right.
     a. For example, a stack representing arguments `arg0`, `arg1`, and `arg2` will have `arg0` at index 0, `arg1` at index 1, and `arg2` at index 2.
@@ -102,6 +124,7 @@ There are two invariants for the stack:
 2. The stack always has ownership of the objects it holds.
     a. When calling a stack-based API, you must give owning references to the calling stack and steal references from the returned stack.
     b. When registering your function to be called with a stack, you must steal references from your argument stack and push onto the stack new references.
+<<<<<<< HEAD
 
 ### Stack-based APIs
 
@@ -131,3 +154,5 @@ The above is relevant in two places:
     `aoti_torch_call_dispatcher` will call the op overload defined by a given `opName`, `overloadName`, and a stack of
     StableIValues. This call will populate any return values of the op into the stack in their StableIValue form,
     with `ret0` at index 0, `ret1` at index 1, and so on.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

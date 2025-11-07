@@ -225,7 +225,11 @@ class TORCH_API RRefContext {
     c10::intrusive_ptr<JitFuture> confirmationFuture_;
   };
 
+<<<<<<< HEAD
   RRefContext(std::shared_ptr<RpcAgent> /*agent*/);
+=======
+  RRefContext(std::shared_ptr<RpcAgent>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   c10::intrusive_ptr<UserRRef> createUserRRef(
       worker_id_t ownerId,

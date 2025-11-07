@@ -16,6 +16,11 @@
 
 namespace torch::nativert::detail {
 
+<<<<<<< HEAD
+=======
+using torch::nativert::Value;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ITreeSpec;
 
 using ITreeFlattenFn =
@@ -32,7 +37,11 @@ using ITreeMapNoReturnFn =
 using IValueApplyFn =
     void (*)(ITreeMapNoReturnFn, const c10::IValue&, const ITreeSpec&);
 
+<<<<<<< HEAD
 nlohmann::json defaultContextLoadFn(std::string_view /*context*/);
+=======
+nlohmann::json defaultContextLoadFn(std::string_view);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct NodeDef {
   ITreeFlattenFn flattenFn;

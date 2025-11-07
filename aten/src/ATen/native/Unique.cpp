@@ -124,7 +124,11 @@ struct IsUnique {};
 
 template <typename scalar_t>
 struct IsUnique<scalar_t, false> {
+<<<<<<< HEAD
   bool operator() (scalar_t* data_ptr, int64_t i) {
+=======
+  inline bool operator() (scalar_t* data_ptr, int64_t i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (i == 0) { return true; }
     return c10::load(&data_ptr[i]) != c10::load(&data_ptr[i - 1]);
   }
@@ -132,7 +136,11 @@ struct IsUnique<scalar_t, false> {
 
 template <typename scalar_t>
 struct IsUnique<scalar_t, true> {
+<<<<<<< HEAD
   bool operator() (scalar_t* data_ptr, int64_t i) {
+=======
+  inline bool operator() (scalar_t* data_ptr, int64_t i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (i == 0) { return true; }
     return (c10::load(&data_ptr[i]) != c10::load(&data_ptr[i - 1]))
         && !(_isnan(data_ptr[i]) && _isnan(data_ptr[i - 1]));

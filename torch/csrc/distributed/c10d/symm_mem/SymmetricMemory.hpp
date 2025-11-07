@@ -50,6 +50,7 @@ class TORCH_API SymmetricMemory : public c10::intrusive_ptr_target {
   virtual size_t get_buffer_size() = 0;
   virtual size_t get_signal_pad_size() = 0;
 
+<<<<<<< HEAD
   virtual size_t get_offset() {
     TORCH_CHECK(false, "NYI");
   }
@@ -73,6 +74,22 @@ class TORCH_API SymmetricMemory : public c10::intrusive_ptr_target {
       int peer,
       c10::IntArrayRef sizes,
       c10::ScalarType dtype);
+=======
+  virtual bool has_multicast_support() = 0;
+  virtual void* get_multicast_ptr() = 0;
+
+  virtual at::Tensor get_buffer(
+      int rank,
+      c10::IntArrayRef sizes,
+      c10::ScalarType dtype,
+      int64_t storage_offset) = 0;
+
+  virtual at::Tensor get_signal_pad(
+      int rank,
+      c10::IntArrayRef sizes,
+      std::optional<c10::ScalarType> dtype = std::nullopt,
+      int64_t storage_offset = 0) = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   virtual void barrier(int channel, size_t timeout_ms) = 0;
   virtual void put_signal(int dst_rank, int channel, size_t timeout_ms) = 0;
@@ -80,7 +97,10 @@ class TORCH_API SymmetricMemory : public c10::intrusive_ptr_target {
 
   virtual int get_rank() = 0;
   virtual int get_world_size() = 0;
+<<<<<<< HEAD
   virtual c10::Device get_device() = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   virtual const std::vector<int>& get_rank_to_global_rank() {
     TORCH_CHECK(false, "NYI");
@@ -89,12 +109,15 @@ class TORCH_API SymmetricMemory : public c10::intrusive_ptr_target {
   virtual int* get_rank_to_global_rank_dev() {
     TORCH_CHECK(false, "NYI");
   }
+<<<<<<< HEAD
 
   // Returns true if *all* peers within the group are accessible via direct
   // memory load and store.
   virtual bool world_within_direct_access() {
     TORCH_CHECK(false, "NYI");
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 class SymmetricMemoryAllocator : public c10::intrusive_ptr_target {
@@ -112,8 +135,11 @@ class SymmetricMemoryAllocator : public c10::intrusive_ptr_target {
       void* ptr,
       const std::optional<std::string>& group_name) = 0;
   virtual bool has_multicast_support(int device_idx) = 0;
+<<<<<<< HEAD
   virtual c10::DeviceType supported_device_type() = 0;
   virtual std::string name() = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 C10_EXPORT bool is_finalizing();
@@ -122,10 +148,13 @@ C10_EXPORT void register_allocator(
     c10::DeviceType device_type,
     c10::intrusive_ptr<SymmetricMemoryAllocator> allocator);
 
+<<<<<<< HEAD
 C10_EXPORT void register_availability(
     const std::string& name,
     c10::intrusive_ptr<SymmetricMemoryAllocator> allocator);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_EXPORT bool has_allocator(c10::DeviceType device_type);
 
 C10_EXPORT c10::intrusive_ptr<SymmetricMemoryAllocator> get_allocator(
@@ -195,6 +224,7 @@ TORCH_API c10::intrusive_ptr<SymmetricMemory> rendezvous(
 TORCH_API bool has_multicast_support(
     c10::DeviceType device_type,
     int device_idx);
+<<<<<<< HEAD
 
 TORCH_API void set_backend(const std::string& name);
 
@@ -207,4 +237,6 @@ C10_EXPORT void register_mempool_allocator(
 TORCH_API std::shared_ptr<c10::Allocator> get_mempool_allocator(
     c10::Device device);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10d::symmetric_memory

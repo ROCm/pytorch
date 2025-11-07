@@ -58,7 +58,11 @@ time python tools/setup_helpers/generate_code.py \
 
 # Build the docs
 pushd docs/cpp
+<<<<<<< HEAD
 time make VERBOSE=1 html
+=======
+time make VERBOSE=1 html -j
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 popd
 popd

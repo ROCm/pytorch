@@ -65,6 +65,9 @@ def _derive_module_name(depth: int = 1) -> Optional[str]:
         warnings.warn(
             f"Error deriving logger module name, using <None>. Exception: {e}",
             RuntimeWarning,
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return None

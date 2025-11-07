@@ -10,7 +10,10 @@
 #include <vector>
 
 #include <c10/util/tempfile.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <libshm/err.h>
 #include <libshm/socket.h>
@@ -97,9 +100,16 @@ int main(int argc, char* argv[]) {
   std::optional<c10::TempDir> tempdir;
   try {
     tempdir = c10::try_make_tempdir(/*name_prefix=*/"torch-shm-dir-");
+<<<<<<< HEAD
     TORCH_CHECK(
         tempdir.has_value(),
         "could not generate a random directory for manager socket");
+=======
+    if (!tempdir.has_value()) {
+      throw std::runtime_error(
+          "could not generate a random directory for manager socket");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     std::string tempfile = tempdir->name + "/manager.sock";
 

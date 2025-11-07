@@ -56,7 +56,11 @@ class TestCase(InductorTestCase):
 
     """
     Helper methods to compare runtime estimate against 0. Since this estimate is hardware dependent,
+<<<<<<< HEAD
     stronger comparisons may fail depending on the host's specs.
+=======
+    stronger comparisons may fail dependending on the host's specs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     atol/rtol must be provided explicitly with each call, since precision/rel_tol overrides are not always utilized
     """
@@ -258,6 +262,11 @@ class TestCommAnalysis(TestCase):
         finally:
             dist.destroy_process_group()
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_legacy_all_reduce(self):
         def fn(x):
             r = c10d.all_reduce(x, "sum", "", self.RANKS, self.WORLD_SIZE)
@@ -266,6 +275,11 @@ class TestCommAnalysis(TestCase):
         inp = T(10, 10)
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_legacy_all_reduce_coalesced(self):
         def fn(x):
             rs = c10d.all_reduce_coalesced(x, "sum", "", self.RANKS, self.WORLD_SIZE)
@@ -274,6 +288,11 @@ class TestCommAnalysis(TestCase):
         inp = [T(10, 10), T(15, 15)]
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_legacy_all_gather_into_tensor_coalesced(self):
         def fn(x):
             rs = c10d.all_gather_into_tensor_coalesced(
@@ -287,6 +306,11 @@ class TestCommAnalysis(TestCase):
         inp = [T(10, 10), T(15, 15)]
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_reduce(self):
         def fn(x):
             r = _c10d.all_reduce(x, "sum", "0")
@@ -295,6 +319,11 @@ class TestCommAnalysis(TestCase):
         inp = T(10, 10)
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_reduce_coalesced(self):
         def fn(x):
             rs = _c10d.all_reduce_coalesced(x, "sum", "0")
@@ -303,6 +332,11 @@ class TestCommAnalysis(TestCase):
         inp = [T(10, 10), T(15, 15)]
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_into_tensor(self):
         def fn(x):
             rs = _c10d.all_gather_into_tensor(
@@ -315,6 +349,11 @@ class TestCommAnalysis(TestCase):
         inp = T(10, 10)
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_into_tensor_coalesced(self):
         def fn(x):
             rs = _c10d.all_gather_into_tensor_coalesced(
@@ -327,6 +366,11 @@ class TestCommAnalysis(TestCase):
         inp = [T(10, 10), T(15, 15)]
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reduce_scatter_tensor(self):
         def fn(x):
             rs = _c10d.reduce_scatter_tensor(
@@ -340,6 +384,11 @@ class TestCommAnalysis(TestCase):
         inp = T(self.WORLD_SIZE, 10)
         self._verify_runtime_estimation(fn, (inp,))
 
+<<<<<<< HEAD
+=======
+    # lack of profiler on XPU
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reduce_scatter_tensor_coalesced(self):
         def fn(x):
             rs = _c10d.reduce_scatter_tensor_coalesced(

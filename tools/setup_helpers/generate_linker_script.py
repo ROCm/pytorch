@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import argparse
 import os
 import subprocess
 from pathlib import Path
+=======
+import os
+import subprocess
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def gen_linker_script(
@@ -30,12 +35,15 @@ def gen_linker_script(
     assert len(text_line_start) == 1, "The linker script has multiple text sections!"
     text_line_start = text_line_start[0]
 
+<<<<<<< HEAD
     # ensure that parent directory exists before writing
     # pyrefly: ignore [bad-assignment]
     fout = Path(fout)
     # pyrefly: ignore [missing-attribute]
     fout.parent.mkdir(parents=True, exist_ok=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with open(fout, "w") as f:
         for lineid, line in enumerate(linker_script_lines):
             if lineid == text_line_start + 2:
@@ -44,6 +52,7 @@ def gen_linker_script(
                     f.write(f"      .text.{plines}\n")
                 f.write("    )\n")
             f.write(f"{line}\n")
+<<<<<<< HEAD
 
 
 if __name__ == "__main__":
@@ -61,3 +70,5 @@ if __name__ == "__main__":
     # convert args to a dict to pass to gen_linker_script
     kwargs = vars(parser.parse_args())
     gen_linker_script(**kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

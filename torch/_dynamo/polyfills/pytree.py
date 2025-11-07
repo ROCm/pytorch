@@ -6,7 +6,11 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING
+=======
+from typing import Any, Callable, Literal, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeIs
 
 import torch.utils._pytree as python_pytree
@@ -17,7 +21,11 @@ from ..decorators import substitute_in_graph
 
 if TYPE_CHECKING:
     import builtins
+<<<<<<< HEAD
     from collections.abc import Callable, Iterable, Mapping
+=======
+    from collections.abc import Iterable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from typing_extensions import Self
 
 
@@ -28,7 +36,11 @@ if python_pytree._cxx_pytree_dynamo_traceable:
     import optree
     import optree._C
 
+<<<<<<< HEAD
     import torch.utils._cxx_pytree as cxx_pytree  # noqa: F401
+=======
+    import torch.utils._cxx_pytree as cxx_pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if TYPE_CHECKING:
         from torch.utils._cxx_pytree import PyTree
@@ -64,6 +76,7 @@ if python_pytree._cxx_pytree_dynamo_traceable:
         del __func
     del __name
 
+<<<<<<< HEAD
     @substitute_in_graph(optree.tree_is_leaf, can_constant_fold_through=True)
     def tree_is_leaf(
         tree: PyTree,
@@ -87,29 +100,56 @@ if python_pytree._cxx_pytree_dynamo_traceable:
         *,
         none_is_leaf: bool = False,
         namespace: str = "",
+=======
+    @substitute_in_graph(cxx_pytree.tree_is_leaf, can_constant_fold_through=True)
+    def tree_is_leaf(
+        tree: PyTree,
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> bool:
+        if tree is None or (is_leaf is not None and is_leaf(tree)):
+            return True
+        if optree.register_pytree_node.get(type(tree), namespace="torch") is None:  # type: ignore[attr-defined]
+            return True
+        return False
+
+    @substitute_in_graph(cxx_pytree.tree_iter, can_constant_fold_through=False)
+    def tree_iter(
+        tree: PyTree,
+        is_leaf: Callable[[PyTree], bool] | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Iterable[Any]:
         stack = [tree]
         while stack:
             node = stack.pop()
+<<<<<<< HEAD
             if tree_is_leaf(
                 node,
                 is_leaf=is_leaf,
                 none_is_leaf=none_is_leaf,
                 namespace=namespace,
             ):
+=======
+            if tree_is_leaf(node, is_leaf=is_leaf):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 yield node
                 continue
 
             children, *_ = optree.tree_flatten_one_level(
                 node,
                 is_leaf=is_leaf,
+<<<<<<< HEAD
                 none_is_leaf=none_is_leaf,
                 namespace=namespace,
+=======
+                none_is_leaf=True,
+                namespace="torch",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             stack.extend(reversed(children))
 
     __all__ += ["tree_iter"]
 
+<<<<<<< HEAD
     @substitute_in_graph(optree.tree_leaves, can_constant_fold_through=True)
     def tree_leaves(
         tree: PyTree,
@@ -127,6 +167,14 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                 namespace=namespace,
             )
         )
+=======
+    @substitute_in_graph(cxx_pytree.tree_leaves, can_constant_fold_through=True)
+    def tree_leaves(
+        tree: PyTree,
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> list[Any]:
+        return list(tree_iter(tree, is_leaf=is_leaf))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     __all__ += ["tree_leaves"]
 
@@ -151,12 +199,20 @@ if python_pytree._cxx_pytree_dynamo_traceable:
         _metadata: Any
         _entries: tuple[Any, ...]
         _unflatten_func: Callable[[Any | None, Iterable[PyTree]], PyTree] | None
+<<<<<<< HEAD
         none_is_leaf: bool
         namespace: str
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         num_nodes: int = field(init=False)
         num_leaves: int = field(init=False)
         num_children: int = field(init=False)
+<<<<<<< HEAD
+=======
+        none_is_leaf: Literal[True] = field(init=False)
+        namespace: Literal["torch"] = field(init=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __post_init__(self) -> None:
             if self._type is None:
@@ -176,6 +232,11 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             object.__setattr__(self, "num_nodes", num_nodes)
             object.__setattr__(self, "num_leaves", num_leaves)
             object.__setattr__(self, "num_children", num_children)
+<<<<<<< HEAD
+=======
+            object.__setattr__(self, "none_is_leaf", True)
+            object.__setattr__(self, "namespace", "torch")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __repr__(self) -> str:
             def helper(treespec: PyTreeSpec) -> str:
@@ -190,11 +251,17 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                 ]
                 if (
                     treespec.type in BUILTIN_TYPES
+<<<<<<< HEAD
                     or (treespec.type is type(None) and not self.none_is_leaf)
                     or optree.is_namedtuple_class(treespec.type)
                     or optree.is_structseq_class(treespec.type)
                 ):
                     # pyrefly: ignore [bad-return]
+=======
+                    or optree.is_namedtuple_class(treespec.type)
+                    or optree.is_structseq_class(treespec.type)
+                ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return treespec._unflatten_func(
                         treespec._metadata,
                         children_representations,
@@ -204,12 +271,18 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                     f"[{', '.join(children_representations)}])"
                 )
 
+<<<<<<< HEAD
             inner = [
                 str(helper(self)),
                 *(["NoneIsLeaf"] if self.none_is_leaf else []),
                 f"namespace={self.namespace!r}",
             ]
             return f"PyTreeSpec({', '.join(inner)})"
+=======
+            return (
+                f"PyTreeSpec({helper(self)}, NoneIsLeaf, namespace={self.namespace!r})"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __len__(self) -> int:
             return self.num_leaves
@@ -254,8 +327,13 @@ if python_pytree._cxx_pytree_dynamo_traceable:
 
                     children, metadata, *_ = optree.tree_flatten_one_level(
                         node,
+<<<<<<< HEAD
                         none_is_leaf=self.none_is_leaf,
                         namespace=self.namespace,
+=======
+                        none_is_leaf=True,
+                        namespace="torch",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     if len(children) != treespec.num_children:
                         raise ValueError(
@@ -303,8 +381,13 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                         # node_type is treespec.type
                         children, metadata, *_ = optree.tree_flatten_one_level(
                             node,
+<<<<<<< HEAD
                             none_is_leaf=self.none_is_leaf,
                             namespace=self.namespace,
+=======
+                            none_is_leaf=True,
+                            namespace="torch",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                         if (
                             node_type
@@ -346,10 +429,16 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             assert callable(self._unflatten_func)
             return self._unflatten_func(self._metadata, subtrees)
 
+<<<<<<< HEAD
+=======
+    _LEAF_SPEC = PyTreeSpec((), None, None, (), None)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _is_pytreespec_instance(obj: Any, /) -> TypeIs[PyTreeSpec]:
         return isinstance(obj, PyTreeSpec)
 
     @substitute_in_graph(  # type: ignore[arg-type]
+<<<<<<< HEAD
         optree.treespec_leaf,
         # We need to disable constant folding here because we want the function to reference the
         # PyTreeSpec class defined above, not the one in the C++ module.
@@ -458,12 +547,16 @@ if python_pytree._cxx_pytree_dynamo_traceable:
 
     @substitute_in_graph(  # type: ignore[arg-type]
         optree.tree_flatten,
+=======
+        cxx_pytree.tree_flatten,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We need to disable constant folding here because we want the function to reference the
         # PyTreeSpec class defined above, not the one in the C++ module.
         can_constant_fold_through=False,
     )
     def tree_flatten(
         tree: PyTree,
+<<<<<<< HEAD
         /,
         is_leaf: Callable[[PyTree], bool] | None = None,
         *,
@@ -487,6 +580,14 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                     none_is_leaf=none_is_leaf,
                     namespace=namespace,
                 )
+=======
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> tuple[list[Any], PyTreeSpec]:
+        def helper(node: PyTree, leaves: list[Any]) -> PyTreeSpec:
+            if tree_is_leaf(node, is_leaf=is_leaf):
+                leaves.append(node)
+                return _LEAF_SPEC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             (
                 children,
@@ -496,12 +597,18 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             ) = optree.tree_flatten_one_level(
                 node,
                 is_leaf=is_leaf,
+<<<<<<< HEAD
                 none_is_leaf=none_is_leaf,
                 namespace=namespace,
+=======
+                none_is_leaf=True,
+                namespace="torch",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             # Recursively flatten the children
             subspecs = tuple(helper(child, leaves) for child in children)
+<<<<<<< HEAD
             return PyTreeSpec(
                 subspecs,
                 type(node),
@@ -511,6 +618,9 @@ if python_pytree._cxx_pytree_dynamo_traceable:
                 none_is_leaf=none_is_leaf,
                 namespace=namespace,
             )  # type: ignore[arg-type]
+=======
+            return PyTreeSpec(subspecs, type(node), metadata, entries, unflatten_func)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         leaves: list[Any] = []
         treespec = helper(tree, leaves)
@@ -519,13 +629,18 @@ if python_pytree._cxx_pytree_dynamo_traceable:
     __all__ += ["tree_flatten"]
 
     @substitute_in_graph(  # type: ignore[arg-type]
+<<<<<<< HEAD
         optree.tree_structure,
+=======
+        cxx_pytree.tree_structure,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We need to disable constant folding here because we want the function to reference the
         # PyTreeSpec class defined above, not the one in the C++ module.
         can_constant_fold_through=False,
     )
     def tree_structure(
         tree: PyTree,
+<<<<<<< HEAD
         /,
         is_leaf: Callable[[PyTree], bool] | None = None,
         *,
@@ -538,16 +653,29 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             none_is_leaf=none_is_leaf,
             namespace=namespace,
         )[1]
+=======
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> PyTreeSpec:
+        return tree_flatten(tree, is_leaf=is_leaf)[1]  # type: ignore[return-value]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     __all__ += ["tree_structure"]
 
     @substitute_in_graph(  # type: ignore[arg-type]
+<<<<<<< HEAD
         optree.tree_unflatten,
+=======
+        cxx_pytree.tree_unflatten,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We need to disable constant folding here because we want the function to reference the
         # PyTreeSpec class defined above, not the one in the C++ module.
         can_constant_fold_through=False,
     )
+<<<<<<< HEAD
     def tree_unflatten(treespec: PyTreeSpec, leaves: Iterable[Any]) -> PyTree:
+=======
+    def tree_unflatten(leaves: Iterable[Any], treespec: PyTreeSpec) -> PyTree:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not _is_pytreespec_instance(treespec):
             raise TypeError(
                 f"tree_unflatten(leaves, treespec): Expected `treespec` to be instance of "
@@ -557,6 +685,7 @@ if python_pytree._cxx_pytree_dynamo_traceable:
 
     __all__ += ["tree_unflatten"]
 
+<<<<<<< HEAD
     @substitute_in_graph(optree.tree_map, can_constant_fold_through=True)
     def tree_map(
         func: Callable[..., Any],
@@ -573,11 +702,22 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             none_is_leaf=none_is_leaf,
             namespace=namespace,
         )
+=======
+    @substitute_in_graph(cxx_pytree.tree_map, can_constant_fold_through=True)
+    def tree_map(
+        func: Callable[..., Any],
+        tree: PyTree,
+        *rests: PyTree,
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> PyTree:
+        leaves, treespec = tree_flatten(tree, is_leaf=is_leaf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat_args = [leaves] + [treespec.flatten_up_to(r) for r in rests]
         return treespec.unflatten(map(func, *flat_args))
 
     __all__ += ["tree_map"]
 
+<<<<<<< HEAD
     @substitute_in_graph(optree.tree_map_, can_constant_fold_through=True)
     def tree_map_(
         func: Callable[..., Any],
@@ -594,11 +734,22 @@ if python_pytree._cxx_pytree_dynamo_traceable:
             none_is_leaf=none_is_leaf,
             namespace=namespace,
         )
+=======
+    @substitute_in_graph(cxx_pytree.tree_map_, can_constant_fold_through=True)
+    def tree_map_(
+        func: Callable[..., Any],
+        tree: PyTree,
+        *rests: PyTree,
+        is_leaf: Callable[[PyTree], bool] | None = None,
+    ) -> PyTree:
+        leaves, treespec = tree_flatten(tree, is_leaf=is_leaf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat_args = [leaves] + [treespec.flatten_up_to(r) for r in rests]
         deque(map(func, *flat_args), maxlen=0)  # consume and exhaust the iterable
         return tree
 
     __all__ += ["tree_map_"]
+<<<<<<< HEAD
 
     _none_unflatten = optree.register_pytree_node.get(type(None)).unflatten_func  # type: ignore[union-attr]
 
@@ -611,3 +762,5 @@ if python_pytree._cxx_pytree_dynamo_traceable:
         if len(list(children)) != 0:
             raise ValueError("Expected no children.")
         return None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -4,6 +4,7 @@
 // code for better UX.
 
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
+<<<<<<< HEAD
 #include <torch/csrc/stable/c/shim.h>
 #include <torch/headeronly/macros/Macros.h>
 
@@ -14,6 +15,203 @@
 #include <torch/csrc/stable/version.h>
 
 HIDDEN_NAMESPACE_BEGIN(torch, stable, detail)
+=======
+#include <torch/csrc/stable/tensor.h>
+
+#include <optional>
+
+// use anonymous namespace to avoid collisions between differing
+// versions of this file that may be included by different sources
+namespace {
+
+// =============================================================================
+//  helpers for converting between StableIValue and T
+// =============================================================================
+
+// forward declare so that from/to() calls in detail work
+template <typename T>
+StableIValue from(T val);
+template <typename T>
+T to(StableIValue val);
+
+namespace detail {
+
+// =============================================================================
+// FROM CONVERSIONS (T -> StableIValue)
+// =============================================================================
+
+// Specialization for general copyable types (catch-all) => StableIValue
+template <typename T>
+struct FromImpl {
+  static StableIValue call(T val) {
+    static_assert(
+        sizeof(T) <= sizeof(StableIValue),
+        "StableLibrary stack does not support parameter types larger than 64 bits.");
+    static_assert(std::is_trivially_copyable_v<T>);
+    // Initialization should be cheap enough; let's give people well-specified
+    // reproducible behavior.
+    StableIValue result = 0;
+    // NOTE [ -Wclass-memaccess ]: reinterpret_cast to suppress
+    // overzealous -Wclass-memaccess. (see
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107361) We have a
+    // static_assert above that T is trivially copyable, which should be
+    // enough.
+    std::memcpy(&result, reinterpret_cast<const void*>(&val), sizeof(val));
+    return result;
+  }
+};
+
+// Specialization for std::nullopt_t => StableIValue
+template <>
+struct FromImpl<std::nullopt_t> {
+  static StableIValue call(std::nullopt_t val) {
+    return from(nullptr);
+  }
+};
+
+// Specialization for std::optional => StableIValue
+// [Handling std::optional]
+// When the schema is represented by an optional type, say int?, then we
+// expect the custom extension representation to be a std::optional<int>
+// (critically NOT int!). In order for all parameters to be stably parsed and
+// handled by our dispatcher, we liaison custom extension parameters through
+// boxed kernels, meaning that every value will make its way to be an IValue:
+//
+// custom extension value --(from)-> StableIValue --(to_ivalue)-> IValue
+//
+// When the custom extension value is a literal that can be trivially
+// casted to StableIValue, e.g., an int, a float, a pointer, this route is
+// ...trivial. The below specialization is for a case when the custom
+// extension value would NOT fit within a StableIValue: a std::optional.
+//
+// If the std::optional has no value, it is treated as std::nullopt,
+// whose StableIValue representation is from(nullptr). Otherwise, we:
+// 1. unwrap the std::optional<T>
+// 2. recursively convert its value of type T to a StableIValue
+// 3. allocate heap space for said StableIValue
+// 4. convert the resulting StableIValue* into a StableIValue
+//
+// note that this allocates heap memory! which we expect to be cleaned
+// up in the to_ivalue() function defined in shim_common.cpp. We
+// purposefully hide this implementation detail from the user so that
+// all the user needs to know is:
+//
+// The schema requests an optional (T?) so I must call `from` on a
+// std::optional<T> or a std::nullopt.
+template <typename T>
+struct FromImpl<std::optional<T>> {
+  static StableIValue call(const std::optional<T>& val) {
+    if (!val.has_value()) {
+      return from(std::nullopt);
+    }
+    StableIValue* heap_val = new StableIValue(from(val.value()));
+    return from(heap_val);
+  }
+};
+
+// Specialization for torch::stable::Tensor => StableIValue
+// Returns a new owning reference of the underlying Tensor.
+template <>
+struct FromImpl<torch::stable::Tensor> {
+  static StableIValue call(const torch::stable::Tensor& val) {
+    AtenTensorHandle new_ath;
+    aoti_torch_new_tensor_handle(val.get(), &new_ath);
+    return from(new_ath);
+  }
+};
+
+// =============================================================================
+// TO CONVERSIONS (StableIValue -> T)
+// =============================================================================
+
+// Specialization for StableIValue => general copyable types (catch-all)
+template <typename T>
+struct ToImpl {
+  static T call(StableIValue val) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    // T may not have a default constructor. (For example, it might be
+    // c10::Device.) However, std::memcpy implicitly creates a T at the
+    // destination. So, we can use a union to work around this lack of
+    // default constructor.
+    union Result {
+      Result() {}
+      T t;
+    };
+    Result result;
+    // See NOTE[ -Wclass-memaccess ] above.
+    std::memcpy(reinterpret_cast<void*>(&result.t), &val, sizeof(result));
+    return result.t;
+  }
+};
+
+// Specialization for StableIValue => std::nullopt_t
+template <>
+struct ToImpl<std::nullopt_t> {
+  static std::nullopt_t call(StableIValue val) {
+    // val should be equivalent to from(nullptr)
+    return std::nullopt;
+  }
+};
+
+// Specialization for StableIValue => std::optional, see [Handling
+// std::optional] as the semantic is the same but in reverse direction as we go
+// from IValue --(from_ivalue)-> StableIValue --(to<T>)-> T in custom extension
+template <typename T>
+struct ToImpl<std::optional<T>> {
+  static std::optional<T> call(StableIValue val) {
+    auto sivp = to<StableIValue*>(val);
+
+    // sivp is either nullptr or a pointer to a StableIValue
+    if (sivp == nullptr) {
+      return {};
+    }
+    auto inner_val = to<T>(*sivp);
+
+    // free the memory associated with StableIValue* sivp
+    delete sivp;
+
+    return std::make_optional(inner_val);
+  }
+};
+
+// Specialization for StableIValue => torch::stable::Tensor
+// The resulting stable::Tensor steals ownership of the input's
+// underlying AtenTensorHandle.
+template <>
+struct ToImpl<torch::stable::Tensor> {
+  static torch::stable::Tensor call(StableIValue val) {
+    return torch::stable::Tensor(to<AtenTensorHandle>(val));
+  }
+};
+
+} // namespace detail
+
+// Expose the partially templated class functions through single functions
+template <typename T>
+StableIValue from(T val) {
+  return detail::FromImpl<T>::call(val);
+}
+
+template <typename T>
+StableIValue from(const std::optional<T>& val) {
+  return detail::FromImpl<std::optional<T>>::call(val);
+}
+
+// The below overload is used! See https://godbolt.org/z/859cshxrW
+// We are suppressing the warning for versions clang12- and gcc11-
+[[maybe_unused]] StableIValue from(const torch::stable::Tensor& val) {
+  return detail::FromImpl<torch::stable::Tensor>::call(val);
+}
+
+template <typename T>
+T to(StableIValue val) {
+  return detail::ToImpl<T>::call(val);
+}
+
+// =============================================================================
+//  end to helpers for converting between StableIValue and T
+// =============================================================================
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class StableLibrary final {
  private:
@@ -83,11 +281,15 @@ class StableLibrary final {
   StableLibrary& impl(
       const char* name,
       void (*fn)(StableIValue*, uint64_t, uint64_t)) {
+<<<<<<< HEAD
 #if TORCH_FEATURE_VERSION >= TORCH_VERSION_2_10_0
     torch_library_impl(lib_, name, fn, TORCH_ABI_VERSION);
 #else
     aoti_torch_library_impl(lib_, name, fn);
 #endif
+=======
+    aoti_torch_library_impl(lib_, name, fn);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return *this;
   }
 
@@ -116,7 +318,11 @@ class StableTorchLibraryInit final {
   }
 };
 
+<<<<<<< HEAD
 HIDDEN_NAMESPACE_END(torch, stable, detail)
+=======
+} // namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // macros copied from c10/macros/Macros.h
 #ifdef __COUNTER__
@@ -134,6 +340,7 @@ HIDDEN_NAMESPACE_END(torch, stable, detail)
 
 #define _STABLE_TORCH_LIBRARY_IMPL(ns, k, m, uid)                             \
   static void STABLE_CONCATENATE(                                             \
+<<<<<<< HEAD
       STABLE_TORCH_LIBRARY_IMPL_init_##ns##_##k##_,                           \
       uid)(torch::stable::detail::StableLibrary&);                            \
   static const torch::stable::detail::StableTorchLibraryInit                  \
@@ -161,12 +368,37 @@ HIDDEN_NAMESPACE_END(torch, stable, detail)
           __FILE__,                                          \
           __LINE__);                                         \
   void STABLE_TORCH_LIBRARY_init_##ns(torch::stable::detail::StableLibrary& m)
+=======
+      STABLE_TORCH_LIBRARY_IMPL_init_##ns##_##k##_, uid)(StableLibrary&);     \
+  static const StableTorchLibraryInit STABLE_CONCATENATE(                     \
+      STABLE_TORCH_LIBRARY_IMPL_static_init_##ns##_##k##_, uid)(              \
+      StableLibrary::Kind::IMPL,                                              \
+      &STABLE_CONCATENATE(STABLE_TORCH_LIBRARY_IMPL_init_##ns##_##k##_, uid), \
+      #ns,                                                                    \
+      #k,                                                                     \
+      __FILE__,                                                               \
+      __LINE__);                                                              \
+  void STABLE_CONCATENATE(                                                    \
+      STABLE_TORCH_LIBRARY_IMPL_init_##ns##_##k##_, uid)(StableLibrary & m)
+
+#define STABLE_TORCH_LIBRARY(ns, m)                                          \
+  static void STABLE_TORCH_LIBRARY_init_##ns(StableLibrary&);                \
+  static const StableTorchLibraryInit STABLE_TORCH_LIBRARY_static_init_##ns( \
+      StableLibrary::Kind::DEF,                                              \
+      &STABLE_TORCH_LIBRARY_init_##ns,                                       \
+      #ns,                                                                   \
+      nullptr,                                                               \
+      __FILE__,                                                              \
+      __LINE__);                                                             \
+  void STABLE_TORCH_LIBRARY_init_##ns(StableLibrary& m)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define STABLE_TORCH_LIBRARY_FRAGMENT(ns, m) \
   _STABLE_TORCH_LIBRARY_FRAGMENT(ns, m, STABLE_UID)
 
 #define _STABLE_TORCH_LIBRARY_FRAGMENT(ns, m, uid)                          \
   static void STABLE_CONCATENATE(                                           \
+<<<<<<< HEAD
       STABLE_TORCH_LIBRARY_FRAGMENT_init_##ns##_,                           \
       uid)(torch::stable::detail::StableLibrary&);                          \
   static const torch::stable::detail::StableTorchLibraryInit                \
@@ -181,3 +413,16 @@ HIDDEN_NAMESPACE_END(torch, stable, detail)
           __LINE__);                                                        \
   void STABLE_CONCATENATE(STABLE_TORCH_LIBRARY_FRAGMENT_init_##ns##_, uid)( \
       torch::stable::detail::StableLibrary & m)
+=======
+      STABLE_TORCH_LIBRARY_FRAGMENT_init_##ns##_, uid)(StableLibrary&);     \
+  static const StableTorchLibraryInit STABLE_CONCATENATE(                   \
+      STABLE_TORCH_LIBRARY_FRAGMENT_static_init_##ns##_, uid)(              \
+      StableLibrary::Kind::FRAGMENT,                                        \
+      &STABLE_CONCATENATE(STABLE_TORCH_LIBRARY_FRAGMENT_init_##ns##_, uid), \
+      #ns,                                                                  \
+      nullptr,                                                              \
+      __FILE__,                                                             \
+      __LINE__);                                                            \
+  void STABLE_CONCATENATE(                                                  \
+      STABLE_TORCH_LIBRARY_FRAGMENT_init_##ns##_, uid)(StableLibrary & m)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

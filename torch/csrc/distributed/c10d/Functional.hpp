@@ -1,6 +1,7 @@
 #pragma once
 
 #include <torch/csrc/distributed/c10d/ProcessGroup.hpp>
+<<<<<<< HEAD
 
 namespace c10d {
 
@@ -76,3 +77,5 @@ C10_EXPORT at::Tensor broadcast(
     std::string group_name);
 
 } // namespace c10d
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

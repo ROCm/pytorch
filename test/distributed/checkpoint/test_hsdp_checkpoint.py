@@ -2,7 +2,10 @@
 from copy import deepcopy
 
 import torch
+<<<<<<< HEAD
 import torch.distributed as dist
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.distributed.checkpoint as dist_cp
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,9 +33,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 from torch.testing._internal.distributed.checkpoint_utils import with_temp_dir
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SimpleModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -48,7 +54,11 @@ class SimpleModel(torch.nn.Module):
         return x
 
     def get_input(self):
+<<<<<<< HEAD
         return torch.rand(4, 5, device=device_type)
+=======
+        return torch.rand(4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SimpleModelUneven(torch.nn.Module):
@@ -68,17 +78,28 @@ class SimpleModelUneven(torch.nn.Module):
         return x
 
     def get_input(self):
+<<<<<<< HEAD
         return torch.rand(4, 5, device=device_type)
+=======
+        return torch.rand(4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestHSDPCheckpoint(DTensorTestBase):
     @property
     def backend(self):
+<<<<<<< HEAD
         curr_backend = dist.get_default_backend_for_device(self.device_type)
         return f"cpu:gloo,{self.device_type}:{curr_backend}"
 
     @skip_if_lt_x_gpu(4)
     @with_comms
+=======
+        return "cpu:gloo,cuda:nccl"
+
+    @with_comms
+    @skip_if_lt_x_gpu(4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     @parametrize("is_even_sharded_model", [True, False])
     def test_hsdp_checkpoint(self, is_even_sharded_model) -> None:
@@ -87,7 +108,11 @@ class TestHSDPCheckpoint(DTensorTestBase):
 
         mesh_2d = init_device_mesh(self.device_type, (2, self.world_size // 2))
         model = FSDP(
+<<<<<<< HEAD
             simple_model().to(self.device_type),
+=======
+            simple_model().cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sharding_strategy=ShardingStrategy.HYBRID_SHARD,
             device_mesh=mesh_2d,
         )
@@ -135,8 +160,13 @@ class TestHSDPCheckpoint(DTensorTestBase):
             self.assertEqual(v1.placements, v2.placements)
             self.assertEqual(v1.to_local(), v2.to_local())
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(4)
     @with_comms
+=======
+    @with_comms
+    @skip_if_lt_x_gpu(4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     @parametrize("is_even_sharded_model", [True, False])
     def test_hsdp_fsdp_checkpoint_conversion(self, is_even_sharded_model) -> None:
@@ -146,7 +176,11 @@ class TestHSDPCheckpoint(DTensorTestBase):
         # save the hsdp model state_dict
         mesh_2d = init_device_mesh(self.device_type, (2, self.world_size // 2))
         hsdp_model = FSDP(
+<<<<<<< HEAD
             simple_model().to(self.device_type),
+=======
+            simple_model().cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sharding_strategy=ShardingStrategy.HYBRID_SHARD,
             device_mesh=mesh_2d,
         )
@@ -164,7 +198,11 @@ class TestHSDPCheckpoint(DTensorTestBase):
         # initialize a fsdp model to load checkpoint into
         mesh_1d = init_device_mesh(self.device_type, (self.world_size,))
         fsdp_model = FSDP(
+<<<<<<< HEAD
             simple_model().to(self.device_type),
+=======
+            simple_model().cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_mesh=mesh_1d,
         )
         FSDP.set_state_dict_type(

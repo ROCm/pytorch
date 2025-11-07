@@ -25,7 +25,11 @@ errors.
 from __future__ import annotations
 
 import os
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
+=======
+from typing import Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import error_reproduction
 import numpy as np
@@ -44,7 +48,11 @@ from torch.utils import _pytree as pytree
 
 if TYPE_CHECKING:
     import unittest
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
+=======
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from torch.testing._internal.opinfo import core as opinfo_core
 

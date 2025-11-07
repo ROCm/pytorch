@@ -2,8 +2,12 @@
 import enum
 import timeit
 import textwrap
+<<<<<<< HEAD
 from typing import overload, Any, NoReturn, Optional, Union
 from collections.abc import Callable
+=======
+from typing import overload, Any, Callable, NoReturn, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.utils.benchmark.utils import common, cpp_jit
@@ -14,9 +18,27 @@ from torch.utils.benchmark.utils.valgrind_wrapper import timer_interface as valg
 __all__ = ["Timer", "timer", "Language"]
 
 
+<<<<<<< HEAD
 if torch.accelerator.is_available():
     def timer() -> float:
         torch.accelerator.synchronize()
+=======
+if torch.backends.cuda.is_built() and torch.cuda.is_available():  # type: ignore[no-untyped-call]
+    def timer() -> float:
+        torch.cuda.synchronize()
+        return timeit.default_timer()
+elif torch.xpu.is_available():
+    def timer() -> float:
+        torch.xpu.synchronize()
+        return timeit.default_timer()
+elif torch._C._get_privateuse1_backend_name() != "privateuseone":
+    privateuse1_device_handler = getattr(torch, torch._C._get_privateuse1_backend_name(), None) \
+        if torch._C._get_privateuse1_backend_name() != "cpu" else None
+
+    def timer() -> float:
+        if privateuse1_device_handler:
+            privateuse1_device_handler.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return timeit.default_timer()
 else:
     timer = timeit.default_timer
@@ -38,12 +60,21 @@ class CPPTimer:
     ) -> None:
         if timer is not timeit.default_timer:
             raise NotImplementedError(
+<<<<<<< HEAD
                 "PyTorch was built with accelerators and an accelerator is present; however "
                 "Timer does not yet support accelerator measurements. If your "
                 "code is CPU only, pass `timer=timeit.default_timer` to the "
                 "Timer's constructor to indicate this. (Note that this will "
                 "produce incorrect results if an accelerator is in fact used, as "
                 "Timer will not synchronize the accelerator.)"
+=======
+                "PyTorch was built with CUDA and a GPU is present; however "
+                "Timer does not yet support GPU measurements. If your "
+                "code is CPU only, pass `timer=timeit.default_timer` to the "
+                "Timer's constructor to indicate this. (Note that this will "
+                "produce incorrect results if the GPU is in fact used, as "
+                "Timer will not synchronize CUDA.)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if globals:
@@ -77,7 +108,11 @@ class Timer:
     1) Runtime aware:
         Timer will perform warmups (important as some elements of PyTorch are
         lazily initialized), set threadpool size so that comparisons are
+<<<<<<< HEAD
         apples-to-apples, and synchronize asynchronous accelerator functions when
+=======
+        apples-to-apples, and synchronize asynchronous CUDA functions when
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         necessary.
 
     2) Focus on replicates:
@@ -120,8 +155,13 @@ class Timer:
 
         timer:
             Callable which returns the current time. If PyTorch was built
+<<<<<<< HEAD
             without accelerators or there is no accelerator present, this defaults to
             `timeit.default_timer`; otherwise it will synchronize accelerators before
+=======
+            without CUDA or there is no GPU present, this defaults to
+            `timeit.default_timer`; otherwise it will synchronize CUDA before
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             measuring the time.
 
         globals:
@@ -208,8 +248,12 @@ class Timer:
                 )
 
         elif language in (Language.CPP, "cpp", "c++"):
+<<<<<<< HEAD
             if self._timer_cls is not timeit.Timer:
                 raise AssertionError("_timer_cls has already been swapped.")
+=======
+            assert self._timer_cls is timeit.Timer, "_timer_cls has already been swapped."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._timer_cls = CPPTimer
             setup = ("" if setup == "pass" else setup)
             self._language = Language.CPP
@@ -234,7 +278,10 @@ class Timer:
         setup = textwrap.dedent(setup)
         setup = (setup[1:] if setup and setup[0] == "\n" else setup).rstrip()
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-instantiation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._timer = self._timer_cls(
             stmt=stmt,
             setup=setup,
@@ -350,7 +397,11 @@ class Timer:
 
             2) A large block size better amortizes the cost of `timer`
                invocation, and results in a less biased measurement. This is
+<<<<<<< HEAD
                important because accelerator synchronization time is non-trivial
+=======
+               important because CUDA synchronization time is non-trivial
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                (order single to low double digit microseconds) and would
                otherwise bias the measurement.
 
@@ -487,7 +538,11 @@ class Timer:
         the fact that a small number of iterations is generally sufficient to
         obtain good measurements.
 
+<<<<<<< HEAD
         In order to use this method `valgrind`, `callgrind_control`, and
+=======
+        In order to to use this method `valgrind`, `callgrind_control`, and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         `callgrind_annotate` must be installed.
 
         Because there is a process boundary between the caller (this process)
@@ -518,8 +573,12 @@ class Timer:
         # the parent process rather than the valgrind subprocess.
         self._timeit(1)
         is_python = (self._language == Language.PYTHON)
+<<<<<<< HEAD
         if not is_python and self._globals:
             raise AssertionError("_timer globals are only supported for Python timers")
+=======
+        assert is_python or not self._globals
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = valgrind_timer_interface.wrapper_singleton().collect_callgrind(
             task_spec=self._task_spec,
             globals=self._globals,

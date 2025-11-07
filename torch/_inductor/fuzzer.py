@@ -5,6 +5,10 @@ import pickle
 import random
 import signal
 import string
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import traceback
 from collections.abc import KeysView, Sequence
 from enum import Enum
@@ -22,8 +26,12 @@ from typing import (
 )
 
 import torch
+<<<<<<< HEAD
 from functorch.compile import min_cut_rematerialization_partition
 from torch._inductor.custom_graph_pass import CustomGraphPass, CustomPartitionerFn
+=======
+from torch._inductor.custom_graph_pass import CustomGraphPass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.scheduler import BaseSchedulerNode
 from torch.utils._config_module import _ConfigEntry, ConfigModule
 from torch.utils._ordered_set import OrderedSet
@@ -74,6 +82,7 @@ class DummyPass(CustomGraphPass):
         return None
 
 
+<<<<<<< HEAD
 class DummyPartitionerFn(CustomPartitionerFn):
     """
     A Dummy partitioner function to be used by ConfigFuzzer
@@ -88,6 +97,8 @@ class DummyPartitionerFn(CustomPartitionerFn):
         return None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T = TypeVar("T")
 
 
@@ -98,7 +109,10 @@ class TypeExemplars:
 
     TYPE_EXEMPLARS: dict[str, Any] = {
         CustomGraphPass.__name__: DummyPass(),
+<<<<<<< HEAD
         CustomPartitionerFn.__name__: DummyPartitionerFn(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.fx.graph.Graph.__name__: torch.fx.graph.Graph(),
         BaseSchedulerNode.__name__: BaseSchedulerNode(None),  # type: ignore[arg-type]
     }
@@ -108,12 +122,18 @@ class TypeExemplars:
         """
         Return an example of a class.
         """
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type, bad-argument-count]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return TypeExemplars.TYPE_EXEMPLARS.get(t.__name__, None)
 
     @staticmethod
     def contains(t: type[T]) -> bool:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type, bad-argument-count]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return t.__name__ in TypeExemplars.TYPE_EXEMPLARS
 
 
@@ -220,6 +240,7 @@ class SamplingMethod(Enum):
         if field_name in TYPE_OVERRIDES:
             return random.choice(TYPE_OVERRIDES[field_name])
 
+<<<<<<< HEAD
         if type_hint is bool:
             return random.choice([True, False]) if random_sample else not default
         elif type_hint is int:
@@ -229,6 +250,17 @@ class SamplingMethod(Enum):
         elif type_hint is float:
             return random.uniform(0, 1000)
         elif type_hint is str:
+=======
+        if type_hint == bool:
+            return random.choice([True, False]) if random_sample else not default
+        elif type_hint == int:
+            # NOTE initially tried to use negation of the value, but it doesn't work because most types are ints
+            # when they should be natural numbers + zero. Python types to cover these values aren't super convenient.
+            return random.randint(0, 1000)
+        elif type_hint == float:
+            return random.uniform(0, 1000)
+        elif type_hint == str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             characters = string.ascii_letters + string.digits + string.punctuation
             return "".join(
                 random.choice(characters) for _ in range(random.randint(1, 20))
@@ -306,11 +338,19 @@ class SamplingMethod(Enum):
                 new_type = random.choice(type_hint.__args__)
             else:
                 new_type = random.choice(
+<<<<<<< HEAD
                     [t for t in type_hint.__args__ if t is not type(default)]
                 )
             try:
                 new_default = new_type()
             except Exception:
+=======
+                    [t for t in type_hint.__args__ if t != type(default)]
+                )
+            try:
+                new_default = new_type()
+            except Exception:  # noqa: E722
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # if default constructor doesn't work, try None
                 new_default = None
 
@@ -385,7 +425,11 @@ class SamplingMethod(Enum):
         elif TypeExemplars.contains(type_hint):
             return TypeExemplars.example(type_hint)
         elif type_hint == Any:
+<<<<<<< HEAD
             return 1 if default != 1 else 2
+=======
+            return 1 if not default == 1 else 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise ValueError(f"Unable to process type {type_hint}. PRs welcome :)")
 
@@ -516,7 +560,10 @@ MODULE_DEFAULTS: dict[str, ConfigType] = {
         "joint_custom_post_pass": DEFAULT,  # Typing
         "joint_custom_pre_pass": DEFAULT,  # Typing
         "pre_grad_custom_pass": DEFAULT,  # Typing
+<<<<<<< HEAD
         "custom_partitioner_fn": DEFAULT,  # Typing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     },
     "torch._dynamo.config": {
         "traceable_tensor_subclasses": DEFAULT,  # Typing
@@ -524,7 +571,10 @@ MODULE_DEFAULTS: dict[str, ConfigType] = {
         "compiled_autograd_kwargs_override": DEFAULT,  # Typing
         "fail_on_recompile_limit_hit": DEFAULT,  # fails in combo with suppress_errors
         "suppress_errors": DEFAULT,
+<<<<<<< HEAD
         "caching_precompile": False,  # Required
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     },
 }
 
@@ -611,6 +661,12 @@ class ConfigFuzzer:
             sm: How type value samples are generated, default TOGGLE.
             test_timeout: max time a test can take.
         """
+<<<<<<< HEAD
+=======
+        if sys.version_info < (3, 10):
+            log.error("Only python 3.10 and later supported")
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.seed = seed
         self.test_timeout = test_timeout
         self.detailed_results: dict[ComboType, dict[str, Any]] = {}
@@ -779,7 +835,11 @@ class ConfigFuzzer:
         test_model_fn = self.test_model_fn_factory()
         try:
             test_model_fn()
+<<<<<<< HEAD
         except Exception as exc:
+=======
+        except Exception as exc:  # noqa: E722
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return handle_return(
                 "Eager exception", Status.FAILED_RUN_EAGER_EXCEPTION, True, exc
             )
@@ -788,7 +848,11 @@ class ConfigFuzzer:
         try:
             test_model_fn2 = self.test_model_fn_factory()
             comp = torch.compile(test_model_fn2, backend="inductor")
+<<<<<<< HEAD
         except Exception as exc:
+=======
+        except Exception as exc:  # noqa: E722
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return handle_return(
                 "Exception compiling", Status.FAILED_COMPILE, True, exc
             )
@@ -796,7 +860,11 @@ class ConfigFuzzer:
         # try running compiled
         try:
             compile_result = comp()
+<<<<<<< HEAD
         except Exception as exc:
+=======
+        except Exception as exc:  # noqa: E722
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return handle_return(
                 "Exception running compiled",
                 Status.FAILED_RUN_COMPILE_EXCEPTION,

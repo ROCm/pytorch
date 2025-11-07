@@ -78,7 +78,13 @@ namespace aten {
 using namespace ::c10::aten;
 }
 namespace cuda {
+<<<<<<< HEAD
 using namespace ::c10::cuda;
+=======
+#if !defined(USE_ROCM)
+using namespace ::c10::cuda;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace cuda
 
 struct Function;
@@ -614,7 +620,11 @@ struct TORCH_API Node {
   // as the equivalents phi-nodes in standard SSA form,
   // defining a new Value to represent any term that has multiple
   // definitions depending on how control flowed. Outputs of the node containing
+<<<<<<< HEAD
   // control flow serve a similar purpose defining new values for variables
+=======
+  // control flow serve a similiar purpose defining new values for variables
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // that would have different definitions depending on which way control
   // flowed.
 
@@ -1372,7 +1382,11 @@ struct Graph : std::enable_shared_from_this<Graph> {
   // kwargs using Python argument matching rules, and checks that the op matches
   // a known schema.
   //
+<<<<<<< HEAD
   // If this node successfully completes, it guarantees the node
+=======
+  // If this node successfully completes, it guarentees the node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // is a correctly-formed invocation of opname
   TORCH_API Value* insert(
       Symbol opname,

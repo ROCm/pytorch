@@ -3,8 +3,13 @@ import copy as copymodule
 import warnings
 from abc import ABC, abstractmethod
 from collections import deque
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator, Sized
 from typing import Any, Literal, Optional, TypeVar
+=======
+from collections.abc import Iterator, Sized
+from typing import Any, Callable, Literal, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes._hook_iterator import _SnapshotState
@@ -59,7 +64,10 @@ class ConcaterIterDataPipe(IterDataPipe):
 
     def __len__(self) -> int:
         if all(isinstance(dp, Sized) for dp in self.datapipes):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return sum(len(dp) for dp in self.datapipes)
         else:
             raise TypeError(f"{type(self).__name__} instance doesn't have valid length")
@@ -117,6 +125,7 @@ class _ContainerTemplate(ABC):
     r"""Abstract class for container ``DataPipes``. The followings are three required methods."""
 
     @abstractmethod
+<<<<<<< HEAD
     def get_next_element_by_instance(self, instance_id: int): ...
 
     @abstractmethod
@@ -124,6 +133,18 @@ class _ContainerTemplate(ABC):
 
     @abstractmethod
     def reset(self) -> None: ...
+=======
+    def get_next_element_by_instance(self, instance_id: int):
+        ...
+
+    @abstractmethod
+    def is_every_instance_exhausted(self) -> bool:
+        ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abstractmethod
     def get_length_by_instance(self, instance_id: int):
@@ -159,7 +180,10 @@ class _ForkerIterDataPipe(IterDataPipe, _ContainerTemplate):
                 "Unlimited buffer size is set for `fork`, "
                 "please be aware of OOM at random places",
                 UserWarning,
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         if copy is None:
             self.copy_fn = _no_op
@@ -181,7 +205,10 @@ class _ForkerIterDataPipe(IterDataPipe, _ContainerTemplate):
         self._child_stop: list[bool] = [True for _ in range(num_instances)]
 
     def __len__(self):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.main_datapipe)
 
     def get_next_element_by_instance(self, instance_id: int):
@@ -241,7 +268,10 @@ class _ForkerIterDataPipe(IterDataPipe, _ContainerTemplate):
         return self.end_ptr is not None and all(self._child_stop)
 
     def get_length_by_instance(self, instance_id: int) -> int:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.main_datapipe)
 
     def reset(self) -> None:
@@ -325,10 +355,15 @@ class _ChildDataPipe(IterDataPipe):
     _is_child_datapipe: bool = True
 
     def __init__(self, main_datapipe: IterDataPipe, instance_id: int):
+<<<<<<< HEAD
         if not isinstance(main_datapipe, _ContainerTemplate):
             raise AssertionError("main_datapipe must implement _ContainerTemplate")
 
         # pyrefly: ignore [bad-assignment]
+=======
+        assert isinstance(main_datapipe, _ContainerTemplate)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.main_datapipe: IterDataPipe = main_datapipe
         self.instance_id = instance_id
 
@@ -360,7 +395,10 @@ class _ChildDataPipe(IterDataPipe):
                     "Some child DataPipes are not exhausted when __iter__ is called. We are resetting "
                     "the buffer and each child DataPipe will read from the start again.",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             self.main_datapipe.reset()
         # 3. Otherwise, the iterator is behind the others, so it will just need to catch up by setting
@@ -407,9 +445,13 @@ class DemultiplexerIterDataPipe(IterDataPipe):
         >>> # It can also filter out any element that gets `None` from the `classifier_fn`
         >>> def odd_or_even_no_zero(n):
         ...     return n % 2 if n != 0 else None
+<<<<<<< HEAD
         >>> dp1, dp2 = source_dp.demux(
         ...     num_instances=2, classifier_fn=odd_or_even_no_zero, drop_none=True
         ... )
+=======
+        >>> dp1, dp2 = source_dp.demux(num_instances=2, classifier_fn=odd_or_even_no_zero, drop_none=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> list(dp1)
         [2, 4]
         >>> list(dp2)
@@ -434,9 +476,13 @@ class DemultiplexerIterDataPipe(IterDataPipe):
         # When num_instances == 1, demux can be replaced by filter,
         # but keep it as Demultiplexer for the sake of consistency
         # like throwing Error when classification result is out of o range
+<<<<<<< HEAD
         container = _DemultiplexerIterDataPipe(
             datapipe, num_instances, classifier_fn, drop_none, buffer_size
         )  # type: ignore[abstract]
+=======
+        container = _DemultiplexerIterDataPipe(datapipe, num_instances, classifier_fn, drop_none, buffer_size)  # type: ignore[abstract]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [_ChildDataPipe(container, i) for i in range(num_instances)]
 
 
@@ -456,7 +502,10 @@ class _DemultiplexerIterDataPipe(IterDataPipe, _ContainerTemplate):
         drop_none: bool,
         buffer_size: int,
     ):
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-type-var]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.main_datapipe = datapipe
         self._datapipe_iterator: Optional[Iterator[Any]] = None
         self.num_instances = num_instances
@@ -466,12 +515,18 @@ class _DemultiplexerIterDataPipe(IterDataPipe, _ContainerTemplate):
                 "Unlimited buffer size is set for `demux`, "
                 "please be aware of OOM at random places",
                 UserWarning,
+<<<<<<< HEAD
                 stacklevel=2,
             )
         self.current_buffer_usage = 0
         # pyrefly: ignore [invalid-type-var]
         self.child_buffers: list[deque[_T_co]] = [deque() for _ in range(num_instances)]
         # pyrefly: ignore [invalid-type-var]
+=======
+            )
+        self.current_buffer_usage = 0
+        self.child_buffers: list[deque[_T_co]] = [deque() for _ in range(num_instances)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.classifier_fn = classifier_fn
         self.drop_none = drop_none
         self.main_datapipe_exhausted = False
@@ -614,22 +669,36 @@ class MultiplexerIterDataPipe(IterDataPipe):
     Example:
         >>> # xdoctest: +REQUIRES(module:torchdata)
         >>> from torchdata.datapipes.iter import IterableWrapper
+<<<<<<< HEAD
         >>> dp1, dp2, dp3 = (
         ...     IterableWrapper(range(3)),
         ...     IterableWrapper(range(10, 15)),
         ...     IterableWrapper(range(20, 25)),
         ... )
+=======
+        >>> dp1, dp2, dp3 = IterableWrapper(range(3)), IterableWrapper(range(10, 15)), IterableWrapper(range(20, 25))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> list(dp1.mux(dp2, dp3))
         [0, 10, 20, 1, 11, 21, 2, 12, 22]
     """
 
     def __init__(self, *datapipes):
         self.datapipes = datapipes
+<<<<<<< HEAD
         self.buffer: list = []  # Store values to be yielded only when every iterator provides one
 
     def __iter__(self):
         iterators = [iter(x) for x in self.datapipes]
         while iterators:
+=======
+        self.buffer: list = (
+            []
+        )  # Store values to be yielded only when every iterator provides one
+
+    def __iter__(self):
+        iterators = [iter(x) for x in self.datapipes]
+        while len(iterators):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for it in iterators:
                 try:
                     value = next(it)
@@ -684,11 +753,15 @@ class ZipperIterDataPipe(IterDataPipe[tuple[_T_co]]):
     Example:
         >>> # xdoctest: +REQUIRES(module:torchdata)
         >>> from torchdata.datapipes.iter import IterableWrapper
+<<<<<<< HEAD
         >>> dp1, dp2, dp3 = (
         ...     IterableWrapper(range(5)),
         ...     IterableWrapper(range(10, 15)),
         ...     IterableWrapper(range(20, 25)),
         ... )
+=======
+        >>> dp1, dp2, dp3 = IterableWrapper(range(5)), IterableWrapper(range(10, 15)), IterableWrapper(range(20, 25))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> list(dp1.zip(dp2, dp3))
         [(0, 10, 20), (1, 11, 21), (2, 12, 22), (3, 13, 23), (4, 14, 24)]
     """
@@ -709,7 +782,10 @@ class ZipperIterDataPipe(IterDataPipe[tuple[_T_co]]):
 
     def __len__(self) -> int:
         if all(isinstance(dp, Sized) for dp in self.datapipes):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return min(len(dp) for dp in self.datapipes)
         else:
             raise TypeError(f"{type(self).__name__} instance doesn't have valid length")

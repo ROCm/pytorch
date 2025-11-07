@@ -1,8 +1,11 @@
 # mypy: allow-untyped-defs
 import inspect
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, TypeVar
 from typing_extensions import TypeVarTuple, Unpack
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .dispatcher import Dispatcher, MethodDispatcher
 
@@ -11,6 +14,7 @@ global_namespace = {}  # type: ignore[var-annotated]
 
 __all__ = ["dispatch", "ismethod"]
 
+<<<<<<< HEAD
 T = TypeVar("T")
 Ts = TypeVarTuple("Ts")
 
@@ -18,6 +22,10 @@ Ts = TypeVarTuple("Ts")
 def dispatch(
     *types: Unpack[Ts], **kwargs: Any
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
+=======
+
+def dispatch(*types, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Dispatch function on the types of the inputs
     Supports dispatch on all non-keyword arguments.
     Collects implementations based on the function name.  Ignores namespaces.
@@ -58,7 +66,11 @@ def dispatch(
     """
     namespace = kwargs.get("namespace", global_namespace)
 
+<<<<<<< HEAD
     types_tuple: tuple[type, ...] = tuple(types)  # type: ignore[arg-type]
+=======
+    types = tuple(types)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _df(func):
         name = func.__name__
@@ -73,7 +85,11 @@ def dispatch(
                 namespace[name] = Dispatcher(name)
             dispatcher = namespace[name]
 
+<<<<<<< HEAD
         dispatcher.add(types_tuple, func)
+=======
+        dispatcher.add(types, func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return dispatcher
 
     return _df

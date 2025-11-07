@@ -40,8 +40,13 @@ class C10_API SymBool {
     return *c;
   }
 
+<<<<<<< HEAD
   SymBool sym_and(const SymBool& /*sci*/) const;
   SymBool sym_or(const SymBool& /*sci*/) const;
+=======
+  SymBool sym_and(const SymBool&) const;
+  SymBool sym_or(const SymBool&) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SymBool sym_not() const;
 
   SymBool operator&(const SymBool& other) const {

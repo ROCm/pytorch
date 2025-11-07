@@ -31,7 +31,11 @@ DEFINE_DISPATCH(qavg_pool2d_nhwc_stub);
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void avg_pool2d_out_frame(
+=======
+static void avg_pool2d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     Tensor& output,
     int64_t nInputPlane,

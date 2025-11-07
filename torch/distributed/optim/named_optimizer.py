@@ -1,8 +1,14 @@
 import logging
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Collection, Mapping
 from copy import deepcopy
 from typing import Any, Optional, overload, Union
+=======
+from collections.abc import Collection, Mapping
+from copy import deepcopy
+from typing import Any, Callable, Optional, overload, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -87,8 +93,12 @@ class _NamedOptimizer(optim.Optimizer):
         else:
             warnings.warn(
                 "Since we pass in param_groups, we will use param_groups to "
+<<<<<<< HEAD
                 "initialize the optimizer, not all parameters of the module.",
                 stacklevel=2,
+=======
+                "initialize the optimizer, not all parameters of the module."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             param_to_key = {param: key for key, param in self.named_parameters.items()}  # type: ignore[misc, has-type]
             ordered_param_keys = []

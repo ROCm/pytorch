@@ -141,7 +141,11 @@ void FilterDescriptor::set(const at::Tensor &t, const at::MemoryFormat memory_fo
     size[i] = (int) t.size(i);
   }
   for (const auto i : c10::irange(dim, pad)) {
+<<<<<<< HEAD
     size[i] = 1;
+=======
+    size[i] = (int) 1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   dim = std::max(dim, pad);
   cudnnTensorFormat_t filter_format{};

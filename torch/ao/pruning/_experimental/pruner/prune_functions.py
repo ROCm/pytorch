@@ -4,8 +4,12 @@ Collection of conversion functions for linear / conv2d structured pruning
 Also contains utilities for bias propagation
 """
 
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import cast, Optional
+=======
+from typing import Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import nn, Tensor
@@ -97,7 +101,10 @@ def _propagate_module_bias(module: nn.Module, mask: Tensor) -> Optional[Tensor]:
     if module.bias is not None:
         module.bias = nn.Parameter(cast(Tensor, module.bias)[mask])
     elif getattr(module, "_bias", None) is not None:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module.bias = nn.Parameter(cast(Tensor, module._bias)[mask])
 
     # get pruned biases to propagate to subsequent layer
@@ -127,7 +134,10 @@ def _prune_linear_helper(linear: nn.Linear) -> Tensor:
     linear.out_features = linear.weight.shape[0]
     _remove_bias_handles(linear)
 
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return mask
 
 
@@ -186,7 +196,10 @@ def _prune_conv2d_helper(conv2d: nn.Conv2d) -> Tensor:
     conv2d.out_channels = conv2d.weight.shape[0]
 
     _remove_bias_handles(conv2d)
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return mask
 
 
@@ -207,7 +220,10 @@ def prune_conv2d_padded(conv2d_1: nn.Conv2d) -> None:
             new_bias = torch.zeros(conv2d_1.bias.shape)
             new_bias[mask] = conv2d_1.bias[mask]  # type: ignore[possibly-undefined]
             # adjusted bias that to keep in conv2d_1
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_bias[~mask] = cast(Tensor, conv2d_1._bias)[~mask]
             # pruned biases that are kept instead of propagated
             conv2d_1.bias = nn.Parameter(new_bias)
@@ -332,10 +348,16 @@ def prune_conv2d_pool_flatten_linear(
         linear_ic = linear.weight.shape[1]
 
     conv2d_oc = len(mask)
+<<<<<<< HEAD
     if linear_ic % conv2d_oc != 0:
         raise AssertionError(
             f"Flattening from dimensions {conv2d_oc} to {linear_ic} not supported"
         )
+=======
+    assert linear_ic % conv2d_oc == 0, (
+        f"Flattening from dimensions {conv2d_oc} to {linear_ic} not supported"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     flatten_scale = linear_ic // conv2d_oc
     flattened_mask = torch.tensor(

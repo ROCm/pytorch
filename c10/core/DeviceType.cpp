@@ -158,7 +158,11 @@ void register_privateuse1_backend(const std::string& backend_name) {
   privateuse1_backend_name = backend_name;
   // Invariant: once this flag is set, privateuse1_backend_name is NEVER written
   // to.
+<<<<<<< HEAD
   privateuse1_backend_name_set.store(true, std::memory_order_release);
+=======
+  privateuse1_backend_name_set.store(true, std::memory_order_relaxed);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool is_privateuse1_backend_registered() {

@@ -5,7 +5,11 @@ namespace {
     template <typename T>
     class Memory : public ::testing::Test {};
     template <typename T>
+<<<<<<< HEAD
     class Arithmetic : public ::testing::Test {};
+=======
+    class Arithmetics : public ::testing::Test {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     template <typename T>
     class Comparison : public ::testing::Test {};
     template <typename T>
@@ -61,8 +65,11 @@ namespace {
     template <typename T>
     class QuantizationTests : public ::testing::Test {};
     template <typename T>
+<<<<<<< HEAD
     class Quantization8BitTests : public ::testing::Test {};
     template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     class Quantization8BitWithTailTests : public ::testing::Test {};
     template <typename T>
     class FunctionalTests : public ::testing::Test {};
@@ -81,7 +88,10 @@ namespace {
     using FloatTestedTypes = ::testing::Types<vfloat, vdouble, vcomplex, vcomplexDbl>;
     using ALLTestedTypes = ::testing::Types<vfloat, vdouble, vcomplex, vlong, vint, vshort, vqint8, vquint8, vqint>;
     using QuantTestedTypes = ::testing::Types<vqint8, vquint8, vqint>;
+<<<<<<< HEAD
     using Quantization8BitTestedTypes = ::testing::Types<vqint8, vquint8>;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if (defined(CPU_CAPABILITY_AVX2) ||  defined(CPU_CAPABILITY_AVX512))  && !defined(_MSC_VER)
     using Quantization8BitWithTailTestedTypes =
         ::testing::Types<vqint8, vquint8>;
@@ -92,7 +102,11 @@ namespace {
     using ComplexTypes = ::testing::Types<vcomplex, vcomplexDbl>;
     using ReducedFloatTestedTypes = ::testing::Types<vBFloat16, vHalf>;
     TYPED_TEST_SUITE(Memory, ALLTestedTypes);
+<<<<<<< HEAD
     TYPED_TEST_SUITE(Arithmetic, FloatIntTestedTypes);
+=======
+    TYPED_TEST_SUITE(Arithmetics, FloatIntTestedTypes);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TYPED_TEST_SUITE(Comparison, RealFloatIntReducedFloatTestedTypes);
     TYPED_TEST_SUITE(Bitwise, FloatIntTestedTypes);
     TYPED_TEST_SUITE(MinMax, RealFloatIntTestedTypes);
@@ -119,7 +133,10 @@ namespace {
     TYPED_TEST_SUITE(BitwiseFloatsAdditional, RealFloatReducedFloatTestedTypes);
     TYPED_TEST_SUITE(BitwiseFloatsAdditional2, FloatTestedTypes);
     TYPED_TEST_SUITE(QuantizationTests, QuantTestedTypes);
+<<<<<<< HEAD
     TYPED_TEST_SUITE(Quantization8BitTests, Quantization8BitTestedTypes);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TYPED_TEST_SUITE(InfiniteTests, RealFloatTestedTypes);
 #if (defined(CPU_CAPABILITY_AVX2) ||  defined(CPU_CAPABILITY_AVX512))  && !defined(_MSC_VER)
     TYPED_TEST_SUITE(
@@ -526,6 +543,7 @@ namespace {
             [](const vec& v) { return v.expm1(); },
             createDefaultUnaryTestCase<vec>(TestSeed(), false, true));
     }
+<<<<<<< HEAD
     TYPED_TEST(Exponents, ExpU20) {
         using vec = TypeParam;
         using VT = ValueType<TypeParam>;
@@ -561,6 +579,8 @@ namespace {
             test_case
         );
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TYPED_TEST(ErrorFunctions, Erf) {
         using vec = TypeParam;
         test_unary<vec>(
@@ -726,7 +746,11 @@ namespace {
         AssertVectorized<vec>(NAME_INFO(DeInterleave FirstHalf), std::get<0>(cc), vec::loadu(vals)).check(true);
         AssertVectorized<vec>(NAME_INFO(DeInterleave SecondHalf), std::get<1>(cc), vec::loadu(vals + vec::size())).check(true);
     }
+<<<<<<< HEAD
     TYPED_TEST(Arithmetic, Plus) {
+=======
+    TYPED_TEST(Arithmetics, Plus) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         using vec = TypeParam;
         using VT = ValueType<TypeParam>;
         test_binary<vec>(
@@ -738,7 +762,11 @@ namespace {
             createDefaultBinaryTestCase<vec>(TestSeed()),
                 RESOLVE_OVERLOAD(filter_add_overflow));
     }
+<<<<<<< HEAD
     TYPED_TEST(Arithmetic, Minus) {
+=======
+    TYPED_TEST(Arithmetics, Minus) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         using vec = TypeParam;
         using VT = ValueType<TypeParam>;
         test_binary<vec>(
@@ -750,7 +778,11 @@ namespace {
             createDefaultBinaryTestCase<vec>(TestSeed()),
                 RESOLVE_OVERLOAD(filter_sub_overflow));
     }
+<<<<<<< HEAD
     TYPED_TEST(Arithmetic, Multiplication) {
+=======
+    TYPED_TEST(Arithmetics, Multiplication) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         using vec = TypeParam;
         test_binary<vec>(
             NAME_INFO(mult),
@@ -759,7 +791,11 @@ namespace {
             createDefaultBinaryTestCase<vec>(TestSeed(), false, true),
             RESOLVE_OVERLOAD(filter_mult_overflow));
     }
+<<<<<<< HEAD
     TYPED_TEST(Arithmetic, Division) {
+=======
+    TYPED_TEST(Arithmetics, Division) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         using vec = TypeParam;
         TestSeed seed;
         test_binary<vec>(
@@ -1535,6 +1571,7 @@ namespace {
             },
             test_case);
     }
+<<<<<<< HEAD
 #ifndef _WIN32
     TYPED_TEST(Quantization8BitTests, Transpose) {
         using VT = ValueType<TypeParam>;
@@ -1629,6 +1666,8 @@ namespace {
         }
     }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TYPED_TEST(FunctionalTests, Map) {
         using vec = TypeParam;
         using VT = ValueType<TypeParam>;

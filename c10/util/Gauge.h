@@ -26,8 +26,12 @@ class GaugeBackendFactoryIf {
       std::string_view key) noexcept = 0;
 };
 
+<<<<<<< HEAD
 void C10_API
     registerGaugeBackend(std::unique_ptr<GaugeBackendFactoryIf> /*backend*/);
+=======
+void C10_API registerGaugeBackend(std::unique_ptr<GaugeBackendFactoryIf>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace detail
 
 // A handle to a Gauge.

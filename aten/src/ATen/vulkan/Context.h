@@ -18,7 +18,11 @@ extern std::atomic<const VulkanImplInterface*> g_vulkan_impl_registry;
 
 class VulkanImplRegistrar {
  public:
+<<<<<<< HEAD
   explicit VulkanImplRegistrar(VulkanImplInterface* /*impl*/);
+=======
+  explicit VulkanImplRegistrar(VulkanImplInterface*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 at::Tensor& vulkan_copy_(at::Tensor& self, const at::Tensor& src);

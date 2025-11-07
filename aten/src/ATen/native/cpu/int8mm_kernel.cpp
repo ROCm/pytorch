@@ -100,7 +100,11 @@ inline void tinygemm_kernel(
 
 #elif defined(CPU_CAPABILITY_AVX2) && !defined(_MSC_VER)
 
+<<<<<<< HEAD
 inline float _mm256_reduce_add_ps(__m256& v) {
+=======
+static inline float _mm256_reduce_add_ps(__m256& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   __m256 v1 = _mm256_permute2f128_ps(v, v, 0x1);
   v = _mm256_add_ps(v, v1);
   v1 = _mm256_shuffle_ps(v, v, 0x4E);
@@ -367,6 +371,7 @@ void int8pack_mm_kernel_(
   auto* C_data = C.data_ptr<T>();
   const auto* S_data = scales.const_data_ptr<T>();
 
+<<<<<<< HEAD
   int64_t M = A.size(0);
   int64_t N = B.size(0);
   int64_t K = A.size(1);
@@ -379,15 +384,36 @@ void int8pack_mm_kernel_(
 
   at::parallel_for(0, MB * NB, 0, [&](int64_t begin, int64_t end) {
     int64_t mb{0}, nb{0};
+=======
+  int M = A.size(0);
+  int N = B.size(0);
+  int K = A.size(1);
+  int lda = A.stride(0);
+  constexpr int BLOCK_M = 4;
+  constexpr int BLOCK_N = 4;
+
+  const int MB = (M + BLOCK_M - 1) / BLOCK_M;
+  const int NB = (N + BLOCK_N - 1) / BLOCK_N;
+
+  at::parallel_for(0, MB * NB, 0, [&](int begin, int end) {
+    int mb{0}, nb{0};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     data_index_init(begin, mb, MB, nb, NB);
 
     for (const auto i : c10::irange(begin, end)) {
       (void)i;
 
+<<<<<<< HEAD
       int64_t mb_start = mb * BLOCK_M;
       int64_t mb_size = std::min(BLOCK_M, M - mb_start);
       int64_t nb_start = nb * BLOCK_N;
       int64_t nb_size = std::min(BLOCK_N, N - nb_start);
+=======
+      int mb_start = mb * BLOCK_M;
+      int mb_size = std::min(BLOCK_M, M - mb_start);
+      int nb_start = nb * BLOCK_N;
+      int nb_size = std::min(BLOCK_N, N - nb_start);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       const auto* A_ptr = A_data + mb_start * lda;
       const auto* B_ptr = B_data + nb_start * K;

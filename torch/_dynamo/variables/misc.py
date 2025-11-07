@@ -33,11 +33,15 @@ import torch._numpy as tnp
 import torch.utils._pytree as pytree
 
 from .. import config, graph_break_hints, trace_rules, variables
+<<<<<<< HEAD
 from ..bytecode_transformation import (
     create_call_function,
     create_call_function_ex,
     create_instruction,
 )
+=======
+from ..bytecode_transformation import create_call_function, create_instruction
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..create_parameter_op import do_not_convert_to_tracable_parameter
 from ..exc import raise_observed_exception, unimplemented, unimplemented_v2
 from ..guards import GuardBuilder, install_guard
@@ -46,7 +50,10 @@ from ..source import (
     AttrSource,
     GenericAttrSource,
     GetItemSource,
+<<<<<<< HEAD
     TypeMROSource,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TypeSource,
     WeakRefCallSource,
 )
@@ -58,10 +65,16 @@ from ..utils import (
     istype,
     list_methods,
     proxy_args_kwargs,
+<<<<<<< HEAD
     raise_args_mismatch,
     tuple_methods,
 )
 from .base import raise_type_error_exc, VariableTracker
+=======
+    tuple_methods,
+)
+from .base import VariableTracker
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .constant import ConstantVariable
 from .functions import NestedUserFunctionVariable, UserFunctionVariable
 from .user_defined import call_random_fn, is_standard_setattr, UserDefinedObjectVariable
@@ -103,6 +116,7 @@ class SuperVariable(VariableTracker):
             codegen.extend_output(create_call_function(1, False))
 
     def _resolved_getattr_and_source(self, tx: "InstructionTranslator", name):
+<<<<<<< HEAD
         if not self.objvar:
             unimplemented_v2(
                 gb_type="1-arg super not implemented",
@@ -114,6 +128,9 @@ class SuperVariable(VariableTracker):
                     "Use two-argument super(type, object_or_type).",
                 ],
             )
+=======
+        assert self.objvar, "1-arg super not implemented"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         search_type = self.typevar.as_python_constant()
 
         # The rest of this function does two things:
@@ -150,7 +167,13 @@ class SuperVariable(VariableTracker):
                     # Equivalent of something like type(L['self']).__mro__[1].attr_name
                     if type_to_use_source:
                         source = AttrSource(
+<<<<<<< HEAD
                             GetItemSource(TypeMROSource(type_to_use_source), index),
+=======
+                            GetItemSource(
+                                AttrSource(type_to_use_source, "__mro__"), index
+                            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             name,
                         )
                     return resolved_getattr, source
@@ -211,10 +234,16 @@ class SuperVariable(VariableTracker):
                 and not (args or kwargs)
             ):
                 with do_not_convert_to_tracable_parameter():
+<<<<<<< HEAD
                     fn_vt = VariableTracker.build(
                         tx, unpatched_nn_module_init, source=source
                     )
                     return fn_vt.call_function(tx, [self.objvar] + args, kwargs)
+=======
+                    return variables.UserFunctionVariable(
+                        unpatched_nn_module_init, source=source
+                    ).call_function(tx, [self.objvar] + args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 unimplemented_v2(
                     gb_type="Unsupported super().__init__() call",
@@ -242,8 +271,14 @@ class SuperVariable(VariableTracker):
         elif isinstance(inner_fn, staticmethod) and isinstance(
             inner_fn.__func__, types.FunctionType
         ):
+<<<<<<< HEAD
             fn_vt = VariableTracker.build(tx, inner_fn.__func__, source=source)
             return fn_vt.call_function(tx, args, kwargs)
+=======
+            return variables.UserFunctionVariable(
+                inner_fn.__func__, source=source
+            ).call_function(tx, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(inner_fn, classmethod) and isinstance(
             inner_fn.__func__, types.FunctionType
         ):
@@ -261,11 +296,16 @@ class SuperVariable(VariableTracker):
                 # different from type(self) with polymorphism.
                 cls_source = None
                 if self.objvar.source:
+<<<<<<< HEAD
                     cls_source = TypeSource(self.objvar.source)
+=======
+                    cls_source = AttrSource(self.objvar.source, "__class__")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cls_variable = VariableTracker.build(
                     tx, self.objvar.value_type, cls_source
                 )
 
+<<<<<<< HEAD
             fn_vt = VariableTracker.build(
                 tx, inner_fn.__func__, source=AttrSource(source, "__func__")
             )
@@ -273,6 +313,15 @@ class SuperVariable(VariableTracker):
         elif isinstance(inner_fn, types.FunctionType):
             fn_vt = VariableTracker.build(tx, inner_fn, source=source)
             return fn_vt.call_function(tx, [self.objvar] + args, kwargs)
+=======
+            return variables.UserMethodVariable(
+                inner_fn.__func__, cls_variable, source=source
+            ).call_function(tx, args, kwargs)
+        elif isinstance(inner_fn, types.FunctionType):
+            return variables.UserFunctionVariable(
+                inner_fn, source=source
+            ).call_function(tx, [self.objvar] + args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(inner_fn, types.MethodType):
             return variables.UserMethodVariable(
                 inner_fn.__func__, self.objvar, source=source
@@ -320,11 +369,14 @@ class SuperVariable(VariableTracker):
         ):
             return self.objvar._dict_vt.call_method(tx, name, args, kwargs)
         elif (
+<<<<<<< HEAD
             isinstance(self.objvar, variables.UserDefinedSetVariable)
             and inner_fn in self.objvar._set_methods
         ):
             return self.objvar._set_vt.call_method(tx, name, args, kwargs)
         elif (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             isinstance(self.objvar, variables.UserDefinedTupleVariable)
             and inner_fn in tuple_methods
         ):
@@ -403,6 +455,7 @@ class SuperVariable(VariableTracker):
 
 class ExceptionVariable(VariableTracker):
     # The ExceptionVariable corresponds to the BaseException class in Python
+<<<<<<< HEAD
     def __init__(
         self, exc_type, args, init_kwargs=None, source=None, mutation_type=None
     ) -> None:
@@ -416,6 +469,12 @@ class ExceptionVariable(VariableTracker):
                 explanation="Dynamo does not know how to handle keyword args passed to an exception constructor",
                 hints=[*graph_break_hints.SUPPORTABLE],
             )
+=======
+    def __init__(self, exc_type, args, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.exc_type = exc_type
+        self.args = args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # When raising a new exception while another exception is already being
         # handled, the new exception's __context__ attribute is automatically
         # set to the handled exception.
@@ -585,8 +644,15 @@ class ComptimeVariable(VariableTracker):
         from ..comptime import comptime
 
         # To support the comptime.print_graph convenience accessors
+<<<<<<< HEAD
         return VariableTracker.build(
             tx, getattr(comptime, name), source=AttrSource(self.source, name)
+=======
+        from .functions import UserFunctionVariable
+
+        return UserFunctionVariable(
+            getattr(comptime, name), source=AttrSource(self.source, name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def call_function(
@@ -598,6 +664,7 @@ class ComptimeVariable(VariableTracker):
         from ..comptime import ComptimeContext
 
         # TODO: support an expression form as well
+<<<<<<< HEAD
         # Second argument is runtime lambda, ignored
         if kwargs or len(args) > 2:
             raise_args_mismatch(
@@ -606,17 +673,30 @@ class ComptimeVariable(VariableTracker):
                 "at most 2 args and 0 kwargs",
                 f"{len(args)} args and {len(kwargs)} kwargs",
             )
+=======
+
+        assert not kwargs
+        # Second argument is runtime lambda, ignored
+        assert len(args) <= 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fn = args[0]
         if isinstance(fn, UserFunctionVariable):
             fn.get_function()(ComptimeContext(tx))
         elif isinstance(fn, NestedUserFunctionVariable):
             # We have to manually bind the freevars ourselves
             code = fn.get_code()
+<<<<<<< HEAD
             if fn.closure:
                 raise_type_error_exc(
                     tx,
                     f"comptime function must not have free variables, but these variables were free: {code.co_freevars}",
                 )
+=======
+            assert not fn.closure, (
+                "comptime function must not have free variables, "
+                f"but these variables were free: {code.co_freevars}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             func = types.FunctionType(
                 code,
                 fn.f_globals,
@@ -684,6 +764,7 @@ class AutogradFunctionVariable(VariableTracker):
     def call_apply(self, tx: "InstructionTranslator", args, kwargs):
         requires_grad = False
 
+<<<<<<< HEAD
         def visit(vt):
             nonlocal requires_grad
             if isinstance(vt, variables.TensorVariable):
@@ -691,6 +772,15 @@ class AutogradFunctionVariable(VariableTracker):
                     requires_grad = True
             if isinstance(vt, variables.NNModuleVariable):
                 if vt.is_training(tx):
+=======
+        def visit(node):
+            nonlocal requires_grad
+            if isinstance(node, variables.TensorVariable):
+                if node.requires_grad is not False:
+                    requires_grad = True
+            if isinstance(node, variables.NNModuleVariable):
+                if node.is_training(tx):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     requires_grad = True
 
         VariableTracker.visit(visit, (args, kwargs))
@@ -766,10 +856,17 @@ class AutogradFunctionVariable(VariableTracker):
             # functions, so we have to add guards manually.
             if self.source:
                 fwd_src = AttrSource(self.source, "forward")
+<<<<<<< HEAD
                 install_guard(fwd_src.make_guard(GuardBuilder.CLOSURE_MATCH))
                 if is_setup_ctx_defined:
                     setup_ctx_src = AttrSource(self.source, "setup_context")
                     install_guard(setup_ctx_src.make_guard(GuardBuilder.CLOSURE_MATCH))
+=======
+                install_guard(fwd_src.make_guard(GuardBuilder.FUNCTION_MATCH))
+                if is_setup_ctx_defined:
+                    setup_ctx_src = AttrSource(self.source, "setup_context")
+                    install_guard(setup_ctx_src.make_guard(GuardBuilder.FUNCTION_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return val
 
@@ -785,8 +882,14 @@ class AutogradFunctionVariable(VariableTracker):
             sig = inspect.signature(fn)
             if len(args) - 1 == len(sig._parameters):
                 args = args[1:]  # Don't use context
+<<<<<<< HEAD
             fn_vt = VariableTracker.build(tx, fn, source=source)
             return fn_vt.call_function(tx, args, kwargs)
+=======
+            return variables.UserFunctionVariable(fn, source=source).call_function(
+                tx, args, kwargs
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(fn, types.MethodType):
             return variables.UserMethodVariable(
                 fn.__func__,
@@ -812,8 +915,14 @@ class AutogradFunctionVariable(VariableTracker):
         assert isinstance(fn, types.FunctionType)
 
         fn_source = AttrSource(self.source, "backward")
+<<<<<<< HEAD
         fn_vt = VariableTracker.build(tx, fn, source=fn_source)
         return fn_vt.call_function(tx, args, kwargs)
+=======
+        return variables.UserFunctionVariable(fn, source=fn_source).call_function(
+            tx, args, kwargs
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_function(self, tx: "InstructionTranslator", args, kwargs):
         return AutogradFunctionVariable(self.fn_cls)
@@ -958,8 +1067,12 @@ class AutogradFunctionContextVariable(UserDefinedObjectVariable):
         if name == "__setattr__":
             return super().call_method(tx, name, args, kwargs)
         elif name == "mark_non_differentiable":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert len(kwargs) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.non_differentiable = proxy_args_kwargs(args, {})[0]
             return variables.ConstantVariable.create(None)
 
@@ -987,10 +1100,14 @@ class AutogradFunctionContextVariable(UserDefinedObjectVariable):
             )
 
         if not self.inference:
+<<<<<<< HEAD
             if kwargs or not self.source:
                 raise_type_error_exc(
                     tx, "save_for_backward() requires a source and no keyword arguments"
                 )
+=======
+            assert self.source and not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tx.output.side_effects.track_save_for_backward(self, args)
 
         # In eager mode, multiple calls to .save_for_backward() will overwrite previous calls.
@@ -1039,6 +1156,7 @@ class AutogradEngineVariable(UserDefinedObjectVariable):
     ) -> "VariableTracker":
         if name == "queue_callback":
             if torch._dynamo.compiled_autograd.in_compiled_autograd_region:
+<<<<<<< HEAD
                 assert tx.one_graph or tx.error_on_graph_break, (
                     "queue_callback() is only supported when Compiled Autograd is enabled with fullgraph=True"
                 )
@@ -1048,6 +1166,15 @@ class AutogradEngineVariable(UserDefinedObjectVariable):
                     torch._dynamo.external_utils.FakeCompiledAutogradEngine.queue_callback,
                 )
                 return fn_vt.call_function(
+=======
+                assert tx.one_graph, (
+                    "queue_callback() is only supported when Compiled Autograd is enabled with fullgraph=True"
+                )
+                return variables.UserFunctionVariable(
+                    torch._dynamo.external_utils.FakeCompiledAutogradEngine.queue_callback,
+                    source=self.source,
+                ).call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     tx,
                     (tx.output.side_effects.get_ca_final_callbacks_var(), *args),
                     kwargs,
@@ -1213,6 +1340,7 @@ class GetAttrVariable(VariableTracker):
 
         return super().call_method(tx, name, args, kwargs)
 
+<<<<<<< HEAD
     def get_forwarded_dict(self, tx):
         assert (
             self.name == "__dict__"
@@ -1222,6 +1350,8 @@ class GetAttrVariable(VariableTracker):
         self.obj.ban_mutation = True
         return VariableTracker.build(tx, self.obj.value.__dict__, self.source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class MethodWrapperVariable(VariableTracker):
     def __init__(self, method_wrapper, **kwargs) -> None:
@@ -1238,10 +1368,14 @@ class MethodWrapperVariable(VariableTracker):
         if is_tensor_base_attr_getter(self.method_wrapper) and isinstance(
             args[0], variables.TensorVariable
         ):
+<<<<<<< HEAD
             if not (len(args) == 1 and len(kwargs) == 0):
                 raise_type_error_exc(
                     tx, "tensor attribute getter takes exactly one argument"
                 )
+=======
+            assert len(args) == 1 and len(kwargs) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return args[0].var_getattr(tx, self.method_wrapper.__self__.__name__)
 
@@ -1446,7 +1580,11 @@ class NumpyVariable(VariableTracker):
     def get_constant_collection_for_func(cls, fn):
         mod = fn.__module__.split(".")
         assert len(mod) >= 2 and mod[:2] == ["torch", "_numpy"]
+<<<<<<< HEAD
         return np_constant_collections_map.get(fn)
+=======
+        return np_constant_collections_map.get(fn, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_function(
         self,
@@ -1600,7 +1738,11 @@ class StringFormatVariable(VariableTracker):
             variables.ConstantVariable.create(k): v for k, v in self.sym_kwargs.items()
         }
         codegen(variables.ConstDictVariable(kwargs))
+<<<<<<< HEAD
         codegen.extend_output(create_call_function_ex(True, False))
+=======
+        codegen.append_output(create_instruction("CALL_FUNCTION_EX", arg=1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DebuggingVariable(VariableTracker):
@@ -1951,7 +2093,11 @@ class RandomVariable(VariableTracker):
 class WeakRefVariable(VariableTracker):
     @staticmethod
     def build(tx, weakref_value, **options):
+<<<<<<< HEAD
         source = options.get("source")
+=======
+        source = options.get("source", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         callback = weakref_value.__callback__
         callback_source = source and AttrSource(source, "__callback__")
         callback_vt = VariableTracker.build(tx, callback, callback_source)

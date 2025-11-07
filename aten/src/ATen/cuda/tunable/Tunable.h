@@ -103,6 +103,7 @@ class TORCH_CUDA_CPP_API TuningResultsManager {
 
     void RecordUntuned( std::ofstream& untuned_file, const std::string& op_signature,
       const std::string& params_signature, const std::string& blas_signature);
+<<<<<<< HEAD
 
     void InitRealtimeAppend(
         const std::string& filename,
@@ -121,6 +122,12 @@ class TORCH_CUDA_CPP_API TuningResultsManager {
     ResultsMap results_;
     UntunedMap untuned_results_;
     bool validators_written_ = false;
+=======
+  private:
+    std::mutex lock_;
+    ResultsMap results_;
+    UntunedMap untuned_results_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 };
 
@@ -148,6 +155,7 @@ class TORCH_CUDA_CPP_API TuningResultsValidator {
     GetValidateFuncs validators_;
 };
 
+<<<<<<< HEAD
 struct NumericalCheckConfig {
   bool   enabled{false};
   double atol{1e-5};
@@ -158,6 +166,8 @@ struct NumericalCheckConfig {
 };
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TORCH_CUDA_CPP_API TuningContext {
   public:
     TuningContext();
@@ -179,8 +189,11 @@ class TORCH_CUDA_CPP_API TuningContext {
 
     void EnableNumericsCheck(bool value);
     bool IsNumericsCheckEnabled() const;
+<<<<<<< HEAD
     void SetNumericalCheckConfig(bool enabled, double atol, double rtol);
     NumericalCheckConfig GetNumericalCheckConfig() const;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     void SetMaxTuningDurationMs(int max_duration_ms);
     int GetMaxTuningDurationMs() const;
@@ -211,7 +224,14 @@ class TORCH_CUDA_CPP_API TuningContext {
     void SetFilename(const std::string& filename, bool insert_device_ordinal=false);
     std::string GetFilename() const;
 
+<<<<<<< HEAD
     bool ReadFile(const std::string& filename={});
+=======
+    void WriteFileOnExit(bool value);
+
+    bool ReadFile(const std::string& filename={});
+    bool WriteFile(const std::string& filename={});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     template<class... Types>
     void Log(int level, Types... args) {
@@ -230,6 +250,10 @@ class TORCH_CUDA_CPP_API TuningContext {
     bool tuning_enable_;
     bool record_untuned_enable_;
     bool manager_initialized_;
+<<<<<<< HEAD
+=======
+    bool write_file_on_exit_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool numerics_check_enable_;
     int max_tuning_duration_ms_;
     int max_tuning_iterations_;
@@ -244,8 +268,11 @@ class TORCH_CUDA_CPP_API TuningContext {
     std::ofstream untuned_file_;
     size_t results_count_from_input_file_;
     bool is_shutting_down_;
+<<<<<<< HEAD
 
     NumericalCheckConfig numerics_cfg_{};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 TORCH_CUDA_CPP_API TuningContext* getTuningContext();

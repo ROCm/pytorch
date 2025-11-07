@@ -1,7 +1,10 @@
 #pragma once
 
 #include <torch/csrc/jit/frontend/tree.h>
+<<<<<<< HEAD
 #include <mutex>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::jit {
 
@@ -19,6 +22,7 @@ struct TORCH_API ErrorReport : public std::exception {
 
   const char* what() const noexcept override;
 
+<<<<<<< HEAD
   class TORCH_API Calls {
    private:
     std::vector<Call> calls_;
@@ -51,6 +55,8 @@ struct TORCH_API ErrorReport : public std::exception {
     }
   };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct TORCH_API CallStack {
     // These functions are used to report why a function was being compiled
     // (i.e. what was the call stack of user functions at compilation time that
@@ -61,9 +67,12 @@ struct TORCH_API ErrorReport : public std::exception {
     // Change the range that is relevant for the current function (i.e. after
     // each successful expression compilation, change it to the next expression)
     static void update_pending_range(const SourceRange& range);
+<<<<<<< HEAD
 
    private:
     std::shared_ptr<Calls> source_callstack_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   static std::string current_call_stack();

@@ -96,7 +96,11 @@ class IterableDataset(Dataset[_T_co], Iterable[_T_co]):
         >>> class MyIterableDataset(torch.utils.data.IterableDataset):
         ...     def __init__(self, start, end):
         ...         super(MyIterableDataset).__init__()
+<<<<<<< HEAD
         ...         assert end > start, "this example only works with end >= start"
+=======
+        ...         assert end > start, "this example code only works with end >= start"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...         self.start = start
         ...         self.end = end
         ...
@@ -138,7 +142,11 @@ class IterableDataset(Dataset[_T_co], Iterable[_T_co]):
         >>> class MyIterableDataset(torch.utils.data.IterableDataset):
         ...     def __init__(self, start, end):
         ...         super(MyIterableDataset).__init__()
+<<<<<<< HEAD
         ...         assert end > start, "this example only works with end >= start"
+=======
+        ...         assert end > start, "this example code only works with end >= start"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...         self.start = start
         ...         self.end = end
         ...
@@ -198,8 +206,14 @@ class TensorDataset(Dataset[tuple[Tensor, ...]]):
     tensors: tuple[Tensor, ...]
 
     def __init__(self, *tensors: Tensor) -> None:
+<<<<<<< HEAD
         if all(tensors[0].size(0) != tensor.size(0) for tensor in tensors):
             raise AssertionError("Size mismatch between tensors")
+=======
+        assert all(
+            tensors[0].size(0) == tensor.size(0) for tensor in tensors
+        ), "Size mismatch between tensors"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.tensors = tensors
 
     def __getitem__(self, index):
@@ -221,7 +235,11 @@ class StackDataset(Dataset[_T_stack]):
         >>> tuple_stack = StackDataset(images, texts)
         >>> tuple_stack[0] == (images[0], texts[0])
         >>> dict_stack = StackDataset(image=images, text=texts)
+<<<<<<< HEAD
         >>> dict_stack[0] == {"image": images[0], "text": texts[0]}
+=======
+        >>> dict_stack[0] == {'image': images[0], 'text': texts[0]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         *args (Dataset): Datasets for stacking returned as tuple.
@@ -320,11 +338,19 @@ class ConcatDataset(Dataset[_T_co]):
     def __init__(self, datasets: Iterable[Dataset]) -> None:
         super().__init__()
         self.datasets = list(datasets)
+<<<<<<< HEAD
         if len(self.datasets) == 0:
             raise AssertionError("datasets should not be an empty iterable")
         for d in self.datasets:
             if isinstance(d, IterableDataset):
                 raise AssertionError("ConcatDataset does not support IterableDataset")
+=======
+        assert len(self.datasets) > 0, "datasets should not be an empty iterable"  # type: ignore[arg-type]
+        for d in self.datasets:
+            assert not isinstance(
+                d, IterableDataset
+            ), "ConcatDataset does not support IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.cumulative_sizes = self.cumsum(self.datasets)
 
     def __len__(self):
@@ -370,15 +396,27 @@ class ChainDataset(IterableDataset):
 
     def __iter__(self):
         for d in self.datasets:
+<<<<<<< HEAD
             if not isinstance(d, IterableDataset):
                 raise AssertionError("ChainDataset only supports IterableDataset")
+=======
+            assert isinstance(
+                d, IterableDataset
+            ), "ChainDataset only supports IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield from d
 
     def __len__(self):
         total = 0
         for d in self.datasets:
+<<<<<<< HEAD
             if not isinstance(d, IterableDataset):
                 raise AssertionError("ChainDataset only supports IterableDataset")
+=======
+            assert isinstance(
+                d, IterableDataset
+            ), "ChainDataset only supports IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             total += len(d)  # type: ignore[arg-type]
         return total
 
@@ -451,7 +489,13 @@ def random_split(
         for i, frac in enumerate(lengths):
             if frac < 0 or frac > 1:
                 raise ValueError(f"Fraction at index {i} is not between 0 and 1")
+<<<<<<< HEAD
             n_items_in_split = math.floor(len(dataset) * frac)  # type: ignore[arg-type]
+=======
+            n_items_in_split = int(
+                math.floor(len(dataset) * frac)  # type: ignore[arg-type]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             subset_lengths.append(n_items_in_split)
         remainder = len(dataset) - sum(subset_lengths)  # type: ignore[arg-type]
         # add 1 to all the lengths in round-robin fashion until the remainder is 0
@@ -463,8 +507,12 @@ def random_split(
             if length == 0:
                 warnings.warn(
                     f"Length of split at index {i} is 0. "
+<<<<<<< HEAD
                     f"This might result in an empty dataset.",
                     stacklevel=2,
+=======
+                    f"This might result in an empty dataset."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
     # Cannot verify that dataset is Sized

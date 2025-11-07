@@ -4,8 +4,12 @@
 import collections
 import functools
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import TypeVar
+=======
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 

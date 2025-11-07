@@ -19,13 +19,17 @@ variable tracking system.
 import collections
 import inspect
 import operator
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional, TYPE_CHECKING
 
 import torch
 import torch.fx
 
 from .. import graph_break_hints, polyfills, variables
+<<<<<<< HEAD
 from ..bytecode_transformation import (
     create_build_tuple,
     create_call_function,
@@ -34,6 +38,11 @@ from ..bytecode_transformation import (
 )
 from ..exc import raise_observed_exception, unimplemented_v2
 from ..source import AttrSource, NamedTupleFieldsSource
+=======
+from ..bytecode_transformation import create_call_function, create_instruction
+from ..exc import raise_observed_exception, unimplemented_v2
+from ..source import AttrSource
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..utils import (
     cmp_name_to_op_mapping,
     cmp_name_to_op_str_mapping,
@@ -43,8 +52,11 @@ from ..utils import (
     Lit,
     namedtuple_fields,
     odict_values,
+<<<<<<< HEAD
     raise_args_mismatch,
     range_iterator,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_example_value,
 )
 from .base import ValueMutationNew, VariableTracker
@@ -116,9 +128,12 @@ class BaseListVariable(VariableTracker):
             index = arg.as_python_constant()
 
         if isinstance(index, slice):
+<<<<<<< HEAD
             if index.step == 0:
                 msg = ConstantVariable.create("slice step cannot be zero")
                 raise_observed_exception(ValueError, tx, args=[msg])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Set source to None because slicing a list gives a new local
             return self.clone(
                 items=self.items[index],
@@ -147,6 +162,7 @@ class BaseListVariable(VariableTracker):
         if name == "__getitem__":
             from .tensor import TensorVariable
 
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -155,6 +171,9 @@ class BaseListVariable(VariableTracker):
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
 
+=======
+            assert not kwargs and len(args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(args[0], TensorVariable):
                 value = get_fake_value(args[0].as_proxy().node, tx)
                 if value.constant is not None and value.constant.numel() == 1:
@@ -170,6 +189,7 @@ class BaseListVariable(VariableTracker):
                     )
             else:
                 value = args[0]
+<<<<<<< HEAD
 
             if value.python_type() not in (int, slice):
                 msg = f"indices must be integers or slices, not {value.python_type()}"
@@ -194,11 +214,20 @@ class BaseListVariable(VariableTracker):
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
 
+=======
+            return self.getitem_const(tx, value)
+        elif name == "__contains__":
+            assert len(args) == 1
+            assert not kwargs
+            return iter_contains(self.unpack_var_sequence(tx), args[0], tx)
+        elif name == "index":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return tx.inline_user_function_return(
                 VariableTracker.build(tx, polyfills.index),
                 [self] + list(args),
                 kwargs,
             )
+<<<<<<< HEAD
         elif name == "count":
             if len(args) != 1:
                 raise_args_mismatch(
@@ -265,6 +294,9 @@ class BaseListVariable(VariableTracker):
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
 
+=======
+        elif name in cmp_name_to_op_mapping:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             left = self
             right = args[0]
             # TODO this type check logic mirrors the following
@@ -314,6 +346,7 @@ class RangeVariable(BaseListVariable):
         else:
             raise AssertionError
 
+<<<<<<< HEAD
         def maybe_as_int(x):
             return (
                 ConstantVariable(int(x.value)) if isinstance(x, ConstantVariable) else x
@@ -324,6 +357,8 @@ class RangeVariable(BaseListVariable):
         step = maybe_as_int(step)
         stop = maybe_as_int(stop)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert stop is not None
         super().__init__([start, stop, step], **kwargs)
 
@@ -410,12 +445,16 @@ class RangeVariable(BaseListVariable):
             index = length + index
 
         if index < 0 or index >= length:
+<<<<<<< HEAD
             tx = torch._dynamo.symbolic_convert.InstructionTranslator.current_tx()
             raise_observed_exception(
                 IndexError,
                 tx,
                 args=[ConstantVariable("range object index out of range")],
             )
+=======
+            raise IndexError(f"index {index} is out of range")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return variables.ConstantVariable.create(self.start() + (index * self.step()))
 
@@ -449,11 +488,16 @@ class RangeVariable(BaseListVariable):
 
         if isinstance(index, slice):
             return self.apply_slice(index)
+<<<<<<< HEAD
         elif isinstance(index, int):
             return self.apply_index(index)
         else:
             msg = ConstantVariable("range indices must be integers or slices")
             raise_observed_exception(TypeError, tx, args=[msg])
+=======
+        else:
+            return self.apply_index(index)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def as_proxy(self):
         return self.python_type()(*self._as_proxy())
@@ -469,6 +513,7 @@ class RangeVariable(BaseListVariable):
         codegen.foreach(self.items)
         codegen.extend_output(create_call_function(3, False))
 
+<<<<<<< HEAD
     def call_obj_hasattr(
         self, tx: "InstructionTranslator", name: str
     ) -> "VariableTracker":
@@ -557,6 +602,19 @@ class RangeVariable(BaseListVariable):
         if name in fields:
             return self.items[fields.index(name)]
         return super().var_getattr(tx, name)
+=======
+    def var_getattr(self, tx: "InstructionTranslator", name):
+        fields = ["start", "stop", "step"]
+        if name not in fields:
+            unimplemented_v2(
+                gb_type="Unsupported attribute for range() object",
+                context=f"var_getattr {self} {name}",
+                explanation=f"Expected attribute to be one of {','.join(fields)} "
+                f"but got {name}",
+                hints=[*graph_break_hints.USER_ERROR],
+            )
+        return self.items[fields.index(name)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CommonListMethodsVariable(BaseListVariable):
@@ -574,6 +632,7 @@ class CommonListMethodsVariable(BaseListVariable):
         from .tensor import SymNodeVariable
 
         if name == "append" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -581,10 +640,14 @@ class CommonListMethodsVariable(BaseListVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (arg,) = args
             tx.output.side_effects.mutation(self)
             self.items.append(arg)
             return ConstantVariable.create(None)
+<<<<<<< HEAD
         elif name == "extend" and self.is_mutable():
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
@@ -598,12 +661,22 @@ class CommonListMethodsVariable(BaseListVariable):
                 msg = ConstantVariable.create(f"{type(args[0])} object is not iterable")
                 raise_observed_exception(TypeError, tx, args=[msg])
 
+=======
+        elif (
+            name == "extend"
+            and self.is_mutable()
+            and args
+            and args[0].has_force_unpack_var_sequence(tx)
+        ):
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (arg,) = args
             arg.force_apply_to_var_sequence(
                 tx, lambda item: self.call_method(tx, "append", [item], {})
             )
             return ConstantVariable.create(None)
         elif name == "insert" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs or len(args) != 2:
                 raise_args_mismatch(
                     tx,
@@ -611,6 +684,9 @@ class CommonListMethodsVariable(BaseListVariable):
                     "2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             idx, value = args
             if isinstance(idx, SymNodeVariable):
                 const_idx = idx.evaluate_expr()
@@ -620,6 +696,7 @@ class CommonListMethodsVariable(BaseListVariable):
             self.items.insert(const_idx, value)
             return ConstantVariable.create(None)
         elif name == "pop" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs or len(args) > 1:
                 raise_args_mismatch(
                     tx,
@@ -647,6 +724,13 @@ class CommonListMethodsVariable(BaseListVariable):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+            tx.output.side_effects.mutation(self)
+            return self.items.pop(*[a.as_python_constant() for a in args])
+        elif name == "clear" and self.is_mutable():
+            assert not kwargs and not args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tx.output.side_effects.mutation(self)
             self.items.clear()
             return ConstantVariable.create(None)
@@ -654,6 +738,7 @@ class CommonListMethodsVariable(BaseListVariable):
             name == "__setitem__"
             and self.is_mutable()
             and args
+<<<<<<< HEAD
             and (
                 args[0].is_python_constant()
                 or isinstance(args[0], SymNodeVariable)
@@ -756,6 +841,30 @@ class CommonListMethodsVariable(BaseListVariable):
             idx = self.call_method(tx, "index", args, kwargs)
             self.call_method(tx, "pop", [idx], {})
             return ConstantVariable.create(None)
+=======
+            and args[0].is_python_constant()
+        ):
+            assert not kwargs
+            key, value = args
+            tx.output.side_effects.mutation(self)
+            if isinstance(key, SliceVariable):
+                self.items[key.as_python_constant()] = list(value.items)
+            else:
+                self.items[key.as_python_constant()] = value
+            return ConstantVariable.create(None)
+        elif name == "copy":
+            # List copy() doesn't have args and kwargs
+            assert not kwargs
+            assert not args
+            items = list(self.items)
+            return self.modified(items, mutation_type=ValueMutationNew())
+        elif name == "reverse" and self.is_mutable():
+            assert not kwargs
+            assert not args
+            self.items.reverse()
+            tx.output.side_effects.mutation(self)
+            return ConstantVariable.create(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return super().call_method(tx, name, args, kwargs)
 
@@ -781,6 +890,7 @@ class ListVariable(CommonListMethodsVariable):
         args: list["VariableTracker"],
         kwargs: dict[str, "VariableTracker"],
     ) -> "VariableTracker":
+<<<<<<< HEAD
         from .tensor import SymNodeVariable
 
         if name == "__setitem__" and self.is_mutable():
@@ -834,12 +944,44 @@ class ListVariable(CommonListMethodsVariable):
         if name == "sort" and self.is_mutable():
             if len(args) != 0:
                 raise_args_mismatch(tx, name, "0 args", f"{len(args)} args")
+=======
+        if (
+            name == "__setitem__"
+            and self.is_mutable()
+            and args
+            and args[0].is_python_constant()
+        ):
+            assert not kwargs
+            key, value = args
+            tx.output.side_effects.mutation(self)
+            if isinstance(key, SliceVariable):
+                if not value.has_force_unpack_var_sequence(tx):
+                    unimplemented_v2(
+                        gb_type="Unsupported conversion for slice assignment",
+                        context=f"call_method {self} {name} {args}",
+                        explanation=f"Missing dynamo support for converting {value} into a list for slice assignment.",
+                        hints=[*graph_break_hints.SUPPORTABLE],
+                    )
+                self.items[key.as_python_constant()] = value.force_unpack_var_sequence(
+                    tx
+                )
+            else:
+                self.items[key.as_python_constant()] = value
+            return ConstantVariable.create(None)
+
+        if name == "sort" and self.is_mutable():
+            assert len(args) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key_fn_var = kwargs.pop("key", ConstantVariable.create(None))
             reverse = kwargs.pop(
                 "reverse", ConstantVariable.create(False)
             ).as_python_constant()
+<<<<<<< HEAD
             if len(kwargs) != 0:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert len(kwargs) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if (
                 key_fn_var.is_python_constant()
@@ -890,8 +1032,12 @@ class ListVariable(CommonListMethodsVariable):
             return ConstantVariable.create(None)
 
         if name == "__init__" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if len(args) == 0:
                 return ConstantVariable.create(None)
             elif len(args) == 1 and args[0].has_force_unpack_var_sequence(tx):
@@ -978,6 +1124,7 @@ class DequeVariable(CommonListMethodsVariable):
             and args
             and args[0].is_python_constant()
         ):
+<<<<<<< HEAD
             if kwargs or len(args) != 2:
                 raise_args_mismatch(
                     tx,
@@ -985,6 +1132,10 @@ class DequeVariable(CommonListMethodsVariable):
                     "2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert len(args) == 2
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key, value = args
             assert key.is_python_constant()
             assert isinstance(key.as_python_constant(), int)
@@ -1004,6 +1155,7 @@ class DequeVariable(CommonListMethodsVariable):
             and len(args) > 0
             and args[0].has_force_unpack_var_sequence(tx)
         ):
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1011,6 +1163,10 @@ class DequeVariable(CommonListMethodsVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert len(args) == 1
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # NOTE this is inefficient, but the alternative is to represent self.items
             # as a deque, which is a more intrusive change.
             args[0].force_apply_to_var_sequence(
@@ -1019,6 +1175,7 @@ class DequeVariable(CommonListMethodsVariable):
             slice_within_maxlen = slice(None, maxlen)
             result = ConstantVariable.create(None)
         elif name == "popleft" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs or len(args) > 0:
                 raise_args_mismatch(
                     tx,
@@ -1036,11 +1193,21 @@ class DequeVariable(CommonListMethodsVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not args
+            assert not kwargs
+            tx.output.side_effects.mutation(self)
+            result, *self.items[:] = self.items
+        elif name == "appendleft" and len(args) > 0 and self.is_mutable():
+            assert len(args) == 1
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tx.output.side_effects.mutation(self)
             self.items[:] = [args[0], *self.items]
             slice_within_maxlen = slice(None, maxlen)
             result = ConstantVariable.create(None)
         elif name == "insert" and len(args) > 0 and self.is_mutable():
+<<<<<<< HEAD
             if kwargs or len(args) != 2:
                 raise_args_mismatch(
                     tx,
@@ -1048,6 +1215,10 @@ class DequeVariable(CommonListMethodsVariable):
                     "2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert len(args) == 2
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if maxlen is not None and len(self.items) == maxlen:
                 raise_observed_exception(
                     IndexError, tx, args=["deque already at its maximum size"]
@@ -1077,7 +1248,11 @@ class TupleVariable(BaseListVariable):
 
     def reconstruct(self, codegen: "PyCodegen") -> None:
         codegen.foreach(self.items)
+<<<<<<< HEAD
         codegen.append_output(create_build_tuple(len(self.items)))
+=======
+        codegen.append_output(create_instruction("BUILD_TUPLE", arg=len(self.items)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_method(
         self,
@@ -1180,7 +1355,11 @@ class SizeVariable(TupleVariable):
         codegen.add_push_null(lambda: codegen.load_import_from("torch", "Size"))
         codegen.foreach(self.items)
         build_torch_size = [
+<<<<<<< HEAD
             create_build_tuple(len(self.items)),
+=======
+            create_instruction("BUILD_TUPLE", arg=len(self.items)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ] + create_call_function(1, False)
         codegen.extend_output(build_torch_size)
 
@@ -1223,6 +1402,7 @@ class SizeVariable(TupleVariable):
         kwargs: dict[str, "VariableTracker"],
     ) -> "VariableTracker":
         if name == "__getitem__":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1240,6 +1420,13 @@ class SizeVariable(TupleVariable):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs and len(args) == 1
+            out = self.get_item_dyn(tx, args[0])
+            return out
+        elif name == "numel":
+            assert not args and not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.numel(tx)
 
         return super().call_method(tx, name, args, kwargs)
@@ -1271,10 +1458,17 @@ class NamedTupleVariable(TupleVariable):
         *TupleVariable._nonvar_fields,
     }
 
+<<<<<<< HEAD
     def __init__(self, items, tuple_cls, dynamic_attributes=None, **kwargs) -> None:
         super().__init__(items, **kwargs)
         self.tuple_cls = tuple_cls
         self.dynamic_attributes = dynamic_attributes if dynamic_attributes else {}
+=======
+    def __init__(self, items, tuple_cls, **kwargs) -> None:
+        super().__init__(items, **kwargs)
+        self.tuple_cls = tuple_cls
+        self.dynamic_attributes = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_namedtuple(self):
         return isinstance(getattr(self.tuple_cls, "_fields", None), tuple) and callable(
@@ -1300,6 +1494,7 @@ class NamedTupleVariable(TupleVariable):
     def as_python_constant(self):
         if self.is_structseq():
             # StructSequenceType(iterable)
+<<<<<<< HEAD
             result = self.python_type()([x.as_python_constant() for x in self.items])
         else:
             # NamedTupleType(*iterable)
@@ -1318,6 +1513,11 @@ class NamedTupleVariable(TupleVariable):
                 setattr(result, attr_name, python_value)
 
         return result
+=======
+            return self.python_type()([x.as_python_constant() for x in self.items])
+        # NamedTupleType(*iterable)
+        return self.python_type()(*[x.as_python_constant() for x in self.items])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def as_proxy(self):
         assert self.python_type() is not SizeVariable
@@ -1328,7 +1528,10 @@ class NamedTupleVariable(TupleVariable):
         return self.python_type()(*self._as_proxy())
 
     def reconstruct(self, codegen: "PyCodegen") -> None:
+<<<<<<< HEAD
         # Always reconstruct the NamedTuple normally first
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Constructors:
         #   StructSequenceType(iterable)
         #   NamedTupleType(*iterable)
@@ -1342,11 +1545,16 @@ class NamedTupleVariable(TupleVariable):
         codegen.foreach(self.items)
         codegen.extend_output(
             [
+<<<<<<< HEAD
                 create_build_tuple(len(self.items)),
+=======
+                create_instruction("BUILD_TUPLE", arg=len(self.items)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             + create_call_function(1, False)
         )
 
+<<<<<<< HEAD
         for name, value in self.dynamic_attributes.items():
             codegen.dup_top()
             codegen(value)
@@ -1373,6 +1581,8 @@ class NamedTupleVariable(TupleVariable):
             return False
         return True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_method(
         self,
         tx,
@@ -1381,6 +1591,7 @@ class NamedTupleVariable(TupleVariable):
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
         if name == "__setattr__":
+<<<<<<< HEAD
             if kwargs or len(args) != 2:
                 raise_args_mismatch(
                     tx,
@@ -1388,6 +1599,10 @@ class NamedTupleVariable(TupleVariable):
                     "2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert len(args) == 2
+            assert len(kwargs) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             attr, value = args
             attr = attr.as_python_constant()
             if (
@@ -1401,6 +1616,7 @@ class NamedTupleVariable(TupleVariable):
                 raise_observed_exception(AttributeError, tx)
             # Subclass of namedtuple type can have dynamic attributes
             tx.output.side_effects.mutation(self)
+<<<<<<< HEAD
             if self.source:
                 tx.output.side_effects.store_attr(self, attr, value)
             self.dynamic_attributes[attr] = value
@@ -1446,6 +1662,12 @@ class NamedTupleVariable(TupleVariable):
             )
         return super().getitem_const(tx, arg)
 
+=======
+            self.dynamic_attributes[attr] = value
+            return ConstantVariable.create(None)
+        return super().call_method(tx, name, args, kwargs)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def var_getattr(self, tx: "InstructionTranslator", name):
         def check_and_create_method():
             method = inspect.getattr_static(self.tuple_cls, name, None)
@@ -1462,6 +1684,7 @@ class NamedTupleVariable(TupleVariable):
             else:
                 return None
 
+<<<<<<< HEAD
         # Avoid UserMethodVariable fallback precisely when methods NamedTuple methods have not been overwritten.
         if (
             name == "_replace"
@@ -1483,6 +1706,8 @@ class NamedTupleVariable(TupleVariable):
             source = NamedTupleFieldsSource(self.source) if self.source else None
             return VariableTracker.build(tx, self.fields(), source=source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in self.dynamic_attributes:
             return self.dynamic_attributes[name]
 
@@ -1503,7 +1728,11 @@ class NamedTupleVariable(TupleVariable):
 
 
 class SliceVariable(VariableTracker):
+<<<<<<< HEAD
     def __init__(self, items, tx=None, **kwargs) -> None:
+=======
+    def __init__(self, items, **kwargs) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         items_to_map = items
         start, stop, step = [variables.ConstantVariable.create(None)] * 3
 
@@ -1516,6 +1745,7 @@ class SliceVariable(VariableTracker):
         else:
             raise AssertionError
 
+<<<<<<< HEAD
         # Convert TensorVariable to SymIntVariable by calling .item()
         # This decomposes a[:t] to u=t.item(); a[:u] at the dynamo level
         if isinstance(start, variables.TensorVariable):
@@ -1534,6 +1764,20 @@ class SliceVariable(VariableTracker):
             )
             step = step.call_method(tx, "item", [], {})
 
+=======
+        if isinstance(start, variables.TensorVariable) or isinstance(
+            stop, variables.TensorVariable
+        ):
+            unimplemented_v2(
+                gb_type="Dynamic slicing with Tensor arguments",
+                context=f"SliceVariable start: {start}, stop: {stop}, step: {step}",
+                explanation="Creating slices with Tensor arguments is not supported. "
+                "e.g. `l[:x]`, where `x` is a 1-element tensor.",
+                hints=[
+                    *graph_break_hints.SUPPORTABLE,
+                ],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.items = (start, stop, step)
 
         super().__init__(**kwargs)
@@ -1598,8 +1842,24 @@ class ListIteratorVariable(IteratorVariable):
         self.index += 1
         return self.items[old_index]
 
+<<<<<<< HEAD
     def call_obj_hasattr(self, tx, name):
         return variables.ConstantVariable.create(hasattr(iter([]), name))
+=======
+    def call_method(
+        self,
+        tx,
+        name,
+        args: "list[VariableTracker]",
+        kwargs: "dict[str, VariableTracker]",
+    ):
+        if name == "__contains__":
+            assert len(args) == 1
+            assert not kwargs
+            return iter_contains(self.items[self.index :], args[0], tx)
+
+        return super().call_method(tx, name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def python_type(self):
         return type(iter([]))
@@ -1609,6 +1869,7 @@ class ListIteratorVariable(IteratorVariable):
             raise NotImplementedError
         return iter([x.as_python_constant() for x in self.items])
 
+<<<<<<< HEAD
     def has_unpack_var_sequence(self, tx):
         return True
 
@@ -1616,6 +1877,10 @@ class ListIteratorVariable(IteratorVariable):
         r = list(self.items[self.index :])
         self.index = len(self.items)
         return r
+=======
+    def unpack_var_sequence(self, tx):
+        return list(self.items[self.index :])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def force_unpack_var_sequence(self, tx) -> list[VariableTracker]:
         return self.unpack_var_sequence(tx)
@@ -1625,7 +1890,11 @@ class ListIteratorVariable(IteratorVariable):
         codegen.foreach(remaining_items)
         codegen.extend_output(
             [
+<<<<<<< HEAD
                 create_build_tuple(len(remaining_items)),
+=======
+                create_instruction("BUILD_TUPLE", arg=len(remaining_items)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 create_instruction("GET_ITER"),
             ]
         )
@@ -1633,6 +1902,7 @@ class ListIteratorVariable(IteratorVariable):
 
 class TupleIteratorVariable(ListIteratorVariable):
     pass
+<<<<<<< HEAD
 
 
 class RangeIteratorVariable(IteratorVariable):
@@ -1682,3 +1952,5 @@ class RangeIteratorVariable(IteratorVariable):
         codegen.append_output(codegen.create_load_const(self.step))
         codegen.extend_output(create_call_function(3, False))
         codegen.append_output(create_instruction("GET_ITER"))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

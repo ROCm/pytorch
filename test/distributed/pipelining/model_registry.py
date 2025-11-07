@@ -8,7 +8,11 @@ from torch.distributed.pipelining import pipe_split, SplitPoint
 
 class ExampleCode(torch.nn.Module):
     def __init__(self, d_hid, splits=2):
+<<<<<<< HEAD
         assert splits <= 8
+=======
+        assert splits <= 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.splits = splits
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
@@ -17,10 +21,13 @@ class ExampleCode(torch.nn.Module):
         self.lin0 = torch.nn.Linear(d_hid, d_hid)
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
         self.lin2 = torch.nn.Linear(d_hid, d_hid)
+<<<<<<< HEAD
         self.lin3 = torch.nn.Linear(d_hid, d_hid)
         self.lin4 = torch.nn.Linear(d_hid, d_hid)
         self.lin5 = torch.nn.Linear(d_hid, d_hid)
         self.lin6 = torch.nn.Linear(d_hid, d_hid)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x):
         x = torch.mm(x, self.mm_param0)
@@ -39,6 +46,7 @@ class ExampleCode(torch.nn.Module):
             pipe_split()
             x = self.lin2(x)
             x = torch.relu(x)
+<<<<<<< HEAD
         if self.splits > 4:
             pipe_split()
             x = self.lin3(x)
@@ -55,6 +63,8 @@ class ExampleCode(torch.nn.Module):
             pipe_split()
             x = self.lin6(x)
             x = torch.relu(x)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -63,7 +73,11 @@ class ModelWithKwargs(torch.nn.Module):
     DEFAULT_BATCH_SIZE = 256
 
     def __init__(self, d_hid: int = DEFAULT_DHID, splits=2):
+<<<<<<< HEAD
         assert splits <= 8
+=======
+        assert splits <= 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.splits = splits
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
@@ -72,10 +86,13 @@ class ModelWithKwargs(torch.nn.Module):
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
         self.lin2 = torch.nn.Linear(d_hid, d_hid)
         self.lin3 = torch.nn.Linear(d_hid, d_hid)
+<<<<<<< HEAD
         self.lin4 = torch.nn.Linear(d_hid, d_hid)
         self.lin5 = torch.nn.Linear(d_hid, d_hid)
         self.lin6 = torch.nn.Linear(d_hid, d_hid)
         self.lin7 = torch.nn.Linear(d_hid, d_hid)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x, y=torch.zeros(DEFAULT_BATCH_SIZE, DEFAULT_DHID)):
         x = torch.mm(x, self.mm_param0)
@@ -94,6 +111,7 @@ class ModelWithKwargs(torch.nn.Module):
             pipe_split()
             x = self.lin3(x)
             x = torch.relu(x)
+<<<<<<< HEAD
         if self.splits > 4:
             pipe_split()
             x = self.lin4(x)
@@ -110,6 +128,8 @@ class ModelWithKwargs(torch.nn.Module):
             pipe_split()
             x = self.lin7(x)
             x = torch.relu(x)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -251,10 +271,17 @@ class MLPModuleWithDw(torch.nn.Module):
         self.fc2_weight = torch.nn.Parameter(torch.randn(d_hid, d_hid))
         self.fc2_bias = torch.nn.Parameter(torch.randn(d_hid))
 
+<<<<<<< HEAD
         torch.nn.init.uniform_(self.fc1_weight, -0.001, 0.001)
         torch.nn.init.uniform_(self.fc2_weight, -0.001, 0.001)
         torch.nn.init.uniform_(self.fc1_bias, -0.001, 0.001)
         torch.nn.init.uniform_(self.fc2_bias, -0.001, 0.001)
+=======
+        torch.nn.init.uniform_(self.fc1_weight, -0.01, 0.01)
+        torch.nn.init.uniform_(self.fc2_weight, -0.01, 0.01)
+        torch.nn.init.uniform_(self.fc1_bias, -0.01, 0.01)
+        torch.nn.init.uniform_(self.fc2_bias, -0.01, 0.01)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.cached_context = {}
         self.cached_context["fc1"] = []

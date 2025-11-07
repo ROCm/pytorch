@@ -108,6 +108,13 @@ GH_CHECKSUITES_FRAGMENT = """
 fragment PRCheckSuites on CheckSuiteConnection {
   edges {
     node {
+<<<<<<< HEAD
+=======
+      app {
+        name
+        databaseId
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       workflowRun {
         workflow {
           name
@@ -234,7 +241,10 @@ query ($owner: String!, $name: String!, $number: Int!) {
           createdAt
           author {
             login
+<<<<<<< HEAD
             url
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           }
           authorAssociation
           editor {
@@ -451,6 +461,7 @@ HAS_NO_CONNECTED_DIFF_TITLE = (
 IGNORABLE_FAILED_CHECKS_THESHOLD = 10
 
 
+<<<<<<< HEAD
 def iter_issue_timeline_until_comment(
     org: str, repo: str, issue_number: int, target_comment_id: int, max_pages: int = 200
 ) -> Any:
@@ -508,6 +519,8 @@ def sha_from_force_push_after(ev: dict[str, Any]) -> Optional[str]:
     return ev.get("after_sha") or ev.get("head_sha")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gh_get_pr_info(org: str, proj: str, pr_no: int) -> Any:
     rc = gh_graphql(GH_GET_PR_INFO_QUERY, name=proj, owner=org, number=pr_no)
     return rc["data"]["repository"]["pullRequest"]
@@ -795,6 +808,7 @@ class GitHubPR:
     def last_commit(self) -> Any:
         return self.info["commits"]["nodes"][-1]["commit"]
 
+<<<<<<< HEAD
     def last_commit_sha(self, default: Optional[str] = None) -> str:
         # for commits, the oid is the sha
 
@@ -803,16 +817,26 @@ class GitHubPR:
 
         return str(self.last_commit().get("oid", default))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_merge_base(self) -> str:
         if self.merge_base:
             return self.merge_base
 
+<<<<<<< HEAD
         last_commit_sha = self.last_commit_sha()
+=======
+        last_commit_oid = self.last_commit()["oid"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NB: We could use self.base_ref() here for regular PR, however, that doesn't
         # work for ghstack where the base is the custom branch, i.e. gh/USER/ID/base,
         # so let's just use main instead
         self.merge_base = gh_fetch_merge_base(
+<<<<<<< HEAD
             self.org, self.project, last_commit_sha, self.default_branch()
+=======
+            self.org, self.project, last_commit_oid, self.default_branch()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Fallback to baseRefOid if the API call fails, i.e. rate limit. Note that baseRefOid
@@ -901,6 +925,7 @@ class GitHubPR:
     def get_commit_count(self) -> int:
         return int(self.info["commits_with_authors"]["totalCount"])
 
+<<<<<<< HEAD
     def get_commit_sha_at_comment(self, comment_id: int) -> Optional[str]:
         """
         Get the PR head commit SHA that was present when a specific comment was posted.
@@ -939,6 +964,8 @@ class GitHubPR:
         print(f"Did not find comment with id {comment_id} in the PR timeline")
         return None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_pr_creator_login(self) -> str:
         return cast(str, self.info["author"]["login"])
 
@@ -1092,9 +1119,14 @@ class GitHubPR:
         editor = node["editor"]
         return GitHubComment(
             body_text=node["bodyText"],
+<<<<<<< HEAD
             created_at=node.get("createdAt", ""),
             author_login=node["author"]["login"],
             author_url=node["author"].get("url", None),
+=======
+            created_at=node["createdAt"] if "createdAt" in node else "",
+            author_login=node["author"]["login"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             author_association=node["authorAssociation"],
             editor_login=editor["login"] if editor else None,
             database_id=node["databaseId"],
@@ -1256,7 +1288,11 @@ class GitHubPR:
         *,
         skip_mandatory_checks: bool = False,
         dry_run: bool = False,
+<<<<<<< HEAD
         comment_id: int,
+=======
+        comment_id: Optional[int] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ignore_current_checks: Optional[list[str]] = None,
     ) -> None:
         # Raises exception if matching rule is not found
@@ -1272,7 +1308,11 @@ class GitHubPR:
             skip_internal_checks=can_skip_internal_checks(self, comment_id),
             ignore_current_checks=ignore_current_checks,
         )
+<<<<<<< HEAD
         additional_merged_prs = self.merge_changes_locally(
+=======
+        additional_merged_prs = self.merge_changes(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             repo, skip_mandatory_checks, comment_id
         )
 
@@ -1301,7 +1341,11 @@ class GitHubPR:
                 broken_trunk_checks=ignorable_checks.get("BROKEN_TRUNK", []),
                 flaky_checks=ignorable_checks.get("FLAKY", []),
                 unstable_checks=ignorable_checks.get("UNSTABLE", []),
+<<<<<<< HEAD
                 last_commit_sha=self.last_commit_sha(default=""),
+=======
+                last_commit_sha=self.last_commit().get("oid", ""),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 merge_base_sha=self.get_merge_base(),
                 merge_commit_sha=merge_commit_sha,
                 is_failed=False,
@@ -1322,7 +1366,11 @@ class GitHubPR:
             dry_run=dry_run,
         )
 
+<<<<<<< HEAD
     def merge_changes_locally(
+=======
+    def merge_changes(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         repo: GitRepo,
         skip_mandatory_checks: bool = False,
@@ -1331,15 +1379,38 @@ class GitHubPR:
         skip_all_rule_checks: bool = False,
     ) -> list["GitHubPR"]:
         """
+<<<<<<< HEAD
         :param skip_all_rule_checks: If true, skips all rule checks on ghstack PRs, useful for dry-running merge locally
+=======
+        :param skip_all_rule_checks: If true, skips all rule checks, useful for dry-running merge locally
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         branch_to_merge_into = self.default_branch() if branch is None else branch
         if repo.current_branch() != branch_to_merge_into:
             repo.checkout(branch_to_merge_into)
+<<<<<<< HEAD
 
         # It's okay to skip the commit SHA check for ghstack PRs since
         # authoring requires write access to the repo.
         if self.is_ghstack_pr():
+=======
+        if not self.is_ghstack_pr():
+            msg = self.gen_commit_message()
+            pr_branch_name = f"__pull-request-{self.pr_num}__init__"
+            repo.fetch(self.last_commit()["oid"], pr_branch_name)
+            repo._run_git("merge", "--squash", pr_branch_name)
+            repo._run_git("commit", f'--author="{self.get_author()}"', "-m", msg)
+
+            # Did the PR change since we started the merge?
+            pulled_sha = repo.show_ref(pr_branch_name)
+            latest_pr_status = GitHubPR(self.org, self.project, self.pr_num)
+            if pulled_sha != latest_pr_status.last_commit()["oid"]:
+                raise RuntimeError(
+                    "PR has been updated since CI checks last passed. Please rerun the merge command."
+                )
+            return []
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.merge_ghstack_into(
                 repo,
                 skip_mandatory_checks,
@@ -1347,6 +1418,7 @@ class GitHubPR:
                 skip_all_rule_checks=skip_all_rule_checks,
             )
 
+<<<<<<< HEAD
         msg = self.gen_commit_message()
         pr_branch_name = f"__pull-request-{self.pr_num}__init__"
 
@@ -1389,6 +1461,8 @@ class GitHubPR:
             )
         return []
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class MergeRuleFailedError(RuntimeError):
     def __init__(self, message: str, rule: Optional["MergeRule"] = None) -> None:
@@ -1593,7 +1667,11 @@ def find_matching_merge_rule(
             pending_checks = []
             failed_checks = []
 
+<<<<<<< HEAD
         hud_link = f"https://hud.pytorch.org/{pr.org}/{pr.project}/commit/{pr.last_commit_sha()}"
+=======
+        hud_link = f"https://hud.pytorch.org/{pr.org}/{pr.project}/commit/{pr.last_commit()['oid']}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(failed_checks) > 0:
             if reject_reason_score < 30000:
                 reject_reason_score = 30000
@@ -2022,26 +2100,40 @@ def validate_revert(
         else pr.get_comment_by_id(comment_id)
     )
     if comment.editor_login is not None:
+<<<<<<< HEAD
         raise PostCommentError(
             "Halting the revert as the revert comment has been edited."
         )
+=======
+        raise PostCommentError("Don't want to revert based on edited command")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     author_association = comment.author_association
     author_login = comment.author_login
     allowed_reverters = ["COLLABORATOR", "MEMBER", "OWNER"]
     # For some reason, one can not be a member of private repo, only CONTRIBUTOR
     if pr.is_base_repo_private():
         allowed_reverters.append("CONTRIBUTOR")
+<<<<<<< HEAD
     # Special case the pytorch-auto-revert app, whose does not have association
     # But should be able to issue revert command
     if comment.author_url == "https://github.com/apps/pytorch-auto-revert":
         allowed_reverters.append("NONE")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if author_association not in allowed_reverters:
         raise PostCommentError(
             f"Will not revert as @{author_login} is not one of "
             f"[{', '.join(allowed_reverters)}], but instead is {author_association}."
         )
 
+<<<<<<< HEAD
+=======
+    # Raises exception if matching rule is not found, but ignores all status checks
+    find_matching_merge_rule(
+        pr, repo, skip_mandatory_checks=True, skip_internal_checks=True
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     commit_sha = get_pr_commit_sha(repo, pr)
     return (author_login, commit_sha)
 
@@ -2292,14 +2384,24 @@ def categorize_checks(
 def merge(
     pr: GitHubPR,
     repo: GitRepo,
+<<<<<<< HEAD
     comment_id: int,
     dry_run: bool = False,
     skip_mandatory_checks: bool = False,
+=======
+    dry_run: bool = False,
+    skip_mandatory_checks: bool = False,
+    comment_id: Optional[int] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     timeout_minutes: int = 400,
     stale_pr_days: int = 3,
     ignore_current: bool = False,
 ) -> None:
+<<<<<<< HEAD
     initial_commit_sha = pr.last_commit_sha()
+=======
+    initial_commit_sha = pr.last_commit()["oid"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pr_link = f"https://github.com/{pr.org}/{pr.project}/pull/{pr.pr_num}"
     print(f"Attempting merge of {initial_commit_sha} ({pr_link})")
 
@@ -2370,7 +2472,11 @@ def merge(
             f"Attempting merge of https://github.com/{pr.org}/{pr.project}/pull/{pr.pr_num} ({elapsed_time / 60} minutes elapsed)"
         )
         pr = GitHubPR(pr.org, pr.project, pr.pr_num)
+<<<<<<< HEAD
         if initial_commit_sha != pr.last_commit_sha():
+=======
+        if initial_commit_sha != pr.last_commit()["oid"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(
                 "New commits were pushed while merging. Please rerun the merge command."
             )
@@ -2537,7 +2643,11 @@ def main() -> None:
     if args.check_mergeability:
         if pr.is_ghstack_pr():
             get_ghstack_prs(repo, pr)  # raises error if out of sync
+<<<<<<< HEAD
         pr.merge_changes_locally(
+=======
+        pr.merge_changes(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             repo,
             skip_mandatory_checks=True,
             skip_all_rule_checks=True,
@@ -2552,6 +2662,7 @@ def main() -> None:
         gh_post_pr_comment(org, project, args.pr_num, message, dry_run=args.dry_run)
         return
     try:
+<<<<<<< HEAD
         # Ensure comment id is set, else fail
         if not args.comment_id:
             raise ValueError(
@@ -2564,6 +2675,14 @@ def main() -> None:
             comment_id=args.comment_id,
             dry_run=args.dry_run,
             skip_mandatory_checks=args.force,
+=======
+        merge(
+            pr,
+            repo,
+            dry_run=args.dry_run,
+            skip_mandatory_checks=args.force,
+            comment_id=args.comment_id,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_current=args.ignore_current,
         )
     except Exception as e:
@@ -2585,7 +2704,11 @@ def main() -> None:
                 broken_trunk_checks=[],
                 flaky_checks=[],
                 unstable_checks=[],
+<<<<<<< HEAD
                 last_commit_sha=pr.last_commit_sha(default=""),
+=======
+                last_commit_sha=pr.last_commit().get("oid", ""),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 merge_base_sha=pr.get_merge_base(),
                 is_failed=True,
                 skip_mandatory_checks=args.force,

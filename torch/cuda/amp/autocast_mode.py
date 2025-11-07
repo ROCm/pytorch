@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 import functools
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 from typing_extensions import deprecated
 
@@ -10,17 +13,21 @@ import torch
 __all__ = ["autocast", "custom_fwd", "custom_bwd"]
 
 
+<<<<<<< HEAD
 @deprecated(
     "`torch.cuda.amp.autocast(args...)` is deprecated. "
     "Please use `torch.amp.autocast('cuda', args...)` instead.",
     category=FutureWarning,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class autocast(torch.amp.autocast_mode.autocast):
     r"""See :class:`torch.autocast`.
 
     ``torch.cuda.amp.autocast(args...)`` is deprecated. Please use ``torch.amp.autocast("cuda", args...)`` instead.
     """
 
+<<<<<<< HEAD
     # TODO: remove this conditional once we stop supporting Python < 3.13
     # Prior to Python 3.13, inspect.signature could not retrieve the correct
     # signature information for classes decorated with @deprecated (unless
@@ -40,6 +47,13 @@ class autocast(torch.amp.autocast_mode.autocast):
         def __init_subclass__(cls):
             pass
 
+=======
+    @deprecated(
+        "`torch.cuda.amp.autocast(args...)` is deprecated. "
+        "Please use `torch.amp.autocast('cuda', args...)` instead.",
+        category=FutureWarning,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         enabled: bool = True,

@@ -14,7 +14,11 @@ SUM = 0  # ncclRedOp_t
 
 def is_available(tensors):
     if not hasattr(torch._C, "_nccl_all_reduce"):
+<<<<<<< HEAD
         warnings.warn("PyTorch is not compiled with NCCL support", stacklevel=2)
+=======
+        warnings.warn("PyTorch is not compiled with NCCL support")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
     devices = set()

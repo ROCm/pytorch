@@ -15,14 +15,24 @@ test_classes = {}
 
 def mocked_training_ir_to_run_decomp_export_strict(*args, **kwargs):
     if "strict" in kwargs:
+<<<<<<< HEAD
         ep = torch.export.export(*args, **kwargs)
     else:
         ep = torch.export.export(*args, **kwargs, strict=True)
+=======
+        ep = torch.export.export_for_training(*args, **kwargs)
+    else:
+        ep = torch.export.export_for_training(*args, **kwargs, strict=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ep.run_decompositions({})
 
 
 def mocked_training_ir_to_run_decomp_export_non_strict(*args, **kwargs):
+<<<<<<< HEAD
     ep = torch.export.export(*args, **kwargs)
+=======
+    ep = torch.export.export_for_training(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return ep.run_decompositions({})
 

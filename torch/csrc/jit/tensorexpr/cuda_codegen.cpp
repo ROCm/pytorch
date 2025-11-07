@@ -843,14 +843,22 @@ static std::ostream& operator<<(
   return out;
 }
 
+<<<<<<< HEAD
 static constexpr const char* device_resource_string = R"(
+=======
+static const char* device_resource_string = R"(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define NAN __int_as_float(0x7fffffff)
 #define POS_INFINITY __int_as_float(0x7f800000)
 #define NEG_INFINITY __int_as_float(0xff800000)
 
 )";
 
+<<<<<<< HEAD
 static constexpr const char* shared_resource_string = R"(
+=======
+static const char* shared_resource_string = R"(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<typename T>
 __device__ T maximum(T a, T b) {
   return isnan(a) ? a : (a > b ? a : b);
@@ -1082,7 +1090,12 @@ void CudaCodeGen::call_with_numel(void** args, int64_t numel) {
   // https://stackoverflow.com/questions/34388712/cannot-understand-how-jcuda-culaunchkernel-work
   std::vector<void*> ptr_to_args(buffer_args.size());
   for (size_t i = 0; i < buffer_args.size(); i++) {
+<<<<<<< HEAD
     ptr_to_args[i] = buffer_args[i].isVar() ? args[i] : (&args[i]);
+=======
+    ptr_to_args[i] =
+        buffer_args[i].isVar() ? args[i] : const_cast<void**>(&args[i]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   const auto device = this->device().index();

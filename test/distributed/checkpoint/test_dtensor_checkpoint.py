@@ -106,7 +106,11 @@ class DTensorPlanner(DTensorTestBase):
             replicated_dt,
             submesh_sharded_dt,
             submesh_replicated_dt,
+<<<<<<< HEAD
         ).to(self.device_type)
+=======
+        ).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return (
             model,
@@ -135,7 +139,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'rdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([4., 5., 6., 7.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([4., 5., 6., 7.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 1, 2, 3]),
                             placements=[Replicate()]
                         )
@@ -143,7 +151,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'sdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([0.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([0.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 1, 2, 3]),
                             placements=[Shard(dim=0)])
                         ),
@@ -151,7 +163,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'submesh_sdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([8., 9.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([8., 9.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 2]),
                             placements=[Shard(dim=0)]
                         ),
@@ -159,7 +175,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'submesh_rdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([12., 13., 14., 15.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([12., 13., 14., 15.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 2]),
                             placements=[Replicate()]
                         )
@@ -189,7 +209,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'rdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([40., 50., 60., 70.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([40., 50., 60., 70.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 1, 2, 3]),
                             placements=[Replicate()],
                         )
@@ -197,7 +221,11 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'sdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([0.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([0.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 1, 2, 3]),
                             placements=[Shard(dim=0)],
                         )
@@ -205,14 +233,22 @@ class DTensorPlanner(DTensorTestBase):
                     (
                         'submesh_sdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([80., 90.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([80., 90.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 2]),
                             placements=[Shard(dim=0)]
                         )
                     ),
                     ('submesh_rdt',
                         DTensor(
+<<<<<<< HEAD
                             local_tensor=tensor([120., 130., 140., 150.], device=f'{self.device_type}:0'),
+=======
+                            local_tensor=tensor([120., 130., 140., 150.], device='cuda:0'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             device_mesh=DeviceMesh:([0, 2]),
                             placements=[Replicate()]
                         )

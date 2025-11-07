@@ -85,7 +85,11 @@ class RRefAPITest:
         ):
             rref_local_value(rref)
 
+<<<<<<< HEAD
         ret = rpc.rpc_sync(dst_worker_name, rref_local_value, (rref,))
+=======
+        ret = ret = rpc.rpc_sync(dst_worker_name, rref_local_value, (rref,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ret, torch.add(torch.ones(2, 2), 1))
 
     @dist_init

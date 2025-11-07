@@ -115,7 +115,11 @@ class TestInductorConfig(TestCase):
         for kwargs in checks:
             torch._dynamo.reset()
             opt_fn = torch.compile(dummy_fn, **kwargs)
+<<<<<<< HEAD
             torch.testing.assert_close(
+=======
+            torch.testing.assert_allclose(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 opt_fn(x), y, msg=f"torch.compile(..., **{kwargs!r}) failed"
             )
 
@@ -244,6 +248,7 @@ class TestInductorConfig(TestCase):
             code = torch._inductor.config.codegen_config()
             self.assertNotIn("post_grad_custom", code)
 
+<<<<<<< HEAD
     def test_select_decomp_table_fallback_embedding_bag_byte_unpack(self):
         """Test that select_decomp_table removes embedding_bag_byte_unpack when fallback is enabled"""
         from torch._inductor.decomposition import select_decomp_table
@@ -267,6 +272,8 @@ class TestInductorConfig(TestCase):
                 torch.ops.quantized.embedding_bag_byte_unpack.default, decomp_table
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_TRITON, "requires triton")
     def test_options_do_something(self):
         """

@@ -29,6 +29,10 @@ from torch.testing._internal.common_distributed import (
     requires_accelerator_dist_backend,
 )
 from torch.testing._internal.common_fsdp import get_devtype
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import HAS_GPU
 
 
@@ -78,10 +82,13 @@ def create_grouped_node_for_allreduce_and_its_deps(snodes):
 
 
 @requires_accelerator_dist_backend()
+<<<<<<< HEAD
 @unittest.skipIf(
     torch._inductor.config.triton.native_matmul,
     "native matmul is fused with surrounding ops",
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
     """
     Run correctness checks in multi-proc runner, mark with minimum # GPUs to run under
@@ -182,10 +189,14 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
                 .check("extern_kernels.mm")
                 .check("triton_poi_fused_relu")
                 .check("torch.ops._c10d_functional.all_reduce_.default")
+<<<<<<< HEAD
                 .check_same("buf0")
                 # mm not use buf prior to wait_tensor
                 .check("extern_kernels.mm")
                 .check_not("buf0")
+=======
+                .check("extern_kernels.mm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 .check("torch.ops._c10d_functional.wait_tensor.default")
                 .check("extern_kernels.mm")
                 .run(code)
@@ -262,11 +273,14 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             "reorder_compute_for_overlap",
         ],
     )
+<<<<<<< HEAD
     @patch.object(
         torch._inductor.config,
         "runtime_estimations_mms_benchmark",
         False,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reorder_compute_for_overlap(self):
         def func(a, *, tag, ranks, group_size):
             ar = _functional_collectives.all_reduce(a, "sum", ranks, tag)
@@ -371,10 +385,14 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             self.assertTrue(same(out, correct))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+<<<<<<< HEAD
     @unittest.skipIf(
         torch._inductor.config.triton.native_matmul,
         "native matmul is fused with surrounding ops",
     )
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: somehow inductor bg compile threads are causing hangs at exit with distributed work dtor
     @patch.object(torch._inductor.config, "compile_threads", 1)
     @patch.object(

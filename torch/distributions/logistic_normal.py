@@ -36,10 +36,15 @@ class LogisticNormal(TransformedDistribution):
     """
 
     arg_constraints = {"loc": constraints.real, "scale": constraints.positive}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     support = constraints.simplex
     has_rsample = True
     # pyrefly: ignore [bad-override]
+=======
+    support = constraints.simplex
+    has_rsample = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     base_dist: Independent[Normal]
 
     def __init__(

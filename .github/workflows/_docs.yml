@@ -67,6 +67,7 @@ jobs:
             # an OOM issue when running the job, so this upgrades the runner from 4xlarge
             # to the next available tier of 12xlarge. So much memory just to generate cpp
             # doc
+<<<<<<< HEAD
             runner: ${{ inputs.runner_prefix }}linux.12xlarge.memory
             # TODO: Nightly cpp docs take longer and longer to finish (more than 3h now)
             # Let's try to figure out how this can be improved
@@ -75,12 +76,30 @@ jobs:
             runner: ${{ inputs.runner_prefix }}linux.c7i.2xlarge
             # It takes less than 30m to finish python docs unless there are issues
             timeout-minutes: 30
+=======
+            runner: ${{ inputs.runner_prefix }}linux.12xlarge
+            # TODO: Nightly cpp docs take longer and longer to finish (more than 3h now)
+            # Let's try to figure out how this can be improved
+            timeout-minutes: 240
+          - docs_type: python
+            runner: ${{ inputs.runner_prefix }}linux.2xlarge
+            # It takes less than 30m to finish python docs unless there are issues
+            timeout-minutes: 30
+          - docs_type: functorch
+            runner: ${{ inputs.runner_prefix }}linux.2xlarge
+            # It takes less than 15m to finish functorch docs unless there are issues
+            timeout-minutes: 15
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Set a fixed name for this job instead of using the current matrix-generated name, i.e. build-docs (cpp, linux.12xlarge, 180)
     # The current name requires updating the database last docs push query from test-infra every time the matrix is updated
     name: build-docs-${{ matrix.docs_type }}-${{ inputs.push }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@main
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -91,7 +110,11 @@ jobs:
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Setup Linux
         uses: ./.github/actions/setup-linux
@@ -106,12 +129,20 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@main
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image-name: ${{ inputs.docker-image }}
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@main
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -207,6 +238,21 @@ jobs:
           path: cppdocs/
           s3-prefix: pytorch/pytorch/${{ github.event.pull_request.number }}/cppdocs
 
+<<<<<<< HEAD
       - name: Teardown Linux
         uses: pytorch/test-infra/.github/actions/teardown-linux@main
+=======
+      - name: Upload functorch Docs Preview
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+        if: ${{ github.event_name == 'pull_request' && matrix.docs_type == 'functorch' && steps.build-docs.outcome == 'success' }}
+        with:
+          retention-days: 14
+          s3-bucket: doc-previews
+          if-no-files-found: error
+          path: functorch_ghpages/nightly/
+          s3-prefix: pytorch/pytorch/${{ github.event.pull_request.number }}/functorchdocs
+
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always()

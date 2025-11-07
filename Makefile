@@ -57,8 +57,12 @@ setup-env-cuda:
 setup-env-rocm:
 	$(MAKE) setup-env PYTHON="$(PYTHON)" NIGHTLY_TOOL_OPTS="$(NIGHTLY_TOOL_OPTS) --rocm"
 
+<<<<<<< HEAD
 .PHONY: setup-lint
 setup-lint .lintbin/.lintrunner.sha256: requirements.txt pyproject.toml .lintrunner.toml
+=======
+.lintbin/.lintrunner.sha256: requirements.txt pyproject.toml .lintrunner.toml
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 	@echo "Setting up lintrunner..."
 	$(PIP) install lintrunner
 	lintrunner init
@@ -66,6 +70,12 @@ setup-lint .lintbin/.lintrunner.sha256: requirements.txt pyproject.toml .lintrun
 	@mkdir -p .lintbin
 	@sha256sum requirements.txt pyproject.toml .lintrunner.toml > .lintbin/.lintrunner.sha256
 
+<<<<<<< HEAD
+=======
+.PHONY: setup-lint
+setup-lint: .lintbin/.lintrunner.sha256
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .PHONY: lazy-setup-lint
 lazy-setup-lint: .lintbin/.lintrunner.sha256
 	@if [ ! -x "$(shell command -v lintrunner)" ]; then \

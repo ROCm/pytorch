@@ -24,7 +24,10 @@ from torch.distributed.checkpoint.default_planner import (
     DefaultLoadPlanner,
     DefaultSavePlanner,
 )
+<<<<<<< HEAD
 from torch.distributed.checkpoint.filesystem import CURRENT_DCP_VERSION
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.metadata import (
     BytesStorageMetadata,
     ChunkStorageMetadata,
@@ -66,7 +69,11 @@ if TEST_WITH_DEV_DBG_ASAN:
 def create_sharded_tensor(rank, world_size, shards_per_rank, shard_size=8):
     shards_metadata = []
     local_shards = []
+<<<<<<< HEAD
     for idx in range(world_size * shards_per_rank):
+=======
+    for idx in range(0, world_size * shards_per_rank):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_rank = idx // shards_per_rank
         shard_md = ShardMetadata(
             shard_offsets=[idx * shard_size],
@@ -216,7 +223,11 @@ class TestSavePlan(TestCase):
         # Number of plans should remain unchanged
         self.assertEqual(len(all_plans), len(deduped_plans))
 
+<<<<<<< HEAD
         # Number of items in the deduped plans should be less than the original plans
+=======
+        # Numer of items in the deduped plans should be less than the original plans
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for new_plan, old_plan in zip(deduped_plans, all_plans):
             self.assertFalse(_compare_save_plans(new_plan, old_plan))
             self.assertTrue(len(new_plan.items) < len(old_plan.items))
@@ -594,6 +605,7 @@ class TestLoadPlanner(TestCase):
                 planner=DefaultLoadPlanner(),
             )
 
+<<<<<<< HEAD
     @with_temp_dir
     def test_version_key_in_planner_data(self):
         original_module = nn.Linear(2, 2)
@@ -610,6 +622,8 @@ class TestLoadPlanner(TestCase):
 
         self.assertEqual(planner.metadata.version, CURRENT_DCP_VERSION)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

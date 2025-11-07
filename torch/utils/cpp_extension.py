@@ -11,7 +11,10 @@ import setuptools
 import subprocess
 import sys
 import sysconfig
+<<<<<<< HEAD
 import types
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import collections
 from pathlib import Path
 import errno
@@ -23,11 +26,19 @@ import torch
 import torch._appdirs
 from .file_baton import FileBaton
 from ._cpp_extension_versioner import ExtensionVersioner
+<<<<<<< HEAD
 from typing import Optional, Union
 from typing_extensions import deprecated
 from torch.torch_version import TorchVersion, Version
 
 
+=======
+from .hipify import hipify_python
+from .hipify.hipify_python import GeneratedFileCleaner
+from typing import Optional, Union
+from torch.torch_version import TorchVersion, Version
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from setuptools.command.build_ext import build_ext
 
 IS_WINDOWS = sys.platform == 'win32'
@@ -208,7 +219,11 @@ WRONG_COMPILER_WARNING = (
     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     "Your compiler (%s) is not compatible with the compiler Pytorch was"
     "built with for this platform, which is %s on %s. Please"
+<<<<<<< HEAD
     "use %s to compile your extension. Alternatively, you may"
+=======
+    "use %s to to compile your extension. Alternatively, you may"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "compile PyTorch from source using %s, and then you can also use"
     "%s to compile your extension."
     "See https://github.com/pytorch/pytorch/blob/master/CONTRIBUTING.md for help"
@@ -229,7 +244,11 @@ CUDA_NOT_FOUND_MESSAGE = (
 )
 ROCM_HOME = _find_rocm_home() if (torch.cuda._is_compiled() and torch.version.hip) else None
 HIP_HOME = _join_rocm_home('hip') if ROCM_HOME else None
+<<<<<<< HEAD
 IS_HIP_EXTENSION = bool(ROCM_HOME is not None and torch.version.hip is not None)
+=======
+IS_HIP_EXTENSION = True if ((ROCM_HOME is not None) and (torch.version.hip is not None)) else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ROCM_VERSION = None
 if torch.version.hip is not None:
     ROCM_VERSION = tuple(int(v) for v in torch.version.hip.split('.')[:2])
@@ -237,7 +256,10 @@ if torch.version.hip is not None:
 CUDA_HOME = _find_cuda_home() if (torch.cuda._is_compiled() and torch.version.cuda) else None
 CUDNN_HOME = os.environ.get('CUDNN_HOME') or os.environ.get('CUDNN_PATH')
 SYCL_HOME = _find_sycl_home() if torch.xpu._is_compiled() else None
+<<<<<<< HEAD
 WINDOWS_CUDA_HOME = os.environ.get('WINDOWS_CUDA_HOME')  # used for AOTI cross-compilation
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # PyTorch releases have the version pattern major.minor.patch, whereas when
 # PyTorch is built from source, we append the git commit hash, which gives
@@ -277,6 +299,7 @@ COMMON_HIPCC_FLAGS = [
     '-DHIP_ENABLE_WARP_SYNC_BUILTINS=1'
 ]
 
+<<<<<<< HEAD
 if IS_WINDOWS:
     # Compatibility flags, similar to those set in cmake/Dependencies.cmake.
     COMMON_HIPCC_FLAGS.append('-fms-extensions')
@@ -294,6 +317,8 @@ def _get_icpx_version() -> str:
         raise AssertionError("Failed to parse DPC++ compiler version")
     # Aligning version format with what torch.version.xpu() returns
     return f"{version[0]}{version[1]:02}{version[2]:02}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_sycl_arch_list():
@@ -322,11 +347,18 @@ def _append_sycl_targets_if_missing(cflags):
         cflags.append('-fsycl-targets=spir64')
 
 def _get_sycl_device_flags(cflags):
+<<<<<<< HEAD
     # We need last occurrence of -fsycl-targets as it will be the one taking effect.
     # So searching in reversed list.
     flags = [f for f in reversed(cflags) if f.startswith('-fsycl-targets=')]
     if not flags:
         raise AssertionError("bug: -fsycl-targets should have been amended to cflags")
+=======
+    # We need last occurence of -fsycl-targets as it will be the one taking effect.
+    # So searching in reversed list.
+    flags = [f for f in reversed(cflags) if f.startswith('-fsycl-targets=')]
+    assert flags, "bug: -fsycl-targets should have been ammended to cflags"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     arch_list = _get_sycl_arch_list()
     if arch_list != '':
@@ -350,7 +382,11 @@ PLAT_TO_VCVARS = {
     'win-amd64' : 'x86_amd64',
 }
 
+<<<<<<< HEAD
 min_supported_cpython = "0x030A0000"  # Python 3.10 hexcode
+=======
+min_supported_cpython = "0x03090000"  # Python 3.9 hexcode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def get_cxx_compiler():
     if IS_WINDOWS:
@@ -474,18 +510,32 @@ def get_compiler_abi_compatibility_and_version(compiler) -> tuple[bool, TorchVer
     try:
         if IS_LINUX:
             minimum_required_version = MINIMUM_GCC_VERSION
+<<<<<<< HEAD
             compiler_info = subprocess.check_output([compiler, '-dumpfullversion', '-dumpversion'])
         else:
             minimum_required_version = MINIMUM_MSVC_VERSION
             compiler_info = subprocess.check_output(compiler, stderr=subprocess.STDOUT)
         match = re.search(r'(\d+)\.(\d+)\.(\d+)', compiler_info.decode(*SUBPROCESS_DECODE_ARGS).strip())
         version = ['0', '0', '0'] if match is None else list(match.groups())
+=======
+            versionstr = subprocess.check_output([compiler, '-dumpfullversion', '-dumpversion'])
+            version = versionstr.decode(*SUBPROCESS_DECODE_ARGS).strip().split('.')
+        else:
+            minimum_required_version = MINIMUM_MSVC_VERSION
+            compiler_info = subprocess.check_output(compiler, stderr=subprocess.STDOUT)
+            match = re.search(r'(\d+)\.(\d+)\.(\d+)', compiler_info.decode(*SUBPROCESS_DECODE_ARGS).strip())
+            version = ['0', '0', '0'] if match is None else list(match.groups())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except Exception:
         _, error, _ = sys.exc_info()
         logger.warning('Error checking compiler version for %s: %s', compiler, error)
         return (False, TorchVersion('0.0.0'))
 
+<<<<<<< HEAD
     # convert alphanumeric string to numeric string
+=======
+    # convert alpha-numeric string to numeric string
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # amdclang++ returns str like 0.0.0git, others return 0.0.0
     numeric_version = [re.sub(r'\D', '', v) for v in version]
 
@@ -557,7 +607,10 @@ def _check_cuda_version(compiler_name: str, compiler_version: TorchVersion) -> N
                 f'Please make sure to use an adequate version of {compiler_name} ({version_bound_str}).'
             )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Specify Visual Studio C runtime library for hipcc
 def _set_hipcc_runtime_lib(is_standalone, debug):
     if is_standalone:
@@ -664,8 +717,12 @@ class BuildExtension(build_ext):
             extension = next(extension_iter, None)
 
         if sycl_ext:
+<<<<<<< HEAD
             if not self.use_ninja:
                 raise AssertionError("ninja is required to build sycl extensions.")
+=======
+            assert self.use_ninja, "ninja is required to build sycl extensions."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if cuda_ext and not IS_HIP_EXTENSION:
             _check_cuda_version(compiler_name, compiler_version)
@@ -694,6 +751,7 @@ class BuildExtension(build_ext):
                 # min supported CPython version.
                 # See https://docs.python.org/3/c-api/stable.html#c.Py_LIMITED_API
                 self._add_compile_flag(extension, f'-DPy_LIMITED_API={min_supported_cpython}')
+<<<<<<< HEAD
             self._define_torch_extension_name(extension)
 
             if 'nvcc_dlink' in extension.extra_compile_args:
@@ -701,6 +759,21 @@ class BuildExtension(build_ext):
                     raise AssertionError(
                         f"With dlink=True, ninja is required to build cuda extension {extension.name}."
                     )
+=======
+            else:
+                # pybind11 is not CPython API stable so don't add these flags used when
+                # compiling pybind11 when pybind11 is not even used. otherwise, the build
+                # logs are confusing.
+                # See note [Pybind11 ABI constants]
+                for name in ["COMPILER_TYPE", "STDLIB", "BUILD_ABI"]:
+                    val = getattr(torch._C, f"_PYBIND11_{name}")
+                    if val is not None and not IS_WINDOWS:
+                        self._add_compile_flag(extension, f'-DPYBIND11_{name}="{val}"')
+            self._define_torch_extension_name(extension)
+
+            if 'nvcc_dlink' in extension.extra_compile_args:
+                assert self.use_ninja, f"With dlink=True, ninja is required to build cuda extension {extension.name}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Register .cu, .cuh, .hip, .mm and .sycl as valid source extensions.
         # NOTE: At the moment .sycl is not a standard extension for SYCL supported
@@ -785,7 +858,11 @@ class BuildExtension(build_ext):
             r"""Compiles sources by outputting a ninja file and running it."""
             # NB: I copied some lines from self.compiler (which is an instance
             # of distutils.UnixCCompiler). See the following link.
+<<<<<<< HEAD
             # https://github.com/python/cpython/blob/f03a8f8d5001963ad5b5b28dbd95497e9cc15596/Lib/distutils/ccompiler.py#L564-L567  # codespell:ignore
+=======
+            # https://github.com/python/cpython/blob/f03a8f8d5001963ad5b5b28dbd95497e9cc15596/Lib/distutils/ccompiler.py#L564-L567
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # This can be fragile, but a lot of other repos also do this
             # (see https://github.com/search?q=_setup_compile&type=Code)
             # so it is probably OK; we'll also get CI signal if/when
@@ -794,7 +871,10 @@ class BuildExtension(build_ext):
 
             # Use absolute path for output_dir so that the object file paths
             # (`objects`) get generated with absolute paths.
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_dir = os.path.abspath(output_dir)
 
             # See Note [Absolute include_dirs]
@@ -858,11 +938,15 @@ class BuildExtension(build_ext):
                 host_cflags = extra_cc_cflags + common_cflags + post_cflags
                 append_std17_if_no_std_present(host_cflags)
                 # escaping quoted arguments to pass them thru SYCL compiler
+<<<<<<< HEAD
                 icpx_version = _get_icpx_version()
                 if int(icpx_version) >= 20250200:
                     host_cflags = [item.replace('"', '\\"') for item in host_cflags]
                 else:
                     host_cflags = [item.replace('"', '\\\\"') for item in host_cflags]
+=======
+                host_cflags = [item.replace('"', '\\\\"') for item in host_cflags]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 host_cflags = ' '.join(host_cflags)
                 # Note the order: shlex.quote sycl_flags first, _wrap_sycl_host_flags
                 # second. Reason is that sycl host flags are quoted, space containing
@@ -919,7 +1003,11 @@ class BuildExtension(build_ext):
                     if m
                 ]
 
+<<<<<<< HEAD
                 obj_regex = re.compile('/Fo(.*)')  # codespell:ignore
+=======
+                obj_regex = re.compile('/Fo(.*)')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 obj_list = [
                     m.group(1) for m in (obj_regex.match(elem) for elem in cmd)
                     if m
@@ -985,7 +1073,10 @@ class BuildExtension(build_ext):
                                    is_standalone=False):
             if not self.compiler.initialized:
                 self.compiler.initialize()
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_dir = os.path.abspath(output_dir)
 
             # Note [Absolute include_dirs]
@@ -1078,7 +1169,11 @@ class BuildExtension(build_ext):
             # Return *all* object filenames, not just the ones we just built.
             return objects
         # Monkey-patch the _compile or compile method.
+<<<<<<< HEAD
         # https://github.com/python/cpython/blob/dc0284ee8f7a270b6005467f26d8e5773d76e959/Lib/distutils/ccompiler.py#L511  # codespell:ignore
+=======
+        # https://github.com/python/cpython/blob/dc0284ee8f7a270b6005467f26d8e5773d76e959/Lib/distutils/ccompiler.py#L511
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.compiler.compiler_type == 'msvc':
             if self.use_ninja:
                 self.compiler.compile = win_wrap_ninja_compile
@@ -1378,7 +1473,10 @@ def CUDAExtension(name, sources, *args, **kwargs):
     include_dirs = kwargs.get('include_dirs', [])
 
     if IS_HIP_EXTENSION:
+<<<<<<< HEAD
         from .hipify import hipify_python
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         build_dir = os.getcwd()
         hipify_result = hipify_python.hipify(
             project_directory=build_dir,
@@ -1507,7 +1605,11 @@ def SyclExtension(name, sources, *args, **kwargs):
 
     return setuptools.Extension(name, sources, *args, **kwargs)
 
+<<<<<<< HEAD
 def include_paths(device_type: str = "cpu", torch_include_dirs=True) -> list[str]:
+=======
+def include_paths(device_type: str = "cpu") -> list[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Get the include paths required to build a C++ or CUDA or SYCL extension.
 
@@ -1516,6 +1618,7 @@ def include_paths(device_type: str = "cpu", torch_include_dirs=True) -> list[str
     Returns:
         A list of include path strings.
     """
+<<<<<<< HEAD
     paths = []
     lib_include = os.path.join(_TORCH_PATH, 'include')
     if torch_include_dirs:
@@ -1524,6 +1627,14 @@ def include_paths(device_type: str = "cpu", torch_include_dirs=True) -> list[str
             # Remove this once torch/torch.h is officially no longer supported for C++ extensions.
             os.path.join(lib_include, 'torch', 'csrc', 'api', 'include'),
         ])
+=======
+    lib_include = os.path.join(_TORCH_PATH, 'include')
+    paths = [
+        lib_include,
+        # Remove this once torch/torch.h is officially no longer supported for C++ extensions.
+        os.path.join(lib_include, 'torch', 'csrc', 'api', 'include'),
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if device_type == "cuda" and IS_HIP_EXTENSION:
         paths.append(os.path.join(lib_include, 'THH'))
         paths.append(_join_rocm_home('include'))
@@ -1537,7 +1648,10 @@ def include_paths(device_type: str = "cpu", torch_include_dirs=True) -> list[str
         # Support CUDA_INC_PATH env variable supported by CMake files
         if (cuda_inc_path := os.environ.get("CUDA_INC_PATH", None)) and \
                 cuda_inc_path != '/usr/include':
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             paths.append(cuda_inc_path)
         if CUDNN_HOME is not None:
             paths.append(os.path.join(CUDNN_HOME, 'include'))
@@ -1547,7 +1661,11 @@ def include_paths(device_type: str = "cpu", torch_include_dirs=True) -> list[str
     return paths
 
 
+<<<<<<< HEAD
 def library_paths(device_type: str = "cpu", torch_include_dirs: bool = True, cross_target_platform: Optional[str] = None) -> list[str]:
+=======
+def library_paths(device_type: str = "cpu") -> list[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Get the library paths required to build a C++ or CUDA extension.
 
@@ -1557,12 +1675,17 @@ def library_paths(device_type: str = "cpu", torch_include_dirs: bool = True, cro
     Returns:
         A list of library path strings.
     """
+<<<<<<< HEAD
 
     paths = []
 
     if torch_include_dirs:
         # We need to link against libtorch.so
         paths.extend([TORCH_LIB_PATH])
+=======
+    # We need to link against libtorch.so
+    paths = [TORCH_LIB_PATH]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if device_type == "cuda" and IS_HIP_EXTENSION:
         lib_dir = 'lib'
@@ -1570,6 +1693,7 @@ def library_paths(device_type: str = "cpu", torch_include_dirs: bool = True, cro
         if HIP_HOME is not None:
             paths.append(os.path.join(HIP_HOME, 'lib'))
     elif device_type == "cuda":
+<<<<<<< HEAD
         if cross_target_platform == "windows":
             lib_dir = os.path.join('lib', 'x64')
             if WINDOWS_CUDA_HOME is None:
@@ -1590,6 +1714,22 @@ def library_paths(device_type: str = "cpu", torch_include_dirs: bool = True, cro
             paths.append(_join_cuda_home(lib_dir))
             if CUDNN_HOME is not None:
                 paths.append(os.path.join(CUDNN_HOME, lib_dir))
+=======
+        if IS_WINDOWS:
+            lib_dir = os.path.join('lib', 'x64')
+        else:
+            lib_dir = 'lib64'
+            if (not os.path.exists(_join_cuda_home(lib_dir)) and
+                    os.path.exists(_join_cuda_home('lib'))):
+                # 64-bit CUDA may be installed in 'lib' (see e.g. gh-16955)
+                # Note that it's also possible both don't exist (see
+                # _find_cuda_home) - in that case we stay with 'lib64'.
+                lib_dir = 'lib'
+
+        paths.append(_join_cuda_home(lib_dir))
+        if CUDNN_HOME is not None:
+            paths.append(os.path.join(CUDNN_HOME, lib_dir))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif device_type == "xpu":
         if IS_WINDOWS:
             lib_dir = os.path.join('lib', 'x64')
@@ -1729,9 +1869,31 @@ def load(name,
         is_standalone,
         keep_intermediates=keep_intermediates)
 
+<<<<<<< HEAD
 @deprecated("PyBind11 ABI handling is internal to PyBind11; this will be removed after PyTorch 2.9.0")
 def _get_pybind11_abi_build_flags() -> list[str]:
     return []
+=======
+def _get_pybind11_abi_build_flags():
+    # Note [Pybind11 ABI constants]
+    #
+    # Pybind11 before 2.4 used to build an ABI strings using the following pattern:
+    # f"__pybind11_internals_v{PYBIND11_INTERNALS_VERSION}{PYBIND11_INTERNALS_KIND}{PYBIND11_BUILD_TYPE}__"
+    # Since 2.4 compier type, stdlib and build abi parameters are also encoded like this:
+    # f"__pybind11_internals_v{PYBIND11_INTERNALS_VERSION}{PYBIND11_INTERNALS_KIND}{PYBIND11_COMPILER_TYPE}{PYBIND11_STDLIB}{PYBIND11_BUILD_ABI}{PYBIND11_BUILD_TYPE}__"
+    #
+    # This was done in order to further narrow down the chances of compiler ABI incompatibility
+    # that can cause a hard to debug segfaults.
+    # For PyTorch extensions we want to relax those restrictions and pass compiler, stdlib and abi properties
+    # captured during PyTorch native library compilation in torch/csrc/Module.cpp
+
+    abi_cflags = []
+    for pname in ["COMPILER_TYPE", "STDLIB", "BUILD_ABI"]:
+        pval = getattr(torch._C, f"_PYBIND11_{pname}")
+        if pval is not None and not IS_WINDOWS:
+            abi_cflags.append(f'-DPYBIND11_{pname}=\\"{pval}\\"')
+    return abi_cflags
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def check_compiler_is_gcc(compiler):
     if not IS_LINUX:
@@ -1763,7 +1925,11 @@ def _check_and_build_extension_h_precompiler_headers(
         is_standalone=False):
     r'''
     Precompiled Headers(PCH) can pre-build the same headers and reduce build time for pytorch load_inline modules.
+<<<<<<< HEAD
     GCC official manual: https://gcc.gnu.org/onlinedocs/gcc-4.0.4/gcc/Precompiled-Headers.html
+=======
+    GCC offical manual: https://gcc.gnu.org/onlinedocs/gcc-4.0.4/gcc/Precompiled-Headers.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PCH only works when built pch file(header.h.gch) and build target have the same build parameters. So, We need
     add a signature file to record PCH file parameters. If the build parameters(signature) changed, it should rebuild
     PCH file.
@@ -1862,6 +2028,10 @@ def _check_and_build_extension_h_precompiler_headers(
         common_cflags += ['-DTORCH_API_INCLUDE_EXTENSION_H']
 
     common_cflags += ['-std=c++17', '-fPIC']
+<<<<<<< HEAD
+=======
+    common_cflags += [f"{x}" for x in _get_pybind11_abi_build_flags()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     common_cflags_str = listToString(common_cflags)
 
     pch_cmd = format_precompiler_header_cmd(compiler, head_file, head_file_pch, common_cflags_str, torch_include_dirs_str, extra_cflags_str, extra_include_paths_str)
@@ -2102,7 +2272,11 @@ def _jit_compile(name,
                  with_sycl: Optional[bool],
                  is_python_module,
                  is_standalone,
+<<<<<<< HEAD
                  keep_intermediates=True) -> Union[types.ModuleType, str]:
+=======
+                 keep_intermediates=True) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if is_python_module and is_standalone:
         raise ValueError("`is_python_module` and `is_standalone` are mutually exclusive.")
 
@@ -2132,8 +2306,11 @@ def _jit_compile(name,
     if baton.try_acquire():
         try:
             if version != old_version:
+<<<<<<< HEAD
                 from .hipify import hipify_python
                 from .hipify.hipify_python import GeneratedFileCleaner
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with GeneratedFileCleaner(keep_intermediates=keep_intermediates) as clean_ctx:
                     if IS_HIP_EXTENSION and (with_cuda or with_cudnn):
                         hipify_result = hipify_python.hipify(
@@ -2316,7 +2493,11 @@ def _write_ninja_file_and_build_library(
 def is_ninja_available():
     """Return ``True`` if the `ninja <https://ninja-build.org/>`_ build system is available on the system, ``False`` otherwise."""
     try:
+<<<<<<< HEAD
         subprocess.check_output(['ninja', '--version'])
+=======
+        subprocess.check_output('ninja --version'.split())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except Exception:
         return False
     else:
@@ -2335,10 +2516,17 @@ def _prepare_ldflags(extra_ldflags, with_cuda, verbose, is_standalone):
 
         extra_ldflags.append('c10.lib')
         if with_cuda:
+<<<<<<< HEAD
             extra_ldflags.append('c10_hip.lib' if IS_HIP_EXTENSION else 'c10_cuda.lib')
         extra_ldflags.append('torch_cpu.lib')
         if with_cuda:
             extra_ldflags.append('torch_hip.lib' if IS_HIP_EXTENSION else 'torch_cuda.lib')
+=======
+            extra_ldflags.append('c10_cuda.lib')
+        extra_ldflags.append('torch_cpu.lib')
+        if with_cuda:
+            extra_ldflags.append('torch_cuda.lib')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # /INCLUDE is used to ensure torch_cuda is linked against in a project that relies on it.
             # Related issue: https://github.com/pytorch/pytorch/issues/31611
             extra_ldflags.append('-INCLUDE:?warp_size@cuda@at@@YAHXZ')
@@ -2366,7 +2554,11 @@ def _prepare_ldflags(extra_ldflags, with_cuda, verbose, is_standalone):
     if with_cuda:
         if verbose:
             logger.info('Detected CUDA files, patching ldflags')
+<<<<<<< HEAD
         if IS_WINDOWS and not IS_HIP_EXTENSION:
+=======
+        if IS_WINDOWS:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             extra_ldflags.append(f'/LIBPATH:{_join_cuda_home("lib", "x64")}')
             extra_ldflags.append('cudart.lib')
             if CUDNN_HOME is not None:
@@ -2383,12 +2575,17 @@ def _prepare_ldflags(extra_ldflags, with_cuda, verbose, is_standalone):
             if CUDNN_HOME is not None:
                 extra_ldflags.append(f'-L{os.path.join(CUDNN_HOME, "lib64")}')
         elif IS_HIP_EXTENSION:
+<<<<<<< HEAD
             if IS_WINDOWS:
                 extra_ldflags.append(f'/LIBPATH:{_join_rocm_home("lib")}')
                 extra_ldflags.append('amdhip64.lib')
             else:
                 extra_ldflags.append(f'-L{_join_rocm_home("lib")}')
                 extra_ldflags.append('-lamdhip64')
+=======
+            extra_ldflags.append(f'-L{_join_rocm_home("lib")}')
+            extra_ldflags.append('-lamdhip64')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return extra_ldflags
 
 
@@ -2428,13 +2625,21 @@ def _get_cuda_arch_flags(cflags: Optional[list[str]] = None) -> list[str]:
         ('Ampere', '8.0;8.6+PTX'),
         ('Ada', '8.9+PTX'),
         ('Hopper', '9.0+PTX'),
+<<<<<<< HEAD
         ('Blackwell+Tegra', '11.0'),
+=======
+        ('Blackwell+Tegra', '10.1'),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ('Blackwell', '10.0;10.3;12.0;12.1+PTX'),
     ])
 
     supported_arches = ['3.5', '3.7', '5.0', '5.2', '5.3', '6.0', '6.1', '6.2',
                         '7.0', '7.2', '7.5', '8.0', '8.6', '8.7', '8.9', '9.0', '9.0a',
+<<<<<<< HEAD
                         '10.0', '10.0a', '11.0', '11.0a', '10.3', '10.3a', '12.0',
+=======
+                        '10.0', '10.0a', '10.1', '10.1a', '10.3', '10.3a', '12.0',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         '12.0a', '12.1', '12.1a']
     valid_arch_strings = supported_arches + [s + "+PTX" for s in supported_arches]
 
@@ -2444,8 +2649,16 @@ def _get_cuda_arch_flags(cflags: Optional[list[str]] = None) -> list[str]:
     # See cmake/Modules_CUDA_fix/upstream/FindCUDA/select_compute_arch.cmake
     _arch_list = os.environ.get('TORCH_CUDA_ARCH_LIST', None)
 
+<<<<<<< HEAD
     # If not given or set as native, determine what's best for the GPU / CUDA version that can be found
     if not _arch_list or _arch_list == "native":
+=======
+    # If not given, determine what's best for the GPU / CUDA version that can be found
+    if not _arch_list:
+        logger.warning(
+            "TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n"
+            "If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         arch_list = []
         # the assumption is that the extension should run on any of the currently visible cards,
         # which could be of different types - therefore all archs for visible cards should be included
@@ -2464,6 +2677,7 @@ def _get_cuda_arch_flags(cflags: Optional[list[str]] = None) -> list[str]:
                 arch_list.append(arch)
         arch_list = sorted(arch_list)
         arch_list[-1] += '+PTX'
+<<<<<<< HEAD
 
         if not _arch_list:
             # Only log on rank 0 in distributed settings to avoid spam
@@ -2473,12 +2687,19 @@ def _get_cuda_arch_flags(cflags: Optional[list[str]] = None) -> list[str]:
                     "TORCH_CUDA_ARCH_LIST is not set, using TORCH_CUDA_ARCH_LIST='%s' "
                     "for visible GPU architectures. Set os.environ['TORCH_CUDA_ARCH_LIST'] to override.",
                     arch_list_str)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         # Deal with lists that are ' ' separated (only deal with ';' after)
         _arch_list = _arch_list.replace(' ', ';')
         # Expand named arches
+<<<<<<< HEAD
         for named_arch, archival in named_arches.items():
             _arch_list = _arch_list.replace(named_arch, archival)
+=======
+        for named_arch, archval in named_arches.items():
+            _arch_list = _arch_list.replace(named_arch, archval)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         arch_list = _arch_list.split(';')
 
@@ -2579,7 +2800,10 @@ def _get_num_workers(verbose: bool) -> Optional[int]:
 def _get_vc_env(vc_arch: str) -> dict[str, str]:
     try:
         from setuptools import distutils  # type: ignore[attr-defined]
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return distutils._msvccompiler._get_vc_env(vc_arch)
     except AttributeError:
         try:
@@ -2614,7 +2838,11 @@ def _run_ninja_build(build_directory: str, verbose: bool, error_prefix: str) -> 
         # subprocess.run assumes that sys.__stdout__ has not been modified and
         # attempts to write to it by default.  However, when we call _run_ninja_build
         # from ahead-of-time cpp extensions, the following happens:
+<<<<<<< HEAD
         # 1) If the stdout encoding is not utf-8, setuptools detaches __stdout__.
+=======
+        # 1) If the stdout encoding is not utf-8, setuptools detachs __stdout__.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #    https://github.com/pypa/setuptools/blob/7e97def47723303fafabe48b22168bbc11bb4821/setuptools/dist.py#L1110
         #    (it probably shouldn't do this)
         # 2) subprocess.run (on POSIX, with no stdout override) relies on
@@ -2659,11 +2887,17 @@ def _import_module_from_library(module_name, path, is_python_module):
     if is_python_module:
         # https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         spec = importlib.util.spec_from_file_location(module_name, filepath)
+<<<<<<< HEAD
         if spec is None:
             raise AssertionError(f"Failed to create spec for module {module_name} at {filepath}")
         module = importlib.util.module_from_spec(spec)
         if not isinstance(spec.loader, importlib.abc.Loader):
             raise AssertionError("spec.loader is not a valid importlib Loader")
+=======
+        assert spec is not None
+        module = importlib.util.module_from_spec(spec)
+        assert isinstance(spec.loader, importlib.abc.Loader)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         spec.loader.exec_module(module)
         return module
     else:
@@ -2710,6 +2944,11 @@ def _write_ninja_file_to_build_library(path,
         common_cflags.append(f'-DTORCH_EXTENSION_NAME={name}')
         common_cflags.append('-DTORCH_API_INCLUDE_EXTENSION_H')
 
+<<<<<<< HEAD
+=======
+    common_cflags += [f"{x}" for x in _get_pybind11_abi_build_flags()]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Windows does not understand `-isystem` and quotes flags later.
     if IS_WINDOWS:
         common_cflags += [f'-I{include}' for include in user_includes + system_includes]
@@ -2718,14 +2957,20 @@ def _write_ninja_file_to_build_library(path,
         common_cflags += [f'-isystem {shlex.quote(include)}' for include in system_includes]
 
     if IS_WINDOWS:
+<<<<<<< HEAD
         COMMON_HIP_FLAGS.extend(['-fms-runtime-lib=dll'])
         cflags = common_cflags + ['/std:c++17'] + extra_cflags
         cflags += COMMON_MSVC_FLAGS + (COMMON_HIP_FLAGS if IS_HIP_EXTENSION else [])
+=======
+        cflags = common_cflags + ['/std:c++17'] + extra_cflags
+        cflags += COMMON_HIP_FLAGS if IS_HIP_EXTENSION else COMMON_MSVC_FLAGS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cflags = _nt_quote_args(cflags)
     else:
         cflags = common_cflags + ['-fPIC', '-std=c++17'] + extra_cflags
 
     if with_cuda and IS_HIP_EXTENSION:
+<<<<<<< HEAD
         cuda_flags = ['-DWITH_HIP'] + common_cflags + extra_cflags + COMMON_HIP_FLAGS + COMMON_HIPCC_FLAGS
         cuda_flags = cuda_flags + ['-std=c++17']
         cuda_flags += _get_rocm_arch_flags(cuda_flags)
@@ -2734,6 +2979,13 @@ def _write_ninja_file_to_build_library(path,
             cuda_flags = _nt_quote_args(cuda_flags)
     elif with_cuda:
         cuda_flags = common_cflags + COMMON_NVCC_FLAGS + _get_cuda_arch_flags(extra_cuda_cflags)
+=======
+        cuda_flags = ['-DWITH_HIP'] + cflags + COMMON_HIP_FLAGS + COMMON_HIPCC_FLAGS
+        cuda_flags += _get_rocm_arch_flags(cuda_flags)
+        cuda_flags += extra_cuda_cflags
+    elif with_cuda:
+        cuda_flags = common_cflags + COMMON_NVCC_FLAGS + _get_cuda_arch_flags()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if IS_WINDOWS:
             for flag in COMMON_MSVC_FLAGS:
                 cuda_flags = ['-Xcompiler', flag] + cuda_flags
@@ -2760,9 +3012,13 @@ def _write_ninja_file_to_build_library(path,
         _append_sycl_std_if_no_std_present(sycl_cflags)
         host_cflags = cflags
         # escaping quoted arguments to pass them thru SYCL compiler
+<<<<<<< HEAD
         icpx_version = _get_icpx_version()
         if int(icpx_version) < 20250200:
             host_cflags = [item.replace('\\"', '\\\\"') for item in host_cflags]
+=======
+        host_cflags = [item.replace('\\"', '\\\\"') for item in host_cflags]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         host_cflags = ' '.join(host_cflags)
         sycl_cflags += _wrap_sycl_host_flags(host_cflags)
         sycl_dlink_post_cflags = _SYCL_DLINK_FLAGS.copy()
@@ -2865,10 +3121,15 @@ e.
     ldflags = sanitize_flags(ldflags)
 
     # Sanity checks...
+<<<<<<< HEAD
     if len(sources) != len(objects):
         raise AssertionError("sources and objects lists must be the same length")
     if len(sources) == 0:
         raise AssertionError("At least one source is required to build a library")
+=======
+    assert len(sources) == len(objects)
+    assert len(sources) > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     compiler = get_cxx_compiler()
 
@@ -2911,9 +3172,13 @@ e.
     if IS_WINDOWS:
         compiler_name = "$cxx" if IS_HIP_EXTENSION else "cl"
         compile_rule.append(
+<<<<<<< HEAD
             f'  command = {compiler_name} '
             '/showIncludes $cflags -c $in /Fo$out $post_cflags'  # codespell:ignore
         )
+=======
+            f'  command = {compiler_name} /showIncludes $cflags -c $in /Fo$out $post_cflags')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not IS_HIP_EXTENSION:
             compile_rule.append('  deps = msvc')
     else:

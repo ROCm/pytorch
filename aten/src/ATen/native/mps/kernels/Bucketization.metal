@@ -180,8 +180,15 @@ REGISTER_SEARCHSORTED_OP(float, int);
 REGISTER_SEARCHSORTED_OP(float, long);
 REGISTER_SEARCHSORTED_OP(half, int);
 REGISTER_SEARCHSORTED_OP(half, long);
+<<<<<<< HEAD
 REGISTER_SEARCHSORTED_OP(bfloat, int);
 REGISTER_SEARCHSORTED_OP(bfloat, long);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_SEARCHSORTED_OP(bfloat, int);
+REGISTER_SEARCHSORTED_OP(bfloat, long);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_SEARCHSORTED_OP(char, int);
 REGISTER_SEARCHSORTED_OP(char, long);
 REGISTER_SEARCHSORTED_OP(uchar, int);

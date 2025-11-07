@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Autograd anomaly mode."""
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 
 import torch
@@ -32,7 +35,10 @@ class detect_anomaly:
         ...     @staticmethod
         ...     def forward(ctx, inp):
         ...         return inp.clone()
+<<<<<<< HEAD
         ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...     @staticmethod
         ...     def backward(ctx, gO):
         ...         # Error during the backward pass

@@ -37,8 +37,12 @@ class FileSystem(FileSystemBase):
     def create_stream(
         self, path: Union[str, os.PathLike], mode: str
     ) -> Generator[io.IOBase, None, None]:
+<<<<<<< HEAD
         if self.fs is None:
             raise AssertionError("fs should not be None")
+=======
+        assert self.fs is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         path = os.fspath(path)
 
         # fsspec does not support concurrent transactions, and not all

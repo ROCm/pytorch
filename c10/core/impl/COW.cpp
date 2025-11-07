@@ -2,6 +2,10 @@
 
 #include <c10/core/Allocator.h>
 #include <c10/core/StorageImpl.h>
+<<<<<<< HEAD
+=======
+#include <c10/core/alignment.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/impl/COWDeleter.h>
 #include <c10/util/Exception.h>
 #include <c10/util/ParallelGuard.h>
@@ -44,8 +48,12 @@ bool has_simple_data_ptr(const c10::StorageImpl& storage) {
 }
 
 bool is_cow_data_ptr(const c10::DataPtr& data_ptr) {
+<<<<<<< HEAD
   return reinterpret_cast<const void*>(data_ptr.get_deleter()) ==
       reinterpret_cast<const void*>(&cow::cow_deleter);
+=======
+  return (void*)data_ptr.get_deleter() == (void*)&cow::cow_deleter;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<StorageImpl> lazy_clone_storage(StorageImpl& storage) {

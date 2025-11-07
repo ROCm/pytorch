@@ -131,7 +131,11 @@ C10_ALWAYS_INLINE_UNLESS_MOBILE void boxToStack(
   new (dest++) IValue(options.pinned_memory());
 }
 
+<<<<<<< HEAD
 inline void boxArgsToStack(IValue*& /*unused*/) {}
+=======
+inline void boxArgsToStack(IValue*&) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <typename T, typename... Args>
 C10_ALWAYS_INLINE_UNLESS_MOBILE void boxArgsToStack(
@@ -185,7 +189,11 @@ struct PopResult<std::tuple<Types...>> final {
   template <size_t... indices>
   static Result pop_to_tuple_impl(
       Stack& stack,
+<<<<<<< HEAD
       std::index_sequence<indices...> /*unused*/) {
+=======
+      std::index_sequence<indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::make_tuple((std::move(stack[indices]).template to<Types>())...);
   }
 };

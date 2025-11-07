@@ -79,7 +79,11 @@ if TEST_SCIPY:
 class TestBinaryUfuncs(TestCase):
     # Generic tests for elementwise binary (AKA binary universal (u) functions (funcs))
     # TODO: below contiguous tensor results are compared with a variety of noncontiguous results.
+<<<<<<< HEAD
     #   It would be interesting to have the lhs and rhs have different discontinuities.
+=======
+    #   It would be interesting to have the lhs and rhs have different discontiguities.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Helper for comparing torch tensors and NumPy arrays
     # TODO: should this or assertEqual also validate that strides are equal?
@@ -1481,7 +1485,11 @@ class TestBinaryUfuncs(TestCase):
                 elif torch.can_cast(torch.result_type(base, exponent), base.dtype):
                     actual2 = actual.pow_(exponent)
                     self.assertEqual(actual, expected.to(actual))
+<<<<<<< HEAD
                     self.assertEqual(actual2, expected.to(actual2))
+=======
+                    self.assertEqual(actual2, expected.to(actual))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     self.assertRaisesRegex(
                         RuntimeError,
@@ -1688,11 +1696,20 @@ class TestBinaryUfuncs(TestCase):
 
     @onlyCUDA
     @dtypes(torch.complex64, torch.complex128)
+<<<<<<< HEAD
     def test_pow_cuda_complex_extremal_passing(self, device, dtype):
         t = torch.tensor(complex(-1.0, float("inf")), dtype=dtype, device=device)
         cuda_out = t.pow(2)
         cpu_out = t.cpu().pow(2)
         self.assertEqual(cpu_out, cuda_out)
+=======
+    def test_pow_cuda_complex_extremal_failing(self, device, dtype):
+        t = torch.tensor(complex(-1.0, float("inf")), dtype=dtype, device=device)
+        with self.assertRaises(AssertionError):
+            cuda_out = t.pow(2)
+            cpu_out = t.cpu().pow(2)
+            self.assertEqual(cpu_out, cuda_out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfTorchDynamo()
     @onlyNativeDeviceTypes
@@ -2521,7 +2538,11 @@ class TestBinaryUfuncs(TestCase):
             # Verify Value
             self.assertEqual(torch_result, expected)
             # Verify Sign
+<<<<<<< HEAD
             # Use double copysign to verify the correctness of 0.0 and -0.0, since
+=======
+            # Use double copysign to verify the correctnes of 0.0 and -0.0, since
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # it always True for self.assertEqual(0.0 == -0.0). So, we use 1 as the
             # magnitude to verify the sign between torch and numpy results, elementwise.
             # Special case: NaN conversions between FP32 and FP16 is not bitwise
@@ -4162,7 +4183,11 @@ class TestBinaryUfuncs(TestCase):
             for i in complex_exponents if exp_dtype.is_complex else exponents:
                 out_dtype_scalar_exp = (
                     torch.complex128
+<<<<<<< HEAD
                     if base_dtype.is_complex or type(i) is complex
+=======
+                    if base_dtype.is_complex or type(i) == complex
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     else torch.float64
                 )
                 expected_scalar_exp = torch.from_numpy(np.float_power(to_np(base), i))
@@ -4190,7 +4215,11 @@ class TestBinaryUfuncs(TestCase):
         for i in complex_exponents if base_dtype.is_complex else exponents:
             out_dtype_scalar_base = (
                 torch.complex128
+<<<<<<< HEAD
                 if exp_dtype.is_complex or type(i) is complex
+=======
+                if exp_dtype.is_complex or type(i) == complex
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else torch.float64
             )
             expected_scalar_base = torch.from_numpy(np.float_power(i, to_np(exp)))
@@ -4205,9 +4234,15 @@ class TestBinaryUfuncs(TestCase):
     def test_float_power_exceptions(self, device):
         def _promo_helper(x, y):
             for i in (x, y):
+<<<<<<< HEAD
                 if type(i) is complex:
                     return torch.complex128
                 elif type(i) is torch.Tensor and i.is_complex():
+=======
+                if type(i) == complex:
+                    return torch.complex128
+                elif type(i) == torch.Tensor and i.is_complex():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return torch.complex128
             return torch.double
 

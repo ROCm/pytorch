@@ -35,6 +35,10 @@ PyTypeObject* THPStorageClass = nullptr;
 PyObject* THPStorage_NewWithStorage(
     PyTypeObject* type,
     c10::Storage _storage,
+<<<<<<< HEAD
+=======
+    c10::impl::PyInterpreterStatus status,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool allow_preexisting_pyobj) {
   TORCH_CHECK(
       PyType_IsSubtype(type, &THPStorageType),
@@ -42,7 +46,11 @@ PyObject* THPStorage_NewWithStorage(
       "Storage is not possible. Make sure your class inherits from Storage.");
 
   auto maybe_pyobj = _storage.unsafeGetStorageImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
       /*ignore_hermetic_tls=*/false);
+=======
+      getPyInterpreter(), /*ignore_hermetic_tls=*/false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (maybe_pyobj.has_value() && maybe_pyobj.value()) {
     TORCH_CHECK(
         allow_preexisting_pyobj,
@@ -68,7 +76,11 @@ PyObject* THPStorage_NewWithStorage(
   PyObject* obj = type->tp_alloc(type, 0);
   TORCH_CHECK(obj, "Failed to allocate a ", type->tp_name, " object");
 
+<<<<<<< HEAD
   auto s = reinterpret_cast<THPStorage*>(obj);
+=======
+  auto s = (THPStorage*)obj;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   new (&s->cdata) c10::MaybeOwned<c10::Storage>();
 
@@ -77,7 +89,12 @@ PyObject* THPStorage_NewWithStorage(
   if (!c10::impl::HermeticPyObjectTLS::get_state()) {
     s->is_hermetic = false;
     const auto& storage = THPStorage_Unpack(s);
+<<<<<<< HEAD
     storage.unsafeGetStorageImpl()->pyobj_slot()->init_pyobj(obj);
+=======
+    storage.unsafeGetStorageImpl()->pyobj_slot()->init_pyobj(
+        getPyInterpreter(), obj, status);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     s->is_hermetic = true;
   }
@@ -89,12 +106,37 @@ PyObject* THPStorage_NewWithStorage(
 PyObject* THPStorage_Wrap(c10::Storage storage) {
   c10::StorageImpl* storage_impl = storage.unsafeGetStorageImpl();
   if (c10::impl::HermeticPyObjectTLS::get_state()) {
+<<<<<<< HEAD
     return THPStorage_NewWithStorage(THPStorageClass, std::move(storage));
   }
   c10::impl::PyObjectSlot* pyobj_slot = storage_impl->pyobj_slot();
 
   std::optional<PyObject*> maybe_pyobj = pyobj_slot->check_pyobj(
       /*ignore_hermetic_tls=*/false);
+=======
+    return THPStorage_NewWithStorage(
+        THPStorageClass,
+        std::move(storage),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+  }
+  c10::impl::PyObjectSlot* pyobj_slot = storage_impl->pyobj_slot();
+
+  // If the StorageImpl has a PyObject that is managed by a different
+  // interpreter than the current one, create a new StorageImpl that points to
+  // the same data and then create the Python storage from that.
+  // NOTE: This is only supposed to happen in MultiPy  // codespell:ignore
+  if (pyobj_slot->has_pyobj_nonhermetic() &&
+      !pyobj_slot->check_interpreter(getPyInterpreter())) {
+    return THPStorage_NewWithStorage(
+        THPStorageClass,
+        c10::newStorageImplFromRefcountedDataPtr(storage),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+  }
+  std::optional<PyObject*> maybe_pyobj = pyobj_slot->check_pyobj(
+      getPyInterpreter(), /*ignore_hermetic_tls=*/false);
+  c10::impl::PyInterpreterStatus status =
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (maybe_pyobj.has_value()) {
     auto obj = *maybe_pyobj;
     if (obj) {
@@ -113,8 +155,20 @@ PyObject* THPStorage_Wrap(c10::Storage storage) {
         return obj;
       }
     }
+<<<<<<< HEAD
   }
   return THPStorage_NewWithStorage(THPStorageClass, std::move(storage));
+=======
+    status = c10::impl::PyInterpreterStatus::TAGGED_BY_US;
+  } else {
+    if (storage.use_count() <= 1) {
+      status = c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED;
+    } else {
+      status = c10::impl::PyInterpreterStatus::MAYBE_UNINITIALIZED;
+    }
+  }
+  return THPStorage_NewWithStorage(THPStorageClass, std::move(storage), status);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static bool THPStorage_isPreservable(THPStorage* self) {
@@ -128,7 +182,12 @@ static bool THPStorage_isPreservable(THPStorage* self) {
   }
 
   if (storage.unsafeGetStorageImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
           /*ignore_hermetic_tls=*/true) != reinterpret_cast<PyObject*>(self)) {
+=======
+          getPyInterpreter(), /*ignore_hermetic_tls=*/true) !=
+      (PyObject*)self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
   if (storage.use_count() <= 1) {
@@ -146,10 +205,18 @@ static bool THPStorage_tryPreserve(THPStorage* self) {
   c10::StorageImpl* storage_impl = storage.unsafeGetStorageImpl();
 
   auto maybe_pyobj = storage_impl->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
       /*ignore_hermetic_tls=*/true);
   // NOTE: It is possible to just set the PyObjectSlot here, but the point is
   // that we should have already set PyObjectSlot when the storage PyObject
   // was created.
+=======
+      getPyInterpreter(),
+      /*ignore_hermetic_tls=*/true);
+  // NOTE: It is possible to just set the PyObjectSlot here, but the point is
+  // that we should have already set PyObjectSlot when the storage PyObject was
+  // created.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT(
       maybe_pyobj.has_value(),
       "Trying to preserve a Python storage whose PyObjectSlot does not have a PyObject");
@@ -170,14 +237,22 @@ static bool THPStorage_tryPreserve(THPStorage* self) {
   storage_impl->pyobj_slot()->set_owns_pyobj(true);
   // When resurrecting, we MUST use _Py_NewReference and not Py_INCREF to
   // ensure the PyObject is in a valid state
+<<<<<<< HEAD
   _Py_NewReference(reinterpret_cast<PyObject*>(self));
+=======
+  _Py_NewReference((PyObject*)self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   self->cdata = c10::MaybeOwned<c10::Storage>::borrowed(storage);
   return true;
 }
 
 static void THPStorage_subclass_dealloc(PyObject* self) {
+<<<<<<< HEAD
   THPStorage* _self = reinterpret_cast<THPStorage*>(self);
+=======
+  THPStorage* _self = (THPStorage*)self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (THPStorage_tryPreserve(_self)) {
     return;
@@ -226,8 +301,13 @@ static void THPStorage_subclass_dealloc(PyObject* self) {
        being finalized that has already been destroyed. */
     if (type->tp_weaklistoffset) {
       /* Modeled after GET_WEAKREFS_LISTPTR() */
+<<<<<<< HEAD
       PyWeakReference** list = reinterpret_cast<PyWeakReference**>(
           PyObject_GET_WEAKREFS_LISTPTR(self));
+=======
+      PyWeakReference** list =
+          (PyWeakReference**)PyObject_GET_WEAKREFS_LISTPTR(self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       while (*list)
         _PyWeakref_ClearRef(*list);
     }
@@ -331,7 +411,10 @@ static PyObject* THPStorage_pynew(
       case at::DeviceType::Meta:
       case at::DeviceType::PrivateUse1:
       case at::DeviceType::MAIA:
+<<<<<<< HEAD
       case at::DeviceType::MTIA:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         allocator = c10::GetAllocator(device.type());
         break;
       default:
@@ -358,7 +441,12 @@ static PyObject* THPStorage_pynew(
             at::DataPtr(),
             allocator,
             /*resizable=*/true,
+<<<<<<< HEAD
             device_opt));
+=======
+            device_opt),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // torch.Storage(size, *, ...)
   } else if (r.idx == 1) {
@@ -371,7 +459,12 @@ static PyObject* THPStorage_pynew(
             at::DataPtr(),
             allocator,
             /*resizable=*/true,
+<<<<<<< HEAD
             device_opt));
+=======
+            device_opt),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // torch.Storage(sequence, *, ...)
   } else if (r.idx == 2) {
@@ -395,7 +488,12 @@ static PyObject* THPStorage_pynew(
             at::DataPtr(),
             allocator,
             /*resizable=*/true,
+<<<<<<< HEAD
             device_opt));
+=======
+            device_opt),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPObjectPtr item;
     try {
       const auto& storage = THPStorage_Unpack(self);
@@ -450,7 +548,11 @@ static PyObject* THPStorage_get(THPStorage* self, PyObject* index) {
       return nullptr;
     }
     uint8_t value = storage_get(storage, nindex);
+<<<<<<< HEAD
     return THPUtils_packUInt32(value);
+=======
+    return THPByteUtils_newReal(value);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     /* Slice index */
   } else if (PySlice_Check(index)) {
     Py_ssize_t start = 0, stop = 0, slicelength = 0, step = 0;
@@ -491,8 +593,15 @@ static PyObject* THPStorage_get(THPStorage* self, PyObject* index) {
         /* resizable */ false,
         device_opt);
 
+<<<<<<< HEAD
     PyObject* _ret =
         THPStorage_NewWithStorage(Py_TYPE(self), std::move(new_storage_impl));
+=======
+    PyObject* _ret = THPStorage_NewWithStorage(
+        Py_TYPE(self),
+        std::move(new_storage_impl),
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return _ret;
   }
@@ -549,9 +658,15 @@ static int THPStorage_set(THPStorage* self, PyObject* index, PyObject* value) {
 }
 
 static PyMappingMethods THPStorage_mappingmethods = {
+<<<<<<< HEAD
     reinterpret_cast<lenfunc>(THPStorage_length),
     reinterpret_cast<binaryfunc>(THPStorage_get),
     reinterpret_cast<objobjargproc>(THPStorage_set)};
+=======
+    (lenfunc)THPStorage_length,
+    (binaryfunc)THPStorage_get,
+    (objobjargproc)THPStorage_set};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct THPStorageMeta {
   PyHeapTypeObject base;
@@ -653,8 +768,12 @@ int THPStorageMetaType_init(PyObject* cls, PyObject* args, PyObject* kwargs) {
   if (PyType_Type.tp_init(cls, args, kwargs) < 0) {
     return -1;
   }
+<<<<<<< HEAD
   (reinterpret_cast<PyTypeObject*>(cls))->tp_dealloc =
       static_cast<destructor>(THPStorage_subclass_dealloc);
+=======
+  ((PyTypeObject*)cls)->tp_dealloc = (destructor)THPStorage_subclass_dealloc;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return 0;
 }
 
@@ -675,6 +794,7 @@ typedef PyObject* (*getter)(PyObject*, void*);
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
 static struct PyGetSetDef THPStorage_properties[] = {
+<<<<<<< HEAD
     {"device",
      reinterpret_cast<getter>(THPStorage_device),
      nullptr,
@@ -685,6 +805,10 @@ static struct PyGetSetDef THPStorage_properties[] = {
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"device", (getter)THPStorage_device, nullptr, nullptr, nullptr},
+    {"_cdata", (getter)THPStorage_get_cdata, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 bool THPStorage_init(PyObject* module) {
@@ -696,22 +820,35 @@ bool THPStorage_init(PyObject* module) {
   if (PyType_Ready(&THPStorageMetaType) < 0)
     return false;
   Py_INCREF(&THPStorageMetaType);
+<<<<<<< HEAD
   PyModule_AddObject(
       module, "_StorageMeta", reinterpret_cast<PyObject*>(&THPStorageMetaType));
+=======
+  PyModule_AddObject(module, "_StorageMeta", (PyObject*)&THPStorageMetaType);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   THPStorageType.tp_methods = methods.data();
   THPStorageType.tp_getset = THPStorage_properties;
   if (PyType_Ready(&THPStorageType) < 0)
     return false;
   Py_INCREF(&THPStorageType);
+<<<<<<< HEAD
   PyModule_AddObject(
       module, "StorageBase", reinterpret_cast<PyObject*>(&THPStorageType));
+=======
+  PyModule_AddObject(module, "StorageBase", (PyObject*)&THPStorageType);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }
 
 void THPStorage_postInit(PyObject* module) {
+<<<<<<< HEAD
   THPStorageClass = reinterpret_cast<PyTypeObject*>(
       PyObject_GetAttrString(module, "UntypedStorage"));
+=======
+  THPStorageClass =
+      (PyTypeObject*)PyObject_GetAttrString(module, "UntypedStorage");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!THPStorageClass)
     throw python_error();
 }
@@ -722,5 +859,9 @@ void THPStorage_assertNotNull(THPStorage* storage) {
 }
 
 void THPStorage_assertNotNull(PyObject* obj) {
+<<<<<<< HEAD
   THPStorage_assertNotNull(reinterpret_cast<THPStorage*>(obj));
+=======
+  THPStorage_assertNotNull((THPStorage*)obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }

@@ -94,11 +94,19 @@ class VirtualGuardImpl final : public DeviceGuardImplInterface {
   }
 
   void synchronizeEvent(void* event) const override {
+<<<<<<< HEAD
     impl_->synchronizeEvent(event);
   }
 
   void synchronizeDevice(const DeviceIndex device_index) const override {
     impl_->synchronizeDevice(device_index);
+=======
+    return impl_->synchronizeEvent(event);
+  }
+
+  void synchronizeDevice(const DeviceIndex device_index) const override {
+    return impl_->synchronizeDevice(device_index);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
  private:

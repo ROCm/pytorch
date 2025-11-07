@@ -125,7 +125,11 @@ class MemoryEfficientAttentionNormalize {
       FragmentSource const& source) const {
     assert(!isFirst);
 
+<<<<<<< HEAD
     // Convert source to internal compute numeric type
+=======
+    // Convert source to interal compute numeric type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NumericArrayConverter<ElementCompute, ElementSource, kCount, Round>
         source_converter;
     NumericArrayConverter<ElementCompute, ElementAccumulator, kCount, Round>
@@ -164,7 +168,11 @@ class MemoryEfficientAttentionNormalize {
       const {
     assert(isFirst);
 
+<<<<<<< HEAD
     // Convert source to internal compute numeric type
+=======
+    // Convert source to interal compute numeric type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NumericArrayConverter<ElementCompute, ElementAccumulator, kCount, Round>
         accumulator_converter;
 

@@ -27,7 +27,11 @@ aten = torch.ops.aten
 class LocalShardsWrapper(torch.Tensor):
     """
     A wrapper class to hold local shards of a DTensor.
+<<<<<<< HEAD
     This class is used largely for checkpointing purposes and implicitly subtypes
+=======
+    This class is used largely for checkpointing purposes and implicity subtypes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     the _Checkpointable protocol.
     """
 
@@ -159,7 +163,11 @@ class LocalShardsWrapper(torch.Tensor):
                 ]
             elif args[0].local_shards()[0].ndim == 1:
                 assert args[0].storage_metadata().size[0] == view_shape[0]
+<<<<<<< HEAD
                 # This case is for optimizer sharding as regardless of sharding type, optimizer state is row wise sharded
+=======
+                # This case is for optimizer sharding as regardles of sharding type, optimizer state is row wise sharded
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 res_shards_list = [
                     aten.view.default(shard, shard.shape, **kwargs)
                     for shard in args[0].local_shards()
@@ -187,7 +195,11 @@ class LocalShardsWrapper(torch.Tensor):
             aten.equal.default(x, y) for x, y in zip(a.local_shards(), b.local_shards())
         ):
             return False
+<<<<<<< HEAD
         if a.storage_metadata() != b.storage_metadata():
+=======
+        if not a.storage_metadata() == b.storage_metadata():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
         return True
 

@@ -11,6 +11,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 # shellcheck source=./common-build.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common-build.sh"
 
+<<<<<<< HEAD
+=======
+if [[ "$BUILD_ENVIRONMENT" == *-mobile-*build* ]]; then
+  exec "$(dirname "${BASH_SOURCE[0]}")/build-mobile.sh" "$@"
+fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 echo "Python version:"
 python --version
 
@@ -50,6 +57,12 @@ if [[ ${BUILD_ENVIRONMENT} == *"parallelnative"* ]]; then
   export ATEN_THREADING=NATIVE
 fi
 
+<<<<<<< HEAD
+=======
+# Enable LLVM dependency for TensorExpr testing
+export USE_LLVM=/opt/llvm
+export LLVM_DIR=/opt/llvm/lib/cmake/llvm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if ! which conda; then
   # In ROCm CIs, we are doing cross compilation on build machines with
@@ -89,6 +102,7 @@ fi
 if [[ "$BUILD_ENVIRONMENT" == *aarch64* ]]; then
   export USE_MKLDNN=1
   export USE_MKLDNN_ACL=1
+<<<<<<< HEAD
   export ACL_ROOT_DIR=/acl
 fi
 
@@ -111,6 +125,9 @@ if [[ "$BUILD_ENVIRONMENT" == *riscv64* ]]; then
   export SLEEF_TARGET_EXEC_USE_QEMU=ON
   sudo chown -R jenkins /var/lib/jenkins/workspace /opt
 
+=======
+  export ACL_ROOT_DIR=/ComputeLibrary
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 if [[ "$BUILD_ENVIRONMENT" == *libtorch* ]]; then
@@ -138,8 +155,31 @@ if [[ "$BUILD_ENVIRONMENT" == *libtorch* ]]; then
 fi
 
 # Use special scripts for Android builds
+<<<<<<< HEAD
 
 if [[ "$BUILD_ENVIRONMENT" == *vulkan* ]]; then
+=======
+if [[ "${BUILD_ENVIRONMENT}" == *-android* ]]; then
+  export ANDROID_NDK=/opt/ndk
+  build_args=()
+  if [[ "${BUILD_ENVIRONMENT}" == *-arm-v7a* ]]; then
+    build_args+=("-DANDROID_ABI=armeabi-v7a")
+  elif [[ "${BUILD_ENVIRONMENT}" == *-arm-v8a* ]]; then
+    build_args+=("-DANDROID_ABI=arm64-v8a")
+  elif [[ "${BUILD_ENVIRONMENT}" == *-x86_32* ]]; then
+    build_args+=("-DANDROID_ABI=x86")
+  elif [[ "${BUILD_ENVIRONMENT}" == *-x86_64* ]]; then
+    build_args+=("-DANDROID_ABI=x86_64")
+  fi
+  if [[ "${BUILD_ENVIRONMENT}" == *vulkan* ]]; then
+    build_args+=("-DUSE_VULKAN=ON")
+  fi
+  build_args+=("-DUSE_LITE_INTERPRETER_PROFILER=OFF")
+  exec ./scripts/build_android.sh "${build_args[@]}" "$@"
+fi
+
+if [[ "$BUILD_ENVIRONMENT" != *android* && "$BUILD_ENVIRONMENT" == *vulkan* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   export USE_VULKAN=1
   # shellcheck disable=SC1091
   source /var/lib/jenkins/vulkansdk/setup-env.sh
@@ -173,7 +213,10 @@ if [[ "$BUILD_ENVIRONMENT" == *xpu* ]]; then
   source /opt/intel/oneapi/mpi/latest/env/vars.sh
   # Enable XCCL build
   export USE_XCCL=1
+<<<<<<< HEAD
   export USE_MPI=0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # XPU kineto feature dependencies are not fully ready, disable kineto build as temp WA
   export USE_KINETO=0
   export TORCH_XPU_ARCH_LIST=pvc
@@ -195,6 +238,7 @@ fi
 
 # We only build FlashAttention files for CUDA 8.0+, and they require large amounts of
 # memory to build and will OOM
+<<<<<<< HEAD
 
 if [[ "$BUILD_ENVIRONMENT" == *cuda* ]] && echo "${TORCH_CUDA_ARCH_LIST}" | tr ' ' '\n' | sed 's/$/>= 8.0/' | bc | grep -q 1; then
   J=2  # default to 2 jobs
@@ -205,6 +249,12 @@ if [[ "$BUILD_ENVIRONMENT" == *cuda* ]] && echo "${TORCH_CUDA_ARCH_LIST}" | tr '
   esac
   echo "Building FlashAttention with job limit $J"
   export BUILD_CUSTOM_STEP="ninja -C build flash_attention -j ${J}"
+=======
+if [[ "$BUILD_ENVIRONMENT" == *cuda* ]] && [[ 1 -eq $(echo "${TORCH_CUDA_ARCH_LIST} >= 8.0" | bc) ]] && [ -z "$MAX_JOBS_OVERRIDE" ]; then
+  echo "WARNING: FlashAttention files require large amounts of memory to build and will OOM"
+  echo "Setting MAX_JOBS=(nproc-2)/3 to reduce memory usage"
+  export MAX_JOBS="$(( $(nproc --ignore=2) / 3 ))"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 if [[ "${BUILD_ENVIRONMENT}" == *clang* ]]; then
@@ -219,6 +269,10 @@ if [[ "$BUILD_ENVIRONMENT" == *-clang*-asan* ]]; then
   export USE_ASAN=1
   export REL_WITH_DEB_INFO=1
   export UBSAN_FLAGS="-fno-sanitize-recover=all"
+<<<<<<< HEAD
+=======
+  unset USE_LLVM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 if [[ "${BUILD_ENVIRONMENT}" == *no-ops* ]]; then
@@ -229,6 +283,7 @@ if [[ "${BUILD_ENVIRONMENT}" == *-pch* ]]; then
     export USE_PRECOMPILED_HEADERS=1
 fi
 
+<<<<<<< HEAD
 if [[ "${BUILD_ENVIRONMENT}" != *cuda* ]]; then
   export BUILD_STATIC_RUNTIME_BENCHMARK=ON
 fi
@@ -236,12 +291,23 @@ fi
 if [[ "$BUILD_ENVIRONMENT" == *-full-debug* ]]; then
   export CMAKE_BUILD_TYPE=Debug
 elif [[ "$BUILD_ENVIRONMENT" == *-debug* ]]; then
+=======
+if [[ "${BUILD_ENVIRONMENT}" != *android* && "${BUILD_ENVIRONMENT}" != *cuda* ]]; then
+  export BUILD_STATIC_RUNTIME_BENCHMARK=ON
+fi
+
+if [[ "$BUILD_ENVIRONMENT" == *-debug* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   export CMAKE_BUILD_TYPE=RelWithAssert
 fi
 
 # Do not change workspace permissions for ROCm and s390x CI jobs
 # as it can leave workspace with bad permissions for cancelled jobs
+<<<<<<< HEAD
 if [[ "$BUILD_ENVIRONMENT" != *rocm* && "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && -d /var/lib/jenkins/workspace ]]; then
+=======
+if [[ "$BUILD_ENVIRONMENT" != *rocm* && "$BUILD_ENVIRONMENT" != *s390x* && -d /var/lib/jenkins/workspace ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Workaround for dind-rootless userid mapping (https://github.com/pytorch/ci-infra/issues/96)
   WORKSPACE_ORIGINAL_OWNER_ID=$(stat -c '%u' "/var/lib/jenkins/workspace")
   cleanup_workspace() {
@@ -286,18 +352,32 @@ else
     # XLA test build fails when WERROR=1
     # set only when building other architectures
     # or building non-XLA tests.
+<<<<<<< HEAD
     if [[ "$BUILD_ENVIRONMENT" != *rocm*  && "$BUILD_ENVIRONMENT" != *xla* && "$BUILD_ENVIRONMENT" != *riscv64* ]]; then
+=======
+    if [[ "$BUILD_ENVIRONMENT" != *rocm*  &&
+          "$BUILD_ENVIRONMENT" != *xla* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # Install numpy-2.0.2 for builds which are backward compatible with 1.X
       python -mpip install numpy==2.0.2
 
       WERROR=1 python setup.py clean
 
+<<<<<<< HEAD
       WERROR=1 python -m build --wheel --no-isolation
+=======
+      if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+        python3 tools/packaging/split_wheel.py bdist_wheel
+      else
+        WERROR=1 python setup.py bdist_wheel
+      fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else
       python setup.py clean
       if [[ "$BUILD_ENVIRONMENT" == *xla* ]]; then
         source .ci/pytorch/install_cache_xla.sh
       fi
+<<<<<<< HEAD
       python -m build --wheel --no-isolation
     fi
     pip_install_whl "$(echo dist/*.whl)"
@@ -322,6 +402,16 @@ else
     if [[ "${BUILD_ADDITIONAL_PACKAGES:-}" == *torchao* ]]; then
       install_torchao
     fi
+=======
+      if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+        echo "USE_SPLIT_BUILD cannot be used with xla or rocm"
+        exit 1
+      else
+        python setup.py bdist_wheel
+      fi
+    fi
+    pip_install_whl "$(echo dist/*.whl)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if [[ "$BUILD_ENVIRONMENT" == *xpu* ]]; then
       echo "Checking that xpu is compiled"
@@ -410,8 +500,15 @@ else
     # This is an attempt to mitigate flaky libtorch build OOM error. By default, the build parallelization
     # is set to be the number of CPU minus 2. So, let's try a more conservative value here. A 4xlarge has
     # 16 CPUs
+<<<<<<< HEAD
     MAX_JOBS=$(nproc --ignore=4)
     export MAX_JOBS
+=======
+    if [ -z "$MAX_JOBS_OVERRIDE" ]; then
+      MAX_JOBS=$(nproc --ignore=4)
+      export MAX_JOBS
+    fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NB: Install outside of source directory (at the same level as the root
     # pytorch folder) so that it doesn't get cleaned away prior to docker push.
@@ -428,7 +525,12 @@ if [[ "$BUILD_ENVIRONMENT" != *libtorch* && "$BUILD_ENVIRONMENT" != *bazel* ]]; 
   # don't do this for libtorch as libtorch is C++ only and thus won't have python tests run on its build
   python tools/stats/export_test_times.py
 fi
+<<<<<<< HEAD
 # don't do this for bazel or s390x or riscv64 as they don't use sccache
 if [[ "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && "$BUILD_ENVIRONMENT" != *-bazel-* ]]; then
+=======
+# don't do this for bazel or s390x as they don't use sccache
+if [[ "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *-bazel-* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   print_sccache_stats
 fi

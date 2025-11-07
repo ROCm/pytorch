@@ -8,7 +8,11 @@ import warnings
 import weakref
 from dataclasses import dataclass
 from functools import reduce
+<<<<<<< HEAD
 from typing import cast, Optional, TYPE_CHECKING
+=======
+from typing import Callable, cast, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -41,7 +45,11 @@ from .utils import (
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
+=======
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from torch.distributed._shard.metadata import ShardMetadata
 
@@ -299,9 +307,13 @@ class ShardedTensor(ShardedTensorBase):
         if self._init_rrefs:
             with _sharded_tensor_lock:
                 global _sharded_tensor_current_id, _sharded_tensor_map
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 self._sharded_tensor_id = _sharded_tensor_current_id
                 # pyrefly: ignore [unsupported-operation]
+=======
+                self._sharded_tensor_id = _sharded_tensor_current_id
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _sharded_tensor_map[self._sharded_tensor_id] = weakref.ref(self)
                 _sharded_tensor_current_id += 1
 
@@ -470,8 +482,12 @@ class ShardedTensor(ShardedTensorBase):
                 src = shard.tensor.flatten()
                 if src.nelement() == 0:
                     warnings.warn(
+<<<<<<< HEAD
                         "Gathering a tensor with zero elements on rank " + str(rank),
                         stacklevel=2,
+=======
+                        "Gathering a tensor with zero elements on rank " + str(rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     continue
                 shard_offset = shard_placement[shard.metadata][1]
@@ -672,15 +688,23 @@ class ShardedTensor(ShardedTensorBase):
             if device_to.index != current_idx:
                 warnings.warn(
                     "ShardedTensor.to only move tensor to its current device"
+<<<<<<< HEAD
                     "If you want to put to different device, use `reshard` instead.",
                     stacklevel=2,
+=======
+                    "If you want to put to different device, use `reshard` instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             device_to = torch.device(current_idx)
 
         copy_tensor = kwargs.get("copy", False)
         non_blocking = kwargs.get("non_blocking", False)
         memory_format = kwargs.get("memory_format", torch.preserve_format)
+<<<<<<< HEAD
         process_group = kwargs.get("process_group")
+=======
+        process_group = kwargs.get("process_group", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if (
             not copy_tensor
@@ -1150,12 +1174,17 @@ class ShardedTensor(ShardedTensorBase):
             resharding_spec, shard_spec.ChunkShardingSpec
         ) or not isinstance(self._sharding_spec, shard_spec.ChunkShardingSpec):
             raise NotImplementedError("Only ChunkShardingSpec supported for reshard.")
+<<<<<<< HEAD
 
         num_local_shards = len(self.local_shards())
         if num_local_shards != 1:
             raise NotImplementedError(
                 f"Only single local shard supported for reshard. Number of shards: {num_local_shards}"
             )
+=======
+        if len(self.local_shards()) != 1:
+            raise NotImplementedError("Only single local shard supported for reshard.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self._sharding_spec.dim == resharding_spec.dim:  # type: ignore[attr-defined]
             if self._sharding_spec.placements == resharding_spec.placements:  # type: ignore[attr-defined]
@@ -1188,11 +1217,16 @@ class ShardedTensor(ShardedTensorBase):
         Returns:
             A :class:`torch.Tensor` of the local shard.
         """
+<<<<<<< HEAD
         num_local_shards = len(self.local_shards())
         if num_local_shards != 1:
             raise NotImplementedError(
                 f"Only single local shard is supported. Number of shards: {num_local_shards}"
             )
+=======
+        if len(self.local_shards()) != 1:
+            raise NotImplementedError("Only single local shard is supported.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.local_shards()[0].tensor
 
     @classmethod

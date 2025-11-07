@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import sys
 from enum import Enum
 from functools import partial
@@ -16,6 +17,11 @@ else:
         return x
 
 
+=======
+from enum import Enum
+from functools import partial
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.distributed as dist
 
 from . import (
@@ -65,6 +71,7 @@ class DDPCommHookType(Enum):
     ``DDPCommHookType.ALLREDUCE.value(model=model, state=process_group)``.
     """
 
+<<<<<<< HEAD
     ALLREDUCE = _enum_member(
         partial(_ddp_comm_hook_wrapper, comm_hook=default.allreduce_hook)
     )
@@ -120,6 +127,47 @@ class DDPCommHookType(Enum):
             _ddp_comm_hook_wrapper,
             comm_hook=debugging.noop_hook,
         )
+=======
+    ALLREDUCE = partial(_ddp_comm_hook_wrapper, comm_hook=default.allreduce_hook)
+    FP16_COMPRESS = partial(
+        _ddp_comm_hook_wrapper, comm_hook=default.fp16_compress_hook
+    )
+    BF16_COMPRESS = partial(
+        _ddp_comm_hook_wrapper, comm_hook=default.bf16_compress_hook
+    )
+    QUANTIZE_PER_TENSOR = partial(
+        _ddp_comm_hook_wrapper, comm_hook=quantization.quantization_pertensor_hook
+    )
+    QUANTIZE_PER_CHANNEL = partial(
+        _ddp_comm_hook_wrapper, comm_hook=quantization.quantization_perchannel_hook
+    )
+    POWER_SGD = partial(
+        _powerSGD_comm_hook_wrapper,
+        comm_hook=powerSGD.powerSGD_hook,
+        matrix_approximation_rank=1,
+    )
+    # Rank-2 PowerSGD can give a higher accuracy than the default rank-1 version,
+    # but it runs slower and consumes more memory.
+    POWER_SGD_RANK2 = partial(
+        _powerSGD_comm_hook_wrapper,
+        comm_hook=powerSGD.powerSGD_hook,
+        matrix_approximation_rank=2,
+    )
+    # Batching can lead to a faster training at the cost of accuracy.
+    BATCHED_POWER_SGD = partial(
+        _powerSGD_comm_hook_wrapper,
+        comm_hook=powerSGD.batched_powerSGD_hook,
+        matrix_approximation_rank=1,
+    )
+    BATCHED_POWER_SGD_RANK2 = partial(
+        _powerSGD_comm_hook_wrapper,
+        comm_hook=powerSGD.batched_powerSGD_hook,
+        matrix_approximation_rank=2,
+    )
+    NOOP = partial(
+        _ddp_comm_hook_wrapper,
+        comm_hook=debugging.noop_hook,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 

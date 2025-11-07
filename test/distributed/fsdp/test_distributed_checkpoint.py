@@ -31,10 +31,17 @@ if TEST_WITH_DEV_DBG_ASAN:
     sys.exit(0)
 
 
+<<<<<<< HEAD
 _DISTRIBUTED_STATE_DICT_IMPLS = (
     StateDictType.LOCAL_STATE_DICT,
     StateDictType.SHARDED_STATE_DICT,
 )
+=======
+_DISTRIBUTED_STATE_DICT_IMPLS = {
+    StateDictType.LOCAL_STATE_DICT,
+    StateDictType.SHARDED_STATE_DICT,
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestDistributedCheckpoint(FSDPTest):

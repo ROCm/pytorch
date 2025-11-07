@@ -4,10 +4,16 @@ r"""Implementation for Stochastic Weight Averaging implementation."""
 import itertools
 import math
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from copy import deepcopy
 from typing import Any, cast, Literal, Optional, Union
 from typing_extensions import override
+=======
+from collections.abc import Iterable
+from copy import deepcopy
+from typing import Any, Callable, Literal, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -70,9 +76,13 @@ def get_swa_multi_avg_fn():
             averaged_param_list[0]
         ):
             torch._foreach_lerp_(
+<<<<<<< HEAD
                 averaged_param_list,
                 current_param_list,
                 cast(float, 1 / (num_averaged + 1)),
+=======
+                averaged_param_list, current_param_list, 1 / (num_averaged + 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             diffs = torch._foreach_sub(current_param_list, averaged_param_list)
@@ -229,10 +239,16 @@ class AveragedModel(Module):
         use_buffers=False,
     ):  # noqa: D107
         super().__init__()
+<<<<<<< HEAD
         if avg_fn is not None and multi_avg_fn is not None:
             raise AssertionError(
                 "Only one of avg_fn and multi_avg_fn should be provided"
             )
+=======
+        assert avg_fn is None or multi_avg_fn is None, (
+            "Only one of avg_fn and multi_avg_fn should be provided"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.module = deepcopy(model)
         if device is not None:
             self.module = self.module.to(device)
@@ -250,25 +266,38 @@ class AveragedModel(Module):
     def update_parameters(self, model: Module):
         """Update model parameters."""
         self_param = (
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             itertools.chain(self.module.parameters(), self.module.buffers())
             if self.use_buffers
             else self.parameters()
         )
         model_param = (
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             itertools.chain(model.parameters(), model.buffers())
             if self.use_buffers
             else model.parameters()
         )
         self_param_detached: list[Optional[Tensor]] = []
         model_param_detached: list[Optional[Tensor]] = []
+<<<<<<< HEAD
         copy_param = bool(self.n_averaged == 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for p_averaged, p_model in zip(self_param, model_param):
             p_model_ = p_model.detach().to(p_averaged.device)
             self_param_detached.append(p_averaged.detach())
             model_param_detached.append(p_model_)
+<<<<<<< HEAD
             if copy_param:
+=======
+            if self.n_averaged == 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 p_averaged.detach().copy_(p_model_)
 
         if self.n_averaged > 0:
@@ -298,17 +327,25 @@ class AveragedModel(Module):
                         avg_fn = get_swa_avg_fn()
                         n_averaged = self.n_averaged.to(device)
                         for p_averaged, p_model in zip(self_params, model_params):  # type: ignore[assignment]
+<<<<<<< HEAD
                             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             p_averaged.copy_(avg_fn(p_averaged, p_model, n_averaged))
             else:
                 for p_averaged, p_model in zip(  # type: ignore[assignment]
                     self_param_detached, model_param_detached
                 ):
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
                     n_averaged = self.n_averaged.to(p_averaged.device)
                     # pyrefly: ignore [missing-attribute]
                     p_averaged.detach().copy_(
                         # pyrefly: ignore [missing-attribute, bad-argument-type]
+=======
+                    n_averaged = self.n_averaged.to(p_averaged.device)
+                    p_averaged.detach().copy_(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.avg_fn(p_averaged.detach(), p_model, n_averaged)
                     )
 
@@ -439,7 +476,14 @@ class SWALR(LRScheduler):
                 "anneal_strategy must by one of 'cos' or 'linear', "
                 f"instead got {anneal_strategy}"
             )
+<<<<<<< HEAD
         self._set_anneal_func(anneal_strategy)
+=======
+        elif anneal_strategy == "cos":
+            self.anneal_func = self._cosine_anneal
+        elif anneal_strategy == "linear":
+            self.anneal_func = self._linear_anneal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(anneal_epochs, int) or anneal_epochs < 0:
             raise ValueError(
                 f"anneal_epochs must be equal or greater than 0, got {anneal_epochs}"
@@ -461,6 +505,7 @@ class SWALR(LRScheduler):
             return swa_lr
         return (lr - alpha * swa_lr) / (1 - alpha)
 
+<<<<<<< HEAD
     @override
     def get_lr(self):
         r"""Compute the next learning rate for each of the optimizer's
@@ -484,6 +529,10 @@ class SWALR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self):
+        """Get learning rate."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # `_get_lr_called_within_step` is only available `_enable_get_lr_call`,
         # so we ignore the type error here. See `LRScheduler.step()` for more details.
         if not self._get_lr_called_within_step:
@@ -491,26 +540,36 @@ class SWALR(LRScheduler):
                 "To get the last learning rate computed by the scheduler, "
                 "please use `get_last_lr()`.",
                 UserWarning,
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         # Set in `LRScheduler._initial_step()`
         step = self._step_count - 1
         if self.anneal_epochs == 0:
             step = max(1, step)
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prev_t = max(0, min(1, (step - 1) / max(1, self.anneal_epochs)))
         prev_alpha = self.anneal_func(prev_t)
         prev_lrs = [
             self._get_initial_lr(group["lr"], group["swa_lr"], prev_alpha)
             for group in self.optimizer.param_groups
         ]
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t = max(0, min(1, step / max(1, self.anneal_epochs)))
         alpha = self.anneal_func(t)
         return [
             group["swa_lr"] * alpha + lr * (1 - alpha)
             for group, lr in zip(self.optimizer.param_groups, prev_lrs)
         ]
+<<<<<<< HEAD
 
     def _set_anneal_func(self, anneal_strategy: Literal["cos", "linear"]):
         self._anneal_strategy = anneal_strategy
@@ -542,3 +601,5 @@ class SWALR(LRScheduler):
         """
         self.__dict__.update(state_dict)
         self._set_anneal_func(self._anneal_strategy)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

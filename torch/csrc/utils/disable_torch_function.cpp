@@ -5,7 +5,10 @@
 #include <torch/csrc/utils/python_strings.h>
 
 #include <ATen/PythonTorchFunctionTLS.h>
+<<<<<<< HEAD
 #include <fmt/format.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch {
 static PyObject* disabled_torch_function = nullptr;
@@ -220,9 +223,14 @@ PyObject* THPModule_disable_torch_function(PyObject* self, PyObject* a) {
   } else if (PyTuple_Check(args)) {
     py_args = py::reinterpret_borrow<py::tuple>(args);
   } else {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format("expected List or Tuple (got {})", Py_TYPE(args)->tp_name));
+=======
+    throw torch::TypeError(
+        "expected List or Tuple (got %s)", Py_TYPE(args)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // These are all C-API calls so no exceptions will be raised
@@ -255,9 +263,14 @@ PyObject* THPModule_disable_torch_dispatch(PyObject* self, PyObject* a) {
   } else if (PyTuple_Check(args)) {
     py_args = py::reinterpret_borrow<py::tuple>(args);
   } else {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format("expected List or Tuple (got {})", Py_TYPE(args)->tp_name));
+=======
+    throw torch::TypeError(
+        "expected List or Tuple (got %s)", Py_TYPE(args)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // This implementation is not completely correct.  The moral
@@ -348,7 +361,11 @@ inline static bool array_has_torch_function(
   return false;
 }
 
+<<<<<<< HEAD
 PyObject* THPModule_has_torch_function(PyObject* /*unused*/, PyObject* arg) {
+=======
+PyObject* THPModule_has_torch_function(PyObject*, PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool result = false;
   if (PyTuple_CheckExact(arg) || PyList_CheckExact(arg)) {
     // Fast path:
@@ -372,9 +389,13 @@ PyObject* THPModule_has_torch_function(PyObject* /*unused*/, PyObject* arg) {
   Py_RETURN_FALSE;
 }
 
+<<<<<<< HEAD
 PyObject* THPModule_has_torch_function_unary(
     PyObject* /*unused*/,
     PyObject* obj) {
+=======
+PyObject* THPModule_has_torch_function_unary(PyObject*, PyObject* obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Special case `THPModule_has_torch_function` for the single arg case.
   if (torch::check_has_torch_function(obj)) {
     Py_RETURN_TRUE;
@@ -383,7 +404,11 @@ PyObject* THPModule_has_torch_function_unary(
 }
 
 PyObject* THPModule_has_torch_function_variadic(
+<<<<<<< HEAD
     PyObject* /*unused*/,
+=======
+    PyObject*,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* const* args,
     Py_ssize_t nargs) {
   if (array_has_torch_function(args, nargs)) {

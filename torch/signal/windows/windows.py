@@ -1,7 +1,13 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from math import sqrt
 from typing import Optional, TypeVar
+=======
+from collections.abc import Iterable
+from math import sqrt
+from typing import Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -128,7 +134,13 @@ Examples::
     >>> # Generates a periodic exponential window and decay factor equal to .5
     >>> torch.signal.windows.exponential(10, sym=False,tau=.5)
     tensor([4.5400e-05, 3.3546e-04, 2.4788e-03, 1.8316e-02, 1.3534e-01, 1.0000e+00, 1.3534e-01, 1.8316e-02, 2.4788e-03, 3.3546e-04])
+<<<<<<< HEAD
     """.format(**window_common_args),
+=======
+    """.format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def exponential(
     M: int,
@@ -326,7 +338,11 @@ def gaussian(
         requires_grad=requires_grad,
     )
 
+<<<<<<< HEAD
     return torch.exp(-(k**2))  # pyrefly: ignore [unsupported-operation]
+=======
+    return torch.exp(-(k**2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_add_docstr(
@@ -397,17 +413,24 @@ def kaiser(
         )
 
     # Avoid NaNs by casting `beta` to the appropriate dtype.
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     beta = torch.tensor(beta, dtype=dtype, device=device)
 
     start = -beta
     constant = 2.0 * beta / (M if not sym else M - 1)
+<<<<<<< HEAD
     end = torch.minimum(
         # pyrefly: ignore [bad-argument-type]
         beta,
         # pyrefly: ignore [bad-argument-type]
         start + (M - 1) * constant,
     )
+=======
+    end = torch.minimum(beta, start + (M - 1) * constant)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     k = torch.linspace(
         start=start,
@@ -419,10 +442,14 @@ def kaiser(
         requires_grad=requires_grad,
     )
 
+<<<<<<< HEAD
     return torch.i0(torch.sqrt(beta * beta - torch.pow(k, 2))) / torch.i0(
         # pyrefly: ignore [bad-argument-type]
         beta
     )
+=======
+    return torch.i0(torch.sqrt(beta * beta - torch.pow(k, 2))) / torch.i0(beta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_add_docstr(
@@ -459,7 +486,13 @@ Examples::
     >>> # Generates a periodic Hamming window.
     >>> torch.signal.windows.hamming(10, sym=False)
     tensor([0.0800, 0.1679, 0.3979, 0.6821, 0.9121, 1.0000, 0.9121, 0.6821, 0.3979, 0.1679])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def hamming(
     M: int,
@@ -513,7 +546,13 @@ Examples::
     >>> # Generates a periodic Hann window.
     >>> torch.signal.windows.hann(10, sym=False)
     tensor([0.0000, 0.0955, 0.3455, 0.6545, 0.9045, 1.0000, 0.9045, 0.6545, 0.3455, 0.0955])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def hann(
     M: int,
@@ -567,7 +606,13 @@ Examples::
     >>> # Generates a periodic Blackman window.
     >>> torch.signal.windows.blackman(5, sym=False)
     tensor([-1.4901e-08,  2.0077e-01,  8.4923e-01,  8.4923e-01,  2.0077e-01])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def blackman(
     M: int,
@@ -628,7 +673,13 @@ Examples::
     >>> # Generates a periodic Bartlett window.
     >>> torch.signal.windows.bartlett(10, sym=False)
     tensor([0.0000, 0.2000, 0.4000, 0.6000, 0.8000, 1.0000, 0.8000, 0.6000, 0.4000, 0.2000])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def bartlett(
     M: int,
@@ -703,7 +754,13 @@ Examples::
     >>> # Generates a periodic general cosine window with 2 coefficients.
     >>> torch.signal.windows.general_cosine(10, a=[0.5, 1 - 0.5], sym=False)
     tensor([0.0000, 0.0955, 0.3455, 0.6545, 0.9045, 1.0000, 0.9045, 0.6545, 0.3455, 0.0955])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def general_cosine(
     M,
@@ -796,7 +853,13 @@ Examples::
     >>> # Generates a periodic Hann window with the general Hamming window.
     >>> torch.signal.windows.general_hamming(10, alpha=0.5, sym=False)
     tensor([0.0000, 0.0955, 0.3455, 0.6545, 0.9045, 1.0000, 0.9045, 0.6545, 0.3455, 0.0955])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def general_hamming(
     M,
@@ -861,7 +924,13 @@ Examples::
     >>> # Generates a periodic Nuttall window.
     >>> torch.signal.windows.general_hamming(5, sym=False)
     tensor([3.6280e-04, 1.1052e-01, 7.9826e-01, 7.9826e-01, 1.1052e-01])
+<<<<<<< HEAD
 """.format(**window_common_args),
+=======
+""".format(
+        **window_common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def nuttall(
     M: int,

@@ -35,7 +35,11 @@ struct TORCH_API MetalTensorImpl : public OpaqueTensorImpl<OpaqueHandle> {
     return c10::fromIntArrayRefKnownNonNegative(strides_);
   }
 
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous_custom(c10::MemoryFormat memory_format) const override {
+=======
+  bool is_contiguous_custom(c10::MemoryFormat memory_format) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return true;
   }
 

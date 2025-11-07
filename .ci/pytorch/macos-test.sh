@@ -55,7 +55,11 @@ test_python_shard() {
 
   setup_test_python
 
+<<<<<<< HEAD
   time python test/run_test.py --verbose --exclude-jit-executor --exclude-distributed-tests --exclude-quantization-tests --shard "$1" "$NUM_TEST_SHARDS"
+=======
+  time python test/run_test.py --verbose --exclude-jit-executor --exclude-distributed-tests --shard "$1" "$NUM_TEST_SHARDS"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   assert_git_not_dirty
 }
@@ -157,6 +161,7 @@ test_jit_hooks() {
   assert_git_not_dirty
 }
 
+<<<<<<< HEAD
 # Shellcheck doesn't like it when you pass no arguments to a function
 # that can take args. See https://www.shellcheck.net/wiki/SC2120
 # shellcheck disable=SC2120
@@ -185,6 +190,8 @@ checkout_install_torchbench() {
   python -mpip freeze
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torchbench_setup_macos() {
   git clone --recursive https://github.com/pytorch/vision torchvision
   git clone --recursive https://github.com/pytorch/audio torchaudio
@@ -195,7 +202,11 @@ torchbench_setup_macos() {
   git checkout "$(cat ../.github/ci_commit_pins/vision.txt)"
   git submodule update --init --recursive
   python setup.py clean
+<<<<<<< HEAD
   python -m pip install -e . -v --no-build-isolation
+=======
+  python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   popd
 
   pushd torchaudio
@@ -204,14 +215,26 @@ torchbench_setup_macos() {
   git submodule update --init --recursive
   python setup.py clean
   #TODO: Remove me, when figure out how to make TorchAudio find brew installed openmp
+<<<<<<< HEAD
   USE_OPENMP=0 python -m pip install -e . -v --no-build-isolation
   popd
 
+=======
+  USE_OPENMP=0 python setup.py develop
+  popd
+
+  # Shellcheck doesn't like it when you pass no arguments to a function that can take args. See https://www.shellcheck.net/wiki/SC2120
+  # shellcheck disable=SC2119,SC2120
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   checkout_install_torchbench
 }
 
 pip_benchmark_deps() {
+<<<<<<< HEAD
   python -mpip install --no-input requests cython scikit-learn six
+=======
+  python -mpip install --no-input astunparse requests cython scikit-learn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -256,7 +279,11 @@ test_torchbench_smoketest() {
   local device=mps
   local dtypes=(undefined float16 bfloat16 notset)
   local dtype=${dtypes[$1]}
+<<<<<<< HEAD
   local models=(llama BERT_pytorch dcgan yolov3 resnet152 sam sam_fast pytorch_unet stable_diffusion_text_encoder speech_transformer Super_SloMo doctr_det_predictor doctr_reco_predictor vgg16)
+=======
+  local models=(hf_T5 llama BERT_pytorch dcgan hf_GPT2 yolov3 resnet152 sam sam_fast pytorch_unet stable_diffusion_text_encoder speech_transformer Super_SloMo doctr_det_predictor doctr_reco_predictor timm_resnet timm_vovnet vgg16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   for backend in eager inductor; do
 
@@ -302,6 +329,7 @@ test_torchbench_smoketest() {
     fi
 
   done
+<<<<<<< HEAD
   echo "Pytorch benchmark on mps device completed"
 }
 
@@ -343,6 +371,8 @@ test_aoti_torchbench_smoketest() {
   PYTHONPATH="$(pwd)"/torchbench python benchmarks/dynamo/huggingface.py \
     --accuracy --export-aot-inductor --inference --devices "$device" "$dtype_arg" \
     --output "$TEST_REPORTS_DIR/aot_inductor_huggingface_${dtype}_inference_${device}_accuracy.csv" || true
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   echo "Pytorch benchmark on mps device completed"
 }
@@ -391,8 +421,11 @@ elif [[ $TEST_CONFIG == *"perf_timm"* ]]; then
   test_timm_perf
 elif [[ $TEST_CONFIG == *"perf_smoketest"* ]]; then
   test_torchbench_smoketest "${SHARD_NUMBER}"
+<<<<<<< HEAD
 elif [[ $TEST_CONFIG == *"aot_inductor_perf_smoketest"* ]]; then
   test_aoti_torchbench_smoketest "${SHARD_NUMBER}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elif [[ $TEST_CONFIG == *"mps"* ]]; then
   test_python_mps
 elif [[ $NUM_TEST_SHARDS -gt 1 ]]; then

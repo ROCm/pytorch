@@ -10,7 +10,10 @@ import torch._functorch.config
 import torch.nn
 import torch.utils.checkpoint
 from torch._dynamo.bytecode_transformation import Instruction
+<<<<<<< HEAD
 from torch._dynamo.exc import Unsupported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.symbolic_convert import SpeculationLog, SpeculationLogDivergence
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
@@ -127,7 +130,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 x = torch.sigmoid(x)
                 try:
                     x = torch.cos(x)
+<<<<<<< HEAD
                     raise AssertionError  # noqa: B904
+=======
+                    raise AssertionError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 except AssertionError:
                     x = torch.cos(x)
 
@@ -137,6 +144,7 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     def test_exception_with_vars(self):
         def fn(x):
             try:
@@ -151,6 +159,8 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(ref, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_autocast_with_exception(self):
         class Optimizer(torch.autograd.Function):
             @staticmethod
@@ -187,7 +197,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         def cm():
             try:
                 yield
+<<<<<<< HEAD
             except BaseException:  # noqa: B036
+=======
+            except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise ValueError  # noqa: B904
 
         @contextlib.contextmanager
@@ -265,7 +279,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 for x, y in args:
                     try:
                         fn(x, y)
+<<<<<<< HEAD
                     except BaseException:  # noqa: B036
+=======
+                    except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         new_exc = sys.exc_info()
                         fix_exc_context(frame_exc[1], new_exc[1], prev_exc[1])
                         prev_exc = new_exc
@@ -273,7 +291,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 try:
                     fixed_ctx = prev_exc[1].__context__
                     raise prev_exc[1]
+<<<<<<< HEAD
                 except BaseException:  # noqa: B036
+=======
+                except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     prev_exc[1].__context__ = fixed_ctx
                     raise
 
@@ -307,7 +329,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
 
         x = torch.randn(4)
         fn(x)
+<<<<<<< HEAD
         # Can't use fullgraph=True because RERAISE is not supported
+=======
+        # Cant use fullgraph=True because RERAISE is not supported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         opt_fn = torch.compile(fn, backend="eager")
         opt_fn(x)
 
@@ -631,7 +657,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 raise ZeroDivisionError
             except ZeroDivisionError:
                 try:
+<<<<<<< HEAD
                     raise ValueError  # noqa: B904
+=======
+                    raise ValueError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 except ValueError:
                     pass
                 raise
@@ -681,7 +711,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 yield 1
             except ValueError:
                 try:
+<<<<<<< HEAD
                     raise TypeError  # noqa: B904
+=======
+                    raise TypeError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 finally:
                     pass
 
@@ -711,7 +745,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 raise ValueError
             except ValueError:
                 try:
+<<<<<<< HEAD
                     raise TypeError  # noqa: B904
+=======
+                    raise TypeError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 finally:
                     pass
 
@@ -764,7 +802,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
                 raise GeneratorExit
             except Exception:
                 return t.sin()
+<<<<<<< HEAD
             except BaseException:  # noqa: B036
+=======
+            except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return t.cos()
 
         t = torch.randn(2)
@@ -889,26 +931,37 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         assert z == 1
 
     def test_user_defined_exception_variable(self):
+<<<<<<< HEAD
+=======
+        @torch.compile(backend="eager", fullgraph=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn(t):
             z = 0
             try:
                 raise CustomException
             except ValueError:
                 z = 1
+<<<<<<< HEAD
             except CustomException as e:
                 # trying to call python_type on the
                 # UserDefinedExceptionClassVariable
                 cls = type(e)
                 if type(cls) is type:
                     t = t + 1
+=======
+            except CustomException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 z = 2
             assert z == 2
             return t.sin()
 
         t = torch.randn(2)
         fn(t)
+<<<<<<< HEAD
         opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
         self.assertEqual(fn(t), opt_fn(t))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_user_defined_exception_with_args(self):
         @torch.compile(backend="eager", fullgraph=True)
@@ -941,6 +994,7 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
 
         assert exc2.__context__ is None
 
+<<<<<<< HEAD
     def test_exception_kwargs(self):
         @torch.compile(backend="eager", fullgraph=True)
         def fn():
@@ -964,6 +1018,8 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         with self.assertRaisesRegex(Exception, "weight = self.linear.w"):
             torch._dynamo.functional_export._dynamo_graph_capture_for_export(Model())(x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(ExceptionTests)
 

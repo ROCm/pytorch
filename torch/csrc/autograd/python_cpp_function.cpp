@@ -261,7 +261,12 @@ PyTypeObject* _initFunctionPyTypeObject(
   type.tp_traverse = THPCppFunction_traverse;
   type.tp_clear = THPCppFunction_clear;
   if (PyType_Ready(&type) < 0) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Unable to instantiate PyTypeObject for ", name);
+=======
+    auto msg = std::string("Unable to instantiate PyTypeObject for ") + name;
+    throw std::runtime_error(msg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return &type;
 }

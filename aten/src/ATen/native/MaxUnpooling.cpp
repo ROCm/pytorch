@@ -23,6 +23,11 @@ Tensor& max_unpooling2d_forward_out_cpu(
   // Nondeterministic with duplicate indices
   at::globalContext().alertNotDeterministic("max_unpooling2d_forward_out");
 
+<<<<<<< HEAD
+=======
+  auto oheight = output_size[0];
+  auto owidth = output_size[1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       indices_.scalar_type() == at::ScalarType::Long,
       "elements in indices should be type int64 but got: ", indices_.scalar_type());
@@ -43,9 +48,12 @@ Tensor& max_unpooling2d_forward_out_cpu(
                 self_.sizes(), " with dimension ", i , " being empty.");
   }
 
+<<<<<<< HEAD
   auto oheight = output_size[0];
   auto owidth = output_size[1];
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto memory_format = self_.suggest_memory_format();
   auto self = self_.contiguous(memory_format);
   auto indices = indices_.contiguous(memory_format);

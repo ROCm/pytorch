@@ -67,6 +67,7 @@ class JobConfig:
         )
         self.parser.add_argument("-j", "--just_print_entries", action="store_true")
         self.parser.add_argument("-v", "--verbose", action="store_true")
+<<<<<<< HEAD
         self.parser.add_argument("--print_stack_trace", action="store_true")
         self.parser.add_argument(
             "--mismatch_cap",
@@ -74,10 +75,13 @@ class JobConfig:
             default=10,
             help="Maximum number of mismatches we print (from earliest).",
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def parse_args(
         self: "JobConfig", args: Optional[Sequence[str]]
     ) -> argparse.Namespace:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         args = self.parser.parse_args(args)
         # pyrefly: ignore [missing-attribute]
@@ -96,4 +100,17 @@ class JobConfig:
         if args.verbose:
             logger.set_log_level(logging.DEBUG)
         # pyrefly: ignore [bad-return]
+=======
+        args = self.parser.parse_args(args)
+        if args.selected_ranks is not None:
+            assert args.just_print_entries, (
+                "Not support selecting ranks without printing entries"
+            )
+        if args.pg_filters is not None:
+            assert args.just_print_entries, (
+                "Not support selecting pg filters without printing entries"
+            )
+        if args.verbose:
+            logger.set_log_level(logging.DEBUG)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return args

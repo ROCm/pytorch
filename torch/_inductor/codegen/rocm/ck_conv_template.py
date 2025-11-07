@@ -2,6 +2,7 @@
 import copy
 import logging
 import random
+<<<<<<< HEAD
 from typing import Any
 from typing_extensions import override
 
@@ -9,6 +10,11 @@ from torch._inductor.virtualized import V
 
 from .rocm_template import ArgInfo
 
+=======
+
+from torch._inductor.virtualized import V
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 try:
     import ck4inductor  # type: ignore[import]
@@ -287,8 +293,11 @@ class CKGroupedConvFwdTemplate(CKTemplate):
 
                 using ConvolutionForwardSpecialization = ck::tensor_operation::device::ConvolutionForwardSpecialization;
 
+<<<<<<< HEAD
                 using OutElementOp = PassThrough;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 namespace ck {
                 namespace utils {
                 namespace conv {
@@ -513,11 +522,17 @@ class CKGroupedConvFwdTemplate(CKTemplate):
                     arg = f"/* {field_name} */ Tuple<{tuple_elements}>"
                 else:  # tile shape
                     arg = f"/* {field_name} */ S<{tuple_elements}>"
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 template_params.append(arg)
             else:
                 if field_value is not None:
                     # pyrefly: ignore [bad-argument-type]
+=======
+                template_params.append(arg)
+            else:
+                if field_value is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     template_params.append(f"/* {field_name} */ {field_value}")
         return self._template_from_string(template_definition).render(
             operation_name=op.name(),
@@ -530,7 +545,11 @@ class CKGroupedConvFwdTemplate(CKTemplate):
         op: "CKGroupedConvFwdOp",  # type: ignore[name-defined]
         **kwargs,
     ) -> str:
+<<<<<<< HEAD
         template_buffer_node = kwargs.get("template_buffer_node")
+=======
+        template_buffer_node = kwargs.get("template_buffer_node", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if template_buffer_node is not None:
             self.output_node = template_buffer_node
         X, W = self.input_nodes[0], self.input_nodes[1]
@@ -614,6 +633,7 @@ class CKGroupedConvFwdTemplate(CKTemplate):
             right_pads_0,
             right_pads_1,
         )
+<<<<<<< HEAD
 
     @override
     def get_runtime_arg_info(self) -> list[ArgInfo]:
@@ -625,3 +645,5 @@ class CKGroupedConvFwdTemplate(CKTemplate):
         Helper method to retrieve runtime args from generate kwargs
         """
         return []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -94,7 +94,11 @@ class TestNEP50Table(TestCase):
     def test_nep50_exceptions(self, example):
         old, new = examples[example]
 
+<<<<<<< HEAD
         if new is Exception:
+=======
+        if new == Exception:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with assert_raises(OverflowError):
                 eval(example)
 

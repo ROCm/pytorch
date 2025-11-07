@@ -245,7 +245,11 @@ class LinearLeakyReLU(_FusedModule):
     During quantization this will be replaced with the corresponding fused module."""
 
     def __init__(self, linear, leaky_relu):
+<<<<<<< HEAD
         assert type(linear) is Linear and type(leaky_relu) is torch.nn.LeakyReLU, (
+=======
+        assert type(linear) == Linear and type(leaky_relu) == torch.nn.LeakyReLU, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"Incorrect types for input modules{type(linear)}{type(leaky_relu)}"
         )
         super().__init__(linear, leaky_relu)
@@ -256,7 +260,11 @@ class LinearTanh(_FusedModule):
     During quantization this will be replaced with the corresponding fused module."""
 
     def __init__(self, linear, tanh):
+<<<<<<< HEAD
         assert type(linear) is Linear and type(tanh) is torch.nn.Tanh, (
+=======
+        assert type(linear) == Linear and type(tanh) == torch.nn.Tanh, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"Incorrect types for input modules{type(linear)}{type(tanh)}"
         )
         super().__init__(linear, tanh)

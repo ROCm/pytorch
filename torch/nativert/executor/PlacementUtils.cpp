@@ -4,6 +4,23 @@
 
 namespace torch::nativert {
 
+<<<<<<< HEAD
+=======
+c10::Device normalizeDevice(const c10::Device& device) {
+  // cpu device doesn't have index
+  // cuda device index must have a index
+  if (device.is_cpu()) {
+    return c10::Device(c10::DeviceType::CPU);
+  } else if (device.is_cuda()) {
+    return c10::Device(
+        c10::DeviceType::CUDA,
+        device.has_index() ? device.index() : static_cast<c10::DeviceIndex>(0));
+  } else {
+    TORCH_CHECK(false, "Unsupported device type", device);
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool isSameDevice(const c10::Device& a, const c10::Device& b) {
   if (a.is_cpu()) {
     return b.is_cpu();
@@ -17,9 +34,12 @@ bool isSameDevice(const c10::Device& a, const c10::Device& b) {
       return false;
     }
   }
+<<<<<<< HEAD
   if (a.is_meta()) {
     return b.is_meta();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "Unsupported device type", a, " and ", b);
   return false;
 }

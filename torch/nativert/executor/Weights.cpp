@@ -16,6 +16,10 @@
 #include <ATen/ops/scalar_tensor.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#include <c10/util/string_view.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <caffe2/serialize/inline_container.h>
 
 namespace torch::nativert {
@@ -26,14 +30,22 @@ Weights::Weights(
     const Graph* graph,
     const std::optional<std::unordered_map<std::string, c10::IValue>>&
         stateDict,
+<<<<<<< HEAD
     const std::optional<std::unordered_map<std::string, c10::IValue>>&
         constants)
     : graph_(graph),
       weightsMeta_(graph->weightsMeta()),
+=======
+    Placement placement)
+    : graph_(graph),
+      weightsMeta_(graph->weightsMeta()),
+      placement_(std::move(placement)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       version_(globalVersion_++) {
   if (stateDict.has_value()) {
     loadStateDict(stateDict.value());
   }
+<<<<<<< HEAD
   if (constants.has_value()) {
     for (const auto& [name, value] : constants.value()) {
       if (value.isTensor()) {
@@ -45,6 +57,8 @@ Weights::Weights(
       }
     }
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Weights::Weights(
@@ -54,10 +68,18 @@ Weights::Weights(
     std::string_view stateDictPathPrefix,
     const std::unordered_map<std::string, std::string>& constantPaths,
     std::string_view constantPathPrefix,
+<<<<<<< HEAD
+=======
+    Placement placement,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::function<bool(const std::string&)> skipSizeCheck,
     std::function<bool(const std::string&)> skipDtypeCheck)
     : graph_(graph),
       weightsMeta_(graph->weightsMeta()),
+<<<<<<< HEAD
+=======
+      placement_(std::move(placement)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       version_(globalVersion_++),
       skipSizeCheck_(std::move(skipSizeCheck)),
       skipDtypeCheck_(std::move(skipDtypeCheck)) {
@@ -106,7 +128,11 @@ Weights::Weights(
 
         if (!isUsed) {
           VLOG(1) << "Tensor " << tensorName << " is not used during inference";
+<<<<<<< HEAD
           auto targetDevice = tensorMeta->device();
+=======
+          auto targetDevice = placement_.getMappedDevice(tensorMeta->device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           allValues_[tensorName] =
               at::scalar_tensor(0, at::TensorOptions().device(targetDevice));
           return;
@@ -129,7 +155,11 @@ Weights::Weights(
             at::empty({0}, tensorOptions)
                 .set_(storage, 0, tensorMeta->sizes(), tensorMeta->strides());
 
+<<<<<<< HEAD
         auto targetDevice = tensorMeta->device();
+=======
+        auto targetDevice = placement_.getMappedDevice(tensorMeta->device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         VLOG(1) << "Loading weight " << tensorName << " on " << targetDevice;
         if (!isSameDevice(targetDevice, tensor.device())) {
           tensor = tensor.to(targetDevice);
@@ -317,7 +347,11 @@ void Weights::loadStateDict(
     TORCH_CHECK(
         it != weightsMeta_.end(), "Couldn't find ", name, " in weightsMeta");
 
+<<<<<<< HEAD
     auto targetDevice = it->second.device();
+=======
+    auto targetDevice = placement_.getMappedDevice(it->second.device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto tensor = stateDictIt->second.toTensor().to(targetDevice);
 
     TORCH_CHECK(tensor.sizes() == it->second.sizes());
@@ -337,6 +371,7 @@ void Weights::loadStateDict(
 
 void Weights::validateValue(const std::string& name, const at::Tensor& newValue)
     const {
+<<<<<<< HEAD
   validateValue(name, newValue, /*skipDeviceCheck=*/false);
 }
 
@@ -344,6 +379,8 @@ void Weights::validateValue(
     const std::string& name,
     const at::Tensor& newValue,
     bool skipDeviceCheck) const {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& weightMeta = weightsMeta_.at(name);
 
   TORCH_CHECK(
@@ -367,6 +404,7 @@ void Weights::validateValue(
       " vs ",
       newValue.dtype());
 
+<<<<<<< HEAD
   if (!skipDeviceCheck) {
     auto targetDevice = weightMeta.device();
     if (targetDevice.is_cpu() && targetDevice.has_index()) {
@@ -393,6 +431,25 @@ void Weights::setValue(
     bool skipDeviceCheck) {
   if (allValues_.find(name) != allValues_.end()) {
     validateValue(name, newValue, skipDeviceCheck);
+=======
+  auto targetDevice = placement_.getMappedDevice(weightMeta.device());
+  if (targetDevice.is_cpu() && targetDevice.has_index()) {
+    LOG(WARNING) << "Target device is cpu but has index: " << targetDevice;
+  }
+  TORCH_CHECK(
+      isSameDevice(targetDevice, newValue.device()),
+      "Mismatched device for ",
+      name,
+      ": ",
+      targetDevice,
+      " vs ",
+      newValue.device());
+}
+
+void Weights::setValue(const std::string& name, const at::Tensor& newValue) {
+  if (allValues_.find(name) != allValues_.end()) {
+    validateValue(name, newValue);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     LOG(WARNING) << name << " is not found in the registered weights";
   }

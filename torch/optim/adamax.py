@@ -53,6 +53,7 @@ class Adamax(Optimizer):
         if not 0.0 <= weight_decay:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -63,6 +64,18 @@ class Adamax(Optimizer):
             "differentiable": differentiable,
             "capturable": capturable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            capturable=capturable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -253,6 +266,7 @@ def _single_tensor_adamax(
         # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
         if not torch.compiler.is_compiling() and capturable:
             capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
             if not (
                 param.device.type == step_t.device.type
                 and param.device.type in capturable_supported_devices
@@ -260,6 +274,14 @@ def _single_tensor_adamax(
                 raise AssertionError(
                     f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
                 )
+=======
+            assert (
+                param.device.type == step_t.device.type
+                and param.device.type in capturable_supported_devices
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # update step
         step_t += 1
@@ -320,8 +342,12 @@ def _multi_tensor_adamax(
     capturable: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if len(params) == 0:
         return
@@ -331,6 +357,7 @@ def _multi_tensor_adamax(
         capturable_supported_devices = _get_capturable_supported_devices(
             supports_xla=False
         )
+<<<<<<< HEAD
         if not all(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
@@ -339,6 +366,15 @@ def _multi_tensor_adamax(
             raise AssertionError(
                 f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
             )
+=======
+        assert all(
+            p.device.type == step.device.type
+            and p.device.type in capturable_supported_devices
+            for p, step in zip(params, state_steps)
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     lr = _to_scalar(lr)
 
@@ -379,7 +415,11 @@ def _multi_tensor_adamax(
 
         if weight_decay != 0:
             if maximize:
+<<<<<<< HEAD
                 # Reuse the intermediate memory (grouped_grads) already allocated for maximize
+=======
+                # Re-use the intermediate memory (grouped_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._foreach_add_(grouped_grads, grouped_params, alpha=weight_decay)
             else:
                 grouped_grads = torch._foreach_add(  # type: ignore[assignment]

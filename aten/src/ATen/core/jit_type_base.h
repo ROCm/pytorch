@@ -185,11 +185,19 @@ struct TORCH_API Type {
         : repr_(nullptr) {}
 
     /* implicit */ SingletonOrSharedTypePtr(SingletonTypePtr<T> p)
+<<<<<<< HEAD
         : repr_(makeSingletonSharedPtr(p.get())) {}
 
     template <typename U, std::enable_if_t<std::is_convertible_v<U*, T*>, bool> = true>
     /* implicit */ SingletonOrSharedTypePtr(SingletonTypePtr<U> p)
         : repr_(makeSingletonSharedPtr(static_cast<T*>(p.get()))) {}
+=======
+        : repr_(p) {}
+
+    template <typename U, std::enable_if_t<std::is_convertible_v<U*, T*>, bool> = true>
+    /* implicit */ SingletonOrSharedTypePtr(SingletonTypePtr<U> p)
+        : repr_(SingletonTypePtr<T>(p.get())) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
     // We need to support construction from T* for pybind. The problem
@@ -202,8 +210,13 @@ struct TORCH_API Type {
     // Case 2: if T is exactly Type, we need to do a dynamic_cast to
     // check if it's a SharedType and do the right thing.
     //
+<<<<<<< HEAD
     // Case 3: Otherwise, T is not a SharedType. Use a singleton
     // pointer.
+=======
+    // Case 3: Otherwise, T is not a SharedType. (debug-check this
+    // assumption!) Use a singleton pointer.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     template <typename U = T, std::enable_if_t<std::is_base_of_v<SharedType, U>, bool> = true>
     /* implicit */ SingletonOrSharedTypePtr(T* p) : SingletonOrSharedTypePtr(static_cast<typename detail::as_shared_type<U>::type>(p)->shared_from_this()) {}
@@ -211,15 +224,25 @@ struct TORCH_API Type {
     template <typename U = T, std::enable_if_t<std::is_same_v<Type, U>, bool> = true>
     /* implicit */ SingletonOrSharedTypePtr(T* p) {
       if (auto* shared_p = dynamic_cast<typename detail::as_shared_type<U>::type>(p)) {
+<<<<<<< HEAD
         repr_ = shared_p->shared_from_this();
       } else {
         repr_ = makeSingletonSharedPtr(p);
+=======
+        repr_ = Repr(shared_p->shared_from_this());
+      } else {
+        repr_ = Repr(p);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
 
     template <typename U = T, std::enable_if_t<!std::is_same_v<Type, U> && !std::is_base_of_v<SharedType, U>, bool> = true>
     /* implicit */ SingletonOrSharedTypePtr(T* p)
+<<<<<<< HEAD
         : repr_(makeSingletonSharedPtr(p)) {
+=======
+        : repr_(p) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_INTERNAL_ASSERT_DEBUG_ONLY(dynamic_cast<typename detail::as_shared_type<U>::type>(p) == nullptr);
     }
 
@@ -230,6 +253,7 @@ struct TORCH_API Type {
     ~SingletonOrSharedTypePtr() = default;
 
     T* get() const {
+<<<<<<< HEAD
       return repr_.get();
     }
 
@@ -243,6 +267,21 @@ struct TORCH_API Type {
 
     bool operator!=(std::nullptr_t) const {
       return repr_ != nullptr;
+=======
+      return repr_.isSharedAndNonNull() ? repr_.shared_.repr_.get() : static_cast<T*>(repr_.rawRepr().first);
+    }
+
+    operator bool() const {
+      return repr_.isNonNull();
+    }
+
+    bool operator==(std::nullptr_t) const {
+      return !repr_.isNonNull();
+    }
+
+    bool operator!=(std::nullptr_t) const {
+      return repr_.isNonNull();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     template <typename U = T, std::enable_if_t<!std::is_same_v<std::remove_const_t<U>, void>, bool> = true>
@@ -255,6 +294,7 @@ struct TORCH_API Type {
     }
 
   private:
+<<<<<<< HEAD
     // Use shared_ptr's aliasing constructor to create a non-owning pointer
     // to a singleton. The lifetime is tied to the null shared_ptr, so there's
     // no reference counting overhead for the singleton itself.
@@ -263,6 +303,140 @@ struct TORCH_API Type {
     }
 
     std::shared_ptr<T> repr_;
+=======
+    // NOTE: SharedPtrWrapper exists to work around a baffling bug in
+    // nvcc; see comment in destroy() below.
+    struct SharedPtrWrapper {
+      SharedPtrWrapper(std::shared_ptr<T> &&x)
+          : repr_(std::move(x)) {}
+      std::shared_ptr<T> repr_;
+    };
+    union Repr {
+      Repr() : Repr(nullptr) {}
+
+      explicit Repr(std::shared_ptr<T> x)
+          : shared_(std::move(x)) {}
+
+      explicit Repr(std::nullptr_t)
+          : singletonRepr_(nullptr) {}
+
+      explicit Repr(SingletonTypePtr<T> p)
+          : singletonRepr_(p.get()) {}
+
+      ~Repr() {
+        destroy();
+      }
+
+      // NOTE: the only non-UB way to access our null state is through
+      // rawRepr(), because our copy operation doesn't preserve which
+      // union member is active for null pointers.
+      Repr(const Repr& rhs) {
+        if (rhs.isSharedAndNonNull()) {
+          new (&shared_) SharedPtrWrapper(rhs.shared_);
+        } else {
+          singletonRepr_.singleton_ = static_cast<T*>(rhs.rawRepr().first);
+          TORCH_INTERNAL_ASSERT_DEBUG_ONLY(rhs.singletonRepr_.unused_ == nullptr);
+          singletonRepr_.unused_ = nullptr;
+        }
+      }
+
+      Repr(Repr&& rhs) noexcept {
+        if (rhs.isSharedAndNonNull()) {
+          new (&shared_) SharedPtrWrapper(std::move(rhs.shared_));
+        } else {
+          singletonRepr_.singleton_ = static_cast<T*>(rhs.rawRepr().first);
+          TORCH_INTERNAL_ASSERT_DEBUG_ONLY(rhs.singletonRepr_.unused_ == nullptr);
+          singletonRepr_.unused_ = nullptr;
+        }
+      }
+
+      Repr& operator=(const Repr& rhs) {
+        if (&rhs == this) {
+          return *this;
+        }
+        if (rhs.isSharedAndNonNull()) {
+          if (isSharedAndNonNull()) {
+            shared_ = rhs.shared_;
+          } else {
+            new (&shared_) SharedPtrWrapper(rhs.shared_);
+          }
+        } else {
+          if (isSharedAndNonNull()) {
+            destroy();
+          }
+          singletonRepr_.singleton_ = static_cast<T*>(rhs.rawRepr().first);
+          TORCH_INTERNAL_ASSERT_DEBUG_ONLY(rhs.rawRepr().nullIfSingleton_ == nullptr);
+          singletonRepr_.unused_ = nullptr;
+        }
+        return *this;
+      }
+
+      Repr& operator=(Repr&& rhs) noexcept {
+        if (&rhs == this) {
+          return *this;
+        }
+        if (rhs.isSharedAndNonNull()) {
+          if (isSharedAndNonNull()) {
+            shared_ = std::move(rhs.shared_);
+          } else {
+            new (&shared_) SharedPtrWrapper(std::move(rhs.shared_));
+          }
+        } else {
+          if (isSharedAndNonNull()) {
+            destroy();
+          }
+          singletonRepr_.singleton_ = static_cast<T*>(rhs.rawRepr().first);
+          TORCH_INTERNAL_ASSERT_DEBUG_ONLY(rhs.rawRepr().nullIfSingleton_ == nullptr);
+          singletonRepr_.unused_ = nullptr;
+        }
+        return *this;
+      }
+
+      SharedPtrWrapper shared_;
+
+      struct SingletonRepr {
+        explicit SingletonRepr(T* s) : singleton_(s) {}
+        T* singleton_;
+        void* unused_ = nullptr;
+      } singletonRepr_;
+      struct RawRepr {
+        void* first;
+        void* nullIfSingleton_;
+      };
+
+      // It is UB to read the singleton part of Repr if it was
+      // constructed as a shared_ptr and vice versa, but memcpying out
+      // the representation is always OK, so here's an accessor to obey
+      // the letter of the law.
+      RawRepr rawRepr() const {
+        RawRepr repr{};
+        memcpy(&repr, reinterpret_cast<const char *>(this), sizeof(RawRepr));
+        return repr;
+      }
+
+      bool isNonNull() const {
+        auto repr = rawRepr();
+        TORCH_INTERNAL_ASSERT_DEBUG_ONLY(repr.nullIfSingleton_ == nullptr || repr.first != nullptr);
+        return repr.first != nullptr;
+      }
+
+      bool isSharedAndNonNull() const {
+        return rawRepr().nullIfSingleton_ != nullptr;
+      }
+
+     private:
+      void destroy() {
+        if (isSharedAndNonNull()) {
+          // Without SharedPtrWrapper, this line would read
+          // `shared_.~shared_ptr()` and nvcc would complain with
+          // "error: expected primary-expression before '>' token"
+          // referring to the "t" in "shared_ptr". SharedPtrWrapper
+          // exists to work around this compiler bug.
+          shared_.~SharedPtrWrapper();
+        }
+      }
+    } repr_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   using TypePtr = SingletonOrSharedTypePtr<Type>;
@@ -553,7 +727,11 @@ inline TypePtr Type::withContained(std::vector<TypePtr> contained_types) {
 }
 
 
+<<<<<<< HEAD
 inline bool operator==(const Type& lhs, const Type& rhs) {
+=======
+TORCH_API inline bool operator==(const Type& lhs, const Type& rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (C10_UNLIKELY(!rhs.symmetric())) {
     return rhs.equals(lhs);
   }

@@ -246,9 +246,12 @@ register_artifact(
     "Logs debug info for hierarchical compilation",
     off_by_default=True,
 )
+<<<<<<< HEAD
 register_artifact(
     "annotation",
     "Logs detailed steps of the creating annotation on graph nodes",
     off_by_default=True,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 register_artifact("custom_format_test_artifact", "Testing only", log_format="")

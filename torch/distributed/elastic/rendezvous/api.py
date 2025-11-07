@@ -7,9 +7,14 @@
 
 import socket
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, ClassVar, Optional
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, ClassVar, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed import Store
 from torch.distributed.elastic.utils.distributed import get_free_port

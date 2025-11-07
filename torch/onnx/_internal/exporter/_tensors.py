@@ -30,16 +30,24 @@ class SymbolicTensor(ir.Value):
 
     @property
     def rank(self) -> int | None:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         if self.shape is None:
             return None
         # pyrefly: ignore [bad-argument-type]
+=======
+        if self.shape is None:
+            return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.shape)
 
     # TODO: Implement indexing
 
     def __mod__(self, other):
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.dtype in {
             ir.DataType.FLOAT,
             ir.DataType.DOUBLE,

@@ -4,7 +4,11 @@ import os
 from .constants import (API_BLAS, API_C10, API_CAFFE2, API_DRIVER, API_FFT,
                         API_PYTORCH, API_RAND, API_ROCTX, API_RTC, API_RUNTIME,
                         API_SPECIAL, API_ROCMSMI, CONV_CACHE, CONV_CONTEXT, CONV_D3D9,
+<<<<<<< HEAD
                         API_PYT_EXT, CONV_D3D10, CONV_D3D11, CONV_DEF, CONV_DEVICE,
+=======
+                        CONV_D3D10, CONV_D3D11, CONV_DEF, CONV_DEVICE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         CONV_DEVICE_FUNC, CONV_EGL, CONV_ERROR, CONV_EVENT,
                         CONV_EXEC, CONV_GL, CONV_GRAPHICS, CONV_INCLUDE,
                         CONV_INCLUDE_CUDA_MAIN_H, CONV_INIT, CONV_JIT,
@@ -48,7 +52,10 @@ MATH_TRANSPILATIONS = collections.OrderedDict(
     ]
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDA_TYPE_NAME_MAP = collections.OrderedDict(
     [
         ("CUresult", ("hipError_t", CONV_TYPE, API_DRIVER)),
@@ -180,9 +187,12 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict(
         ),
         ("CUlimit", ("hipLimit_t", CONV_TYPE, API_DRIVER)),
         ("CUlimit_enum", ("hipLimit_t", CONV_TYPE, API_DRIVER)),
+<<<<<<< HEAD
         ("CUmemAccessDesc", ("hipMemAccessDesc", CONV_TYPE, API_DRIVER)),
         ("CUmemAccessDesc_st", ("hipMemAccessDesc", CONV_TYPE, API_DRIVER)),
         ("CUmemAccessDesc_v1", ("hipMemAccessDesc", CONV_TYPE, API_DRIVER)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             "CUmemAttach_flags",
             ("hipMemAttachFlags_t", CONV_TYPE, API_DRIVER, HIP_UNSUPPORTED),
@@ -191,6 +201,7 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict(
             "CUmemAttach_flags_enum",
             ("hipMemAttachFlags_t", CONV_TYPE, API_DRIVER, HIP_UNSUPPORTED),
         ),
+<<<<<<< HEAD
         ("CUmemAllocationGranularity_flags", ("hipMemAllocationGranularity_flags", CONV_TYPE, API_DRIVER)),
         ("CUmemAllocationGranularity_flags_enum", ("hipMemAllocationGranularity_flags", CONV_TYPE, API_DRIVER)),
         ("CUmemAllocationHandleType", ("hipMemAllocationHandleType", CONV_TYPE, API_DRIVER)),
@@ -223,6 +234,8 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict(
         ("CUmem_advise_enum", ("hipMemoryAdvise", CONV_TYPE, API_DRIVER)),
         ("CUmem_range_attribute_enum", ("hipMemRangeAttribute", CONV_TYPE, API_DRIVER)),
         ("CUmemoryPool", ("hipMemPool_t", CONV_TYPE, API_DRIVER)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("CUmemorytype", ("hipMemType_t", CONV_TYPE, API_DRIVER, HIP_UNSUPPORTED)),
         ("CUmemorytype_enum", ("hipMemType_t", CONV_TYPE, API_DRIVER, HIP_UNSUPPORTED)),
         ("CUresourcetype", ("hipResourceType", CONV_TEX, API_DRIVER, HIP_UNSUPPORTED)),
@@ -342,7 +355,10 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict(
         ("cudaPos", ("hipPos", CONV_MEM, API_RUNTIME)),
         ("cudaEvent_t", ("hipEvent_t", CONV_TYPE, API_RUNTIME)),
         ("cudaStream_t", ("hipStream_t", CONV_TYPE, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaHostFn_t", ("hipHostFn_t", CONV_TYPE, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaPointerAttributes", ("hipPointerAttribute_t", CONV_TYPE, API_RUNTIME)),
         ("cudaDeviceAttr", ("hipDeviceAttribute_t", CONV_TYPE, API_RUNTIME)),
         ("cudaDeviceProp", ("hipDeviceProp_t", CONV_TYPE, API_RUNTIME)),
@@ -580,14 +596,20 @@ CUDA_TYPE_NAME_MAP = collections.OrderedDict(
         ("curandState", ("hiprandState_t", CONV_TYPE, API_RAND)),
         ("CUuuid", ("hipUUID", CONV_TYPE, API_RUNTIME)),
         ("cudaGraph_t", ("hipGraph_t", CONV_TYPE, API_RAND)),
+<<<<<<< HEAD
         ("cudaGraphNode_t", ("hipGraphNode_t", CONV_TYPE, API_RAND)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaGraphExec_t", ("hipGraphExec_t", CONV_TYPE, API_RAND)),
         ("__nv_bfloat16", ("__hip_bfloat16", CONV_TYPE, API_RUNTIME)),
         ("__nv_bfloat162", ("__hip_bfloat162", CONV_TYPE, API_RUNTIME)),
     ]
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDA_INCLUDE_MAP = collections.OrderedDict(
     [
         # since pytorch uses "\b{pattern}\b" as the actual re pattern,
@@ -610,12 +632,18 @@ CUDA_INCLUDE_MAP = collections.OrderedDict(
             "channel_descriptor.h",
             ("hip/channel_descriptor.h", CONV_INCLUDE, API_RUNTIME),
         ),
+<<<<<<< HEAD
         ('include "device_functions.h', ('include "hip/device_functions.h', CONV_INCLUDE, API_RUNTIME)),
         ('include <device_functions.h', ('include <hip/device_functions.h', CONV_INCLUDE, API_RUNTIME)),
         ('include "driver_types.h', ('include "hip/driver_types.h', CONV_INCLUDE, API_RUNTIME)),
         ('include <driver_types.h', ('include <hip/driver_types.h', CONV_INCLUDE, API_RUNTIME)),
         ('include "library_types.h', ('include "hip/library_types.h', CONV_INCLUDE, API_RUNTIME)),
         ('include <library_types.h', ('include <hip/library_types.h', CONV_INCLUDE, API_RUNTIME)),
+=======
+        ("device_functions.h", ("hip/device_functions.h", CONV_INCLUDE, API_RUNTIME)),
+        ("driver_types.h", ("hip/driver_types.h", CONV_INCLUDE, API_RUNTIME)),
+        ("library_types.h", ("hip/library_types.h", CONV_INCLUDE, API_RUNTIME)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cuComplex.h", ("hip/hip_complex.h", CONV_INCLUDE, API_RUNTIME)),
         ("cuda_fp16.h", ("hip/hip_fp16.h", CONV_INCLUDE, API_RUNTIME)),
         ("cuda_bf16.h", ("hip/hip_bf16.h", CONV_INCLUDE, API_RUNTIME)),
@@ -672,6 +700,7 @@ CUDA_INCLUDE_MAP = collections.OrderedDict(
         ("cub/device/device_scan.cuh", ("hipcub/hipcub.hpp", CONV_INCLUDE, API_BLAS)),
         ("cub/device/device_select.cuh", ("hipcub/hipcub.hpp", CONV_INCLUDE, API_BLAS)),
         ("nvtx3/nvtx3.hpp", ("roctracer/roctx.h", CONV_INCLUDE, API_ROCTX)),
+<<<<<<< HEAD
         ("nvToolsExt.h", ("roctracer/roctx.h", CONV_INCLUDE, API_ROCTX)),
         ("nvml.h", ("rocm_smi/rocm_smi.h", CONV_INCLUDE, API_ROCMSMI)),
         ("tensorpipe/tensorpipe_cuda.h", ("tensorpipe/tensorpipe_hip.h", CONV_INCLUDE, API_PYT_EXT)),
@@ -679,6 +708,12 @@ CUDA_INCLUDE_MAP = collections.OrderedDict(
 )
 
 # pyrefly: ignore [no-matching-overload]
+=======
+        ("nvml.h", ("rocm_smi/rocm_smi.h", CONV_INCLUDE, API_ROCMSMI)),
+    ]
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDA_IDENTIFIER_MAP = collections.OrderedDict(
     [
         ("__CUDACC__", ("__HIPCC__", CONV_DEF, API_RUNTIME)),
@@ -2594,6 +2629,7 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
             "CU_MEMORYTYPE_UNIFIED",
             ("hipMemTypeUnified", CONV_TYPE, API_DRIVER, HIP_UNSUPPORTED),
         ),
+<<<<<<< HEAD
         ("CU_MEMHOSTREGISTER_READ_ONLY", ("hipHostRegisterReadOnly", CONV_TYPE, API_DRIVER)),
         ("CU_MEMPOOL_ATTR_RELEASE_THRESHOLD", ("hipMemPoolAttrReleaseThreshold", CONV_TYPE, API_DRIVER)),
         ("CU_MEMPOOL_ATTR_RESERVED_MEM_CURRENT", ("hipMemPoolAttrReservedMemCurrent", CONV_TYPE, API_DRIVER)),
@@ -2626,6 +2662,8 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("CU_MEM_LOCATION_TYPE_INVALID", ("hipMemLocationTypeInvalid", CONV_TYPE, API_DRIVER)),
         ("CU_MEM_OPERATION_TYPE_MAP", ("hipMemOperationTypeMap", CONV_TYPE, API_DRIVER)),
         ("CU_MEM_OPERATION_TYPE_UNMAP", ("hipMemOperationTypeUnmap", CONV_TYPE, API_DRIVER)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             "CU_RESOURCE_TYPE_ARRAY",
             ("hipResourceTypeArray", CONV_TEX, API_DRIVER, HIP_UNSUPPORTED),
@@ -3256,6 +3294,7 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
             "cuMemGetAddressRange_v2",
             ("hipMemGetAddressRange", CONV_MEM, API_DRIVER),
         ),
+<<<<<<< HEAD
         ("cuArray3DCreate_v2", ("hipArray3DCreate", CONV_MEM, API_DRIVER)),
         ("cuArray3DGetDescriptor_v2", ("hipArray3DGetDescriptor", CONV_MEM, API_DRIVER)),
         ("cuArrayGetDescriptor_v2", ("hipArrayGetDescriptor", CONV_MEM, API_DRIVER)),
@@ -3313,6 +3352,8 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cuMemPoolSetAccess", ("hipMemPoolSetAccess", CONV_MEM, API_DRIVER)),
         ("cuMemPoolSetAttribute", ("hipMemPoolSetAttribute", CONV_MEM, API_DRIVER)),
         ("cuMemPoolTrimTo", ("hipMemPoolTrimTo", CONV_MEM, API_DRIVER)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             "cuPointerGetAttributes",
             ("hipPointerGetAttributes", CONV_MEM, API_DRIVER, HIP_UNSUPPORTED),
@@ -4201,6 +4242,7 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cudaMemPoolAttrUsedMemCurrent", ("hipMemPoolAttrUsedMemCurrent", CONV_MEM, API_RUNTIME)),
         ("cudaMemPoolAttrUsedMemHigh", ("hipMemPoolAttrUsedMemHigh", CONV_MEM, API_RUNTIME)),
         ("cudaMemPoolGetAttribute", ("hipMemPoolGetAttribute", CONV_MEM, API_RUNTIME)),
+<<<<<<< HEAD
         (
             "cudaMemPoolReuseAllowInternalDependencies",
             ("hipMemPoolReuseAllowInternalDependencies", CONV_MEM, API_RUNTIME)
@@ -4210,6 +4252,11 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
             "cudaMemPoolReuseFollowEventDependencies",
             ("hipMemPoolReuseFollowEventDependencies", CONV_MEM, API_RUNTIME)
         ),
+=======
+        ("cudaMemPoolReuseAllowInternalDependencies", ("hipMemPoolReuseAllowInternalDependencies", CONV_MEM, API_RUNTIME)),
+        ("cudaMemPoolReuseAllowOpportunistic", ("hipMemPoolReuseAllowOpportunistic", CONV_MEM, API_RUNTIME)),
+        ("cudaMemPoolReuseFollowEventDependencies", ("hipMemPoolReuseFollowEventDependencies", CONV_MEM, API_RUNTIME)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaMemPoolSetAccess", ("hipMemPoolSetAccess", CONV_MEM, API_RUNTIME)),
         ("cudaMemPoolSetAttribute", ("hipMemPoolSetAttribute", CONV_MEM, API_RUNTIME)),
         ("cudaMemPoolTrimTo", ("hipMemPoolTrimTo", CONV_MEM, API_RUNTIME)),
@@ -4240,7 +4287,10 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ),
         ("cudaMallocHost", ("hipHostMalloc", CONV_MEM, API_RUNTIME)),
         ("cudaMallocArray", ("hipMallocArray", CONV_MEM, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaMallocAsync", ("hipMallocAsync", CONV_MEM, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaMalloc", ("hipMalloc", CONV_MEM, API_RUNTIME)),
         ("cudaMalloc3D", ("hipMalloc3D", CONV_MEM, API_RUNTIME)),
         ("cudaMalloc3DArray", ("hipMalloc3DArray", CONV_MEM, API_RUNTIME)),
@@ -4255,22 +4305,31 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cudaMallocPitch", ("hipMallocPitch", CONV_MEM, API_RUNTIME)),
         ("cudaFreeHost", ("hipHostFree", CONV_MEM, API_RUNTIME)),
         ("cudaFreeArray", ("hipFreeArray", CONV_MEM, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaFreeAsync", ("hipFreeAsync", CONV_MEM, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaFree", ("hipFree", CONV_MEM, API_RUNTIME)),
         ("cudaHostRegister", ("hipHostRegister", CONV_MEM, API_RUNTIME)),
         ("cudaHostUnregister", ("hipHostUnregister", CONV_MEM, API_RUNTIME)),
         ("cudaHostAlloc", ("hipHostMalloc", CONV_MEM, API_RUNTIME)),
         ("cudaMemoryTypeHost", ("hipMemoryTypeHost", CONV_MEM, API_RUNTIME)),
         ("cudaMemoryTypeDevice", ("hipMemoryTypeDevice", CONV_MEM, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaMemoryTypeUnregistered", ("hipMemoryTypeUnregistered", CONV_MEM, API_RUNTIME)),
         ("cudaMemoryTypeManaged", ("hipMemoryTypeManaged", CONV_MEM, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("make_cudaExtent", ("make_hipExtent", CONV_MEM, API_RUNTIME)),
         ("make_cudaPitchedPtr", ("make_hipPitchedPtr", CONV_MEM, API_RUNTIME)),
         ("make_cudaPos", ("make_hipPos", CONV_MEM, API_RUNTIME)),
         ("cudaHostAllocDefault", ("hipHostMallocDefault", CONV_MEM, API_RUNTIME)),
         ("cudaHostAllocPortable", ("hipHostMallocPortable", CONV_MEM, API_RUNTIME)),
         ("cudaHostAllocMapped", ("hipHostMallocMapped", CONV_MEM, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaHostNodeParams", ("hipHostNodeParams", CONV_MEM, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             "cudaHostAllocWriteCombined",
             ("hipHostMallocWriteCombined", CONV_MEM, API_RUNTIME),
@@ -4331,13 +4390,17 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cudaStreamGetCaptureInfo_v2", ("hipStreamGetCaptureInfo_v2", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamCaptureStatus", ("hipStreamCaptureStatus", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamCaptureStatusActive", ("hipStreamCaptureStatusActive", CONV_TYPE, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaStreamCaptureStatusNone", ("hipStreamCaptureStatusNone", CONV_TYPE, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaStreamCaptureMode", ("hipStreamCaptureMode", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamCaptureModeGlobal", ("hipStreamCaptureModeGlobal", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamCaptureModeRelaxed", ("hipStreamCaptureModeRelaxed", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamCaptureModeThreadLocal", ("hipStreamCaptureModeThreadLocal", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamBeginCapture", ("hipStreamBeginCapture", CONV_TYPE, API_RUNTIME)),
         ("cudaStreamEndCapture", ("hipStreamEndCapture", CONV_TYPE, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaStreamSetCaptureDependencies", ("hipStreamSetCaptureDependencies", CONV_STREAM, API_RUNTIME)),
         ("cudaStreamUpdateCaptureDependencies", ("hipStreamUpdateCaptureDependencies", CONV_STREAM, API_RUNTIME)),
         ("cudaGraphInstantiate", ("hipGraphInstantiate", CONV_TYPE, API_RUNTIME)),
@@ -4346,6 +4409,11 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
             "cudaGraphInstantiateFlagAutoFreeOnLaunch",
             ("hipGraphInstantiateFlagAutoFreeOnLaunch", CONV_TYPE, API_RUNTIME)
         ),
+=======
+        ("cudaGraphInstantiate", ("hipGraphInstantiate", CONV_TYPE, API_RUNTIME)),
+        ("cudaGraphInstantiateWithFlags", ("hipGraphInstantiateWithFlags", CONV_TYPE, API_RUNTIME)),
+        ("cudaGraphInstantiateFlagAutoFreeOnLaunch", ("hipGraphInstantiateFlagAutoFreeOnLaunch", CONV_TYPE, API_RUNTIME)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaGraphDestroy", ("hipGraphDestroy", CONV_TYPE, API_RUNTIME)),
         ("cudaGraphExecDestroy", ("hipGraphExecDestroy", CONV_TYPE, API_RUNTIME)),
         ("cudaGraphLaunch", ("hipGraphLaunch", CONV_TYPE, API_RUNTIME)),
@@ -4354,6 +4422,7 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cudaGraphDebugDotFlagsVerbose", ("hipGraphDebugDotFlagsVerbose", CONV_NUMERIC_LITERAL, API_RUNTIME)),
         ("cudaGraphRetainUserObject", ("hipGraphRetainUserObject", CONV_TYPE, API_RUNTIME)),
         ("cudaGraphUserObjectMove", ("hipGraphUserObjectMove", CONV_TYPE, API_RUNTIME)),
+<<<<<<< HEAD
         ("cudaDeviceGetGraphMemAttribute", ("hipDeviceGetGraphMemAttribute", CONV_TYPE, API_RUNTIME)),
         ("cudaDeviceGraphMemTrim", ("hipDeviceGraphMemTrim", CONV_TYPE, API_RUNTIME)),
         ("cudaDeviceSetGraphMemAttribute", ("hipDeviceSetGraphMemAttribute", CONV_TYPE, API_RUNTIME)),
@@ -4557,6 +4626,8 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("cudaGraphNodeTypeMemcpy", ("hipGraphNodeTypeMemcpy", CONV_TYPE, API_RUNTIME)),
         ("cudaGraphNodeTypeMemset", ("hipGraphNodeTypeMemset", CONV_TYPE, API_RUNTIME)),
         ("cudaGraphNodeTypeWaitEvent", ("hipGraphNodeTypeWaitEvent", CONV_TYPE, API_RUNTIME)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cudaUserObject_t", ("hipUserObject_t", CONV_TYPE, API_RUNTIME)),
         ("cudaUserObjectCreate", ("hipUserObjectCreate", CONV_TYPE, API_RUNTIME)),
         ("cudaUserObjectNoDestructorSync", ("hipUserObjectNoDestructorSync", CONV_TYPE, API_RUNTIME)),
@@ -7704,11 +7775,16 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
         ("CUBLASLT_MATMUL_DESC_BIAS_DATA_TYPE", ("HIPBLASLT_MATMUL_DESC_BIAS_DATA_TYPE", CONV_MATH_FUNC, API_BLAS)),
         ("CUBLASLT_MATMUL_DESC_A_SCALE_MODE", ("HIPBLASLT_MATMUL_DESC_A_SCALE_MODE", CONV_MATH_FUNC, API_BLAS)),
         ("CUBLASLT_MATMUL_DESC_B_SCALE_MODE", ("HIPBLASLT_MATMUL_DESC_B_SCALE_MODE", CONV_MATH_FUNC, API_BLAS)),
+<<<<<<< HEAD
         ("CUBLASLT_MATMUL_DESC_POINTER_MODE", ("HIPBLASLT_MATMUL_DESC_POINTER_MODE", CONV_MATH_FUNC, API_BLAS)),
         ("CUBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0", ("HIPBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0", CONV_MATH_FUNC, API_BLAS)),
         ("CUBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3", ("HIPBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3", CONV_MATH_FUNC, API_BLAS)),
         ("CUBLASLT_POINTER_MODE_DEVICE", ("HIPBLASLT_POINTER_MODE_DEVICE", CONV_NUMERIC_LITERAL, API_BLAS)),
         ("CUBLASLT_POINTER_MODE_HOST", ("HIPBLASLT_POINTER_MODE_HOST", CONV_NUMERIC_LITERAL, API_BLAS)),
+=======
+        ("CUBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0", ("HIPBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0", CONV_MATH_FUNC, API_BLAS)),
+        ("CUBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3", ("HIPBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3", CONV_MATH_FUNC, API_BLAS)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ("cublasLtMatrixLayout_t", ("hipblasLtMatrixLayout_t", CONV_MATH_FUNC, API_BLAS)),
         ("cublasLtMatrixLayoutOpaque_t", ("hipblasLtMatrixLayoutOpaque_t", CONV_MATH_FUNC, API_BLAS)),
         ("cublasLtMatrixLayoutAttribute_t", ("hipblasLtMatrixLayoutAttribute_t", CONV_MATH_FUNC, API_BLAS)),
@@ -8372,7 +8448,10 @@ CUDA_IDENTIFIER_MAP = collections.OrderedDict(
     ]
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDA_SPECIAL_MAP = collections.OrderedDict(
     [
         # SPARSE
@@ -8595,6 +8674,7 @@ CUDA_SPECIAL_MAP = collections.OrderedDict(
             ("HIPSPARSE_STATUS_ZERO_PIVOT", CONV_NUMERIC_LITERAL, API_SPECIAL),
         ),
         (
+<<<<<<< HEAD
             "CUSPARSE_STATUS_NOT_SUPPORTED",
             ("HIPSPARSE_STATUS_NOT_SUPPORTED", CONV_NUMERIC_LITERAL, API_SPECIAL),
         ),
@@ -8603,6 +8683,8 @@ CUDA_SPECIAL_MAP = collections.OrderedDict(
             ("HIPSPARSE_STATUS_INSUFFICIENT_RESOURCES", CONV_NUMERIC_LITERAL, API_SPECIAL),
         ),
         (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "CUSPARSE_OPERATION_TRANSPOSE",
             ("HIPSPARSE_OPERATION_TRANSPOSE", CONV_NUMERIC_LITERAL, API_SPECIAL),
         ),
@@ -8863,7 +8945,10 @@ CUDA_SPECIAL_MAP = collections.OrderedDict(
     ]
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PYTORCH_SPECIFIC_MAPPINGS = collections.OrderedDict(
     [
         ("USE_CUDA", ("USE_ROCM", API_PYTORCH)),
@@ -9328,7 +9413,10 @@ PYTORCH_SPECIFIC_MAPPINGS = collections.OrderedDict(
     ]
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CAFFE2_SPECIFIC_MAPPINGS = collections.OrderedDict(
     [
         ("PYTORCH_NO_CUDA_MEMORY_CACHING", ("PYTORCH_NO_CUDA_MEMORY_CACHING", API_CAFFE2)),
@@ -9404,7 +9492,11 @@ CAFFE2_SPECIFIC_MAPPINGS = collections.OrderedDict(
     ]
 )
 
+<<<<<<< HEAD
 # We must treat very carefully here.  Blanket conversions like are done
+=======
+# We must tread very carefully here.  Blanket conversions like are done
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # in CAFFE2_SPECIFIC_MAPPINGS are not presently supported on PyTorch,
 # because a regex for CUDA will also match a filename like CUDAGuard.h,
 # but the HIPIFY script doesn't presently move the file and so the substitution
@@ -9414,7 +9506,10 @@ CAFFE2_SPECIFIC_MAPPINGS = collections.OrderedDict(
 #
 # NB: if you want a transformation to ONLY apply to the c10/ directory,
 # put it as API_CAFFE2
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_MAPPINGS = collections.OrderedDict(
     [
         ("CUDA_VERSION", ("TORCH_HIP_VERSION", API_PYTORCH)),
@@ -9475,7 +9570,10 @@ C10_MAPPINGS = collections.OrderedDict(
         ("C10_CUDA_KERNEL_LAUNCH_CHECK", ("C10_HIP_KERNEL_LAUNCH_CHECK", API_C10)),
         ("CUDAKernelLaunchRegistry", ("HIPKernelLaunchRegistry", API_C10)),
         ("c10::cuda::get_cuda_check_suffix", ("c10::hip::get_hip_check_suffix", API_C10)),
+<<<<<<< HEAD
         ("c10::cuda::get_cuda_error_help", ("c10::hip::get_hip_error_help", API_C10)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 )
 

@@ -131,6 +131,7 @@ class TestBuiltins(JitTestCase):
         jit_out = torch.jit.script(del_dict_multiple_operands)({"hi": 5, "there": 6})
         self.assertEqual(py_out, jit_out)
 
+<<<<<<< HEAD
     def test_torch_check(self):
         """Test torch._check functionality with flexible argument handling"""
 
@@ -289,6 +290,8 @@ class TestBuiltins(JitTestCase):
                 torch._check(True, "msg", cond=False)
                 return x
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestTensorBuiltins(JitTestCase):
     def test_tensor_properties(self):
@@ -326,8 +329,11 @@ class TestTensorBuiltins(JitTestCase):
             # This has a longer implementation, maybe not worth copying to
             # TorchScript if named tensors don't work there anyways
             "names",
+<<<<<<< HEAD
             # We don't plan to support grad_dtype in TorchScript
             "grad_dtype",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         for p in properties:

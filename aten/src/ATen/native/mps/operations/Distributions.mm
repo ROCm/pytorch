@@ -5,6 +5,11 @@
 #include <ATen/native/DistributionTemplates.h>
 #include <ATen/native/Distributions.h>
 #include <ATen/native/TensorFactories.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mps/MPSGraphSonomaOps.h>
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -57,7 +62,10 @@ Tensor& random_mps_impl(Tensor& self,
   if (self.numel() == 0) {
     return self;
   }
+<<<<<<< HEAD
   at::assert_no_internal_overlap(self);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // MPS random is broken for 5D+ tensors, see https://github.com/pytorch/pytorch/issues/147624
   const auto need_reshape = self.ndimension() > 4;
   auto mps_gen = get_generator_or_default<MPSGeneratorImpl>(gen, at::mps::detail::getDefaultMPSGenerator());
@@ -86,6 +94,10 @@ Tensor& random_mps_impl(Tensor& self,
           case kFloat:
             return MPSDataTypeFloat32;
           case kBFloat16: {
+<<<<<<< HEAD
+=======
+            checkSupportsBFloat16();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return MPSDataTypeBFloat16;
           }
           default:
@@ -154,6 +166,7 @@ Tensor& random_mps_impl(Tensor& self,
       feeds[meanPlaceholder.getMPSGraphTensor()] = meanPlaceholder.getMPSGraphTensorData();
     }
 
+<<<<<<< HEAD
     // Handle non-contiguous output tensors by creating a contiguous temporary
     const auto needs_gather = needsGather(self);
     Tensor self_ = needs_gather ? at::empty_like(self, MemoryFormat::Contiguous) : self;
@@ -164,6 +177,10 @@ Tensor& random_mps_impl(Tensor& self,
     if (needs_gather) {
       self.copy_(self_);
     }
+=======
+    Placeholder outputPlaceholder = Placeholder(cachedGraph->resultTensor, self);
+    runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   return self;
@@ -424,9 +441,14 @@ Tensor& exponential_mps_(Tensor& self, double lambda, std::optional<Generator> g
     MPSGraphTensor* logTensor = [mpsGraph logarithmWithTensor:subtractTensor name:nil];
     return [mpsGraph divisionWithPrimaryTensor:logTensor secondaryTensor:minusLambdaTensor name:nil];
   };
+<<<<<<< HEAD
   auto eps = std::numeric_limits<float>::epsilon();
   return mps::random_mps_impl<double>(self,
                                       eps,
+=======
+  return mps::random_mps_impl<double>(self,
+                                      0.0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                       1.0,
                                       std::nullopt,
                                       std::nullopt,

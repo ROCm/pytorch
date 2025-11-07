@@ -45,7 +45,10 @@ class Binomial(Distribution):
         logits (Tensor): Event log-odds
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "total_count": constraints.nonnegative_integer,
         "probs": constraints.unit_interval,
@@ -67,7 +70,10 @@ class Binomial(Distribution):
         if probs is not None:
             (
                 self.total_count,
+<<<<<<< HEAD
                 # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.probs,
             ) = broadcast_all(total_count, probs)
             self.total_count = self.total_count.type_as(self.probs)
@@ -75,7 +81,10 @@ class Binomial(Distribution):
             assert logits is not None  # helps mypy
             (
                 self.total_count,
+<<<<<<< HEAD
                 # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.logits,
             ) = broadcast_all(total_count, logits)
             self.total_count = self.total_count.type_as(self.logits)
@@ -102,7 +111,10 @@ class Binomial(Distribution):
         return self._param.new(*args, **kwargs)
 
     @constraints.dependent_property(is_discrete=True, event_dim=0)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         return constraints.integer_interval(0, self.total_count)
 

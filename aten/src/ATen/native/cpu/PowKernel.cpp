@@ -96,6 +96,7 @@ static void pow_tensor_scalar_kernel(
       dtype == kBFloat16 || isComplexType(dtype)) {
     // Dispatch to fast specialization for sqrt, rsqrt and reciprocal
     if (exp_scalar.equal(.5)) {
+<<<<<<< HEAD
       sqrt_kernel(iter);
       return;
     } else if (exp_scalar.equal(-0.5)) {
@@ -104,6 +105,13 @@ static void pow_tensor_scalar_kernel(
     } else if (exp_scalar.equal(-1.0)) {
       reciprocal_kernel(iter);
       return;
+=======
+      return sqrt_kernel(iter);
+    } else if (exp_scalar.equal(-0.5)) {
+      return rsqrt_kernel(iter);
+    } else if (exp_scalar.equal(-1.0)) {
+      return reciprocal_kernel(iter);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -120,7 +128,11 @@ static void pow_tensor_scalar_kernel(
   } else if (dtype == ScalarType::Half) {
     [&]() {
       using scalar_t =
+<<<<<<< HEAD
           c10::impl::ScalarTypeToCPPTypeT<ScalarType::Half>;
+=======
+          decltype(c10::impl::ScalarTypeToCPPType<ScalarType::Half>::t);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const auto exp = exp_scalar.to<scalar_t>();
       using Vec = Vectorized<scalar_t>;
       cpu_kernel_vec(iter,

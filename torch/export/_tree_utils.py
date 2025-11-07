@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils._pytree import Context, TreeSpec
 
@@ -15,7 +19,11 @@ def reorder_kwargs(user_kwargs: dict[str, Any], spec: TreeSpec) -> dict[str, Any
     # Make sure that the spec is actually shaped like (args, kwargs)
     assert spec.type is tuple
     assert spec.num_children == 2
+<<<<<<< HEAD
     kwargs_spec = spec.child(1)
+=======
+    kwargs_spec = spec.children_specs[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert kwargs_spec.type is dict
 
     if set(user_kwargs) != set(kwargs_spec.context):
@@ -55,10 +63,17 @@ def is_equivalent(
         return False
 
     # Recurse on children
+<<<<<<< HEAD
     if spec1.num_children != spec2.num_children:
         return False
 
     for child_spec1, child_spec2 in zip(spec1.children(), spec2.children()):
+=======
+    if len(spec1.children_specs) != len(spec2.children_specs):
+        return False
+
+    for child_spec1, child_spec2 in zip(spec1.children_specs, spec2.children_specs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not is_equivalent(child_spec1, child_spec2, equivalence_fn):
             return False
 

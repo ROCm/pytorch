@@ -243,8 +243,13 @@ def _get_global_builtins():
         "getattr": "Attribute name must be a literal string",
         "hasattr": "Attribute name must be a literal string",
         "isinstance": "Result is static",
+<<<<<<< HEAD
         "zip": "Arguments must be iterable.",
         "enumerate": "Arguments must be iterable.",
+=======
+        "zip": "Arguments must be iterable. See :ref:`Iterables <jit_iterables>` for details.",
+        "enumerate": "Arguments must be iterable. See :ref:`Iterables <jit_iterables>` for details.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "range": "Can only be used as an iterator in a for loop",
     }
 
@@ -261,7 +266,10 @@ def _get_global_builtins():
 
     magic_methods_rows = []
     for fn, magic_method in magic_methods:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         magic_methods_rows.append(f'"{fn}", "``{magic_method}``"')
 
     schematized_ops = []
@@ -280,7 +288,10 @@ def _get_global_builtins():
             table_row = (
                 f'":external+python:py:obj:`{fn}`", "{schemaless_op_explanations[fn]}"'
             )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             schemaless_ops.append(table_row)
 
     schematized_ops_str = "\n".join(schematized_ops)
@@ -297,7 +308,11 @@ The functions in the following table are supported but do not have a static sche
 
 {schemaless_ops_str}
 
+<<<<<<< HEAD
 The following functions will use the corresponding magic method on TorchScript classes
+=======
+The following functions will use the corresponding magic method on :any:`TorchScript classes`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. csv-table::
     :header: "Function", "Magic Method"

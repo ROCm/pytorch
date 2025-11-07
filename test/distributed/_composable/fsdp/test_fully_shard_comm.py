@@ -5,19 +5,26 @@ import functools
 import itertools
 import os
 import tempfile
+<<<<<<< HEAD
 import unittest
 from collections.abc import Callable
 from typing import Optional, Union
 from unittest.mock import MagicMock
+=======
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributed._composable import checkpoint, replicate
+<<<<<<< HEAD
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     apply_activation_checkpointing,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import DeviceMesh, init_device_mesh
 from torch.distributed.fsdp import (
     FSDPModule,
@@ -25,12 +32,18 @@ from torch.distributed.fsdp import (
     MixedPrecisionPolicy,
     OffloadPolicy,
 )
+<<<<<<< HEAD
 from torch.distributed.fsdp._fully_shard._fsdp_api import AllGather
 from torch.distributed.fsdp._fully_shard._fsdp_collectives import (
     _div_if_needed,
     _get_gradient_divide_factors,
     DefaultAllGather,
     DefaultReduceScatter,
+=======
+from torch.distributed.fsdp._fully_shard._fsdp_collectives import (
+    _div_if_needed,
+    _get_gradient_divide_factors,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     foreach_all_gather,
     foreach_all_gather_copy_out,
     foreach_reduce,
@@ -59,9 +72,14 @@ from torch.testing._internal.common_fsdp import (
     patch_reshard,
     patch_unshard,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, TEST_XPU, xfailIf
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     FeedForward,
+=======
+from torch.testing._internal.common_utils import run_tests
+from torch.testing._internal.distributed._tensor.common_dtensor import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ModelArgs,
     Transformer,
     TransformerBlock,
@@ -172,7 +190,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
         all_gather_stream,
     ):
         def all_gather(fsdp_param_group: FSDPParamGroup, group: dist.ProcessGroup):
+<<<<<<< HEAD
             all_gather_comm = DefaultAllGather()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             all_gather_result = foreach_all_gather(
                 fsdp_param_group.fsdp_params,
                 group,
@@ -180,7 +201,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
                 all_gather_copy_in_stream=all_gather_copy_in_stream,
                 all_gather_stream=all_gather_stream,
                 device=self.device,
+<<<<<<< HEAD
                 all_gather_comm=all_gather_comm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             foreach_all_gather_copy_out(all_gather_result, fsdp_params, group)
             # Transition to unsharded state to register unsharded parameters
@@ -273,7 +297,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
         group = fsdp_param_group.mesh_info.shard_process_group
         self.assertEqual(group.size(), self.world_size)
         all_reduce_stream = device_module.Stream()
+<<<<<<< HEAD
         comm = DefaultReduceScatter()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             _,
             _,
@@ -286,7 +313,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
             unsharded_grads,
             group,
             reduce_scatter_stream,
+<<<<<<< HEAD
             comm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             orig_dtype=orig_params[0].dtype,
             reduce_dtype=reduce_scatter_dtype,
             device=self.device,
@@ -420,16 +450,22 @@ class TestFullyShardCommunication(FSDPTest):
         )
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/intel/torch-xpu-ops/issues/1571
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_set_reduce_scatter_divide_factor(self):
         self.run_subtests(
             {"divide_factor": [self.world_size * 2, self.world_size]},
             self._test_set_reduce_scatter_divide_factor,
         )
+<<<<<<< HEAD
         self.run_subtests(
             {"divide_factor": [self.world_size]},
             self._test_set_reduce_scatter_divide_factor_mixed_prevision,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _test_set_reduce_scatter_divide_factor(self, divide_factor: float):
         torch.manual_seed(42)
@@ -462,6 +498,7 @@ class TestFullyShardCommunication(FSDPTest):
             self.assertEqual(ref_loss, loss)
             check_sharded_parity(self, ref_model, model)
 
+<<<<<<< HEAD
     def _test_set_reduce_scatter_divide_factor_mixed_prevision(
         self, divide_factor: float
     ):
@@ -511,6 +548,8 @@ class TestFullyShardCommunication(FSDPTest):
             self.assertEqual(ref_loss, loss)
             check_sharded_parity(self, ref_model, model)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_set_reshard_after_forward(self):
         """
@@ -1015,6 +1054,7 @@ class TestFullyShardPrefetch(FSDPTest):
             events.clear()
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     def test_set_modules_to_backward_prefetch_inside_ac(self):
         n_layers = 3
         reshard_after_forward = True
@@ -1231,6 +1271,8 @@ class TestFullyShardPrefetch(FSDPTest):
             events.clear()
 
     @skip_if_lt_x_gpu(2)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_multi_module_backward_prefetch(self):
         n_layers = 5
         model_args = ModelArgs(n_layers=n_layers, checkpoint_activations=True)
@@ -1638,6 +1680,7 @@ class TestFullyShardAllocFromPG(FSDPTest):
         with open(self.nccl_log_dir.name + "/nccl_log") as f:
             self.assertRegex(f.read(), self.MEMORY_REGISTER_RE)
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(2)
     def test_exception_when_used_together_with_comm_hooks(self):
         model = nn.Linear(16, 16)
@@ -1654,6 +1697,8 @@ class TestFullyShardAllocFromPG(FSDPTest):
         with self.assertRaises(AssertionError):
             model.set_allocate_memory_from_process_group_for_comm(True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestFullyShardForceSumReduction(FSDPTest):
     # The messages might change when we move to a different NCCL version.
@@ -1677,9 +1722,12 @@ class TestFullyShardForceSumReduction(FSDPTest):
 
     # Test reduce-scatter only on plain FSDP on 2 GPUs
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_XPU, "Related environment variable is not supported with XCCL"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_force_sum_reduce_scatter(self):
         torch.manual_seed(42)
         model_args = ModelArgs()
@@ -1732,9 +1780,12 @@ class TestFullyShardForceSumReduction(FSDPTest):
 
     # Test both reduce-scatter and all-reduce on HSDP (DDP+FSDP) on 4 GPUs
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_XPU, "Related environment variable is not supported with XCCL"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_force_sum_both_reductions(self):
         mesh = init_device_mesh(
             device_type.type, (2, self.world_size // 2), mesh_dim_names=("ddp", "fsdp")
@@ -1799,6 +1850,7 @@ class TestFullyShardForceSumReduction(FSDPTest):
         self.assertRegex(logs, all_reduce_sum_re)
 
 
+<<<<<<< HEAD
 class TestFullyShardReduceOpWorldSize1(FSDPTest):
     @property
     def world_size(self) -> int:
@@ -1848,5 +1900,7 @@ class TestFullyShardReduceOpWorldSize1(FSDPTest):
         self.assertEqual(all_reduce_op, ReduceOp.SUM)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

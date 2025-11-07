@@ -48,7 +48,11 @@ class ValueAndMemoryLocationSet;
  *
  * `descendFunctionCalls` - recursively analyze function and method calls
  * instead of conservative analysis. Generally analysis should be done after
+<<<<<<< HEAD
  * inlining so the implementation for recursive analysis is unoptimized.
+=======
+ * inlining so the implmentation for recursive analysis is unoptimized.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 class AliasDb {
  public:
@@ -102,7 +106,11 @@ class AliasDb {
   // Do any nodes write to an alias set output by `n`?
   TORCH_API bool hasOutputWriters(const Node* n) const;
 
+<<<<<<< HEAD
   // Do any nodes write to an alias set inputted/outputted by `n`?
+=======
+  // Do any nodes write to an alias set inputed/outputed by `n`?
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_API bool hasWriters(const Node* n) const;
 
   // Do any nodes write to `v`s memory location?
@@ -338,7 +346,11 @@ TORCH_API void Lint(const AliasDb* db);
  *  * The AliasDb must not be mutated after construction of a
  *    ValueAndMemoryLocationsSet, or else the MemoryLocations stored in the
  *    ValueAndMemoryLocationSet will no longer be accurate.
+<<<<<<< HEAD
  *  * A ValueAndMemoryLocationsSet is tied to an instance of AliasDb but
+=======
+ *  * A ValueAndMemoryLocationsSet is tied to an instsance of AliasDb but
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  *    does not own the AliasDb. It is the user's responsibility to ensure
  *    that the AliasDb outlives the ValuesAndMemoryLocationsSet.
  *

@@ -14,7 +14,11 @@ namespace {
 //   pow(double, int)
 //   pow(float, float)
 //   pow(double, double)
+<<<<<<< HEAD
 #if defined(_MSC_VER) || defined(_LIBCPP_VERSION)
+=======
+#ifdef _MSC_VER
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Functions for pow
 // pow for at::Half
 static inline __host__ __device__ at::Half pow_(at::Half base, at::Half exp) {

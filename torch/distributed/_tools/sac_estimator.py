@@ -429,7 +429,10 @@ class SACEstimator(TorchDispatchMode):
         # sdpa has non-deterministic seed, but might be deterministic
         # if no dropout is applied
         if func.overloadpacket.__name__ == "_scaled_dot_product_flash_attention":
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_rand_op = kwargs.get("dropout_p", 0) != 0
         # 5. Create metadata information per active non-leaf module
         for mod_fqn in self._mod_tracker.parents:
@@ -711,7 +714,11 @@ class SACEstimator(TorchDispatchMode):
                 str(i in sac_stats.view_like_ops),
                 str(i in sac_stats.rand_ops),
                 str(i in sac_stats.saved_autograd_ops),
+<<<<<<< HEAD
                 str(op_parent.get(i)),
+=======
+                str(op_parent.get(i, None)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             table_data.append(row)
         # Define headers

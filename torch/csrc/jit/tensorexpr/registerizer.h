@@ -186,7 +186,11 @@ class AccessInfo {
   bool firstUsageOverlapped_{false};
 
   // The cost in real ops that this access represents, to enable
+<<<<<<< HEAD
   // filtering accesses that won't save any loads or stores.
+=======
+  // filtering accesses that wont save any loads or stores.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ExprPtr store_cost_;
   ExprPtr load_cost_;
 

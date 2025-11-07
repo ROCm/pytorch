@@ -520,7 +520,11 @@ cpu_adaptive_avg_pool3d_channels_last(
       scalar_t* out = output_data + i * channels;
       int64_t size = channels;
 
+<<<<<<< HEAD
       // Note: For ordinary usage scenario, each out lane should
+=======
+      // Note: For oridinary usage scenario, each out lane should
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       //   fit in L1 cache; otherwise consider block dim C.
       // Pass I: zero the out lane
       int64_t d1 = 0;

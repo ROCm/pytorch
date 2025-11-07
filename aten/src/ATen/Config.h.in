@@ -20,4 +20,7 @@
 #define AT_BLAS_F2C() @AT_BLAS_F2C@
 #define AT_BLAS_USE_CBLAS_DOT() @AT_BLAS_USE_CBLAS_DOT@
 #define AT_KLEIDIAI_ENABLED() @AT_KLEIDIAI_ENABLED@
+<<<<<<< HEAD
 #define AT_USE_EIGEN_SPARSE() @AT_USE_EIGEN_SPARSE@
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

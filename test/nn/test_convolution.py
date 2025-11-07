@@ -47,6 +47,7 @@ from torch.testing._internal.common_utils import (
     gradgradcheck,
     instantiate_parametrized_tests,
     MACOS_VERSION,
+<<<<<<< HEAD
     parametrize as parametrize_test,
     run_tests,
     set_default_dtype,
@@ -54,6 +55,16 @@ from torch.testing._internal.common_utils import (
     TEST_SCIPY,
     TEST_WITH_ROCM,
     xfailIf,
+=======
+    NAVI4_ARCH,
+    parametrize as parametrize_test,
+    run_tests,
+    set_default_dtype,
+    skipIfRocmArch,
+    subtest,
+    TEST_SCIPY,
+    TEST_WITH_ROCM,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -93,6 +104,7 @@ class TestConvolutionNN(NNTestCase):
         input = torch.randn((1, 1, 1, 1), dtype=torch.float)
         self.assertEqual(m(input).size(), (1, 1, 1, 1))
 
+<<<<<<< HEAD
     def test_huge_padding(self):
         class Conv1dModule(torch.nn.Module):
             def __init__(self):
@@ -134,6 +146,8 @@ class TestConvolutionNN(NNTestCase):
         ):
             model.conv_transposed1d(input_data)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_invalid_conv1d(self):
         for dtype in [
             torch.half,
@@ -271,6 +285,7 @@ class TestConvolutionNN(NNTestCase):
         with self.assertRaisesRegex(ValueError, "groups must be a positive integer"):
             torch.nn.Conv3d(1, 1, kernel_size=3, dilation=2, stride=2, groups=-2)
 
+<<<<<<< HEAD
     def test_conv_aten_invalid_groups(self):
         # test low-level aten ops with invalid groups parameter
         grad_output = torch.randn(2, 4, 8, dtype=torch.double)
@@ -366,6 +381,8 @@ class TestConvolutionNN(NNTestCase):
                 padding=[2**31, 2**31, 2**31],
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_Conv1d_module_same_padding(self):
         # Compare module against functional: without strides/dilation, asymmetric padding
         x = torch.rand(1, 1, 20)
@@ -849,7 +866,10 @@ class TestConvolutionNN(NNTestCase):
     # For https://github.com/pytorch/pytorch/pull/1273
     # Almost identical to the above `test_Conv2d_naive_groups`
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.001)
     def test_Conv2d_groups_nobias(self):
         dev_dtypes = [("cpu", torch.float)]
@@ -895,7 +915,10 @@ class TestConvolutionNN(NNTestCase):
     # See also https://github.com/pytorch/pytorch/pull/18463#issuecomment-476563686
     # and https://github.com/pytorch/pytorch/pull/18463#issuecomment-477001024
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.001)
     def test_Conv2d_groups_nobias_v2(self):
         torch.manual_seed(123)
@@ -1050,7 +1073,11 @@ class TestConvolutionNN(NNTestCase):
     @unittest.skipIf(not TEST_CUDNN, "needs cudnn")
     def test_conv_cudnn_memory_layout_dominance(self):
         # desired behavior here is to have the memory_layout of conv.weight to
+<<<<<<< HEAD
         # dominant the layout of output.
+=======
+        # dominante the layout of output.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # which is not the same as current behavior, we'll fix this in
         # following up PRs and remove the `expectedFailure` tag
         input = torch.randint(
@@ -1333,7 +1360,11 @@ class TestConvolutionNN(NNTestCase):
             kernel_x = torch.zeros([3, 1, 1, radius * 2 + 1], device=image.device)
             image = torch.nn.functional.conv2d(image, kernel_x, groups=image.shape[-3])
 
+<<<<<<< HEAD
         for i in range(128):
+=======
+        for i in range(0, 128):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # This should not fail
             reproducer(radius=i)
 
@@ -1503,7 +1534,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     # Very similar to test_Conv2d_naive_groups but with special care to handle
     # the number of groups == number of input channels
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.01)
     def test_Conv2d_depthwise_naive_groups(self, device, dtype):
         for depth_multiplier in [1, 2]:
@@ -1566,7 +1600,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @onlyCUDA
     @dtypes(torch.float, torch.double, torch.half)
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.01)
     def test_Conv3d_depthwise_naive_groups(self, device, dtype):
         for depth_multiplier in [1, 2]:
@@ -1659,6 +1696,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
 
     @onlyCUDA
     @dtypes(torch.double)
+<<<<<<< HEAD
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
     @torch.backends.miopen.flags(immediate=True)
     def test_conv_double_backward(self, device, dtype):
@@ -1702,6 +1740,50 @@ class TestConvolutionNNDeviceType(NNTestCase):
                     + "\ndilation: "
                     + str(dilation),
                 )
+=======
+    def test_conv_double_backward(self, device, dtype):
+        with torch.backends.cudnn.flags(enabled=True, deterministic=True):
+            # Double backward only runs with DoubleTensor due to precision reason
+            batch_size = 1
+            for kern, inp_size, dilations in [(3, 5, [1, 2]), (4, 9, [1])]:
+                for stride, padding, chan_in, chan_out, dilation in product(
+                    [1], [2], [2], [3], dilations
+                ):
+                    no_weight = stride == 2
+                    result = self.run_conv_double_back_test(
+                        kern,
+                        stride,
+                        padding,
+                        chan_in,
+                        chan_out,
+                        batch_size,
+                        inp_size,
+                        dilation,
+                        no_weight,
+                        use_cuda=True,
+                        dtype=dtype,
+                    )
+                    self.assertTrue(
+                        result,
+                        "Conv double backward test failed with parameters:"
+                        + "\nkern: "
+                        + str(kern)
+                        + "\nstride: "
+                        + str(stride)
+                        + "\npadding: "
+                        + str(padding)
+                        + "\nchan_in: "
+                        + str(chan_in)
+                        + "\nchan_out: "
+                        + str(chan_out)
+                        + "\nbatch_size: "
+                        + str(batch_size)
+                        + "\ninp_size: "
+                        + str(inp_size)
+                        + "\ndilation: "
+                        + str(dilation),
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_conv_double_backward_no_bias(self):
         kern = 3
@@ -1817,7 +1899,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
         *([torch.float] if MACOS_VERSION < 14.0 else [torch.float, torch.cfloat])
     )  # Complex not supported on MacOS13
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv1d_same_padding(self, device, dtype):
         # Test padding='same' outputs the correct shape
         test_args = [
@@ -2985,7 +3070,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @parametrize_test("strided", [False, True])
     # Test with both contiguous and non-contiguous inputs.
     @parametrize_test("contiguous", [False, True])
+<<<<<<< HEAD
     @expectedFailureMPS  # No double support
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv_backend(
         self,
         device,
@@ -3381,6 +3469,20 @@ class TestConvolutionNNDeviceType(NNTestCase):
         self.assertEqual(output.cpu().float(), output_cpu, atol=1e-3, rtol=1e-3)
 
     @onlyCUDA
+<<<<<<< HEAD
+=======
+    @skipCUDAIfRocm
+    @largeTensorTest("24GB", "cpu")
+    @largeTensorTest("20GB", "cuda")
+    def test_conv3d_large_batch_1(self, device):
+        x = torch.rand(1, 32, 512, 512, 256)
+        m = torch.nn.Conv3d(32, 1, kernel_size=1, padding=0, stride=1, bias=False)
+        yref = m(x)
+        y = m.to(device=device)(x.to(device=device))
+        self.assertEqual(yref, y.cpu())
+
+    @onlyCUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIfNoCudnn
     def test_contig_wrong_stride_cudnn(self, device):
         # x has to have batch_size 1 to test contiguous checks
@@ -3494,7 +3596,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     )
     @dtypes(torch.float)
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+<<<<<<< HEAD
     @torch.backends.miopen.flags(immediate=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.001)
     def test_Conv2d_naive_groups(self, device, dtype):
         # Check that grouped convolutions matches two half convolutions
@@ -3640,7 +3745,11 @@ class TestConvolutionNNDeviceType(NNTestCase):
                     input_format=input_format,
                     weight_format=weight_format,
                 )
+<<<<<<< HEAD
                 # test when input channel is 1 and not converted to channels last
+=======
+                # test when input chanels is 1 and not converted to channels last
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 helper(
                     nn.Conv2d,
                     2,
@@ -3929,9 +4038,15 @@ class TestConvolutionNNDeviceType(NNTestCase):
                         # This is because we have N111 weight that cannot handle
                         # the ambiguous memory_format
                         if w_f == torch.channels_last:
+<<<<<<< HEAD
                             if layer is nn.Conv2d and filter_size * c != 1:
                                 output_format = torch.channels_last
                             if layer is nn.ConvTranspose2d and filter_size * k != 1:
+=======
+                            if layer == nn.Conv2d and filter_size * c != 1:
+                                output_format = torch.channels_last
+                            if layer == nn.ConvTranspose2d and filter_size * k != 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 output_format = torch.channels_last
                     self._run_conv(
                         layer,
@@ -3967,9 +4082,18 @@ class TestConvolutionNNDeviceType(NNTestCase):
                 nn.ConvTranspose2d, n, c, h, w, k, filter_size, device
             )
 
+<<<<<<< HEAD
     @onlyCUDA
     @skipCUDAIfNoCudnn
     @dtypes(torch.float, torch.double, torch.float16, torch.bfloat16)
+=======
+    # torch.half is erroring out on Windows with CUDA 10.1 + cuDNN 7.6.4
+    # returning CUDNN_STATUS_BAD_PARAM
+    # Disabling that specific test for now [see issue # 33918]
+    @onlyCUDA
+    @skipCUDAIfNoCudnn
+    @dtypes(torch.float, torch.double)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv_cudnn_nhwc_support(self, device, dtype):
         input = torch.randn(
             (1, 16, 1, 1), dtype=dtype, device="cuda", requires_grad=True
@@ -4005,8 +4129,13 @@ class TestConvolutionNNDeviceType(NNTestCase):
 
     @onlyCUDA
     @skipCUDAIfNoCudnn
+<<<<<<< HEAD
     @dtypes(torch.float, torch.float16)
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+=======
+    @skipIfRocmArch(NAVI4_ARCH) # not supported by MIOPEN on NAVI4x
+    @dtypes(torch.float, torch.float16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @precisionOverride({torch.half: 0.002, torch.float: 1e-4})
     def test_cudnn_convolution_relu(self, device, dtype):
         for batch, groups, image_size, kernel_size, memory_format in product(
@@ -4020,9 +4149,15 @@ class TestConvolutionNNDeviceType(NNTestCase):
                 continue
             inp = torch.rand(batch, groups, *image_size, dtype=dtype, device=device)
             w = torch.randn(8, groups, *kernel_size, dtype=dtype, device=device)
+<<<<<<< HEAD
             inp = inp.to(memory_format=memory_format)
             w = w.to(memory_format=memory_format)
             conv2d_out = torch.conv2d(inp, w, None, (1, 1), (0, 0), (1, 1), 1)
+=======
+            conv2d_out = torch.conv2d(inp, w, None, (1, 1), (0, 0), (1, 1), 1)
+            inp = inp.to(memory_format=memory_format)
+            w = w.to(memory_format=memory_format)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if torch.version.hip:
                 cudnn_out = torch.miopen_convolution_relu(
                     inp, w, None, (1, 1), (0, 0), (1, 1), 1
@@ -4040,7 +4175,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @onlyCUDA
     @skipCUDAIfNoCudnn
     @dtypes(torch.float, torch.float16)
+<<<<<<< HEAD
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @precisionOverride({torch.half: 0.002, torch.float: 1e-4})
     def test_cudnn_convolution_add_relu(self, device, dtype):
         for batch, groups, image_size, kernel_size, memory_format in product(
@@ -4054,11 +4192,20 @@ class TestConvolutionNNDeviceType(NNTestCase):
                 continue
             inp = torch.rand(batch, groups, *image_size, dtype=dtype, device=device)
             w = torch.randn(8, groups, *kernel_size, dtype=dtype, device=device)
+<<<<<<< HEAD
             inp = inp.to(memory_format=memory_format)
             w = w.to(memory_format=memory_format)
             conv2d_out = torch.conv2d(inp, w, None, (1, 1), (0, 0), (1, 1), 1)
             alpha = 2.0
             z = torch.randn_like(conv2d_out)
+=======
+            conv2d_out = torch.conv2d(inp, w, None, (1, 1), (0, 0), (1, 1), 1)
+            alpha = 2.0
+            z = torch.randn_like(conv2d_out)
+
+            inp = inp.to(memory_format=memory_format)
+            w = w.to(memory_format=memory_format)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             z = z.to(memory_format=memory_format)
             if torch.version.hip:
                 cudnn_out = torch.miopen_convolution_add_relu(
@@ -4172,7 +4319,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @onlyCUDA
     @largeTensorTest("40GB")
     @largeTensorTest("24GB", "cpu")
+<<<<<<< HEAD
     @tf32_on_and_off(0.005)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv3d_64bit_indexing(self, device):
         x = torch.rand(1, 32, 512, 512, 256)
         m = torch.nn.Conv3d(32, 1, kernel_size=1, padding=0, stride=1, bias=False)
@@ -4182,6 +4332,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
 
     @skipCUDAIfRocm
     @onlyCUDA
+<<<<<<< HEAD
     @largeTensorTest("40GB", "cuda")
     def test_conv3d_cudnn_broken(self, device):
         for dtype in (torch.half, torch.bfloat16):
@@ -4228,6 +4379,16 @@ class TestConvolutionNNDeviceType(NNTestCase):
         yref = c(x)
         y = c.to(device=device)(x.to(device=device))
         self.assertEqual(yref, y, atol=1e-3, rtol=1e-4)
+=======
+    @largeTensorTest("20GB")
+    @largeTensorTest("80GB", "cpu")
+    def test_depthwise_conv_64bit_indexing(self, device):
+        x = torch.randn(1, 2, 32800, 32800)
+        c = nn.Conv2d(2, 2, kernel_size=3, stride=1, padding=1, groups=2)
+        yref = c(x)
+        y = c.to(device=device)(x.to(device=device))
+        self.assertEqual(yref, y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 instantiate_device_type_tests(TestConvolutionNNDeviceType, globals(), allow_mps=True)

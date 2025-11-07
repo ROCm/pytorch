@@ -32,7 +32,10 @@ class Poisson(ExponentialFamily):
         rate (Number, Tensor): the rate parameter
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"rate": constraints.nonnegative}
     support = constraints.nonnegative_integer
 
@@ -83,6 +86,9 @@ class Poisson(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor]:
         return (torch.log(self.rate),)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x):
         return torch.exp(x)

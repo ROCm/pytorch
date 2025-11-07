@@ -58,7 +58,11 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer import (
     XNNPACKQuantizer,
 )
 
+<<<<<<< HEAD
 from torch.export import export
+=======
+from torch.export import export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.jit.mobile import _load_for_lite_interpreter
 from torch.testing._internal.common_quantized import override_quantized_engine
 from torch.testing._internal.common_utils import TEST_WITH_ROCM, TestCase
@@ -87,8 +91,12 @@ import io
 import os
 
 import unittest
+<<<<<<< HEAD
 from typing import Any, Optional, Union
 from collections.abc import Callable
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 import torch._dynamo as torchdynamo
@@ -612,7 +620,11 @@ def _group_quantize_tensor_symmetric(w, n_bit=4, groupsize=32):
 
 
 def _dynamically_quantize_per_channel(x, quant_min, quant_max, target_dtype):
+<<<<<<< HEAD
     # source: https://github.com/meta-pytorch/gpt-fast/blob/main/quantize.py
+=======
+    # source: https://github.com/pytorch-labs/gpt-fast/blob/main/quantize.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # default setup for affine quantization of activations
     x_dtype = x.dtype
     x = x.float()
@@ -766,7 +778,11 @@ class QuantizationTestCase(TestCase):
             and not isinstance(module, _FusedModule)
         ):
             for child in module.children():
+<<<<<<< HEAD
                 if type(child) is nn.Dropout:
+=======
+                if type(child) in [nn.Dropout]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
                 self.checkObservers(
                     child, propagate_qconfig_list, prepare_custom_config_dict
@@ -1247,7 +1263,11 @@ class QuantizationTestCase(TestCase):
                }
             """
             # TODO: make img_data a single example instead of a list
+<<<<<<< HEAD
             if type(inputs) is list:
+=======
+            if type(inputs) == list:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inputs = inputs[0]
 
             if quant_type == QuantType.QAT:
@@ -1287,7 +1307,11 @@ class QuantizationTestCase(TestCase):
                 prepare_custom_config=prepare_custom_config,
                 backend_config=backend_config,
             )
+<<<<<<< HEAD
             if quant_type != QuantType.DYNAMIC:
+=======
+            if not quant_type == QuantType.DYNAMIC:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 prepared(*inputs)
 
             if print_debug_info:
@@ -1514,7 +1538,11 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
             {0: torch.export.Dim("dim")} if i == 0 else None
             for i in range(len(example_inputs))
         )
+<<<<<<< HEAD
         m = export(
+=======
+        m = export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             m,
             example_inputs,
             dynamic_shapes=dynamic_shapes if export_with_dynamic_shape else None,
@@ -1555,7 +1583,11 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
             m_fx = _convert_to_reference_decomposed_fx(
                 m_fx, backend_config=backend_config
             )
+<<<<<<< HEAD
             m_fx = export(
+=======
+            m_fx = export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 m_fx,
                 example_inputs,
                 dynamic_shapes=dynamic_shapes if export_with_dynamic_shape else None,
@@ -1579,7 +1611,11 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
         # resetting dynamo cache
         torch._dynamo.reset()
 
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_qat:
             m = prepare_qat_pt2e(m, quantizer)
         else:
@@ -3184,15 +3220,23 @@ class TestHelperModules:
             x = self.adaptive_avg_pool2d(x)
             return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     class ConvWithBNRelu(torch.nn.Module):
         def __init__(self, relu, dim=2, bn=True, bias=True, padding=0):
             super().__init__()
             convs = {1: torch.nn.Conv1d, 2: torch.nn.Conv2d, 3: torch.nn.Conv3d}
+<<<<<<< HEAD
             bns = {
                 1: torch.nn.BatchNorm1d,
                 2: torch.nn.BatchNorm2d,
                 3: torch.nn.BatchNorm3d,
             }
+=======
+            bns = {1: torch.nn.BatchNorm1d, 2: torch.nn.BatchNorm2d, 3: torch.nn.BatchNorm3d}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.conv = convs[dim](3, 3, 3, bias=bias, padding=padding)
 
             if bn:
@@ -3398,7 +3442,11 @@ def _generate_qdq_quantized_model(
 
     maybe_no_grad = contextlib.nullcontext() if is_qat else torch.no_grad()
     with maybe_no_grad:
+<<<<<<< HEAD
         export_model = export(mod, inputs, strict=True).module(check_guards=False)
+=======
+        export_model = export_for_training(mod, inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = (
             quantizer
             if quantizer

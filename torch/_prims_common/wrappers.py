@@ -2,10 +2,17 @@
 import inspect
 import types
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from functools import wraps
 from types import GenericAlias
 from typing import NamedTuple, Optional, overload, TypeVar, Union
+=======
+from collections.abc import Sequence
+from functools import wraps
+from types import GenericAlias
+from typing import Callable, NamedTuple, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -28,19 +35,28 @@ _P = ParamSpec("_P")
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _maybe_convert_to_dtype(a: TensorLikeType, dtype: torch.dtype) -> TensorLikeType:
     pass
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _maybe_convert_to_dtype(a: NumberType, dtype: torch.dtype) -> NumberType:
     pass
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _maybe_convert_to_dtype(a: Sequence, dtype: torch.dtype) -> Sequence:
     pass
 
@@ -97,7 +113,11 @@ class elementwise_type_promotion_wrapper:
 
     Takes two kwargs, type_promoting_args and type_promotion_kind.
 
+<<<<<<< HEAD
     type_promoting_args must be a string Sequence specifying the argument names of all
+=======
+    type_promoting_args must be a string Sequence specifiying the argument names of all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arguments that participate in type promotion (and should be type promoted). If the
     arg specifies a Sequence-type then every element of the Sequence will participate in
     type promotion.
@@ -180,7 +200,11 @@ def _resize_output_check(out: TensorLikeType, shape: ShapeType):
             "be resized unless they have zero elements. "
             "You can explicitly reuse an out tensor t by resizing it, inplace, to zero elements with t.resize_(0)."
         )
+<<<<<<< HEAD
         warnings.warn(msg, stacklevel=2)
+=======
+        warnings.warn(msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return True
 
 
@@ -279,9 +303,13 @@ def out_wrapper(
             TensorLikeType
             if is_tensor
             else NamedTuple(
+<<<<<<< HEAD
                 f"return_types_{fn.__name__}",
                 # pyrefly: ignore [bad-argument-count]
                 [(o, TensorLikeType) for o in out_names],
+=======
+                f"return_types_{fn.__name__}", [(o, TensorLikeType) for o in out_names]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
@@ -299,7 +327,10 @@ def out_wrapper(
                         kwargs[k] = out_attr
 
             def maybe_check_copy_devices(out):
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(out, TensorLike) and isinstance(args[0], TensorLike):
                     check_copy_devices(copy_from=args[0], copy_to=out)
 
@@ -322,7 +353,12 @@ def out_wrapper(
                     and len(result) == len(out_names)  # type: ignore[arg-type]
                 )
                 or (
+<<<<<<< HEAD
                     fn.__name__ == "unbind" and isinstance(result, (list, tuple))  # type: ignore[arg-type]
+=======
+                    fn.__name__ == "unbind"
+                    and isinstance(result, (list, tuple))  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
             # unbind_copy is a special case: see https://github.com/pytorch/pytorch/issues/130829
@@ -330,7 +366,11 @@ def out_wrapper(
                 # Naively you might expect this assert to be true, but
                 # it's not:
                 #
+<<<<<<< HEAD
                 #   assert type(out) is type(result)
+=======
+                #   assert type(out) == type(result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 #
                 # The reason is that functions under this wrapper can
                 # get registered to the Meta dispatch key, and that
@@ -347,6 +387,7 @@ def out_wrapper(
                     assert isinstance(out, TensorLike)
                     # These two operations are done in-place
                     _maybe_resize_out(
+<<<<<<< HEAD
                         out,
                         result.shape,  # type: ignore[union-attr]
                         maybe_compute_memory_format(result),
@@ -356,6 +397,11 @@ def out_wrapper(
                         copy_to=out,
                         exact_dtype=exact_dtype,
                     )
+=======
+                        out, result.shape, maybe_compute_memory_format(result)  # type: ignore[union-attr]
+                    )
+                    _safe_copy_out(copy_from=result, copy_to=out, exact_dtype=exact_dtype)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     if fn.__name__ != "unbind":
                         assert isinstance(out, tuple)  # type: ignore[arg-type]
@@ -396,8 +442,12 @@ def out_wrapper(
         params = sorted(params, key=lambda p: p.kind)
 
         _fn.__signature__ = inspect.Signature(  # type: ignore[attr-defined]
+<<<<<<< HEAD
             parameters=params,
             return_annotation=return_type,  # type: ignore[arg-type]
+=======
+            parameters=params, return_annotation=return_type  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         _fn.__annotations__ = dict(getattr(fn, "__annotations__", {}))
@@ -412,9 +462,13 @@ def out_wrapper(
         # Add an indicator attribute that can be used in special cases
         # where having a function wrapped by `out_wrapper` is not desirable e.g.
         # jit
+<<<<<<< HEAD
         _fn._torch_decompositions_out_wrapper = (  # type: ignore[attr-defined]
             f"This function is wrapped by {out_wrapper.__module__}.out_wrapper"
         )
+=======
+        _fn._torch_decompositions_out_wrapper = f"This function is wrapped by {out_wrapper.__module__}.out_wrapper"  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return _fn
 
@@ -435,7 +489,10 @@ def backwards_not_supported(prim):
 
     class BackwardsNotSupported(torch.autograd.Function):
         @staticmethod
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def forward(ctx, args_spec, *flat_args):
             args, kwargs = tree_unflatten(flat_args, args_spec)  # type: ignore[arg-type]
             return redispatch_prim(args, kwargs)
@@ -484,14 +541,23 @@ def elementwise_unary_scalar_wrapper(
             dtype = utils.type_to_dtype(type(args[0]))
             args_ = list(args)
             args_[0] = torch.tensor(args[0], dtype=dtype)
+<<<<<<< HEAD
             # pyrefly: ignore [invalid-param-spec]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = fn(*args_, **kwargs)
             assert isinstance(result, torch.Tensor)
             return result.item()
 
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-param-spec]
         return fn(*args, **kwargs)
 
     _fn.__signature__ = sig  # type: ignore[attr-defined]
     # pyrefly: ignore [bad-return]
+=======
+        return fn(*args, **kwargs)
+
+    _fn.__signature__ = sig  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _fn

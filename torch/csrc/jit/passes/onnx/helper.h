@@ -28,6 +28,12 @@ TORCH_API ValueToParamPairMap
 buildValueToParamsMap(Block* b, const ParamMap& paramsDict);
 TORCH_API void eraseUnusedValuesFromMap(ValueToParamPairMap& valsToParamsMap);
 TORCH_API void eraseUnusedBlockInputs(Block* b);
+<<<<<<< HEAD
+=======
+TORCH_API void buildParamsMapFromValueToParamsMap(
+    const ValueToParamPairMap& valsToParamsMap,
+    ParamMap& paramsDict);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TORCH_API Node* addNodeToBlock(
     Block* block,

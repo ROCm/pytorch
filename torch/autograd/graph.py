@@ -4,6 +4,7 @@ import functools
 import logging
 import threading
 from collections import defaultdict, deque
+<<<<<<< HEAD
 from collections.abc import (
     Callable,
     Generator,
@@ -14,14 +15,26 @@ from collections.abc import (
 )
 from typing import (
     Any,
+=======
+from collections.abc import Generator, Iterable, Iterator, MutableMapping, Sequence
+from typing import (
+    Any,
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cast,
     Literal,
     NamedTuple,
     Optional,
     TYPE_CHECKING,
+<<<<<<< HEAD
     TypeAlias,
     Union,
 )
+=======
+    Union,
+)
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from weakref import WeakKeyDictionary, WeakValueDictionary
 
 import torch
@@ -187,8 +200,12 @@ def _get_grad_fn_or_grad_acc(t: Union[torch.Tensor, "GradientEdge"]) -> Node:
             node = t.view_as(t).grad_fn.next_functions[0][0]  # type: ignore[union-attr]
     else:
         node = t.grad_fn
+<<<<<<< HEAD
     if node is None:
         raise AssertionError("Expected gradient function to be set")
+=======
+    assert node is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return node
 
 
@@ -201,9 +218,12 @@ class GradientEdge(NamedTuple):
 
     node: Node
     output_nr: int
+<<<<<<< HEAD
     # This token can be used to ensure the graph stays alive when it cannot be
     # done via the node field
     ownership_token: Optional[Node] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
@@ -219,6 +239,7 @@ def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
         )
     grad_fn = _get_grad_fn_or_grad_acc(tensor)
 
+<<<<<<< HEAD
     # Python-based Node are owned by the C++ side meaning the python grad_fn
     # object we hold here does NOT keep the C++ graph alive.
     # Create an ownership token by creating a new C++ node that own the graph
@@ -232,6 +253,11 @@ def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
     # for the AccumulateGrad node.
     # pyrefly: ignore [bad-argument-type]
     return GradientEdge(grad_fn, tensor.output_nr, ownership_token=token)
+=======
+    # Note that output_nr default to 0 which is the right value
+    # for the AccumulateGrad node.
+    return GradientEdge(grad_fn, tensor.output_nr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def increment_version(tensor: Union[torch.Tensor, Iterable[torch.Tensor]]) -> None:
@@ -261,7 +287,11 @@ class saved_tensors_hooks:
     Use this context-manager to define how intermediary results of an operation
     should be packed before saving, and unpacked on retrieval.
 
+<<<<<<< HEAD
     In that context, the ``pack_hook`` function will be called every time an
+=======
+    In that context, the ``pack_hook`` function will be called everytime an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     operation saves a tensor for backward (this includes intermediary results
     saved using
     :func:`~torch.autograd.function._ContextMethodMixin.save_for_backward` but
@@ -529,12 +559,19 @@ def register_multi_grad_hook(
             def inner_hook(grad: torch.Tensor) -> None:
                 nonlocal count, nb_calls, buffer, fn
                 id = torch._C._current_graph_task_id()
+<<<<<<< HEAD
                 if id == -1:
                     raise AssertionError(
                         "expected this hook to be called inside a backward call"
                     )
                 count[id] = count.get(id, 0)
                 # pyrefly: ignore [unsupported-operation]
+=======
+                assert (
+                    id != -1
+                ), "expected this hook to be called inside a backward call"
+                count[id] = count.get(id, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 buffer[id] = buffer.get(id, [None] * len_tensors)
 
                 with lock:
@@ -548,8 +585,12 @@ def register_multi_grad_hook(
 
                 buffer[id][idx] = grad
 
+<<<<<<< HEAD
                 if nb_calls is None:
                     raise AssertionError("Expected nb_calls to be set")
+=======
+                assert nb_calls is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if curr_count == nb_calls - 1:
                     fn = cast(Callable[[Sequence[Optional[torch.Tensor]]], None], fn)
                     fn(buffer[id])
@@ -569,10 +610,14 @@ def register_multi_grad_hook(
         def wrapped_fn(grad: torch.Tensor) -> None:
             nonlocal ran_hook
             id = torch._C._current_graph_task_id()
+<<<<<<< HEAD
             if id == -1:
                 raise AssertionError(
                     "expected this hook to be called inside a backward call"
                 )
+=======
+            assert id != -1, "expected this hook to be called inside a backward call"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with lock:
                 prev, ran_hook[id] = ran_hook[id], True
             if prev:
@@ -668,6 +713,7 @@ class _swap_with_cloned(saved_tensors_hooks):
                 "Trying to backward outside of the 'allow_mutation_on_saved_tensors' context"
                 "in which the graph was originally recorded."
             )
+<<<<<<< HEAD
             if not _allow_mutation_on_saved_tensors_enabled:
                 raise AssertionError(error_msg)
             if handle in ctx.cloned:
@@ -675,6 +721,13 @@ class _swap_with_cloned(saved_tensors_hooks):
             else:
                 if handle not in ctx.original:
                     raise AssertionError(error_msg)
+=======
+            assert _allow_mutation_on_saved_tensors_enabled, error_msg
+            if handle in ctx.cloned:
+                res = ctx.cloned[handle]
+            else:
+                assert handle in ctx.original, error_msg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 res = ctx.original[handle]
             return res
 
@@ -748,9 +801,15 @@ class _AllowMutationOnSavedContext:
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def allow_mutation_on_saved_tensors() -> Generator[
     _AllowMutationOnSavedContext, None, None
 ]:
+=======
+def allow_mutation_on_saved_tensors() -> (
+    Generator[_AllowMutationOnSavedContext, None, None]
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Context manager under which mutating tensors saved for backward is allowed.
 
     Under this context manager, tensors saved for backward are cloned on mutation,

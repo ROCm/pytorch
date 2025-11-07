@@ -37,7 +37,11 @@ c10::intrusive_ptr<Message> RRefBackwardReq::toMessageImpl() && {
 std::unique_ptr<RRefBackwardReq> RRefBackwardReq::fromMessage(
     const Message& message) {
   // Unpickle the message and retrieve tupleElements.
+<<<<<<< HEAD
   auto payload = message.payload().data();
+=======
+  auto payload = static_cast<const char*>(message.payload().data());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto payload_size = message.payload().size();
   IValue tuple = jit::unpickle(
       payload,

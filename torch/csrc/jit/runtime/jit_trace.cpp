@@ -62,10 +62,14 @@ void eraseAllOutputs(Node* opt_pn) {
   }
 }
 
+<<<<<<< HEAD
 void insertTracingNodes(
     Block* /*block*/,
     ProfilingRecord* /*pr*/,
     TracingData& /*td*/);
+=======
+void insertTracingNodes(Block*, ProfilingRecord*, TracingData&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // The subtlety in `createPropNodeForIfBlock` is that we need to create
 // a "propagate" node that will propagate the mapping between the outputs

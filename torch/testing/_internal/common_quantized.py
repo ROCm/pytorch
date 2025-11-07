@@ -10,6 +10,10 @@ from contextlib import contextmanager
 from torch.testing._internal.common_utils import TEST_WITH_TSAN, IS_PPC, IS_MACOS, IS_WINDOWS
 
 supported_qengines = torch.backends.quantized.supported_engines
+<<<<<<< HEAD
+=======
+supported_qengines.remove('none')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Note: We currently do not run QNNPACK tests on WINDOWS and MACOS as it is flaky. Issue #29326
 # QNNPACK is not supported on PPC
 if 'qnnpack' in supported_qengines and any([IS_PPC, TEST_WITH_TSAN, IS_MACOS, IS_WINDOWS]):
@@ -447,6 +451,7 @@ def _floatx_unpacked_to_f32(x: Tensor, ebits: int, mbits: int) -> Tensor:
 def ceil_div(a, b):
     return (a + b - 1) // b
 
+<<<<<<< HEAD
 # NVIDIA Blackwell HW requires scales for MX/NV blocked formats to be in a 128x4 tile layout,
 # with a weird 32x4x4 internal layout of that tile. If we want to take swizzled scales and use them
 # for non-gemm purposes (like testing), we need to de-swizzle them, then they can be applied much
@@ -497,6 +502,8 @@ def from_blocked_format(x_mxfp8, scales_unswizzled, blocksize=32):
     x_f32 = x_mxfp8.to(torch.float) * scales.to(torch.float)
     return x_f32.to(torch.bfloat16)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def to_blocked(input_matrix) -> torch.Tensor:
     """
     Rearrange a large matrix by breaking it into blocks and applying the rearrangement pattern.
@@ -529,6 +536,7 @@ def to_blocked(input_matrix) -> torch.Tensor:
     rearranged = blocks.reshape(-1, 4, 32, 4).transpose(1, 2).reshape(-1, 32, 16)
 
     return rearranged.flatten()
+<<<<<<< HEAD
 
 # This function is extracted from https://github.com/pytorch/ao/blob/v0.12.0/torchao/prototype/mx_formats/mx_tensor.py#L142
 def to_mxfp8(
@@ -636,3 +644,5 @@ def generate_jagged_offs(E, M, multiple_of=16, dtype=torch.int32, device="cuda")
     selected_values, _ = torch.sort(selected_values)
 
     return selected_values.to(dtype).to(device)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

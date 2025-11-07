@@ -3,6 +3,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import io
+<<<<<<< HEAD
 import logging
 import os
 import shutil
@@ -10,6 +11,13 @@ import tempfile
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, cast, IO, Optional
+=======
+import os
+import shutil
+import tempfile
+from functools import wraps
+from typing import Any, Callable, cast, IO, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # introduced as collections.abc.Buffer in Python 3.12
 from typing_extensions import Buffer
@@ -159,6 +167,7 @@ def with_temp_dir(
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     return wrapper
+<<<<<<< HEAD
 
 
 def with_checkpoint_logging(
@@ -192,3 +201,5 @@ def with_checkpoint_logging(
             target_logger.setLevel(original_level)
 
     return wrapper
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

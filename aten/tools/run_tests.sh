@@ -50,7 +50,10 @@ run_if_exists cuda_complex_test
 run_if_exists cuda_complex_math_test
 run_if_exists cuda_cub_test
 run_if_exists cuda_atomic_ops_test
+<<<<<<< HEAD
 run_if_exists cuda_allocator_test
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if [ "$VALGRIND" == "ON" ]; then
   # NB: As these tests are invoked by valgrind, let's leave them for now as it's

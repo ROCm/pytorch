@@ -1,6 +1,10 @@
 //  Copyright © 2022 Apple Inc.
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/native/Resize.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -9,6 +13,7 @@
 #else
 #include <ATen/ops/_unique2.h>
 #include <ATen/ops/_unique2_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/arange.h>
 #include <ATen/ops/argsort.h>
 #include <ATen/ops/cat.h>
@@ -18,13 +23,18 @@
 #include <ATen/ops/nonzero.h>
 #include <ATen/ops/ones.h>
 #include <ATen/ops/ones_like.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/slice.h>
 #include <ATen/ops/unique_consecutive.h>
 #include <ATen/ops/unique_consecutive_native.h>
 #include <ATen/ops/unique_dim_consecutive.h>
 #include <ATen/ops/unique_dim_consecutive_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/unique_dim_native.h>
 #include <ATen/ops/zeros.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 namespace at::native {
@@ -316,6 +326,7 @@ std::tuple<Tensor, Tensor, Tensor> _unique2_mps(const Tensor& self,
   return _unique_impl_mps(self, return_inverse, return_counts, false, std::nullopt);
 }
 
+<<<<<<< HEAD
 static Tensor lexsort_rows_perm_mps(const Tensor& mat_2d) {
   const auto rows = mat_2d.size(0), cols = mat_2d.size(1);
   if (rows <= 1 || cols == 0) {
@@ -397,4 +408,6 @@ std::tuple<Tensor, Tensor, Tensor> unique_dim_mps(const Tensor& self,
   return unique_dim_sorted_mps_impl(self, dim, return_inverse, return_counts);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

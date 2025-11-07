@@ -67,9 +67,12 @@ class Dropout(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.dropout(input, self.p, self.training, self.inplace)
 
 
@@ -115,9 +118,12 @@ class Dropout1d(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.dropout1d(input, self.p, self.training, self.inplace)
 
 
@@ -170,9 +176,12 @@ class Dropout2d(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.dropout2d(input, self.p, self.training, self.inplace)
 
 
@@ -218,9 +227,12 @@ class Dropout3d(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.dropout3d(input, self.p, self.training, self.inplace)
 
 
@@ -263,9 +275,12 @@ class AlphaDropout(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.alpha_dropout(input, self.p, self.training)
 
 
@@ -317,7 +332,10 @@ class FeatureAlphaDropout(_DropoutNd):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.feature_alpha_dropout(input, self.p, self.training)

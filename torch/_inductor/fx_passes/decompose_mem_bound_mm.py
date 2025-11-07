@@ -4,10 +4,14 @@ import logging
 import torch
 from torch import Tensor
 from torch._dynamo.utils import counters, is_node_meta_valid
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import (
     statically_known_false,
     statically_known_true,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import statically_known_true
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .. import config
 from ..pattern_matcher import Arg, CallFunction, Match, register_graph_pattern
@@ -18,6 +22,7 @@ aten = torch.ops.aten
 log = logging.getLogger(__name__)
 
 # TODO: need a better strategy for decomposing mm
+<<<<<<< HEAD
 # The following two constants are for CUDA device only
 MIN_FIRST_DIMENSION_DECOMPOSITION = 10240
 MAX_OTHER_DIMENSION_DECOMPOSITION = 32
@@ -29,6 +34,13 @@ min_first_dimension_decomposition = MIN_FIRST_DIMENSION_DECOMPOSITION
 max_other_dimension_decomposition = MAX_OTHER_DIMENSION_DECOMPOSITION
 cpu_max_first_dimension_decomposition = CPU_MAX_FIRST_DIMENSION_DECOMPOSITION
 cpu_max_other_dimension_decomposition = CPU_MAX_OTHER_DIMENSION_DECOMPOSITION
+=======
+MIN_FIRST_DIMENSION_DECOMPOSITION = 10240
+MAX_OTHER_DIMENSION_DECOMPOSITION = 32
+
+min_first_dimension_decomposition = MIN_FIRST_DIMENSION_DECOMPOSITION
+max_other_dimension_decomposition = MAX_OTHER_DIMENSION_DECOMPOSITION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if "decompose_mm_pass" in config.post_grad_fusion_options:
     min_first_dimension_decomposition = config.post_grad_fusion_options[
         "decompose_mm_pass"
@@ -36,6 +48,7 @@ if "decompose_mm_pass" in config.post_grad_fusion_options:
     max_other_dimension_decomposition = config.post_grad_fusion_options[
         "decompose_mm_pass"
     ].get("max_other_dimension_decomposition", MAX_OTHER_DIMENSION_DECOMPOSITION)
+<<<<<<< HEAD
     cpu_max_first_dimension_decomposition = config.post_grad_fusion_options[
         "decompose_mm_pass"
     ].get(
@@ -46,6 +59,8 @@ if "decompose_mm_pass" in config.post_grad_fusion_options:
     ].get(
         "cpu_max_other_dimension_decomposition", CPU_MAX_OTHER_DIMENSION_DECOMPOSITION
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def check_device(a: Tensor, b: Tensor, device="cuda") -> bool:
@@ -70,6 +85,7 @@ def should_decompose_bmm(mat1, mat2) -> bool:
         if mat1.shape[0] < min_first_dimension_decomposition:
             return False
         # 2 of m, n, k must be <= MAX_OTHER_DIMENSION_DECOMPOSITION
+<<<<<<< HEAD
         # use bool() to deal with BooleanAtom type
         if (
             bool(mat1.shape[1] < max_other_dimension_decomposition)
@@ -84,11 +100,21 @@ def should_decompose_bmm(mat1, mat2) -> bool:
             mat1.shape[0] <= cpu_max_first_dimension_decomposition
             and mat2.shape[0] <= cpu_max_first_dimension_decomposition
         ):
+=======
+        if (mat1.shape[1] < max_other_dimension_decomposition) + (
+            mat1.shape[2] < max_other_dimension_decomposition
+        ) + (mat2.shape[2] < max_other_dimension_decomposition) < 2:
+            return False
+        return True
+    elif check_device(mat1, mat2, device="cpu"):
+        if mat1.shape[0] == 1 and mat2.shape[0] == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return True
     return False
 
 
 def should_decompose_mm(mat1, mat2) -> bool:
+<<<<<<< HEAD
     """
     Determines whether matrix multiplication (mm) should be decomposed into pointwise operations
     based on the input matrices' metadata, shapes, device placement, and configuration options.
@@ -118,6 +144,8 @@ def should_decompose_mm(mat1, mat2) -> bool:
         - Designed for use in graph optimization or fusion passes where decomposing large or dynamic
           matrix multiplications can improve performance or memory usage.
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if is_node_meta_valid(mat1) and is_node_meta_valid(mat2):
         mat1 = mat1.meta["val"]
         mat2 = mat2.meta["val"]
@@ -125,6 +153,7 @@ def should_decompose_mm(mat1, mat2) -> bool:
         return False
     if len(mat1.shape) != 2 or len(mat2.shape) != 2:
         return False
+<<<<<<< HEAD
     # case 1: we skip decompose mm if the input is dynamic shape
     if not config.post_grad_fusion_options["decompose_mm_pass"].get(
         "skip_dynamic_shape_dim_check", False
@@ -199,6 +228,19 @@ def should_decompose_mm(mat1, mat2) -> bool:
                 )
             )
         )
+=======
+    return (
+        check_device(mat1, mat2, device="cuda")
+        and statically_known_true(mat1.shape[0] >= min_first_dimension_decomposition)
+        and statically_known_true(mat2.shape[0] < max_other_dimension_decomposition)
+        and statically_known_true(mat2.shape[1] < max_other_dimension_decomposition)
+    ) or (
+        check_device(mat1, mat2, device="cpu")
+        and statically_known_true(mat1.shape[0] == 1)
+        and statically_known_true(mat2.shape[0] <= 128)
+        and statically_known_true(mat2.shape[1] <= 512)
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def print_decompose_pattern(match: Match, inputs: list[torch.fx.Node]):
@@ -225,7 +267,10 @@ def decompose_bmm(match: Match, mat1: torch.fx.Node, mat2: torch.fx.Node):
 
     if should_decompose_bmm(mat1, mat2):
         counters["inductor"]["decompose_bmm"] += 1
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(repl, [mat1, mat2])
         print_decompose_pattern(match, [mat1, mat2])
         realize_inputs([mat1, mat2])
@@ -249,7 +294,10 @@ def decompose_addmm(
 
     if should_decompose_mm(mat2, mat3):
         counters["inductor"]["decompose_addmm"] += 1
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(repl, [mat1, mat2, mat3])
         print_decompose_pattern(match, [mat1, mat2, mat3])
         realize_inputs([mat1, mat2, mat3])
@@ -270,7 +318,10 @@ def decompose_mm(
 
     if should_decompose_mm(mat1, mat2):
         counters["inductor"]["decompose_mm"] += 1
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(repl, [mat1, mat2])
         print_decompose_pattern(match, [mat1, mat2])
         realize_inputs([mat1, mat2])

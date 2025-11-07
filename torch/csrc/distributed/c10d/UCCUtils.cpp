@@ -1,8 +1,14 @@
 #ifdef USE_C10D_UCC
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 #include <torch/csrc/distributed/c10d/UCCTracing.hpp>
 #include <torch/csrc/distributed/c10d/UCCUtils.hpp>
+=======
+#include <torch/csrc/distributed/c10d/UCCTracing.hpp>
+#include <torch/csrc/distributed/c10d/UCCUtils.hpp>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cctype>
 #include <string>
 #include <unordered_map>
@@ -133,7 +139,11 @@ CommUCC::CommUCC(
     TORCH_UCC_LOG_ERROR(
         TORCH_UCC_INIT,
         c10::str("failed to read UCC context config: ", ucc_status_string(st)));
+<<<<<<< HEAD
     TORCH_CHECK(false, ucc_status_string(st));
+=======
+    throw std::runtime_error(ucc_status_string(st));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   st = ucc_context_config_modify(
       context_config,
@@ -148,7 +158,11 @@ CommUCC::CommUCC(
         c10::str(
             "UCC failed to modify UCC context config: ",
             ucc_status_string(st)));
+<<<<<<< HEAD
     TORCH_CHECK(false, ucc_status_string(st));
+=======
+    throw std::runtime_error(ucc_status_string(st));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   memset(&context_params, 0, sizeof(ucc_context_params_t));
   context_params.mask =
@@ -169,7 +183,11 @@ CommUCC::CommUCC(
     TORCH_UCC_LOG_ERROR(
         TORCH_UCC_INIT,
         c10::str("UCC failed to create UCC context: ", ucc_status_string(st)));
+<<<<<<< HEAD
     TORCH_CHECK(false, ucc_status_string(st));
+=======
+    throw std::runtime_error(ucc_status_string(st));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

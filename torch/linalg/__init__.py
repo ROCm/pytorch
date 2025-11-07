@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 from torch._C import (  # type: ignore[attr-defined]  # pyrefly: ignore  # missing-module-attribute
     _add_docstr,
     _linalg,
     _LinAlgError as LinAlgError,  # pyrefly: ignore  # missing-module-attribute
+=======
+from torch._C import (  # type: ignore[attr-defined]
+    _add_docstr,
+    _linalg,
+    _LinAlgError as LinAlgError,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 

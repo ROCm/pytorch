@@ -7,7 +7,11 @@ from torch.testing._internal.common_utils import run_tests, TestCase
 
 class TestPerOverloadAPI(TestCase):
     def test_basics_opoverloadpacket(self):
+<<<<<<< HEAD
         # add is only used as an example here. It is ok to update the test
+=======
+        # add is ony used as an example here. It is ok to update the test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # if the semantics of add are modified in the future.
         add_packet = torch.ops.aten.add
 

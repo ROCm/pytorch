@@ -6,7 +6,11 @@ from typing import Optional
 
 import torch
 from torch.distributed.device_mesh import DeviceMesh
+<<<<<<< HEAD
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+=======
+from torch.distributed.tensor._dtensor_spec import DTensorSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._op_schema import (
     OpSchema,
     OpSpec,
@@ -24,10 +28,13 @@ from torch.distributed.tensor._ops.utils import (
     prod,
     register_op_strategy,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor._utils import (
     compute_local_shape_and_global_offset,
     compute_local_stride,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.placement_types import (
     Partial,
     Placement,
@@ -42,8 +49,12 @@ aten = torch.ops.aten
 @register_op_strategy(aten.t.default)
 def transpose_strategy(op_schema: OpSchema) -> OpStrategy:
     self_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(self_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(self_strategy)}")
+=======
+    assert isinstance(self_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     transpose_strategies = []
     for input_strategy in self_strategy.strategies:
@@ -69,20 +80,29 @@ def _mm_like_strategy(
     mm_equation: str, mesh: DeviceMesh, op_schema: OpSchema
 ) -> OpStrategy:
     self_strategy, mat2_strategy = op_schema.args_schema
+<<<<<<< HEAD
     if not isinstance(self_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(self_strategy)}")
     if not isinstance(mat2_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(mat2_strategy)}")
+=======
+    assert isinstance(self_strategy, OpStrategy)
+    assert isinstance(mat2_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # generate all possible strategies for mm
     mm_strategy = gen_einsum_strategies(mm_equation, mesh)
     # filter out invalid strategies and associate costs
     strategies = mm_strategy.strategies
     filtered_strategies = []
     for strtg in strategies:
+<<<<<<< HEAD
         if strtg.input_specs is None:
             raise AssertionError(
                 f"Expected input_specs to be not None, got {strtg.input_specs}"
             )
+=======
+        assert strtg.input_specs is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self_spec = strtg.input_specs[0]
         mat2_spec = strtg.input_specs[1]
         if is_tensor_shardable(self_strategy.shape, self_spec) and is_tensor_shardable(
@@ -104,12 +124,18 @@ def _addmm_like_strategy(
     mm_equation: str, mesh: DeviceMesh, op_schema: OpSchema
 ) -> OpStrategy:
     self_strategy, mat1_strategy, mat2_strategy = op_schema.args_schema
+<<<<<<< HEAD
     if not isinstance(self_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(self_strategy)}")
     if not isinstance(mat1_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(mat1_strategy)}")
     if not isinstance(mat2_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(mat2_strategy)}")
+=======
+    assert isinstance(self_strategy, OpStrategy)
+    assert isinstance(mat1_strategy, OpStrategy)
+    assert isinstance(mat2_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self_shape = self_strategy.shape
     mm_out_shape = torch.Size(
         [
@@ -124,10 +150,14 @@ def _addmm_like_strategy(
     filtered_strategies = []
     for strtg in strategies:
         # construct new strategy by consider the self arg
+<<<<<<< HEAD
         if strtg.input_specs is None:
             raise AssertionError(
                 f"Expected input_specs to be not None, got {strtg.input_specs}"
             )
+=======
+        assert strtg.input_specs is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mat1_spec = strtg.input_specs[0]
         mat2_spec = strtg.input_specs[1]
         out_spec = strtg.output_spec
@@ -172,6 +202,7 @@ def _scaled_mm_like_strategy(
         scale_result_strategy,
         *_,
     ) = op_schema.args_schema
+<<<<<<< HEAD
     if not isinstance(self_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(self_strategy)}")
     if not isinstance(mat2_strategy, OpStrategy):
@@ -185,16 +216,31 @@ def _scaled_mm_like_strategy(
         raise AssertionError("_scaled_mm on DTensors doesn't support bias")
     if scale_result_strategy is not None:
         raise AssertionError("_scaled_mm on DTensors doesn't support scale_result")
+=======
+    assert isinstance(self_strategy, OpStrategy)
+    assert isinstance(mat2_strategy, OpStrategy)
+    assert isinstance(scale_self_strategy, OpStrategy)
+    assert isinstance(scale_mat2_strategy, OpStrategy)
+    # TODO: add support for these later
+    assert bias_strategy is None, "_scaled_mm on DTensors doesn't support bias"
+    assert scale_result_strategy is None, (
+        "_scaled_mm on DTensors doesn't support scale_result"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # generate all possible strategies for mm
     mm_strategy = gen_einsum_strategies(mm_equation, mesh)
     # filter out invalid strategies and associate costs
     strategies = mm_strategy.strategies
     filtered_strategies = []
     for strtg in strategies:
+<<<<<<< HEAD
         if strtg.input_specs is None:
             raise AssertionError(
                 f"Expected input_specs to be not None, got {strtg.input_specs}"
             )
+=======
+        assert strtg.input_specs is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self_spec = strtg.input_specs[0]
         mat2_spec = strtg.input_specs[1]
         # propagate the operands' specs to their scales, except for tensor-wise
@@ -279,8 +325,12 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
 
     return_debug_mask = len(op_schema.args_schema) >= 6 and op_schema.args_schema[5]
     q_input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(q_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(q_input_strategy)}")
+=======
+    assert isinstance(q_input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
 
     single_mesh_dim_strategies = []
@@ -332,7 +382,10 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
     # Shard on the batch dimension
+<<<<<<< HEAD
     debug_attn_mask_sharding = Shard(0) if return_debug_mask else Replicate()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     single_mesh_dim_strategies.append(
         [
             Shard(0),  # output
@@ -343,7 +396,11 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
             None,  # max_k
             Replicate(),  # rng_state
             None,  # unused
+<<<<<<< HEAD
             debug_attn_mask_sharding,  # debugattn
+=======
+            Shard(0),  # debugattn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Shard(0),  # q
             Shard(0),  # k
             Shard(0),  # v
@@ -351,7 +408,10 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
     )
 
     # Context Parallelism: shards on the sequence dim
+<<<<<<< HEAD
     debug_attn_mask_sharding = Shard(2) if return_debug_mask else Replicate()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     single_mesh_dim_strategies.append(
         [
             Shard(2),  # output
@@ -362,7 +422,11 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
             None,  # max_k
             Replicate(),  # rng_state
             None,  # unused
+<<<<<<< HEAD
             debug_attn_mask_sharding,  # debugattn
+=======
+            Shard(2),  # debugattn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Shard(2),  # q
             Shard(2),  # k
             Shard(2),  # v
@@ -381,8 +445,12 @@ def scaled_dot_product_flash_attention_backward_strategy(
     mesh = op_schema.get_mesh_from_args(validate=False)
 
     q_input_strategy = op_schema.args_schema[1]
+<<<<<<< HEAD
     if not isinstance(q_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(q_input_strategy)}")
+=======
+    assert isinstance(q_input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
 
     tensor_input_indices = [
@@ -494,8 +562,12 @@ def scaled_dot_product_efficient_attention_strategy(op_schema: OpSchema) -> OpSt
     # NOTE: currently we only support some simple strategies to support tensor parallelism
     mesh = op_schema.get_mesh_from_args()
     q_input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(q_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(q_input_strategy)}")
+=======
+    assert isinstance(q_input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
 
     has_attn_bias = op_schema.args_schema[3] is not None
@@ -592,8 +664,12 @@ def scaled_dot_product_efficient_attention_backward_strategy(
     mesh = op_schema.get_mesh_from_args(validate=False)
 
     q_input_strategy = op_schema.args_schema[1]
+<<<<<<< HEAD
     if not isinstance(q_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(q_input_strategy)}")
+=======
+    assert isinstance(q_input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
     has_attn_bias = op_schema.args_schema[4] is not None
 
@@ -712,8 +788,12 @@ def scaled_dot_product_cudnn_attention_strategy(op_schema: OpSchema) -> OpStrate
         Replicate() if return_debug_mask else None
     )
 
+<<<<<<< HEAD
     if not isinstance(query_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(query_strategy)}")
+=======
+    assert isinstance(query_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
 
     single_mesh_dim_strategies = []
@@ -730,7 +810,11 @@ def scaled_dot_product_cudnn_attention_strategy(op_schema: OpSchema) -> OpStrate
         None,  # max_k
         None,  # philox_seed
         None,  # philox_offset
+<<<<<<< HEAD
         # NOTE: debug_attn_mask is not supported by pytorch and is always an empty tensor
+=======
+        # NOTE: debug_attn_mask is not supproted by pytorch and is always an empty tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # https://github.com/pytorch/pytorch/blob/60205b0eb2602317856312a66d955c88334ade0b/aten/src/ATen/native/transformers/cuda/attention.cu#L839-L840
         debug_attn_mask_sharding,  # debug_attn_mask
         Replicate(),  # q
@@ -818,16 +902,24 @@ def scaled_scaled_dot_product_cudnn_attention_backward_strategy(
     # backward op does not need to validate the mesh since forward op has already done it
     mesh = op_schema.get_mesh_from_args(validate=False)
 
+<<<<<<< HEAD
     if len(op_schema.args_schema) < 15:
         raise AssertionError(
             f"Expected at least 15 args_schema, got {len(op_schema.args_schema)}"
         )
+=======
+    assert len(op_schema.args_schema) >= 15
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     has_attn_bias = op_schema.args_schema[8] is not None
     has_scale = len(op_schema.args_schema) >= 16 and False
 
     query_strategy = op_schema.args_schema[1]
+<<<<<<< HEAD
     if not isinstance(query_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(query_strategy)}")
+=======
+    assert isinstance(query_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assuming q/k/v have the same shape
 
     single_mesh_dim_strategies = []
@@ -939,6 +1031,7 @@ def grouped_mm_strategy(op_schema: OpSchema) -> OpStrategy:
     mesh = op_schema.get_mesh_from_args()
 
     mat1_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(mat1_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(mat1_strategy)}")
     mat2_strategy = op_schema.args_schema[1]
@@ -948,6 +1041,14 @@ def grouped_mm_strategy(op_schema: OpSchema) -> OpStrategy:
         bias_strategy = op_schema.args_schema[3]
         if bias_strategy is not None:
             raise AssertionError("grouped_mm doesn't support bias yet")
+=======
+    assert isinstance(mat1_strategy, OpStrategy)
+    mat2_strategy = op_schema.args_schema[1]
+    assert isinstance(mat2_strategy, OpStrategy)
+    if len(op_schema.args_schema) > 3:
+        bias_strategy = op_schema.args_schema[3]
+        assert bias_strategy is None, "grouped_mm doesn't support bias yet"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     single_mesh_dim_strategies = []
 
@@ -1072,6 +1173,7 @@ def grouped_mm_strategy(op_schema: OpSchema) -> OpStrategy:
             ]
         )
 
+<<<<<<< HEAD
     def valid_grouped_mm_strides(
         input_specs: list[DTensorSpec], output_specs: tuple[Optional[DTensorSpec], ...]
     ) -> bool:
@@ -1127,4 +1229,8 @@ def grouped_mm_strategy(op_schema: OpSchema) -> OpStrategy:
         single_mesh_dim_strategies,
         input_index=1,
         is_valid_strategy_cb=valid_grouped_mm_strides,
+=======
+    return expand_to_full_mesh_op_strategy(
+        mesh, op_schema, single_mesh_dim_strategies, input_index=1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )

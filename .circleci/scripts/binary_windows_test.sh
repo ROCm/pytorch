@@ -8,7 +8,11 @@ export VC_YEAR=2022
 
 if [[ "$DESIRED_CUDA" == 'xpu' ]]; then
     export VC_YEAR=2022
+<<<<<<< HEAD
     export XPU_VERSION=2025.2
+=======
+    export XPU_VERSION=2025.1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 pushd "$PYTORCH_ROOT/.ci/pytorch/"

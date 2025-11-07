@@ -46,6 +46,7 @@ def register_fake_operators():
     def fake_queue_push(tq, x):
         return tq.push(x)
 
+<<<<<<< HEAD
     torch.library.register_autocast(
         "_TorchScriptTesting::queue_push", "cpu", torch.float32
     )
@@ -60,6 +61,8 @@ def register_fake_operators():
         "_TorchScriptTesting::queue_pop", "cuda", torch.float32
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.library.register_fake("_TorchScriptTesting::queue_size")
     def fake_queue_size(tq):
         return tq.size()

@@ -6,11 +6,15 @@ This module defines runtime wrappers, which, based on previous analysis attempts
 3. handle functionalized randomness
 4. deduplicate inputs and consolidate views into their bases (see input_output_analysis)
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import builtins
 import collections
 import contextlib
 import copy
+<<<<<<< HEAD
 import functools
 import itertools
 import pprint
@@ -26,6 +30,16 @@ if TYPE_CHECKING:
 
 import torch
 import torch.fx as fx
+=======
+import itertools
+import pprint
+from contextlib import AbstractContextManager, nullcontext
+from dataclasses import dataclass, field
+from functools import wraps
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.utils.dlpack
 from torch import Tensor
 from torch._dynamo import config as dynamo_config
@@ -47,6 +61,7 @@ from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
 from .. import config
 from .collect_metadata_analysis import run_functionalized_fw_and_collect_metadata
+<<<<<<< HEAD
 from .descriptors import (
     AOTInput,
     AOTOutput,
@@ -57,6 +72,9 @@ from .descriptors import (
 )
 from .functional_utils import gen_alias_from_base
 from .graph_capture_wrappers import aot_dispatch_subclass
+=======
+from .functional_utils import gen_alias_from_base
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .input_output_analysis import (
     compute_overlapping_inputs,
     create_synthetic_base_metadata,
@@ -65,9 +83,12 @@ from .input_output_analysis import (
 from .logging_utils import describe_input, format_guard_bug_msg, track_graph_compiling
 from .schemas import (
     AOTConfig,
+<<<<<<< HEAD
     CompilerWrapper,
     FxValue,
     InductorWrapper,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     InputAliasInfo,
     MemoryFormatMeta,
     MutationType,
@@ -76,7 +97,10 @@ from .schemas import (
     SubclassCreationMeta,
     SubclassMeta,
     TensorAlias,
+<<<<<<< HEAD
     TraceFn,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ViewAndMutationMeta,
 )
 from .subclass_utils import (
@@ -84,6 +108,7 @@ from .subclass_utils import (
     runtime_unwrap_tensor_subclasses,
     wrap_tensor_subclasses,
 )
+<<<<<<< HEAD
 from .utils import (
     call_and_expect_output_descs,
     call_func_at_runtime_with_args,
@@ -98,6 +123,72 @@ from .utils import (
 zip = strict_zip
 
 
+=======
+from .traced_function_transforms import aot_dispatch_subclass
+from .utils import (
+    call_func_at_runtime_with_args,
+    make_boxed_func,
+    partial_flatten_asdict,
+    strict_zip,
+)
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+zip = strict_zip
+
+
+class CompilerWrapper:
+    """
+    A wrapper around the inputs and outputs to the compiler_fn. We separate these into two parts:
+
+    1. The prologue, which edits the input to the compiler_fn(flat_fn, flat_args, etc)
+    2. The epilogue, which edits the outputs of the compiler_fn (compiled_fn, real arguments)
+
+    Each wrapper below should be implemented as a CompilerWrapper, so that we can facilitate
+    caching on the compiled output, and re-wrapping the output via epilogues.
+    Extra metadata that is needed to compute pre or post compile can be passed in via attributes.
+    """
+
+    def pre_compile(
+        self,
+        flat_fn,
+        flat_args: list[Tensor],
+        aot_config: AOTConfig,
+        *,
+        fw_metadata: ViewAndMutationMeta,
+    ) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+        """
+        Process the inputs to the compiler_fn. You can pass in extra metadata via kwargs.
+        Args:
+        flat_fn: The function to compile
+        flat_args: Metadata from example inputs of the function to compile
+        aot_config: AOTConfig passed in at compile time
+        fw_metadata: ViewAndMutationMeta generated from flat_fn and flat_args
+        """
+        return flat_fn, flat_args, fw_metadata
+
+    def post_compile(self, compiled_fn, aot_config, *, runtime_metadata) -> Callable:
+        """
+        Given an output of the compiler, wrap it with information received from prologue.
+        Args:
+        compiled_fn: Callable after calling compiler_fn
+        aot_config: AOTConfig after calling prologue
+        runtime_metadata: ViewAndMutationMeta after calling all wrappers's pre_compile steps.
+        Example:
+
+        def wrapped_compiled_fn(args):
+            # do something with args, aot_config, fw_metadata
+            return compiled_fn(args)
+
+        return wrapped_compiled_fn
+        """
+        return compiled_fn
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The wrapper created by this function handles all of the runtime aliasing and mutation "epilogue" logic
 # that needs to run after the compiled function.
 #
@@ -151,7 +242,11 @@ class AliasOfInputHandler:
         self.base_idx = info.base_idx
         self.unwrap_out = _unwrap_tensoralias if trace_joint else _identity
         self.requires_grad = info.requires_grad
+<<<<<<< HEAD
         self.view_meta_sequence = info.view_meta_sequence
+=======
+        self.functional_tensor = info.functional_tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.replay_views = config.view_replay_for_aliased_outputs
 
     def __call__(self, orig_inputs, fw_outs, out):
@@ -160,7 +255,11 @@ class AliasOfInputHandler:
             aliased_base_tensor,
             self.unwrap_out(out),
             self.requires_grad,
+<<<<<<< HEAD
             self.view_meta_sequence,
+=======
+            self.functional_tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             replay_views=self.replay_views,
         )
 
@@ -191,7 +290,11 @@ class AliasOfIntermediateHandler:
 
         self.unwrap_out = _unwrap_tensoralias if trace_joint else _identity
         self.requires_grad = info.requires_grad
+<<<<<<< HEAD
         self.view_meta_sequence = info.view_meta_sequence
+=======
+        self.functional_tensor = info.functional_tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.replay_views = config.view_replay_for_aliased_outputs
 
     def __call__(self, orig_inputs, fw_outs, out):
@@ -200,7 +303,11 @@ class AliasOfIntermediateHandler:
             self._unwrap_aliased_base_tensor(aliased_base_tensor),
             self.unwrap_out(out),
             self.requires_grad,
+<<<<<<< HEAD
             self.view_meta_sequence,
+=======
+            self.functional_tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             replay_views=self.replay_views,
         )
 
@@ -225,7 +332,10 @@ def make_output_handler(info, runtime_metadata, trace_joint):
 # not sure why AOTDispatcher needs to manually set this
 def maybe_mark_dynamic_helper(t: torch.Tensor, dims: set[int]):
     if hasattr(t, "_dynamo_weak_dynamic_indices"):
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t._dynamo_weak_dynamic_indices |= dims
     else:
         t._dynamo_weak_dynamic_indices = dims.copy()  # type: ignore[attr-defined]
@@ -290,9 +400,15 @@ def _create_runtime_wrapper(
             for info in runtime_metadata.output_info
         )
 
+<<<<<<< HEAD
     def record_runtime_wrapper_prologue_enter() -> Optional[
         AbstractContextManager[None]
     ]:
+=======
+    def record_runtime_wrapper_prologue_enter() -> (
+        Optional[AbstractContextManager[None]]
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             torch.autograd.profiler._is_profiler_enabled
             and dynamo_config.record_runtime_overhead
@@ -310,7 +426,10 @@ def _create_runtime_wrapper(
         if cm is not None:
             cm.__exit__(None, None, None)
 
+<<<<<<< HEAD
     @simple_wraps(compiled_fn)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def runtime_wrapper(args: list[Any]):
         # Create context manager for profiler
         cm = record_runtime_wrapper_prologue_enter()
@@ -469,7 +588,10 @@ def _create_runtime_wrapper(
         return runtime_wrapper
 
     # Disabling saved tensors hooks
+<<<<<<< HEAD
     @simple_wraps(runtime_wrapper)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _runtime_wrapper(*args, **kwargs):
         with _disable_saved_tensors_hooks():
             return runtime_wrapper(*args, **kwargs)
@@ -477,9 +599,14 @@ def _create_runtime_wrapper(
     return _runtime_wrapper
 
 
+<<<<<<< HEAD
 # WARNING: this does NOT operate on TraceFn
 @dataclass
 class FunctionalizedRngRuntimeWrapper(InductorWrapper):
+=======
+@dataclass
+class FunctionalizedRngRuntimeWrapper(CompilerWrapper):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: I would love to get rid of this argument, but it's
     # Wrapped pretty tightly around our aot_dispatch_autograd logic.
     # Specifically, tensors_saved_for_backwards_slice's value is both used for calculating indices
@@ -491,21 +618,36 @@ class FunctionalizedRngRuntimeWrapper(InductorWrapper):
 
     def pre_compile(
         self,
+<<<<<<< HEAD
         flat_fn: torch.fx.GraphModule,
+=======
+        flat_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat_args,
         aot_config,
         *,
         fw_metadata,
+<<<<<<< HEAD
     ) -> None:
         if config.functionalize_rng_ops:
             # Update example inputs for the fw_compiler
             fake_mode = detect_fake_mode()
             assert fake_mode is not None
+=======
+    ) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+        if config.functionalize_rng_ops:
+            # Update example inputs for the fw_compiler
+            fake_mode = detect_fake_mode()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             seed, offset = CUDARngStateHelper.get_torch_state_as_tuple(fake_mode)
             flat_args.extend([seed, offset])
             # We are not clearing flat_args here because
             # 1) There is a check in the debug compiler at the end
             # 2) It does not matter as these are fake tensors
+<<<<<<< HEAD
+=======
+        return flat_fn, flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def post_compile(
         self,
@@ -553,9 +695,14 @@ class FunctionalizedRngRuntimeWrapper(InductorWrapper):
         return outs
 
 
+<<<<<<< HEAD
 # WARNING: this does NOT operate on TraceFn
 @dataclass
 class FakifiedOutWrapper(InductorWrapper):
+=======
+@dataclass
+class FakifiedOutWrapper(CompilerWrapper):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     out_metas: list[torch.Tensor] = field(default_factory=list)
     # TracingContext.fwd_output_strides
     # Generated from actually doing compile
@@ -565,12 +712,20 @@ class FakifiedOutWrapper(InductorWrapper):
 
     def pre_compile(
         self,
+<<<<<<< HEAD
         fw_module: fx.GraphModule,  # Must be fw_module from aot_dispatch_*_graph
+=======
+        fw_module,  # Must be fw_module from aot_dispatch_*_graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat_args,
         aot_config,
         *,
         fw_metadata,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tracing_context = torch._guards.TracingContext.try_get()
         if tracing_context and tracing_context.fakify_first_call:
             self.out_metas = [
@@ -578,6 +733,10 @@ class FakifiedOutWrapper(InductorWrapper):
             ]
         else:
             self.needs_post_compile = False
+<<<<<<< HEAD
+=======
+        return fw_module, flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _compute_output_meta_with_inductor_strides(self):
         out = self.out_metas
@@ -651,13 +810,19 @@ class AOTDispatchSubclassWrapper(CompilerWrapper):
 
     def pre_compile(
         self,
+<<<<<<< HEAD
         flat_fn: TraceFn,
         flat_args: list[FxValue],
         flat_args_descs: list[AOTInput],
+=======
+        flat_fn,
+        flat_args: list[Tensor],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aot_config: AOTConfig,
         *,
         fw_metadata: ViewAndMutationMeta,
     ):
+<<<<<<< HEAD
         (new_flat_fn, new_flat_args, new_flat_args_descs, subclass_meta) = (
             aot_dispatch_subclass(
                 flat_fn,
@@ -670,6 +835,17 @@ class AOTDispatchSubclassWrapper(CompilerWrapper):
         )
         self.maybe_subclass_meta = subclass_meta
         return new_flat_fn, new_flat_args, new_flat_args_descs, fw_metadata
+=======
+        (new_flat_fn, new_flat_args, subclass_meta) = aot_dispatch_subclass(
+            flat_fn,
+            flat_args,
+            is_joint_structure=self.trace_joint,
+            meta=fw_metadata,
+            fw_only=self.fw_only,  # type: ignore[arg-type]
+        )
+        self.maybe_subclass_meta = subclass_meta
+        return new_flat_fn, new_flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def post_compile(
         self,
@@ -837,6 +1013,7 @@ class AOTDedupeWrapper(CompilerWrapper):
 
     def pre_compile(
         self,
+<<<<<<< HEAD
         flat_fn: TraceFn,
         flat_args: list[FxValue],
         flat_args_descs: list[AOTInput],
@@ -844,11 +1021,20 @@ class AOTDedupeWrapper(CompilerWrapper):
         *,
         fw_metadata: ViewAndMutationMeta,
     ) -> tuple[TraceFn, list[FxValue], list[AOTInput], ViewAndMutationMeta]:
+=======
+        flat_fn,
+        flat_args: list[Tensor],
+        aot_config: AOTConfig,
+        *,
+        fw_metadata: ViewAndMutationMeta,
+    ) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Use information about whether or not flat_fn mutates its arguments
         # or not to handle dupe args
 
         # Strategy 1: For any input that is not mutated, we can leafify it if we
         # need to remove a duplicate.
+<<<<<<< HEAD
         leaf_flat_args: list[FxValue] = []
         leaf_flat_args_descs: list[AOTInput] = []
         args_set = set()
@@ -862,19 +1048,38 @@ class AOTDedupeWrapper(CompilerWrapper):
                 args_set.add(a)
                 leaf_flat_args.append(a)
                 leaf_flat_args_descs.append(a_desc)
+=======
+        leaf_flat_args = []
+        args_set = set()
+        ok = True
+
+        for i, a in enumerate(flat_args):
+            if not isinstance(a, torch.Tensor):
+                leaf_flat_args.append(a)
+            elif a not in args_set:
+                args_set.add(a)
+                leaf_flat_args.append(a)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif (
                 not fw_metadata.input_info[i].mutates_data
                 and not fw_metadata.input_info[i].mutates_metadata
             ):
                 leaf_flat_args.append(a.detach().requires_grad_(a.requires_grad))
+<<<<<<< HEAD
                 leaf_flat_args_descs.append(a_desc)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 ok = False
                 break
 
         if ok:
             self.needs_post_compile = False
+<<<<<<< HEAD
             return flat_fn, leaf_flat_args, leaf_flat_args_descs, fw_metadata
+=======
+            return flat_fn, leaf_flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if requires_subclass_dispatch(leaf_flat_args, fw_metadata):
             raise RuntimeError(
@@ -934,18 +1139,27 @@ class AOTDedupeWrapper(CompilerWrapper):
             keep_arg_mask.append(True)
             add_dupe_map.append(j)
             j += 1
+<<<<<<< HEAD
         assert len(add_dupe_map) == duped_arg_len, (
             f"Expects add_dupe_map to have length {duped_arg_len} but got {len(add_dupe_map)}"
         )
+=======
+        assert (
+            len(add_dupe_map) == duped_arg_len
+        ), f"Expects add_dupe_map to have length {duped_arg_len} but got {len(add_dupe_map)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.keep_arg_mask = keep_arg_mask
         self.add_dupe_map = add_dupe_map
 
         deduped_flat_args = self.remove_dupe_args(flat_args)
+<<<<<<< HEAD
         # TODO: instead of arbitrarily removing args, it might be useful to
         # have a record that these were duped, perhaps as a mutable attribute
         # on the kept arg?  Do this if someone needs it
         deduped_flat_args_descs = self.remove_dupe_args(flat_args_descs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Update our input metadata to remove duped input metadata.
         updated_fw_metadata = remove_dupe_metadata(
@@ -973,6 +1187,7 @@ class AOTDedupeWrapper(CompilerWrapper):
                         DuplicateInputs(kept_arg_source, dupe_arg_source)
                     )
 
+<<<<<<< HEAD
         @simple_wraps(flat_fn)
         def wrapped_flat_fn(
             *args: FxValue,
@@ -986,10 +1201,20 @@ class AOTDedupeWrapper(CompilerWrapper):
             ref_fw_metadata = run_functionalized_fw_and_collect_metadata(
                 without_output_descs(wrapped_flat_fn),
                 flat_args_descs=deduped_flat_args_descs,
+=======
+        @wraps(flat_fn)
+        def wrapped_flat_fn(*args):
+            return flat_fn(*self.add_dupe_args(args))
+
+        if config.debug_assert:
+            ref_fw_metadata = run_functionalized_fw_and_collect_metadata(
+                wrapped_flat_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 static_input_indices=aot_config.static_input_indices,
                 keep_input_mutations=fw_metadata.keep_input_mutations,
                 is_train=fw_metadata.is_train,
             )(*deduped_flat_args)
+<<<<<<< HEAD
             assert ref_fw_metadata == updated_fw_metadata, (
                 f"ref_metadata={str(ref_fw_metadata)}, actual_metadata={str(updated_fw_metadata)}"
             )
@@ -1000,6 +1225,13 @@ class AOTDedupeWrapper(CompilerWrapper):
             deduped_flat_args_descs,
             updated_fw_metadata,
         )
+=======
+            assert (
+                ref_fw_metadata == updated_fw_metadata
+            ), f"ref_metadata={str(ref_fw_metadata)}, actual_metadata={str(updated_fw_metadata)}"
+
+        return wrapped_flat_fn, deduped_flat_args, updated_fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def post_compile(
         self,
@@ -1074,6 +1306,7 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
 
     def pre_compile(
         self,
+<<<<<<< HEAD
         flat_fn: TraceFn,
         flat_args: list[FxValue],
         flat_args_descs: list[AOTInput],
@@ -1090,6 +1323,18 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
             aot_config,
             flat_args,
             flat_args_descs,
+=======
+        flat_fn,
+        flat_args: list[Any],
+        aot_config: AOTConfig,
+        *,
+        fw_metadata: ViewAndMutationMeta,
+    ) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+        is_inference = not self.trace_joint
+        flat_args_with_synthetic_bases, synthetic_base_info = merge_view_inputs(
+            aot_config,
+            flat_args,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fw_metadata.input_info,
             is_inference=is_inference,
         )
@@ -1097,7 +1342,11 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
         # Happy path: we don't need synthetic bases
         if synthetic_base_info is None:
             self.needs_post_compile = False
+<<<<<<< HEAD
             return flat_fn, flat_args, flat_args_descs, fw_metadata
+=======
+            return flat_fn, flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # export path: ban synthetic bases for now, add later if requested.
         if requires_subclass_dispatch(flat_args, fw_metadata):
@@ -1127,11 +1376,15 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
             fw_metadata_updated,
             aliased_arg_idx_with_metadata_mutations,
         ) = create_synthetic_base_metadata(
+<<<<<<< HEAD
             fw_metadata,
             synthetic_base_info,
             flat_args,
             flat_args_with_synthetic_bases,
             flat_args_descs_with_synthetic_bases,
+=======
+            fw_metadata, synthetic_base_info, flat_args, flat_args_with_synthetic_bases
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # Save old input args for post-compile
         self.old_input_info = fw_metadata.input_info
@@ -1143,7 +1396,10 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
 
         def _unpack_synthetic_bases(primals: tuple[Any, ...]) -> list[Any]:
             f_args_inner = []
+<<<<<<< HEAD
             # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for inner_idx_or_tuple in synthetic_base_info:
                 if isinstance(inner_idx_or_tuple, int):
                     f_args_inner.append(primals[inner_idx_or_tuple])
@@ -1159,7 +1415,11 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
                     f_args_inner.append(view_arg)
             return f_args_inner
 
+<<<<<<< HEAD
         @simple_wraps(flat_fn)
+=======
+        @wraps(flat_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def wrapped_flat_fn(*args):
             unpacked_args = _unpack_synthetic_bases(args)
             # This is a bit subtle. The goal of this entire function (aot_dispatch_synthetic_bases)
@@ -1180,6 +1440,7 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
                 for i, x in enumerate(unpacked_args)
                 if i in self.aliased_arg_idx_with_metadata_mutations
             ]
+<<<<<<< HEAD
             out, out_descs = call_and_expect_output_descs(flat_fn, unpacked_args)
             if len(aliased_args_with_metadata_mutations) > 0:
                 # TODO: record more detailed desc information here
@@ -1201,6 +1462,16 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
             ref_fw_metadata = run_functionalized_fw_and_collect_metadata(
                 without_output_descs(wrapped_flat_fn),
                 flat_args_descs=flat_args_descs_with_synthetic_bases,
+=======
+            if len(aliased_args_with_metadata_mutations) > 0:
+                return *(flat_fn(*unpacked_args)), *aliased_args_with_metadata_mutations
+            else:
+                return flat_fn(*unpacked_args)
+
+        if config.debug_assert:
+            ref_fw_metadata = run_functionalized_fw_and_collect_metadata(
+                wrapped_flat_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 static_input_indices=aot_config.static_input_indices,
                 keep_input_mutations=fw_metadata.keep_input_mutations,
                 is_train=fw_metadata.is_train,
@@ -1212,7 +1483,10 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
         return (
             wrapped_flat_fn,
             flat_args_with_synthetic_bases,
+<<<<<<< HEAD
             flat_args_descs_with_synthetic_bases,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fw_metadata_updated,
         )
 
@@ -1230,10 +1504,15 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
 
         @wraps(compiled_fn)
         def wrapped_compiled_fn(args):
+<<<<<<< HEAD
             # TODO: this sure seems expensive to run at runtime (which
             # post_compile seems to imply it does?!)
             args_with_synthetic_bases, _, synthetic_base_info = merge_view_inputs(
                 aot_config, args, None, self.old_input_info, is_inference=is_inference
+=======
+            args_with_synthetic_bases, synthetic_base_info = merge_view_inputs(
+                aot_config, args, self.old_input_info, is_inference=is_inference
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             assert synthetic_base_info is not None
             aliased_args_w_metadata_mutations = [
@@ -1339,18 +1618,25 @@ class AOTSyntheticBaseWrapper(CompilerWrapper):
 def merge_view_inputs(
     aot_config: AOTConfig,
     fwd_inputs: list[Any],
+<<<<<<< HEAD
     # This is None when called at runtime from post_compile closure
     fwd_inputs_descs: Optional[list[AOTInput]],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mutated_input_info: list[InputAliasInfo],
     *,
     # The autograd case currently has more restrictions than the inference case.
     is_inference: bool,
+<<<<<<< HEAD
 ) -> tuple[
     list[Any], list[AOTInput], Optional[list[Union[int, tuple[int, torch.Tensor]]]]
 ]:
     if fwd_inputs_descs is None:
         fwd_inputs_descs = [DummyAOTInput(i) for i in range(len(fwd_inputs))]
 
+=======
+) -> tuple[list[Any], Optional[list[Union[int, tuple[int, torch.Tensor]]]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _are_differentiable_views(view1, view2):
         if view1 is view2:
             return True
@@ -1372,20 +1658,31 @@ def merge_view_inputs(
     assert len(fwd_inputs) == len(mutated_input_info)
     if not [info for info in mutated_input_info if info.mutates_data]:
         # Return early when there are no mutations.
+<<<<<<< HEAD
         return fwd_inputs, fwd_inputs_descs, None
+=======
+        return fwd_inputs, None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     storage_ref_to_idx: dict[StorageWeakRef, list[int]] = collections.defaultdict(list)
     base_args = []
     other_args = []
+<<<<<<< HEAD
     base_args_descs = []
     other_args_descs = []
     for i, (inpt, source) in enumerate(zip(fwd_inputs, fwd_inputs_descs)):
+=======
+    for i, inpt in enumerate(fwd_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(inpt, Tensor):
             storage_ref = StorageWeakRef(inpt.untyped_storage())
             storage_ref_to_idx[storage_ref].append(i)
         else:
             other_args.append(inpt)
+<<<<<<< HEAD
             other_args_descs.append(source)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Note [Synthetic Base Info Metadata]
     # This list contains metadata that tells you what the i'th argument in the inner calling convention should be.
     # It's either:
@@ -1403,9 +1700,12 @@ def merge_view_inputs(
             other_args.extend(
                 fwd_inputs[curr_idx] for curr_idx in aliased_input_indices
             )
+<<<<<<< HEAD
             other_args_descs.extend(
                 fwd_inputs_descs[curr_idx] for curr_idx in aliased_input_indices
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
 
         # Here, we attempt to do a more complicated check to detect false aliasing
@@ -1421,9 +1721,12 @@ def merge_view_inputs(
             other_args.extend(
                 fwd_inputs[curr_idx] for curr_idx in aliased_input_indices
             )
+<<<<<<< HEAD
             other_args_descs.extend(
                 fwd_inputs_descs[curr_idx] for curr_idx in aliased_input_indices
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
 
         # We detected an input that was mutated, AND aliases with another input.
@@ -1439,6 +1742,7 @@ def merge_view_inputs(
             # The "inputs that are aliased but have different differentiable bases" case
             # is more complicated and hopefully pretty rare. Not currently handled.
             if not is_inference:
+<<<<<<< HEAD
                 assert _are_differentiable_views(view1, view2), (
                     "aot_autograd() does not yet handle non-differentiable view input mutations."
                 )
@@ -1449,13 +1753,28 @@ def merge_view_inputs(
             )
         non_none_bases = [
             (i, fwd_inputs[i]._base)
+=======
+                assert _are_differentiable_views(
+                    view1, view2
+                ), "aot_autograd() does not yet handle non-differentiable view input mutations."
+            # Regenerating views when reinterpreting complex / real tensors seems non-trivial,
+            # not handling for now
+            assert _same_dtype_views(
+                view1, view2
+            ), "aot_autograd() does not yet handle input mutations on views with different dtypes."
+        non_none_bases = [
+            fwd_inputs[i]._base
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in aliased_input_indices
             if fwd_inputs[i]._base is not None
         ]
         aliases_with_none_bases = [
             fwd_inputs[i] for i in aliased_input_indices if fwd_inputs[i]._base is None
         ]
+<<<<<<< HEAD
         synthetic_base_desc: AOTInput
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(non_none_bases) == 0:
             # Case where none of the aliases have a ._base
             # we generate a synthetic base without gradients, and generate views off of it
@@ -1482,7 +1801,11 @@ def merge_view_inputs(
             # to have incorrect sizes.
             example_idx = aliased_input_indices[0]
             example_alias = fwd_inputs[example_idx]
+<<<<<<< HEAD
             # Note that this function is reused at both trace time and runtime.
+=======
+            # Note that this function is re-used at both trace time and runtime.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # At trace time, we're under a FakeMode so synthetic_base becomes a FakeTensor.
             synthetic_base = torch.empty(
                 (0,), dtype=example_alias.dtype, device=example_alias.device
@@ -1490,6 +1813,7 @@ def merge_view_inputs(
             # We don't actually have a convenient way of going from storage -> tensor,
             # So using set_() here (we suffer some minor overhead, but this case is rare).
             synthetic_base.set_(example_alias.untyped_storage())
+<<<<<<< HEAD
             synthetic_base_desc = SyntheticBaseAOTInput(fwd_inputs_descs[example_idx])
         else:
             # Case where all of the aliases require gradients, and have the same _base.
@@ -1505,6 +1829,20 @@ def merge_view_inputs(
                 )
         base_args.append(synthetic_base)
         base_args_descs.append(synthetic_base_desc)
+=======
+        else:
+            # Case where all of the aliases require gradients, and have the same _base.
+            synthetic_base = non_none_bases[0]
+            for other_base in non_none_bases[1:]:
+                assert (
+                    other_base is synthetic_base
+                ), "aot_autograd() does not yet handle non-differentiable view input mutations."
+            for alias in aliases_with_none_bases:
+                assert (
+                    alias is synthetic_base
+                ), "aot_autograd() does not yet handle non-differentiable view input mutations."
+        base_args.append(synthetic_base)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for curr_view_idx in aliased_input_indices:
             curr_view = fwd_inputs[curr_view_idx]
             base_idx = len(base_args) - 1
@@ -1514,7 +1852,11 @@ def merge_view_inputs(
     if len(base_args) == 0:
         assert len(other_args) == len(fwd_inputs)
         # If no synthetic bases are necessary, just return the original inputs.
+<<<<<<< HEAD
         return fwd_inputs, fwd_inputs_descs, None
+=======
+        return fwd_inputs, None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         from torch.fx.experimental.symbolic_shapes import SymIntEqByExpr
 
@@ -1530,7 +1872,10 @@ def merge_view_inputs(
         # (2) Metadata telling functionalization how to generate the inner argument list given the outer calling convention.
         #     We post-process it into a list, where meta[i] tells you info about the i'th argument in the inner calling convention.
         args_to_functionalization = base_args + other_args
+<<<<<<< HEAD
         args_to_functionalization_descs = base_args_descs + other_args_descs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Map each argument into its old index.
         # There may be some repeated arguments, so we collect their indices in a list.
@@ -1557,11 +1902,15 @@ def merge_view_inputs(
         # Quick assert: every argument in the inner calling convention should be accounted for.
         for x in post_processed_calling_convention_meta:
             assert x != -1
+<<<<<<< HEAD
         return (
             args_to_functionalization,
             args_to_functionalization_descs,
             post_processed_calling_convention_meta,
         )
+=======
+        return args_to_functionalization, post_processed_calling_convention_meta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Note: [Backward graph lazy lowering]
@@ -1569,7 +1918,11 @@ def merge_view_inputs(
 # unless we suspect that inductor might specialize and insert additional guards. When we do lazy
 # lowering, we stash the AOT backward graph (bw_module) in this class.
 #
+<<<<<<< HEAD
 # Lowering passes are performed on a deepcopy of this bw_module due to compatibility
+=======
+# Lowering passes are performed on a deepcopy of this bw_module due to compatbility
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # with compiled autograd. See: https://github.com/pytorch/pytorch/pull/149229#discussion_r2002122645.
 @dataclass
 class AutogradLazyBackwardCompileInfo:
@@ -1892,7 +2245,11 @@ def coerce_to_expected_memory_format(x: torch.Tensor, memory_format: MemoryForma
         return x
 
     # Empty_strided creates a raw Tensor.
+<<<<<<< HEAD
     # We are guaranteed that only raw Tensors has expected size and stride.
+=======
+    # We are guranteed that only raw Tensors has expected size and stride.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Subclasses have only expected memory_format.
     restrided = torch.empty_strided(
         size=expected_size,
@@ -1935,6 +2292,7 @@ def _disable_saved_tensors_hooks():
             )
 
 
+<<<<<<< HEAD
 @dataclass
 class SerializableCompiledFunction:
     """
@@ -1962,6 +2320,8 @@ class SerializableCompiledFunction:
         return self.compiled_fn(*args, **kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This is wrapped in a class just for namespacing purposes
 # No need to make it into an actual CompilerWrapper because it doesn't fit the abstract as cleanly
 class AOTDispatchAutograd:
@@ -1982,11 +2342,20 @@ class AOTDispatchAutograd:
             expected_meta = meta.meta
 
         runtime_type = type(x)
+<<<<<<< HEAD
         # When we're inside compiled autograd's AOTDispatcher step,
         # regular Tensors look like FunctionalTensors.
         # Tensor subclasses still look like Tensor subclasses though.
         if isinstance(x, torch._subclasses.functional_tensor.FunctionalTensor):
             runtime_type = torch.Tensor
+=======
+        if torch._dynamo.compiled_autograd.in_compiled_autograd_region:
+            # When we're inside compiled autograd's AOTDispatcher step,
+            # regular Tensors look like FunctionalTensors.
+            # Tensor subclasses still look like Tensor subclasses though.
+            if isinstance(x, torch._subclasses.functional_tensor.FunctionalTensor):
+                runtime_type = torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         runtime_meta = None
         runtime_subclass_keys: Sequence[str] = []
@@ -2070,7 +2439,11 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
         aot_config: AOTConfig,
         *,
         fw_metadata: ViewAndMutationMeta,  # runtime metadata
+<<<<<<< HEAD
         try_save_cache_entry: Optional[Callable],  # Serialization function
+=======
+        try_save_cache_entry: Optional[Callable],  # Save cache entry after compilation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # For additional context see Note [CUDA Graph Safe RNG Functionalization]
         # Each pair forward, backward rng states must be equal prior to its invocation on any
@@ -2114,7 +2487,10 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                 return (ctx._autograd_function_id, *ctx.symints)
 
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def forward(ctx, *deduped_flat_tensor_args):
                 args = deduped_flat_tensor_args
                 if backward_state_indices:
@@ -2151,7 +2527,10 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                 #   in the fw output order.
                 fw_outs = call_func_at_runtime_with_args(
                     CompiledFunction.compiled_fw,
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     args,
                     disable_amp=disable_amp,
                 )
@@ -2347,7 +2726,10 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                     _aot_id = aot_config.aot_id
 
                     @staticmethod
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     def forward(double_ctx, *unused_args):
                         return impl_fn(double_ctx)
 
@@ -2365,12 +2747,19 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
 
             @staticmethod
             def _backward_impl(ctx, all_args):
+<<<<<<< HEAD
                 from torch._inductor.async_compile import async_compile_pool_manager
 
                 # compiled autograd reimplements this function at proxy_call_aot_backward
                 assert not backward_state_indices, (
                     "BackwardState requires CompiledAutograd"
                 )
+=======
+                # compiled autograd reimplements this function at proxy_call_aot_backward
+                assert (
+                    not backward_state_indices
+                ), "BackwardState requires CompiledAutograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ctx.maybe_clear_saved_tensors()
 
                 saved_tensors_use_once = (
@@ -2383,6 +2772,7 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                         lazy_backward_info, AutogradLazyBackwardCompileInfo
                     )
 
+<<<<<<< HEAD
                     if (
                         hasattr(lazy_backward_info, "saved_context")
                         and lazy_backward_info.saved_context is not None
@@ -2421,6 +2811,8 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                             ddp_ctx.curr_bucket -= 1
                             lazy_backward_info.saved_context.fw_metadata = curr_fw_meta
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if not saved_tensors_use_once:
                         fw_metadata.bw_donated_idxs = []
                         # Update bw_donated_idxs if using lazy_backward_info from `aot_dispatch_autograd`
@@ -2446,7 +2838,10 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                     with (
                         tracing(saved_context),
                         compile_context(saved_compile_context),
+<<<<<<< HEAD
                         async_compile_pool_manager(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         context(),
                         track_graph_compiling(aot_config, "backward"),
                         metrics_context,
@@ -2554,6 +2949,7 @@ class DebugAssertWrapper(CompilerWrapper):
 
 def pre_compile(
     wrappers: list[CompilerWrapper],
+<<<<<<< HEAD
     flat_fn: TraceFn,
     flat_args: list[FxValue],
     flat_args_descs: list[AOTInput],
@@ -2561,15 +2957,30 @@ def pre_compile(
     *,
     fw_metadata: ViewAndMutationMeta,
 ) -> tuple[TraceFn, list[FxValue], list[AOTInput], ViewAndMutationMeta]:
+=======
+    flat_fn: Callable,
+    flat_args: list[Any],
+    aot_config: AOTConfig,
+    *,
+    fw_metadata: ViewAndMutationMeta,
+) -> tuple[Callable, list[Tensor], ViewAndMutationMeta]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Runs a sequence of wrappers on the given function and arguments.
     Mutates wrappers in place.
     """
     for wrapper in wrappers:
+<<<<<<< HEAD
         flat_fn, flat_args, flat_args_descs, fw_metadata = wrapper.pre_compile(
             flat_fn, flat_args, flat_args_descs, aot_config, fw_metadata=fw_metadata
         )
     return flat_fn, flat_args, flat_args_descs, fw_metadata
+=======
+        flat_fn, flat_args, fw_metadata = wrapper.pre_compile(
+            flat_fn, flat_args, aot_config, fw_metadata=fw_metadata
+        )
+    return flat_fn, flat_args, fw_metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def post_compile(

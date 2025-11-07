@@ -32,10 +32,15 @@ class HalfNormal(TransformedDistribution):
     """
 
     arg_constraints = {"scale": constraints.positive}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     support = constraints.nonnegative
     has_rsample = True
     # pyrefly: ignore [bad-override]
+=======
+    support = constraints.nonnegative
+    has_rsample = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     base_dist: Normal
 
     def __init__(

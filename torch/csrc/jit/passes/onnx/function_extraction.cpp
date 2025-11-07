@@ -87,14 +87,22 @@ struct FunctionExtractor {
       const std::shared_ptr<Graph>& graph);
 
   static void HandleNoScopeNodes(
+<<<<<<< HEAD
       scope_ctx_map& /*scope_ctxs*/,
+=======
+      scope_ctx_map&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const node_list& no_scope_nlist);
   std::tuple<scope_ctx_map, node_list> PartitionNodesByScope(Block* b);
   scope_ctx_map PartitionNodesByScope(const std::shared_ptr<Graph>& graph);
   static std::unordered_map<ScopePtr, scope_list> PartitionIdenticalScopes(
       scope_ctx_map& scope_ctxs);
   static scope_list SortScopesByMaxDepth(
+<<<<<<< HEAD
       std::unordered_map<ScopePtr, scope_list>& /*identical_scope_map*/);
+=======
+      std::unordered_map<ScopePtr, scope_list>&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Node* CreateFunctionDefNode(
       FunctionContext& func_ctx,
       const std::shared_ptr<Graph>& graph,
@@ -107,7 +115,11 @@ struct FunctionExtractor {
       const std::string& domain_name,
       const std::string& func_name);
 
+<<<<<<< HEAD
   static void DebugPrintScopeContexts(const scope_ctx_map& /*scope_ctxs*/);
+=======
+  static void DebugPrintScopeContexts(const scope_ctx_map&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static void DebugPrintGraphWithFunction(const std::shared_ptr<Graph>& g);
   static void DebugPrintConstantDiff(const FunctionContext&);
 
@@ -216,7 +228,11 @@ void FunctionExtractor::FunctionContext::SetAttrName(
   TORCH_INTERNAL_ASSERT(
       v_it != scope_ctxs_[scope_key_]->env_to_subgraph_.end());
   auto* n_in_def = v_it->second->node();
+<<<<<<< HEAD
   node_attr_to_name_[n_in_def][attr.toUnqualString()] = name;
+=======
+  auto n_attr_it = node_attr_to_name_[n_in_def][attr.toUnqualString()] = name;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::optional<std::string> FunctionExtractor::FunctionContext::FindAttrName(
@@ -405,7 +421,11 @@ std::optional<ScopePtr> FunctionExtractor::InferScope(Node* n) {
       auto common_ancestor = FindCommonAncestor(scopes);
       if (common_ancestor.has_value() &&
           IsValidScope(common_ancestor.value())) {
+<<<<<<< HEAD
         return common_ancestor;
+=======
+        return common_ancestor.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }

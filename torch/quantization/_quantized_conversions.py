@@ -71,7 +71,10 @@ def quantized_weight_reorder_for_mixed_dtypes_linear_cutlass(
                 nrows // 16, 16
             )
         ).view(-1)
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     outp = outp.index_copy(1, cols_permuted, outp)
 
     # interleave_column_major_tensor

@@ -117,7 +117,11 @@ class FwdKernel:
     def get_all(cls) -> list["FwdKernel"]:
         kernels: list[FwdKernel] = []
         for aligned, dtype, (sm, sm_max) in itertools.product(
+<<<<<<< HEAD
             [True, False], DTYPES.keys(), itertools.pairwise(SM)
+=======
+            [True, False], DTYPES.keys(), zip(SM, SM[1:])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             # Remove some kernels we don't use
             if dtype == "bf16" and sm < 80:
@@ -228,7 +232,11 @@ class BwdKernel:
         for aligned, dtype, (sm, sm_max), apply_dropout, max_k in itertools.product(
             [True, False],
             DTYPES.keys(),
+<<<<<<< HEAD
             itertools.pairwise(SM),
+=======
+            zip(SM, SM[1:]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [True, False],
             [32, 64, 128, 2**16],
         ):

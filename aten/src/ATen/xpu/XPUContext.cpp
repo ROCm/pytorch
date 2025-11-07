@@ -76,6 +76,7 @@ int32_t getGlobalIdxFromDevice(DeviceIndex device) {
   return device_global_idxs[device];
 }
 
+<<<<<<< HEAD
 // Check if a device can access the memory of a peer device directly.
 bool canDeviceAccessPeer(DeviceIndex device, DeviceIndex peer) {
   if (device == -1) {
@@ -95,4 +96,6 @@ bool canDeviceAccessPeer(DeviceIndex device, DeviceIndex peer) {
       sycl::ext::oneapi::peer_access::access_supported);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::xpu

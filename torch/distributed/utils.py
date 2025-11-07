@@ -2,8 +2,13 @@
 import dataclasses
 import traceback
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Container
 from typing import Any, Optional, overload, TypeVar
+=======
+from collections.abc import Container
+from typing import Any, Callable, Optional, overload, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -59,7 +64,10 @@ def _cast_forward_inputs(
     def cast_fn(x: torch.Tensor) -> torch.Tensor:
         if not torch.is_floating_point(x) or x.dtype == dtype:
             return x
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x.to(dtype)
 
     return (_apply_to_tensors(cast_fn, args), _apply_to_tensors(cast_fn, kwargs))
@@ -134,6 +142,7 @@ def _recursive_to(inputs, target_device, use_side_stream_for_tensor_copies):
         from torch.nn.parallel.scatter_gather import _is_namedtuple
 
         if _is_namedtuple(obj):
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
             return [type(obj)(*args) for args in zip(*map(to_map, obj))]
         if isinstance(obj, tuple) and len(obj) > 0:
@@ -144,6 +153,14 @@ def _recursive_to(inputs, target_device, use_side_stream_for_tensor_copies):
             return [list(i) for i in zip(*map(to_map, obj))]
         if isinstance(obj, dict) and len(obj) > 0:
             # pyrefly: ignore [no-matching-overload]
+=======
+            return [type(obj)(*args) for args in zip(*map(to_map, obj))]
+        if isinstance(obj, tuple) and len(obj) > 0:
+            return list(zip(*map(to_map, obj)))
+        if isinstance(obj, list) and len(obj) > 0:
+            return [list(i) for i in zip(*map(to_map, obj))]
+        if isinstance(obj, dict) and len(obj) > 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return [type(obj)(i) for i in zip(*map(to_map, obj.items()))]
         return [obj]
 

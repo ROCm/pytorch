@@ -46,8 +46,13 @@ IF(NOT MKLDNN_FOUND)
       endif()
     endif()
     ExternalProject_Add(xpu_mkldnn_proj
+<<<<<<< HEAD
       GIT_REPOSITORY https://github.com/uxlfoundation/oneDNN
       GIT_TAG v3.9.1
+=======
+      GIT_REPOSITORY https://github.com/oneapi-src/oneDNN
+      GIT_TAG v3.8.1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       PREFIX ${XPU_MKLDNN_DIR_PREFIX}
       BUILD_IN_SOURCE 0
       CMAKE_ARGS  -DCMAKE_C_COMPILER=icx

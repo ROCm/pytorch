@@ -6,17 +6,24 @@ import json
 import os
 import time
 import urllib.parse
+<<<<<<< HEAD
 from typing import Any, cast, TYPE_CHECKING
+=======
+from typing import Any, Callable, cast
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from tools.stats.upload_stats_lib import upload_to_s3
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 FILTER_OUT_USERS = {
     "pytorchmergebot",
     "facebook-github-bot",

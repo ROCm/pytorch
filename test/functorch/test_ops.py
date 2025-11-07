@@ -399,6 +399,7 @@ skip_noncontig = {
     "as_strided_copy",
 }
 
+<<<<<<< HEAD
 bool_unsupported_ordered_ops = {
     "topk",
     "argmin",
@@ -431,6 +432,8 @@ complex_ordered_op_db = tuple(
     filter(lambda op: op.name in complex_unsupported_ordered_ops, op_db)
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(TEST_WITH_ASAN, "tests time out with asan, are probably redundant")
 @unMarkDynamoStrictTest
@@ -965,7 +968,11 @@ class TestOperators(TestCase):
                 # (3) encountering this error in PyTorch internals.
                 xfail("index_reduce", "prod"),
                 decorate(
+<<<<<<< HEAD
                     "linalg.householder_product", decorator=skipIfRocm
+=======
+                    "linalg.householder_product", decorator=runOnRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),  # works on ROCm
                 xfail(
                     # nans
@@ -2986,6 +2993,7 @@ class TestOperators(TestCase):
             actual_fn(torch.ones_like(actual_o)),
         )
 
+<<<<<<< HEAD
     @ops(bool_ordered_op_db, dtypes=[torch.bool])
     def test_ordered_bool_raises(self, device, dtype, op):
         # Generate sample inputs for the op
@@ -3019,6 +3027,8 @@ class TestOperators(TestCase):
                 **sample_input.kwargs,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 only_for = ("cpu", "cuda")
 instantiate_device_type_tests(TestOperators, globals(), only_for=only_for)

@@ -47,6 +47,7 @@ class Rprop(Optimizer):  # noqa: D101
         if not 0.0 < etas[0] < 1.0 < etas[1]:
             raise ValueError(f"Invalid eta values: {etas[0]}, {etas[1]}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "etas": etas,
@@ -56,6 +57,17 @@ class Rprop(Optimizer):  # noqa: D101
             "differentiable": differentiable,
             "capturable": capturable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            etas=etas,
+            step_sizes=step_sizes,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            capturable=capturable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):  # noqa: D105
@@ -200,9 +212,15 @@ Rprop.__doc__ = (
 
     For further details regarding the algorithm we refer to the paper
     `A Direct Adaptive Method for Faster Backpropagation Learning: The RPROP Algorithm
+<<<<<<< HEAD
     <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.21.1417>`_."""  # codespell:ignore
     + rf"""
 
+=======
+    <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.21.1417>`_.
+    """
+    + rf"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Args:
         {_params_doc}
         lr (float, optional): learning rate (default: 1e-2)
@@ -246,6 +264,7 @@ def _single_tensor_rprop(
         # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
         if not torch.compiler.is_compiling() and capturable:
             capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
             if not (
                 param.device.type == step.device.type
                 and param.device.type in capturable_supported_devices
@@ -253,6 +272,14 @@ def _single_tensor_rprop(
                 raise AssertionError(
                     f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
                 )
+=======
+            assert (
+                param.device.type == step.device.type
+                and param.device.type in capturable_supported_devices
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         step += 1
 
@@ -310,12 +337,17 @@ def _multi_tensor_rprop(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
     if not torch.compiler.is_compiling() and capturable:
         capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
         if not all(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
@@ -324,6 +356,15 @@ def _multi_tensor_rprop(
             raise AssertionError(
                 f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
             )
+=======
+        assert all(
+            p.device.type == step.device.type
+            and p.device.type in capturable_supported_devices
+            for p, step in zip(params, state_steps)
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     grouped_tensors = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, prevs, step_sizes, state_steps]  # type: ignore[list-item]

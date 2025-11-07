@@ -244,7 +244,11 @@ Tensor& addmv_out_sparse_compressed_cuda(
       return result.zero_();
     } else {
       return at::mul_out(
+<<<<<<< HEAD
           result,
+=======
+          const_cast<Tensor&>(result),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           self,
           at::native::scalar_tensor(
               beta,

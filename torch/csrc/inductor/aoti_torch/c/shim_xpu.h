@@ -107,6 +107,7 @@ aoti_torch_xpu_mkldnn__convolution_pointwise_binary_(
     const char** unary_algorithm,
     AtenTensorHandle* ret0);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_xpu__qlinear_pointwise_tensor(
     AtenTensorHandle X,
     AtenTensorHandle act_scale,
@@ -201,6 +202,8 @@ aoti_torch_xpu__qconv2d_pointwise_binary_tensor(
     const char** unary_algorithm,
     AtenTensorHandle* ret0);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // AT_MKLDNN_ENABLED()
 #ifdef __cplusplus
 } // extern "C"

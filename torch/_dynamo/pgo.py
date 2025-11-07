@@ -167,15 +167,21 @@ class CodeId:
 @dataclasses.dataclass
 class CodeState:
     automatic_dynamic: defaultdict[str, FrameStateSizeEntry] = dataclasses.field(
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         default_factory=lambda: defaultdict(FrameStateSizeEntry)
     )
 
 
 _INIT_CODE_STATE: Optional[defaultdict[CodeId, CodeState]] = None
 _CODE_STATE: Optional[defaultdict[CodeId, CodeState]] = None
+<<<<<<< HEAD
 _LOGGED_DYNAMIC_ALLOWLIST: bool = False
 _KNOWN_DYNAMIC_SOURCES: set[str] = set()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -265,7 +271,11 @@ class FrameStateSizeEntry:
                 return f"tensor size={render_tuple(self.size)} stride={render_tuple(self.stride)}"
 
         # Fallback
+<<<<<<< HEAD
         return f"unusual {repr(self)}"
+=======
+        return "unusual {repr(self)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self) -> None:
         assert not isinstance(self.scalar, torch.SymInt), self.scalar
@@ -522,7 +532,18 @@ def process_automatic_dynamic(
         return res
 
 
+<<<<<<< HEAD
 def format_cache_key(key: str) -> str:
+=======
+def get_cache_key() -> Optional[str]:
+    # TODO: info versions of these logs that log only once
+    if torch._inductor.config.force_disable_caches:
+        warn_once(
+            "dynamo_pgo force disabled by torch._inductor.config.force_disable_caches"
+        )
+        return None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB: We always use global rank for keys, even though they are overkill
     # for local only cache
     rank = None
@@ -530,6 +551,7 @@ def format_cache_key(key: str) -> str:
         rank = dist.get_rank()
 
     tag = torch.compiler.config.cache_key_tag
+<<<<<<< HEAD
     return f"{key}:{rank}:{tag}"
 
 
@@ -540,6 +562,8 @@ def get_cache_key() -> Optional[str]:
             "dynamo_pgo force disabled by torch.compiler.config.force_disable_caches"
         )
         return None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NB: We namespace the cache keys so that only user-specified job id
     # can alias with each other.
@@ -550,15 +574,24 @@ def get_cache_key() -> Optional[str]:
                 "automatically generated job id associated with a specific MAST job "
                 "name and version."
             )
+<<<<<<< HEAD
         return format_cache_key(r)
 
     if (name_version := torch._utils_internal.get_mast_job_name_version()) is not None:
         mast_job_name, mast_job_version = name_version
         return format_cache_key(f"mast:{mast_job_name}:{mast_job_version}")
+=======
+        return f"{r}:{rank}:{tag}"
+
+    if (name_version := torch._utils_internal.get_mast_job_name_version()) is not None:
+        mast_job_name, mast_job_version = name_version
+        return f"mast:{mast_job_name}:{mast_job_version}:{rank}:{tag}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return None
 
 
+<<<<<<< HEAD
 def get_extra_cache_key(sticky_key: str) -> Optional[str]:
     if torch.compiler.config.force_disable_caches:
         warn_once(
@@ -569,6 +602,8 @@ def get_extra_cache_key(sticky_key: str) -> Optional[str]:
     return format_cache_key(sticky_key)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This solely controls local PGO
 def code_state_path(cache_key: str) -> Optional[str]:
     if not torch._dynamo.config.automatic_dynamic_local_pgo:
@@ -582,7 +617,11 @@ def code_state_path(cache_key: str) -> Optional[str]:
 
 
 def should_use_remote_dynamo_pgo_cache() -> bool:
+<<<<<<< HEAD
     if torch.compiler.config.force_disable_caches:
+=======
+    if torch._inductor.config.force_disable_caches:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
     if (r := torch._dynamo.config.automatic_dynamic_remote_pgo) is not None:
@@ -631,6 +670,7 @@ def _collect_dynamic_sources(code_state: CodeState) -> OrderedSet[str]:
     return dynamic_sources
 
 
+<<<<<<< HEAD
 def _collect_missing_sources(all_sources: OrderedSet[str]) -> OrderedSet[str]:
     from torch._dynamo.variables.builder import is_dynamic_source
 
@@ -676,6 +716,19 @@ def _log_size_mismatch_recompile() -> None:
         _LOGGED_DYNAMIC_ALLOWLIST = True
 
 
+=======
+def log_frame_dynamic_whitelist(f_code: types.CodeType) -> None:
+    code_id = CodeId.make(f_code)
+    frame_state = get_code_state()[code_id]
+    frame_whitelist = ",".join(_collect_dynamic_sources(frame_state))
+    if frame_whitelist:
+        with dynamo_timed(name := "pgo.dynamic_whitelist", log_pt2_compile_event=True):
+            CompileEventLogger.pt2_compile(
+                name, recompile_dynamic_whitelist=frame_whitelist
+            )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def render_code_state(cs: defaultdict[CodeId, CodeState]) -> str:
     code_state_str = "\n".join(
         f"{k}:\n"
@@ -725,6 +778,7 @@ class PGOCacheArtifact(CacheArtifact):
         return original_key
 
 
+<<<<<<< HEAD
 def hit(key: str, ty: str) -> defaultdict[CodeId, CodeState]:
     global _INIT_CODE_STATE
     assert isinstance(_CODE_STATE, defaultdict)
@@ -741,6 +795,34 @@ def hit(key: str, ty: str) -> defaultdict[CodeId, CodeState]:
 
 def get_local_code_state(cache_key: str) -> Optional[defaultdict[CodeId, CodeState]]:
     global _CODE_STATE
+=======
+def get_code_state() -> defaultdict[CodeId, CodeState]:
+    global _CODE_STATE, _INIT_CODE_STATE
+    if _CODE_STATE is not None:
+        return _CODE_STATE
+
+    # Initialize it (even if we don't look up profile)
+    _CODE_STATE = defaultdict(CodeState)
+
+    cache_key = get_cache_key()
+    if cache_key is None:
+        return _CODE_STATE
+
+    def hit(ty: str) -> defaultdict[CodeId, CodeState]:
+        global _INIT_CODE_STATE
+        assert isinstance(_CODE_STATE, defaultdict)
+        log.info("get_code_state %s hit %s, %d entries", path, ty, len(_CODE_STATE))
+        trace_structured_artifact(
+            f"get_{ty}_code_state",
+            "string",
+            lambda: render_code_state(_CODE_STATE),  # type: ignore[arg-type]
+        )
+        set_feature_use("pgo", True)
+        _INIT_CODE_STATE = copy.deepcopy(_CODE_STATE)
+        return _CODE_STATE
+
+    # Attempt local
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     path = code_state_path(cache_key)
     if path is not None and os.path.exists(path):
         with dynamo_timed(
@@ -762,6 +844,7 @@ def get_local_code_state(cache_key: str) -> Optional[defaultdict[CodeId, CodeSta
                     CacheArtifactManager.record_artifact(
                         PGOCacheArtifact.type(), cache_key, content
                     )
+<<<<<<< HEAD
                     return hit(path, "local")
     return None
 
@@ -805,6 +888,11 @@ def lookup_remote_cache_entry(
 
 def get_remote_code_state(cache_key: str) -> Optional[defaultdict[CodeId, CodeState]]:
     global _CODE_STATE
+=======
+                    return hit("local")
+
+    # Attempt remote
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     remote_cache = get_remote_cache()
     if remote_cache is not None:
         with dynamo_timed(
@@ -813,6 +901,7 @@ def get_remote_code_state(cache_key: str) -> Optional[defaultdict[CodeId, CodeSt
             dynamo_compile_column_us="pgo_get_remote_code_state_time_us",
         ):
             CompileEventLogger.pt2_compile(name, cache_key=cache_key)
+<<<<<<< HEAD
             code_state = lookup_remote_cache_entry(remote_cache, cache_key, name)
             if code_state is not None:
                 _CODE_STATE = code_state
@@ -879,6 +968,39 @@ def get_code_state() -> defaultdict[CodeId, CodeState]:
         extra_read_key = get_extra_cache_key(sticky_read)
         if extra_read_key is not None:
             get_extra_remote_code_state(extra_read_key)
+=======
+            # TODO: I don't really understand why there's a JSON container format
+            try:
+                cache_data = remote_cache.get(cache_key)
+            except Exception:
+                log.warning(
+                    "get_code_state failed remote read on %s", cache_key, exc_info=True
+                )
+            else:
+                if cache_data is not None:
+                    try:
+                        assert isinstance(cache_data, dict)
+                        data = cache_data["data"]
+                        assert isinstance(data, str)
+                        payload = base64.b64decode(data)
+                        CompileEventLogger.pt2_compile(
+                            name, cache_size_bytes=len(payload)
+                        )
+                        _CODE_STATE = pickle.loads(payload)
+                    except Exception:
+                        log.warning(
+                            "get_code_state failed parsing remote result on %s",
+                            cache_key,
+                            exc_info=True,
+                        )
+                    else:
+                        CacheArtifactManager.record_artifact(
+                            PGOCacheArtifact.type(), cache_key, payload
+                        )
+                        return hit("remote")
+                else:
+                    log.info("get_code_state remote miss on %s", cache_key)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     log.info("get_code_state using default")
 
@@ -902,10 +1024,13 @@ def put_code_state() -> None:
 
     put_local_code_state(cache_key)
     put_remote_code_state(cache_key)
+<<<<<<< HEAD
     if (sticky_write := torch.compiler.config.pgo_extra_write_key) is not None:
         extra_write_key = get_extra_cache_key(sticky_write)
         if extra_write_key is not None:
             put_remote_code_state(extra_write_key)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def write_local_impl(cache_key: str, pickled_code: bytes) -> Optional[tuple[str, int]]:
@@ -959,6 +1084,7 @@ def put_local_code_state(cache_key: str) -> None:
         )
 
 
+<<<<<<< HEAD
 def put_remote_code_state(cache_key: str, extra_code_state: bool = False) -> None:
     event_name = (
         "put_remote_code_state"
@@ -967,6 +1093,11 @@ def put_remote_code_state(cache_key: str, extra_code_state: bool = False) -> Non
     )
     with dynamo_timed(
         name := f"pgo.{event_name}",
+=======
+def put_remote_code_state(cache_key: str) -> None:
+    with dynamo_timed(
+        name := "pgo.put_remote_code_state",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log_pt2_compile_event=True,
         dynamo_compile_column_us="pgo_put_remote_code_state_time_us",
     ):
@@ -976,7 +1107,11 @@ def put_remote_code_state(cache_key: str, extra_code_state: bool = False) -> Non
         remote_cache = get_remote_cache()
 
         if remote_cache is None:
+<<<<<<< HEAD
             log.info("%s: remote cache disabled", event_name)
+=======
+            log.info("put_code_state: remote cache disabled")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         content = pickle.dumps(_CODE_STATE)
@@ -986,11 +1121,19 @@ def put_remote_code_state(cache_key: str, extra_code_state: bool = False) -> Non
         }
         remote_cache.put(cache_key, cache_data)
         log.info(
+<<<<<<< HEAD
             "%s: wrote remote %s, %d entries", event_name, cache_key, len(_CODE_STATE)
         )
         # TODO: don't log this multiple times
         trace_structured_artifact(
             event_name,
+=======
+            "put_code_state: wrote remote %s, %d entries", cache_key, len(_CODE_STATE)
+        )
+        # TODO: don't log this multiple times
+        trace_structured_artifact(
+            "put_remote_code_state",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "string",
             lambda: render_code_state(_CODE_STATE),
         )
@@ -998,7 +1141,13 @@ def put_remote_code_state(cache_key: str, extra_code_state: bool = False) -> Non
 
 # NB: this does NOT reset the cached code state on disk
 def reset_code_state() -> None:
+<<<<<<< HEAD
     global _CODE_STATE, _INIT_CODE_STATE, _LOGGED_DYNAMIC_ALLOWLIST
     _CODE_STATE = None
     _INIT_CODE_STATE = None
     _LOGGED_DYNAMIC_ALLOWLIST = False
+=======
+    global _CODE_STATE, _INIT_CODE_STATE
+    _CODE_STATE = None
+    _INIT_CODE_STATE = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

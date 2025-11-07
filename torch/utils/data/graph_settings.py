@@ -116,8 +116,12 @@ def apply_shuffle_settings(
     if not shufflers and shuffle:
         warnings.warn(
             "`shuffle=True` was set, but the datapipe does not contain a `Shuffler`. Adding one at the end. "
+<<<<<<< HEAD
             "Be aware that the default buffer size might not be sufficient for your task.",
             stacklevel=2,
+=======
+            "Be aware that the default buffer size might not be sufficient for your task."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         datapipe = datapipe.shuffle()
         shufflers = [

@@ -4,6 +4,7 @@
 
 import copy
 import itertools
+<<<<<<< HEAD
 import operator
 import random
 import unittest
@@ -65,6 +66,58 @@ from torch.testing._internal.optests import opcheck
 from torch.utils.cpp_extension import ROCM_HOME
 
 np_dtype = {torch.quint8: np.uint8, torch.qint8: np.int8, torch.qint32: np.int32}
+=======
+import numpy as np
+import operator
+import random
+import sys
+import unittest
+from typing import NamedTuple
+
+import torch
+from torch import _VF
+import torch.jit
+import torch.nn.functional as F
+from torch.nn.modules.utils import _single, _pair
+
+from hypothesis import settings, HealthCheck
+from hypothesis import assume, given, note
+from hypothesis import strategies as st
+import torch.testing._internal.hypothesis_utils as hu
+hu.assert_deadline_disabled()
+
+from torch.testing._internal.common_cuda import SM80OrLater
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    TestCase,
+    IS_PPC,
+    IS_MACOS,
+    IS_SANDCASTLE,
+    IS_FBCODE,
+    IS_ARM64
+)
+from torch.testing._internal.common_quantization import skipIfNoFBGEMM, skipIfNoQNNPACK, skipIfNoONEDNN
+from torch.testing._internal.common_quantized import _quantize, _dequantize, _calculate_dynamic_qparams, \
+    override_quantized_engine, supported_qengines, override_qengines, _snr
+from torch.testing._internal.common_quantized import (
+    qengine_is_qnnpack,
+    qengine_is_onednn,
+)
+from torch.ao.quantization import PerChannelMinMaxObserver
+from torch.testing._internal.common_cuda import TEST_CUDNN, TEST_CUDNN_VERSION, TEST_CUDA
+from torch.testing._internal.optests import opcheck
+import torch.backends.xnnpack
+
+from torch.utils.cpp_extension import ROCM_HOME
+
+from typing import Optional
+
+np_dtype = {
+    torch.quint8 : np.uint8,
+    torch.qint8 : np.int8,
+    torch.qint32 : np.int32
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TEST_ROCM = TEST_CUDA and torch.version.hip is not None and ROCM_HOME is not None
 
@@ -84,7 +137,11 @@ class PointwisePostOp(NamedTuple):
 def avoid_vpmaddubsw_overflow_linear(
     batch_size, input_channels, output_channels, X, X_min, X_max, W, W_min, W_max
 ):
+<<<<<<< HEAD
     if Version(np.__version__) >= Version("2.1"):
+=======
+    if np.lib.NumpyVersion(np.__version__) >= '2.1.0':
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise unittest.SkipTest("numpy 2.1 overflow error")
     for i, j in np.ndindex((batch_size, output_channels)):
         for k in range(0, input_channels // 2 * 2, 2):
@@ -165,6 +222,7 @@ def _get_random_tensor_and_q_params(shapes, rand_scale, torch_type):
         X_scale = 1e-10
     return X, X_scale, X_zero_point
 
+<<<<<<< HEAD
 def _quantize_fp8e4m3(t: torch.Tensor, channelwise: bool, scale: Optional[torch.Tensor] = None):
     quant_max = torch.finfo(torch.float8_e4m3fn).max
     eps = torch.Tensor([torch.finfo(torch.float32).eps])
@@ -192,6 +250,8 @@ def _dequantize_fp8e4m3(qt: torch.Tensor, scale: torch.Tensor):
         dqt = dqt * scale_reshape
     return dqt
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestQuantizedOps(TestCase):
 
     """Helper function to test quantized activation functions."""
@@ -225,7 +285,11 @@ class TestQuantizedOps(TestCase):
             `output_is_observed`: if specified and is True, we'll append extra
              output_scale/output_zero_point keyword argument when calling quantized op
         """
+<<<<<<< HEAD
         # Retrieves the default parameters from X.
+=======
+        # Retrives the default parameters from X.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         X, (scale, zero_point, torch_type) = X
         if not isinstance(X, torch.Tensor):
             X = torch.from_numpy(X)
@@ -2202,7 +2266,11 @@ class TestQuantizedOps(TestCase):
         X = torch.from_numpy(X)
         new_shape = np.array(X.shape)
         new_shape[dim] = 0
+<<<<<<< HEAD
         for _ in range(num):
+=======
+        for idx in range(num):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tensors_q.append(torch.quantize_per_tensor(X, scale, zero_point,
                                                        torch_type))
             tensors_ref.append(X)
@@ -3053,7 +3121,11 @@ class TestQuantizedOps(TestCase):
                 lstm_quantized = torch.ao.quantization.convert(
                     lstm_prepared, convert_custom_config_dict=custom_config_dict
                 )
+<<<<<<< HEAD
                 assert type(lstm_quantized[0]) is torch.ao.nn.quantized.LSTM
+=======
+                assert type(lstm_quantized[0]) == torch.ao.nn.quantized.LSTM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 qy = lstm_quantized(qx)
 
                 snr = _snr(y, qy)
@@ -3162,7 +3234,11 @@ class TestQuantizedOps(TestCase):
                     # Quantize
                     mha_quantized = torch.ao.quantization.convert(mha_prepared)
 
+<<<<<<< HEAD
                     for name, _param in mha_quantized.named_parameters():
+=======
+                    for name, param in mha_quantized.named_parameters():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.assertTrue("in_proj_weight" not in name)
 
                     qy = mha_quantized(*q_data)
@@ -3562,15 +3638,24 @@ class TestDynamicQuantizedOps(TestCase):
             (2, 4),         # batch_size
             (4, 5),     # input_channels
             (4, 7),      # output_channels
+<<<<<<< HEAD
             (True, False),         # bias None or not
         )
         for batch_size, input_channels, output_channels, bias_is_none in options:
+=======
+        )
+        for batch_size, input_channels, output_channels in options:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pack_op = torch.ops._quantized.wrapped_fbgemm_pack_gemm_matrix_fp16
             linear_op = torch.ops._quantized.wrapped_fbgemm_linear_fp16_weight
 
             x = torch.randn(batch_size, input_channels)
             w = torch.randn(output_channels, input_channels)
+<<<<<<< HEAD
             bias = torch.randn(output_channels) if not bias_is_none else None
+=======
+            bias = torch.randn(output_channels)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             w_packed = pack_op(w)
             out = linear_op(x, w_packed, bias, output_channels)
@@ -3584,7 +3669,11 @@ class TestDynamicQuantizedOps(TestCase):
     def test_wrapped_fbgemm_pack_gemm_matrix_fp16_pt2_compliant(self):
         # We are not using opcheck over here because the output for the op we're testing
         # (_quantized.wrapped_fbgemm_pack_gemm_matrix_fp16) is not deterministic
+<<<<<<< HEAD
         # due to the C-struct it's producing. This would fail the check when we're trying
+=======
+        # due to the C-struct it's procuding. This would fail the check when we're trying
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # to match the result between compiled and eager version.
         #
         # This is only a temporary solution, long term, we should be able to support PT2
@@ -3604,6 +3693,7 @@ class TestDynamicQuantizedOps(TestCase):
 
         self.assertEqual(ref_out, compiled_out)
 
+<<<<<<< HEAD
         def func(X, W):
             packed_W = torch.ops._quantized.wrapped_fbgemm_pack_gemm_matrix_fp16(W)
             return torch.ops._quantized.wrapped_fbgemm_linear_fp16_weight(X, packed_W, None, W.size(0))
@@ -3616,6 +3706,8 @@ class TestDynamicQuantizedOps(TestCase):
         self.assertEqual(ref_out, compiled_out)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Tests the correctness of the dynamic quantized lstm/gru."""
 
     def _get_rnn_inputs(self, seq_len, num_batches, input_size, hidden_size, num_directions, reduce_range):
@@ -4562,7 +4654,11 @@ class TestQuantizedLinear(TestCase):
         qlinear_op,
         post_op="none",
         unary_post_op_args=(),
+<<<<<<< HEAD
         post_op_algorithms=("none",),
+=======
+        post_op_algorithms=("none"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         qlinear_prepack = torch.ops.onednn.qlinear_prepack
         linear_op = F.linear
@@ -4729,6 +4825,7 @@ class TestQuantizedLinear(TestCase):
         qlinear = torch.ops.onednn.qlinear_pointwise.binary
         self._test_qlinear_pt2e_helper(qlinear, "add_relu")
 
+<<<<<<< HEAD
     def _test_qlinear_fp8_helper(
         self,
         qlinear_op,
@@ -4887,6 +4984,8 @@ class TestQuantizedLinear(TestCase):
         qlinear = torch.ops.onednn.qlinear_pointwise.binary
         self._test_qlinear_fp8_helper(qlinear, "add_relu")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(IS_MACOS, "Known test failure on Mac.")
 class TestQuantizedEmbeddingOps(TestCase):
@@ -5572,7 +5671,11 @@ class TestQuantizedConv(TestCase):
         )
 
         act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
         # Only qnnpack qengine supports qint8
+=======
+        # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
             act_qdtypes.append(torch.qint8)
 
@@ -5653,7 +5756,11 @@ class TestQuantizedConv(TestCase):
         )
 
         act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
         # Only qnnpack qengine supports qint8
+=======
+        # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
             act_qdtypes.append(torch.qint8)
 
@@ -5991,7 +6098,11 @@ class TestQuantizedConv(TestCase):
                 activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
                 schedule=my_schedule,
                 on_trace_ready=trace_handler) as prof:
+<<<<<<< HEAD
             for _ in range(30):
+=======
+            for i in range(30):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 conv_op(input, weight, None, stride, padding, dilation, groups)
                 prof.step()
 
@@ -6006,7 +6117,11 @@ class TestQuantizedConv(TestCase):
                 activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
                 schedule=my_schedule,
                 on_trace_ready=trace_handler) as prof:
+<<<<<<< HEAD
             for _ in range(30):
+=======
+            for i in range(30):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 conv_op(input_fp16, weight_fp16, None, stride, padding, dilation, groups)
                 prof.step()
 
@@ -6023,7 +6138,11 @@ class TestQuantizedConv(TestCase):
                 activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
                 schedule=my_schedule,
                 on_trace_ready=trace_handler) as prof:
+<<<<<<< HEAD
             for _ in range(30):
+=======
+            for i in range(30):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 conv_op(input_int8, weight_prepacked, scale, zero_point)
                 prof.step()
 
@@ -6084,7 +6203,11 @@ class TestQuantizedConv(TestCase):
             )
 
             act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
             # Only qnnpack qengine supports qint8
+=======
+            # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
                 act_qdtypes.append(torch.qint8)
 
@@ -6210,7 +6333,11 @@ class TestQuantizedConv(TestCase):
             bias=use_bias
         )
         act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
         # Only qnnpack qengine supports qint8
+=======
+        # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
             act_qdtypes.append(torch.qint8)
 
@@ -6515,7 +6642,11 @@ class TestQuantizedConv(TestCase):
         qconv = torch.ops.quantized.conv1d
 
         act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
         # Only qnnpack qengine supports qint8
+=======
+        # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
             act_qdtypes.append(torch.qint8)
 
@@ -6586,7 +6717,11 @@ class TestQuantizedConv(TestCase):
         qconv = torch.ops.quantized.conv1d_relu
 
         act_qdtypes = [torch.quint8]
+<<<<<<< HEAD
         # Only qnnpack qengine supports qint8
+=======
+        # Only qnnpack qengine supportes qint8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if qengine_is_qnnpack() and torch.backends.xnnpack.enabled:
             act_qdtypes.append(torch.qint8)
 
@@ -7045,8 +7180,13 @@ class TestQuantizedConv(TestCase):
         # ONEDNN only supports symmetric quantization of weight
         if W_zero_point is not None:
             W_zero_point = len(W_zero_point) * [0]
+<<<<<<< HEAD
         fp32_output = qconv_output_dtype is torch.float32
         bfloat16_output = qconv_output_dtype is torch.bfloat16
+=======
+        fp32_output = True if qconv_output_dtype is torch.float32 else False
+        bfloat16_output = True if qconv_output_dtype is torch.bfloat16 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if fp32_output or bfloat16_output:
             Y_scale = 1.0
             Y_zero_point = 0
@@ -7521,10 +7661,17 @@ class TestQuantizedConv(TestCase):
                 qconv_output_dtype=output_dtype,
             )
 
+<<<<<<< HEAD
     # Test qconv with post op swish
     @unittest.skipIf(IS_FBCODE, "Skip pt2e ops in fbcode")
     @skipIfNoONEDNN
     def test_qconv2d_swish_pt2e(self):
+=======
+    # Test qconv with post op silu
+    @unittest.skipIf(IS_FBCODE, "Skip pt2e ops in fbcode")
+    @skipIfNoONEDNN
+    def test_qconv2d_silu_pt2e(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_channels_per_group = 2
         output_channels_per_group = 2
         groups_list = [1, 10]
@@ -7846,6 +7993,7 @@ class TestQuantizedConv(TestCase):
                 qconv_output_dtype=output_dtype,
             )
 
+<<<<<<< HEAD
     def _make_qconv_tensors_fp8(
         self, batch_size, input_channels_per_group, input_feature_map_shape,
         output_channels_per_group, groups, kernels, strides, pads, dilations,
@@ -8170,6 +8318,8 @@ class TestQuantizedConv(TestCase):
         self._test_qconv_fp8_helper(3, pointwise_post_op)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestPadding(TestCase):
     @given(batch_size=st.integers(1, 64),
@@ -8806,6 +8956,7 @@ class TestComparatorOps(TestCase):
             self.assertEqual(result_ref, result,
                              msg=f"'tensor.{op}(scalar)'' failed")
 
+<<<<<<< HEAD
 """Tests the correctness of the quantized::embedding_bag_(byte|4bit|2bit)_prepack_with_rowwise_min_max ops."""
 class TestQuantizedWithMinMax(TestCase):
     """Validates that the *rowwsie_min_max* quantization functions are equivalent to the ones without it."""
@@ -8867,5 +9018,7 @@ class TestQuantizedWithMinMax(TestCase):
                         weight_incorrectly_quantized, weight_quantized_no_rowwise_min_max
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     raise_on_run_directly("test/test_quantization.py")

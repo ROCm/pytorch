@@ -97,7 +97,11 @@ class ModelTest(PackageTestCase):
         # how they want to save it but the 'server' can always
         # use the same API to load the package.
 
+<<<<<<< HEAD
         # The convention is for each model to provide a
+=======
+        # The convension is for each model to provide a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # 'model' package with a 'load' function that actual
         # reads the model out of the archive.
 
@@ -123,7 +127,11 @@ class ModelTest(PackageTestCase):
                 import torch_package_importer as resources
 
                 # server knows to call model.load() to get the model,
+<<<<<<< HEAD
                 # maybe in the future it passes options as arguments by convention
+=======
+                # maybe in the future it passes options as arguments by convension
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 def load():
                     return resources.load_pickle('model', 'pickled')
                 """

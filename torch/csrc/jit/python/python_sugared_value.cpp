@@ -1222,10 +1222,15 @@ std::shared_ptr<SugaredValue> toSugaredValue(
   } else if (
       obj.ptr() == py::module::import("torch.jit").attr("isinstance").ptr()) {
     return SpecialFormValue::create(prim::isinstance);
+<<<<<<< HEAD
   } else if (obj.ptr() == py::module::import("torch").attr("_check").ptr()) {
     return std::make_shared<TorchCheckValue>();
 #ifdef USE_RPC
     // RPC module is only available when build flag "USE_DISTRIBUTED" is on.
+=======
+#ifdef USE_RPC
+    // RPC module is only avaialble when build flag "USE_DISTRIBUTED" is on.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (
       isRpcAvailable &&
       obj.ptr() ==
@@ -1238,7 +1243,11 @@ std::shared_ptr<SugaredValue> toSugaredValue(
     return SpecialFormValue::create(prim::rpc_sync);
   } else if (
       isRpcAvailable &&
+<<<<<<< HEAD
       // RPC module is only available  when build flag "USE_DISTRIBUTED" is on.
+=======
+      // RPC module is only avaialble  when build flag "USE_DISTRIBUTED" is on.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       obj.ptr() ==
           py::module::import("torch.distributed.rpc").attr("remote").ptr()) {
     return SpecialFormValue::create(prim::rpc_remote);

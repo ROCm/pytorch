@@ -36,7 +36,11 @@ class THManagedMapAllocator : private THManagedMapAllocatorInit,
       const char* filename,
       int flags,
       size_t size);
+<<<<<<< HEAD
   static THManagedMapAllocator* fromDataPtr(const at::DataPtr& /*dptr*/);
+=======
+  static THManagedMapAllocator* fromDataPtr(const at::DataPtr&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const char* manager_handle() const {
     return manager_handle_.c_str();

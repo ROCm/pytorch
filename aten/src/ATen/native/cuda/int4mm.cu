@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #if defined(USE_ROCM) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cuda_bf16.h>
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -127,13 +131,21 @@ inline __host__ __device__ uint32_t getAlignmentRoundUp(const void* p) {
   return diff == 0 ? 0 : uint32_t(Align) - diff;
 }
 
+<<<<<<< HEAD
 #if defined (__gfx90a__) || defined(__gfx942__) || defined(__gfx950__)
+=======
+#if defined (__gfx90a__) || defined(__gfx942__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define CDNA2_OR_LATER 1
 #else
 #define CDNA2_OR_LATER 0
 #endif
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(USE_ROCM)
 // TODO: Support RDNA
@@ -143,7 +155,11 @@ template<typename T, uint32_t Rank>
 using VecT = T __attribute__((ext_vector_type(Rank)));
 
 static bool isCDNA2orLater(int index) {
+<<<<<<< HEAD
     return at::detail::getCUDAHooks().isGPUArch({"gfx90a", "gfx942", "gfx950"}, index);
+=======
+    return at::detail::getCUDAHooks().isGPUArch({"gfx90a", "gfx942"}, index);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #else
@@ -1161,7 +1177,11 @@ at::Tensor _weight_int4pack_mm_cuda(
   auto C_final = at::empty(
       {m, n}, at::TensorOptions().dtype(at::kBFloat16).device(A.device()));
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto stream = at::cuda::getCurrentCUDAStream();
 #define RUN_GEMM(WARPS, K_TILES_PER_WARP, Q_GROUP_SIZE, REDUCE_TYPE) \
   do {                                                               \
@@ -1304,7 +1324,11 @@ at::Tensor _convert_weight_to_int4pack_cuda(
   constexpr int32_t kKTileSize = 16;
 
   // GPT-FAST assumes nTileSize of 8 for quantized weight tensor.
+<<<<<<< HEAD
   // See https://github.com/meta-pytorch/gpt-fast/blob/091515ab5b06f91c0d6a3b92f9c27463f738cc9b/quantize.py#L510
+=======
+  // See https://github.com/pytorch-labs/gpt-fast/blob/091515ab5b06f91c0d6a3b92f9c27463f738cc9b/quantize.py#L510
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Torch dynamo also requires the torch ops has the same output shape for each device.
   // See https://github.com/pytorch/pytorch/blob/ec284d3a74ec1863685febd53687d491fd99a161/torch/_meta_registrations.py#L3263
   constexpr int32_t kNTileSizeTensor = 8;
@@ -1327,7 +1351,11 @@ at::Tensor _convert_weight_to_int4pack_cuda(
       {nTilesTensor, kSuperTiles, 32, innerKTiles / 2},
       at::TensorOptions().dtype(at::kInt).device(in.device()));
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto stream = at::cuda::getCurrentCUDAStream();
   dim3 grid(kSuperTiles, nTiles);
 

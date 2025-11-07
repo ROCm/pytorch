@@ -39,7 +39,11 @@ struct AllocAligned {
 #elif defined(_MSC_VER)
     p = _aligned_malloc(sizeof(T), kGEMMLOWPCacheLineSize);
 #else
+<<<<<<< HEAD
     auto res = posix_memalign(&p, kGEMMLOWPCacheLineSize, sizeof(T));
+=======
+    auto res = posix_memalign((void**)&p, kGEMMLOWPCacheLineSize, sizeof(T));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     (void)res;
 #endif
 

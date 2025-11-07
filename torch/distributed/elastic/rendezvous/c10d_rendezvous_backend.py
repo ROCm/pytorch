@@ -87,7 +87,14 @@ class C10dRendezvousBackend(RendezvousBackend):
             if not isinstance(token, bytes):
                 result = self.get_state()
                 if result is not None:
+<<<<<<< HEAD
                     return *result, False
+=======
+                    tmp = *result, False
+                    # Python 3.6 does not support tuple unpacking in return
+                    # statements.
+                    return tmp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return None
 
             token = token.decode()

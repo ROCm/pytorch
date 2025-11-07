@@ -1,7 +1,10 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <c10/util/irange.h>
+<<<<<<< HEAD
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/input_metadata.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/variable.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS

@@ -715,6 +715,7 @@ class AotAutogradFallbackTests(torch._inductor.test_case.TestCase):
         out = compiled_fn(x, y)
         out.sum().backward()
 
+<<<<<<< HEAD
     def test_joint_custom_pass(self):
         is_called = False
 
@@ -751,6 +752,8 @@ class AotAutogradFallbackTests(torch._inductor.test_case.TestCase):
         self.assertTrue(is_called)
         out.sum().backward()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @expectedFailureDynamic  # https://github.com/pytorch/pytorch/issues/103539
     @torch._dynamo.config.patch(automatic_dynamic_shapes=False)
     @patch("torch._functorch.config.debug_assert", True)
@@ -916,6 +919,7 @@ class AotAutogradFallbackTests(torch._inductor.test_case.TestCase):
             dedent(
                 """\
 SeqNr|OrigAten|SrcFn|FwdSrcFn
+<<<<<<< HEAD
 0|aten.convolution.default|conv2d|
 0|aten.add.Tensor|add_|
 1|aten._native_batch_norm_legit_functional.default|batch_norm|
@@ -951,6 +955,45 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 1|aten.native_batch_norm_backward.default||batch_norm
 0|aten.convolution_backward.default||conv2d
 11|aten.add.Tensor||l1_loss
+=======
+0|aten.convolution.default|l__self___conv1|
+0|aten.add.Tensor|l__self___bn1|
+1|aten._native_batch_norm_legit_functional.default|l__self___bn1|
+2|aten.relu.default|l__self___relu1|
+2|aten.detach.default|l__self___relu1|
+2|aten.detach.default|l__self___relu1|
+3|aten.add.Tensor|add|
+4|aten.view.default|flatten|
+5|aten.view.default|l__self___fc1|
+6|aten.t.default|l__self___fc1|
+7|aten.addmm.default|l__self___fc1|
+8|aten.view.default|l__self___fc1|
+9|aten.sub.Tensor|l__self___loss_fn|
+10|aten.abs.default|l__self___loss_fn|
+11|aten.mean.default|l__self___loss_fn|
+11|aten.ones_like.default||l__self___loss_fn
+11|aten.expand.default||l__self___loss_fn
+11|aten.div.Scalar||l__self___loss_fn
+10|aten.sgn.default||l__self___loss_fn
+10|aten.mul.Tensor||l__self___loss_fn
+8|aten.view.default||l__self___fc1
+7|aten.t.default||l__self___fc1
+7|aten.mm.default||l__self___fc1
+7|aten.t.default||l__self___fc1
+7|aten.mm.default||l__self___fc1
+7|aten.t.default||l__self___fc1
+7|aten.sum.dim_IntList||l__self___fc1
+7|aten.view.default||l__self___fc1
+6|aten.t.default||l__self___fc1
+5|aten.view.default||l__self___fc1
+4|aten.view.default||
+2|aten.detach.default||l__self___relu1
+2|aten.detach.default||l__self___relu1
+2|aten.threshold_backward.default||l__self___relu1
+1|aten.native_batch_norm_backward.default||l__self___bn1
+0|aten.convolution_backward.default||l__self___conv1
+11|aten.add.Tensor||l__self___loss_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
             ),
         )
@@ -1247,7 +1290,11 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 
     @torch._functorch.config.patch(donated_buffer=True)
     def test_donated_buffer1(self):
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile()
         def relu(x):
@@ -1267,9 +1314,15 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 
     @torch._functorch.config.patch("donated_buffer", True)
     def test_donated_buffer2(self):
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
 
         # we will reuse the graph for g across f1 and f2
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+
+        # we will re-use the graph for g across f1 and f2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch.compile()
         def g(activation, param2):
             return torch.matmul(activation, param2)
@@ -1289,9 +1342,15 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 
     @torch._functorch.config.patch("donated_buffer", True)
     def test_donated_buffer3(self):
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
 
         # we will reuse the graph for g across f1 and f2
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+
+        # we will re-use the graph for g across f1 and f2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch.compile()
         def g(activation, param2):
             return torch.matmul(activation, param2)
@@ -1312,7 +1371,11 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 
     @torch._functorch.config.patch("donated_buffer", True)
     def test_donated_buffer4(self):
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Mod(torch.nn.Module):
             def __init__(self) -> None:
@@ -1343,7 +1406,11 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
 
     @torch._functorch.config.patch("donated_buffer", True)
     def test_donated_buffer5(self):
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile()
         def f(x, z):
@@ -1373,7 +1440,10 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
         FileCheck().check("bw_donated_idxs=[1]").run("\n".join(captured.output))
 
     @torch._functorch.config.patch("donated_buffer", True)
+<<<<<<< HEAD
     @torch._dynamo.config.patch("graph_break_on_nn_param_ctor", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_donated_buffer6(self):
         if is_dynamic_shape_test(self._testMethodName):
             # parameters should not be dynamic shape
@@ -1381,7 +1451,11 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
             #    SymNodeVariable() is not a constant
             return
 
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x):
             p = torch.nn.Parameter(x + 123)
@@ -1684,6 +1758,7 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
         # However, at the time this change was introduced, it went down from 15154 to 403.
         self.assertLess(len(shape_env_guards), 1000)
 
+<<<<<<< HEAD
     # See # https://github.com/pytorch/pytorch/issues/164814
     def test_aot_autograd_stride_reconstruction_on_zero_dim_dynamic_shaped_tensor(
         self,
@@ -1718,6 +1793,8 @@ SeqNr|OrigAten|SrcFn|FwdSrcFn
         self.assertEqual(eager_no_sq, comp_ind_no_sq)
         self.assertEqual(eager_no_sq.stride(), comp_ind_no_sq.stride())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

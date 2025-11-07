@@ -17,14 +17,22 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.onnx.ops import _impl, _symbolic_impl
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
+=======
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # https://github.com/onnx/onnx/blob/f542e1f06699ea7e1db5f62af53355b64338c723/onnx/onnx.proto#L597
@@ -61,6 +69,7 @@ def aten_decompositions() -> dict[torch._ops.OpOverload, Callable]:
 
 
 def _parse_domain_op_type(domain_op: str) -> tuple[str, str]:
+<<<<<<< HEAD
     split = domain_op.split("::", 1)
     if len(split) == 1:
         domain = ""
@@ -68,6 +77,15 @@ def _parse_domain_op_type(domain_op: str) -> tuple[str, str]:
     else:
         domain = split[0]
         op_type = split[1]
+=======
+    splitted = domain_op.split("::", 1)
+    if len(splitted) == 1:
+        domain = ""
+        op_type = splitted[0]
+    else:
+        domain = splitted[0]
+        op_type = splitted[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return domain, op_type
 
 
@@ -208,7 +226,11 @@ def symbolic_multi_out(
 
                 # Create a symbolic ONNX operator with the name "CustomOp" in the "custom_domain" domain.
                 # The output tensors will have the specified dtypes and shapes
+<<<<<<< HEAD
                 (out1, out2) = torch.onnx.ops.symbolic_multi_out(
+=======
+                (out1, out2) = torch.onnx.ops.symbolic(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "custom_domain::CustomOp",
                     (x,),
                     dict(attr_key="attr_value"),

@@ -753,7 +753,10 @@ class AutogradFunctionApply(HigherOrderOperator):
 
         class ApplyTemplate(torch.autograd.Function):
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def forward(ctx, *args):
                 nonlocal saved_values
                 output, saved_values = fwd(None, *fwd_args)

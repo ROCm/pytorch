@@ -40,7 +40,11 @@ def main():
             [
                 benchmark_utils.FuzzedSparseTensor(
                     name=name,
+<<<<<<< HEAD
                     size=tuple(f"k{i}" for i in range(3)),
+=======
+                    size=tuple([f"k{i}" for i in range(3)]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     min_elements=64 * 1024,
                     max_elements=128 * 1024,
                     sparse_dim="sparse_dim",

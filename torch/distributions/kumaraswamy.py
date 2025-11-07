@@ -44,7 +44,10 @@ class Kumaraswamy(TransformedDistribution):
         "concentration1": constraints.positive,
         "concentration0": constraints.positive,
     }
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     support = constraints.unit_interval
     has_rsample = True
 
@@ -67,7 +70,10 @@ class Kumaraswamy(TransformedDistribution):
             AffineTransform(loc=1.0, scale=-1.0),
             PowerTransform(exponent=self.concentration1.reciprocal()),
         ]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(base_dist, transforms, validate_args=validate_args)
 
     def expand(self, batch_shape, _instance=None):

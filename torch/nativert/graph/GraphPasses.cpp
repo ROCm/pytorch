@@ -101,10 +101,14 @@ std::string selectScalarOverloadName(const Node& node) {
       "floor_divide_out",
       "_conj"};
   std::vector<std::string_view> atoms = c10::split(node.target(), '.');
+<<<<<<< HEAD
 
   if (atoms.size() < 3) {
     return "";
   }
+=======
+  TORCH_CHECK_GE(atoms.size(), 3);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::string ns = std::string{atoms[atoms.size() - 3]};
   std::string opName = std::string{atoms[atoms.size() - 2]};
@@ -113,7 +117,11 @@ std::string selectScalarOverloadName(const Node& node) {
       overloadName != "Tensor_mode") {
     return overloadName;
   }
+<<<<<<< HEAD
   if (allowed.find(opName) == allowed.end()) {
+=======
+  if (allowed.find(std::string{opName}) == allowed.end()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return overloadName;
   }
   auto op = c10::Dispatcher::singleton().findSchemaOrThrow(

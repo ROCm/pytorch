@@ -12,7 +12,11 @@
 
 #define MPS_ERROR_NOT_COMPILED "PyTorch code is not compiled with MPS enabled"
 #define MPS_ERROR_RUNTIME_TOO_LOW \
+<<<<<<< HEAD
   "The MPS backend is supported on MacOS 14.0+. ", \
+=======
+  "The MPS backend is supported on MacOS 13.0+.", \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   "Current OS version can be queried using `sw_vers`"
 #define MPS_ERROR_DOUBLE_NOT_SUPPORTED "Cannot convert a MPS Tensor to float64 dtype " \
   "as the MPS framework doesn't support float64. Please use float32 instead."
@@ -43,6 +47,10 @@ TensorBase empty_mps(
     int64_t nelements = c10::multiply_integers(size);
     auto dtype = dtype_or_default(dtype_opt);
     TORCH_CHECK_TYPE(dtype != ScalarType::Double, MPS_ERROR_DOUBLE_NOT_SUPPORTED);
+<<<<<<< HEAD
+=======
+    TORCH_CHECK_TYPE(dtype != ScalarType::BFloat16 || is_macos_13_or_newer(mps::MacOSVersion::MACOS_VER_14_0_PLUS), "MPS BFloat16 is only supported on MacOS 14 or newer");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
     auto dtype_meta = scalarTypeToTypeMeta(dtype);

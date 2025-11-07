@@ -8,7 +8,10 @@ from .expanded_weights_impl import ExpandedWeight
 
 def is_batch_first(expanded_args_and_kwargs):
     batch_first = None
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in expanded_args_and_kwargs:
         if not isinstance(arg, ExpandedWeight):
             continue

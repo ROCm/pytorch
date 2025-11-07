@@ -26,6 +26,7 @@ jobs:
       id-token: write
       contents: read
 
+<<<<<<< HEAD
   get-label-type:
     name: get-label-type
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
@@ -36,13 +37,19 @@ jobs:
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   linux-jammy-rocm-py3_10-build:
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     name: linux-jammy-rocm-py3.10
     uses: ./.github/workflows/_linux-build.yml
+<<<<<<< HEAD
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+=======
+    with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       build-environment: linux-jammy-rocm-py3.10
       docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
       sync-tag: rocm-build

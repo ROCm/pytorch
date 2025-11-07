@@ -206,10 +206,13 @@ struct Vectorized16 {
     return static_cast<const Derived*>(this)->map_with_vec_float_method(
         &Vectorized<float>::exp_u20);
   }
+<<<<<<< HEAD
   Derived fexp_u20() const {
     return static_cast<const Derived*>(this)->map_with_vec_float_method(
         &Vectorized<float>::exp_u20);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Derived fmod(const Derived& q) const {
     // This function is questionable with a conversion, so we use map2
     return map2(q, std::fmod);

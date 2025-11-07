@@ -74,7 +74,11 @@ c10::intrusive_ptr<JitFuture> RequestCallbackNoPython::processMessage(
         [this,
          // std::function must be copyable, hence hae to cast the unique_ptr to
          // a shared_ptr here.
+<<<<<<< HEAD
          rpc = std::shared_ptr<RpcCommandBase>(std::move(rpc)),
+=======
+         rpc = (std::shared_ptr<RpcCommandBase>)std::move(rpc),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          messageType = request.type(),
          streams = std::move(streams)](JitFuture& /* unused */) mutable {
           // The cost of pre-request check is minimal thanks to

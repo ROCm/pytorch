@@ -191,6 +191,7 @@ class ProfilerTree:
                 name,
             )
 
+<<<<<<< HEAD
         # HACK: this patches around the fact that PyBind11 improperly sets the
         # __qualname__ attribute on functions and methods; see
         # https://github.com/pybind/pybind11/issues/5774.  This should be removed if
@@ -201,6 +202,8 @@ class ProfilerTree:
             name,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return re.sub("object at 0x[0-9a-fA-F]+>", "object at 0xXXXXXXXXXXXX>", name)
 
     @classmethod
@@ -762,6 +765,7 @@ class TestProfilerTree(TestCase):
               torch/profiler/profiler.py(...): __enter__
                 ...
               aten::add
+<<<<<<< HEAD
                 PythonSubclass
                   torch/_library/simple_registry.py(...): find_torch_dispatch_rule
                     torch/_library/simple_registry.py(...): find
@@ -778,6 +782,22 @@ class TestProfilerTree(TestCase):
                         aten::add
                     torch/utils/_pytree.py(...): tree_map
                       ...
+=======
+                torch/_library/simple_registry.py(...): find_torch_dispatch_rule
+                  torch/_library/simple_registry.py(...): find
+                  torch/_library/simple_registry.py(...): find
+                    <built-in method get of dict object at 0xXXXXXXXXXXXX>
+                test_profiler_tree.py(...): __torch_dispatch__
+                  torch/utils/_pytree.py(...): tree_map
+                    ...
+                  torch/utils/_pytree.py(...): tree_map
+                    ...
+                  torch/_ops.py(...): __call__
+                    <built-in method  of PyCapsule object at 0xXXXXXXXXXXXX>
+                      aten::add
+                  torch/utils/_pytree.py(...): tree_map
+                    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               torch/profiler/profiler.py(...): __exit__
                 torch/profiler/profiler.py(...): stop
                   ...""",

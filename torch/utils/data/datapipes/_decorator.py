@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 import inspect
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, get_type_hints, Optional, Union
+=======
+from functools import wraps
+from typing import Any, Callable, get_type_hints, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes._typing import _DataPipeMeta
 from torch.utils.data.datapipes.datapipe import IterDataPipe, MapDataPipe
@@ -75,9 +80,15 @@ class guaranteed_datapipes_determinism:
 class non_deterministic:
     cls: Optional[type[IterDataPipe]] = None
     # TODO: Lambda for picking
+<<<<<<< HEAD
     deterministic_fn: Callable[..., bool]
 
     def __init__(self, arg: Union[type[IterDataPipe], Callable[..., bool]]) -> None:
+=======
+    deterministic_fn: Callable[[], bool]
+
+    def __init__(self, arg: Union[type[IterDataPipe], Callable[[], bool]]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # 1. Decorator doesn't have any argument
         if isinstance(arg, type):  # type: ignore[arg-type]
             if not issubclass(arg, IterDataPipe):  # type: ignore[arg-type]
@@ -92,7 +103,11 @@ class non_deterministic:
         #    When the function returns True, the instance is non-deterministic. Otherwise,
         #    the instance is a deterministic DataPipe.
         elif isinstance(arg, Callable):  # type:ignore[arg-type]
+<<<<<<< HEAD
             self.deterministic_fn = arg
+=======
+            self.deterministic_fn = arg  # type: ignore[assignment, misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise TypeError(f"{arg} can not be decorated by non_deterministic")
 
@@ -110,7 +125,12 @@ class non_deterministic:
 
         # Decorate with a functional argument
         if not (
+<<<<<<< HEAD
             isinstance(args[0], type) and issubclass(args[0], IterDataPipe)  # type: ignore[arg-type]
+=======
+            isinstance(args[0], type)
+            and issubclass(args[0], IterDataPipe)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             raise TypeError(
                 f"Only `IterDataPipe` can be decorated, but {args[0].__name__} is found"
@@ -119,7 +139,11 @@ class non_deterministic:
         return self.deterministic_wrapper_fn
 
     def deterministic_wrapper_fn(self, *args, **kwargs) -> IterDataPipe:
+<<<<<<< HEAD
         res = self.deterministic_fn(*args, **kwargs)
+=======
+        res = self.deterministic_fn(*args, **kwargs)  # type: ignore[call-arg, misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(res, bool):
             raise TypeError(
                 "deterministic_fn of `non_deterministic` decorator is required "

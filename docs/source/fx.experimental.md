@@ -8,10 +8,13 @@
 These APIs are experimental and subject to change without notice.
 :::
 
+<<<<<<< HEAD
 ```{eval-rst}
 .. autoclass:: torch.fx.experimental.sym_node.DynamicInt
 ```
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## torch.fx.experimental.symbolic_shapes
 
 ```{eval-rst}

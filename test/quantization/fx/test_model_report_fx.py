@@ -946,7 +946,11 @@ class TestFxModelReportClass(QuantizationTestCase):
 
             model_report = ModelReport(model_prep, test_detector_set)
 
+<<<<<<< HEAD
             # prepare the model for calibration
+=======
+            # prepare the model for callibration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model = model_report.prepare_detailed_calibration()
 
             # see whether observers properly in regular nn.Module
@@ -985,7 +989,11 @@ class TestFxModelReportClass(QuantizationTestCase):
                 elif isinstance(detector, DynamicStaticDetector):
                     self.assertEqual(len(detector_obs_of_interest_fqns), 4)
 
+<<<<<<< HEAD
             # ensure that we can prepare for calibration only once
+=======
+            # ensure that we can prepare for callibration only once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with self.assertRaises(ValueError):
                 prepared_for_callibrate_model = model_report.prepare_detailed_calibration()
 
@@ -1037,7 +1045,11 @@ class TestFxModelReportClass(QuantizationTestCase):
             model_full = TwoThreeOps()
             model_single = TwoThreeOps()
 
+<<<<<<< HEAD
             # prepare and calibrate two different instances of same model
+=======
+            # prepare and callibrate two different instances of same model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # prepare the model
             example_input = model_full.get_example_inputs()[0]
             current_backend = torch.backends.quantized.engine
@@ -1052,11 +1064,19 @@ class TestFxModelReportClass(QuantizationTestCase):
             # initialize another with a single detector set
             model_report_single = ModelReport(model_prep_single, single_detector_set)
 
+<<<<<<< HEAD
             # prepare the models for calibration
             prepared_for_callibrate_model_full = model_report_full.prepare_detailed_calibration()
             prepared_for_callibrate_model_single = model_report_single.prepare_detailed_calibration()
 
             # now calibrate the two models
+=======
+            # prepare the models for callibration
+            prepared_for_callibrate_model_full = model_report_full.prepare_detailed_calibration()
+            prepared_for_callibrate_model_single = model_report_single.prepare_detailed_calibration()
+
+            # now callibrate the two models
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             num_iterations = 10
             for i in range(num_iterations):
                 example_input = torch.tensor(torch.randint(100, (1, 3, 3, 3)), dtype=torch.float)
@@ -1109,12 +1129,20 @@ class TestFxModelReportClass(QuantizationTestCase):
 
             model = TwoThreeOps()
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = _get_prepped_for_calibration_model_helper(
                 model, detector_set, model.get_example_inputs()[0]
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the model
+=======
+            # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1162,12 +1190,20 @@ class TestFxModelReportClass(QuantizationTestCase):
 
             model = TwoThreeOps()
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = _get_prepped_for_calibration_model_helper(
                 model, detector_set, model.get_example_inputs()[0]
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the models
+=======
+            # now we actually callibrate the models
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1192,7 +1228,11 @@ class TestFxModelReportClass(QuantizationTestCase):
             self.assertEqual(len(qconfig_mapping.module_name_qconfigs), 2)
 
             # only two linears, make sure per channel min max for weight since fbgemm
+<<<<<<< HEAD
             # also static distribution since a simple single calibration
+=======
+            # also static distribution since a simple single callibration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for key in qconfig_mapping.module_name_qconfigs:
                 config = qconfig_mapping.module_name_qconfigs[key]
                 self.assertEqual(config.weight, default_per_channel_weight_observer)
@@ -1220,12 +1260,20 @@ class TestFxModelReportClass(QuantizationTestCase):
 
             model = TwoThreeOps()
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = _get_prepped_for_calibration_model_helper(
                 model, detector_set, model.get_example_inputs()[0]
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the models
+=======
+            # now we actually callibrate the models
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1319,7 +1367,11 @@ class TestFxDetectInputWeightEqualization(QuantizationTestCase):
 
             detector_set = {InputWeightEqualizationDetector(0.5)}
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             non_fused = self._get_prepped_for_calibration_model(self.TwoBlockComplexNet(), detector_set)
             fused = self._get_prepped_for_calibration_model(self.TwoBlockComplexNet(), detector_set, fused=True)
 
@@ -1365,12 +1417,20 @@ class TestFxDetectInputWeightEqualization(QuantizationTestCase):
             test_input_weight_detector = InputWeightEqualizationDetector(0.4)
             detector_set = {test_input_weight_detector}
             model = self.TwoBlockComplexNet()
+<<<<<<< HEAD
             # prepare the model for calibration
+=======
+            # prepare the model for callibration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, model_report = self._get_prepped_for_calibration_model(
                 model, detector_set
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the model
+=======
+            # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1430,7 +1490,11 @@ class TestFxDetectInputWeightEqualization(QuantizationTestCase):
                     self.assertEqual(global_max, max(dimension_max))
 
                     input_ratio = torch.sqrt((per_channel_max - per_channel_min) / (global_max - global_min))
+<<<<<<< HEAD
                     # ensure comparison stat passed back is sqrt of range ratios
+=======
+                    # ensure comparision stat passed back is sqrt of range ratios
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # need to get the weight ratios first
 
                     # make sure per channel min and max are as expected
@@ -1474,10 +1538,17 @@ class TestFxDetectInputWeightEqualization(QuantizationTestCase):
             test_input_weight_detector = InputWeightEqualizationDetector(0.4)
             detector_set = {test_input_weight_detector}
             model = self.ReluOnly()
+<<<<<<< HEAD
             # prepare the model for calibration
             prepared_for_callibrate_model, model_report = self._get_prepped_for_calibration_model(model, detector_set)
 
             # now we actually calibrate the model
+=======
+            # prepare the model for callibration
+            prepared_for_callibrate_model, model_report = self._get_prepped_for_calibration_model(model, detector_set)
+
+            # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1531,7 +1602,11 @@ class TestFxDetectOutliers(QuantizationTestCase):
 
     def _get_prepped_for_calibration_model(self, model, detector_set, use_outlier_data=False):
         r"""Returns a model that has been prepared for callibration and corresponding model_report"""
+<<<<<<< HEAD
         # call the general helper function to calibrate
+=======
+        # call the general helper function to callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         example_input = model.get_example_inputs()[0]
 
         # if we specifically want to test data with outliers replace input
@@ -1550,7 +1625,11 @@ class TestFxDetectOutliers(QuantizationTestCase):
 
             detector_set = {OutlierDetector(reference_percentile=0.95)}
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = self._get_prepped_for_calibration_model(
                 self.LargeBatchModel(param_size=128), detector_set
             )
@@ -1594,12 +1673,20 @@ class TestFxDetectOutliers(QuantizationTestCase):
             detector_set = {outlier_detector, dynamic_static_detector}
             model = self.LargeBatchModel(param_size=param_size)
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = self._get_prepped_for_calibration_model(
                 model, detector_set
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the model
+=======
+            # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1644,12 +1731,20 @@ class TestFxDetectOutliers(QuantizationTestCase):
             detector_set = {outlier_detector}
             model = self.LargeBatchModel(param_size=param_size)
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = self._get_prepped_for_calibration_model(
                 model, detector_set
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the model
+=======
+            # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_input = model.get_example_inputs()[0]
             example_input = example_input.to(torch.float)
 
@@ -1694,16 +1789,28 @@ class TestFxDetectOutliers(QuantizationTestCase):
             detector_set = {outlier_detector}
             model = self.LargeBatchModel(param_size=param_size)
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = self._get_prepped_for_calibration_model(
                 model, detector_set, use_outlier_data=True
             )
 
+<<<<<<< HEAD
             # now we actually calibrate the model
             example_input = model.get_outlier_inputs()[0]
             example_input = example_input.to(torch.float)
 
             # now calibrate minimum 30 times to make it above minimum threshold
+=======
+            # now we actually callibrate the model
+            example_input = model.get_outlier_inputs()[0]
+            example_input = example_input.to(torch.float)
+
+            # now callibrate minimum 30 times to make it above minimum threshold
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(30):
                 example_input = model.get_outlier_inputs()[0]
                 example_input = example_input.to(torch.float)
@@ -1764,7 +1871,11 @@ class TestFxModelReportVisualizer(QuantizationTestCase):
         r"""
         Callibrates the passed in model, generates report, and returns the visualizer
         """
+<<<<<<< HEAD
         # now we actually calibrate the model
+=======
+        # now we actually callibrate the model
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         example_input = model.get_example_inputs()[0]
         example_input = example_input.to(torch.float)
 
@@ -1796,7 +1907,11 @@ class TestFxModelReportVisualizer(QuantizationTestCase):
 
             model = TwoThreeOps()
 
+<<<<<<< HEAD
             # get tst model and calibrate
+=======
+            # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepared_for_callibrate_model, mod_report = _get_prepped_for_calibration_model_helper(
                 model, detector_set, model.get_example_inputs()[0]
             )
@@ -1823,7 +1938,11 @@ class TestFxModelReportVisualizer(QuantizationTestCase):
             plottable_set = set()
 
             for feature_name in b_1_linear_features:
+<<<<<<< HEAD
                 if type(b_1_linear_features[feature_name]) is torch.Tensor:
+=======
+                if type(b_1_linear_features[feature_name]) == torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     plottable_set.add(feature_name)
 
             returned_plottable_feats = mod_rep_visualizer.get_all_unique_feature_names()
@@ -1843,7 +1962,11 @@ class TestFxModelReportVisualizer(QuantizationTestCase):
 
         model = TwoThreeOps()
 
+<<<<<<< HEAD
         # get tst model and calibrate
+=======
+        # get tst model and callibrate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prepared_for_callibrate_model, mod_report = _get_prepped_for_calibration_model_helper(
             model, detector_set, model.get_example_inputs()[0]
         )
@@ -1945,7 +2068,11 @@ def _get_prepped_for_calibration_model_helper(model, detector_set, example_input
     example_input = example_input.to(torch.float)
     q_config_mapping = torch.ao.quantization.get_default_qconfig_mapping()
 
+<<<<<<< HEAD
     # if they passed in fusion parameter, make sure to test that
+=======
+    # if they passed in fusion paramter, make sure to test that
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if fused:
         model = torch.ao.quantization.fuse_modules(model, model.get_fusion_modules())
 
@@ -1953,7 +2080,11 @@ def _get_prepped_for_calibration_model_helper(model, detector_set, example_input
 
     model_report = ModelReport(model_prep, detector_set)
 
+<<<<<<< HEAD
     # prepare the model for calibration
+=======
+    # prepare the model for callibration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prepared_for_callibrate_model = model_report.prepare_detailed_calibration()
 
     return (prepared_for_callibrate_model, model_report)

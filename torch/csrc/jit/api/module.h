@@ -93,7 +93,11 @@ struct TORCH_API Module : public Object {
   Module(Module&&) noexcept = default;
   Module& operator=(Module&&) noexcept = default;
   Module(
+<<<<<<< HEAD
       c10::QualifiedName /*class_name*/,
+=======
+      c10::QualifiedName,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::shared_ptr<CompilationUnit> cu,
       bool shouldMangle = false);
   Module(ModulePtr module_value) : Object(std::move(module_value)) {}
@@ -327,7 +331,11 @@ struct TORCH_API Module : public Object {
   // Map of function names to the traced inputs that they have been traced with
   c10::Dict<std::string, c10::impl::GenericList> traced_inputs_;
 
+<<<<<<< HEAD
   // Mutex to keep registering buffer or parameter thread safe.
+=======
+  // Mutex to keep registring buffer or parameter thread safe.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::shared_ptr<std::mutex> register_mutex_ = std::make_shared<std::mutex>();
 };
 

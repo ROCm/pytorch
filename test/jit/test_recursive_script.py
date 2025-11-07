@@ -4,7 +4,10 @@
 import os
 import re
 import sys
+<<<<<<< HEAD
 import threading
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import types
 import typing
 import typing_extensions
@@ -774,6 +777,7 @@ class TestRecursiveScript(JitTestCase):
         mod.foo = None
         self.checkModule(mod, (torch.rand(2, 2),))
 
+<<<<<<< HEAD
     def test_thread_safe_error_stacks(self):
         # prior to #160386, this causes a segfault. See [Note: Thread-safe CallStack]
         callstacks = []
@@ -793,6 +797,8 @@ class TestRecursiveScript(JitTestCase):
         del callstacks[0]
         self.assertTrue(len(callstacks) == 0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_override_instance_method_ignore(self):
         class M(torch.nn.Module):
             @torch.jit.ignore

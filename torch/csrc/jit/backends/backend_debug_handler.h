@@ -18,7 +18,11 @@ namespace torch::jit {
  *  Effectively debug handles are something that is given to backend and later
  *  when an exception occurs in the backend, backend can tell, using debug
  *  handle, that an exception occurred here. Then the runtime can generate
+<<<<<<< HEAD
  *  callstack corresponding to the exception.
+=======
+ *  callstack correspoding to the exception.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  *  There are two parts to BackendDebugHandleManager:
  *  1. static std::atomic debug_handle
  *  2. Map of [debug-handle, DebugInfoTuple]

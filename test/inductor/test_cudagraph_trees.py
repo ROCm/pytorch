@@ -5,7 +5,10 @@ import functools
 import gc
 import importlib
 import itertools
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import unittest
 import warnings
@@ -41,7 +44,10 @@ from torch.testing._internal.common_utils import (
     skipIfRocm,
     TEST_CUDA_GRAPH,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._mode_utils import no_dispatch
 from torch.utils._python_dispatch import TorchDispatchMode
 
@@ -57,8 +63,16 @@ if IS_WINDOWS and IS_CI:
 importlib.import_module("functorch")
 importlib.import_module("filelock")
 
+<<<<<<< HEAD
 
 aten = torch.ops.aten
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+
+
+aten = torch.ops.aten
+requires_cuda = unittest.skipUnless(HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 requires_multigpu = functools.partial(
     unittest.skipIf, not TEST_MULTIGPU, "requires multiple cuda devices"
 )
@@ -123,7 +137,11 @@ class TestCase(InductorTestCase):
         torch._dynamo.reset()
 
 
+<<<<<<< HEAD
 if HAS_CUDA_AND_TRITON:
+=======
+if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_all_cudagraph_segments():
         segments = torch.cuda.memory_snapshot()
@@ -177,7 +195,11 @@ if HAS_CUDA_AND_TRITON:
 
         def get_manager(self, device_index=None):
             return torch._inductor.cudagraph_trees.get_container(
+<<<<<<< HEAD
                 device_index if device_index else self.device_idx
+=======
+                self.device_idx if not device_index else device_index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).tree_manager
 
         def get_roots(self):
@@ -280,6 +302,7 @@ if HAS_CUDA_AND_TRITON:
             with capture_stderr() as captured_output:
                 foo(torch.ones([10], device="cuda"), torch.ones([20]))
 
+<<<<<<< HEAD
             if torch._inductor.config.graph_partition:
                 # graph partition splits on cpu ops
                 self.assertEqual(counters["inductor"]["cudagraph_skips"], 0)
@@ -288,6 +311,12 @@ if HAS_CUDA_AND_TRITON:
                     "skipping cudagraphs due to cpu device (arg1_1). Found from"
                 ).check("y + 2").run(captured_output[0])
                 self.assertEqual(counters["inductor"]["cudagraph_skips"], 1)
+=======
+            FileCheck().check(
+                "skipping cudagraphs due to cpu device (arg1_1). Found from"
+            ).check("y + 2").run(captured_output[0])
+            self.assertEqual(counters["inductor"]["cudagraph_skips"], 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             with capture_stderr() as captured_output:
                 foo(
@@ -297,10 +326,14 @@ if HAS_CUDA_AND_TRITON:
             FileCheck().check("skipping cudagraphs due to multiple devices").run(
                 captured_output[0]
             )
+<<<<<<< HEAD
             self.assertEqual(
                 counters["inductor"]["cudagraph_skips"],
                 1 if torch._inductor.config.graph_partition else 2,
             )
+=======
+            self.assertEqual(counters["inductor"]["cudagraph_skips"], 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch._inductor.config.patch("triton.cudagraph_skip_dynamic_graphs", True)
         def test_skip_symbolic(self):
@@ -338,7 +371,11 @@ if HAS_CUDA_AND_TRITON:
             ).check(".add_(2)").run(captured_output[0])
             self.assertEqual(counters["inductor"]["cudagraph_skips"], 1)
 
+<<<<<<< HEAD
             # mutation on inp doesn't hit cudagraphs
+=======
+            # mutation on inp doesnt hit cudagraphs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(len(self.get_manager().roots), 0)
 
             # mutation on parameters/buffers hits cudagraphs
@@ -570,8 +607,13 @@ if HAS_CUDA_AND_TRITON:
                 del out
 
                 # when I tried inducing separate recordings via graph break,
+<<<<<<< HEAD
                 # the frame kept interfering by keeping outputs alive
                 # this isn't great by simulates the logic.
+=======
+                # the frame kept interferring by keeping outputs alive
+                # this isnt great by simulates the logic.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 from torch._dynamo.mutation_guard import GenerationTracker
 
                 GenerationTracker.generation -= 1
@@ -581,7 +623,11 @@ if HAS_CUDA_AND_TRITON:
 
             foo_opt(torch.ones([4, 4], device="cuda"))
 
+<<<<<<< HEAD
             # Two separate traces - one has a child, one doesn't
+=======
+            # Two separate traces - one has a child, one doesnt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(self.get_root_children(), [1, 0])
 
         def test_execution_into_recording(self):
@@ -815,6 +861,7 @@ if HAS_CUDA_AND_TRITON:
             # the three saved tensors should die in the backward
             # we kept alive the output
             self.assertEqual(self.curr_node().expected_dead_indices_before_graph, [])
+<<<<<<< HEAD
             if torch._inductor.config.graph_partition:
                 self.assertEqual(
                     self.curr_node().expected_dead_indices_after_graph,
@@ -825,6 +872,12 @@ if HAS_CUDA_AND_TRITON:
                     self.curr_node().expected_dead_indices_after_graph,
                     [(0, 1), (0, 2)],
                 )
+=======
+            self.assertEqual(
+                self.curr_node().expected_dead_indices_after_graph,
+                [(0, 1), (0, 2)],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertFalse(self.get_manager().new_graph_id().id == 0)
             self.assertEqual(counters["aot_autograd"]["autograd_cache_miss"], 1)
 
@@ -914,6 +967,7 @@ if HAS_CUDA_AND_TRITON:
             self._test_unaligned_static_input_impl(expected_clones=0)
 
         @torch._inductor.config.patch("graph_partition", True)
+<<<<<<< HEAD
         @torch._inductor.config.patch("implicit_fallbacks", True)
         def test_graph_partition_custom_rule(self):
             def get_num_partitions(code):
@@ -1094,6 +1148,8 @@ if HAS_CUDA_AND_TRITON:
                 self.assertEqual(eager_out, compiled_out)
 
         @torch._inductor.config.patch("graph_partition", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch._inductor.config.patch("triton.cudagraph_trees", False)
         def test_graph_partition_gc(self):
             def _test_dummy():
@@ -1321,6 +1377,7 @@ if HAS_CUDA_AND_TRITON:
 
             node = self.curr_node()
             first_node = next(node._path_from_root)
+<<<<<<< HEAD
             if torch._inductor.config.graph_partition:
                 # graph partition may changed the order of outputs
                 self.assertFalse(first_node.unaliased_in_all_paths[1])
@@ -1328,6 +1385,10 @@ if HAS_CUDA_AND_TRITON:
             else:
                 self.assertFalse(first_node.unaliased_in_all_paths[0])
                 self.assertTrue(first_node.cached_tensor_outputs[0] is None)
+=======
+            self.assertFalse(first_node.unaliased_in_all_paths[0])
+            self.assertTrue(first_node.cached_tensor_outputs[0] is None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch._inductor.config.patch("implicit_fallbacks", True)
         def test_multinomial(self):
@@ -1522,7 +1583,11 @@ if HAS_CUDA_AND_TRITON:
                 torch._C._set_cached_tensors_enabled(False)
 
         def test_accumulate_grad(self):
+<<<<<<< HEAD
             # cudagraph trees shouldn't interfere with accumulation logic
+=======
+            # cudagraph trees shouldnt interfere with accumulation logic
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def compute_grad(grad_output, create_graph):
                 x = torch.randn(5, 5, requires_grad=True, device="cuda")
@@ -1563,7 +1628,11 @@ if HAS_CUDA_AND_TRITON:
             for _ in range(3):
                 out = frozen(torch.rand([10, 10], device="cuda"))
 
+<<<<<<< HEAD
             # didn't do additional recordings
+=======
+            # didnt do additional recordings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertTrue(self.get_manager().new_graph_id().id == 2)
 
         def test_empty_cpu_tensor(self):
@@ -1830,6 +1899,7 @@ if HAS_CUDA_AND_TRITON:
             # the three saved tensors should die in the backward
             # we kept alive the output
             self.assertEqual(self.curr_node().expected_dead_indices_before_graph, [])
+<<<<<<< HEAD
             if torch._inductor.config.graph_partition:
                 self.assertEqual(
                     self.curr_node().expected_dead_indices_after_graph,
@@ -1840,6 +1910,12 @@ if HAS_CUDA_AND_TRITON:
                     self.curr_node().expected_dead_indices_after_graph,
                     [(0, 1), (0, 2)],
                 )
+=======
+            self.assertEqual(
+                self.curr_node().expected_dead_indices_after_graph,
+                [(0, 1), (0, 2)],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertFalse(self.get_manager().new_graph_id().id == 0)
 
         def test_separate_recordings(self):
@@ -1937,6 +2013,7 @@ if HAS_CUDA_AND_TRITON:
                     args.clear()
                     return (x + 3,)
 
+<<<<<<< HEAD
                 inp = torch.rand([20, 20], device=f"cuda:{self.device_idx}")
 
                 inp_list = [inp]
@@ -1950,6 +2027,27 @@ if HAS_CUDA_AND_TRITON:
 
             test()
             self.assertTrue(self.get_manager(device_index=self.device_idx) is None)
+=======
+                inp = torch.rand([20, 20], device="cuda:1")
+
+                inp_list = [inp]
+                foo_cg = tree_cudagraphify_impl(
+                    foo,
+                    inp_list,
+                    (),
+                    device_index=1,
+                    is_backward=False,
+                    is_inference=True,
+                )
+                for _ in range(3):
+                    self.assertEqual(foo_cg([inp]), foo([inp]))
+
+                self.assertTrue(self.get_manager(device_index=0) is None)
+                self.assertFalse(self.get_manager(device_index=1) is None)
+
+            test()
+            self.assertTrue(self.get_manager(device_index=1) is None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def test_error_on_dealloc_use(self):
             @torch.compile()
@@ -2259,19 +2357,31 @@ if HAS_CUDA_AND_TRITON:
                 device = x.untyped_storage()
 
         def test_side_stream_memory_allocation(self):
+<<<<<<< HEAD
             device = f"cuda:{self.device_idx}"
+=======
+            from torch._inductor.cudagraph_trees import cudagraphify_impl
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def multi_stream_allocation(args):
                 side_stream = torch.cuda.Stream()
                 side_stream.wait_stream(torch.cuda.current_stream())
                 with torch.cuda.stream(side_stream):
                     side_stream_buffer = torch.ones(
+<<<<<<< HEAD
                         *args, device=device, dtype=torch.float32
+=======
+                        *args, device="cuda:0", dtype=torch.float32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 torch.cuda.current_stream().wait_stream(side_stream)
 
                 main_stream_buffer = torch.ones(
+<<<<<<< HEAD
                     *args, device=device, dtype=torch.float32
+=======
+                    *args, device="cuda:0", dtype=torch.float32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
                 if isinstance(args, list):
@@ -2279,17 +2389,29 @@ if HAS_CUDA_AND_TRITON:
 
                 return main_stream_buffer, side_stream_buffer
 
+<<<<<<< HEAD
             graphed_multi_stream_func = tree_cudagraphify_impl(
+=======
+            graphed_multi_stream_func = cudagraphify_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 multi_stream_allocation,
                 inputs=[],
                 static_input_idxs=[],
                 is_backward=False,
                 is_inference=False,
+<<<<<<< HEAD
                 device_index=self.device_idx,
                 stack_traces=["dummy stack trace1", "dummy stack trace2"],
             )
 
             ref_out = torch.ones((2, 3), device=device, dtype=torch.float32)
+=======
+                device_index=0,
+                stack_traces=["dummy stack trace1", "dummy stack trace2"],
+            )
+
+            ref_out = torch.ones((2, 3), device="cuda:0", dtype=torch.float32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             for _ in range(3):
                 torch.compiler.cudagraph_mark_step_begin()
@@ -2336,8 +2458,13 @@ if HAS_CUDA_AND_TRITON:
             with self.assertRaisesRegex(
                 Exception,
                 r"(?s)static input data pointer changed.\n"
+<<<<<<< HEAD
                 r"input name: primals_.*. data pointer changed from .* to .*. input stack trace:.*"
                 r"input name: primals_.*. data pointer changed from .* to .*. input stack trace:.*,"
+=======
+                r"input name: primals_2. data pointer changed from .* to .*. input stack trace:.*"
+                r"input name: primals_3. data pointer changed from .* to .*. input stack trace:.*,"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 r" in forward\n.* self.static_tensor.add\_\(torch.ones\(\(2, 2\), device=\"cuda\"\)\).*\n",
             ):
                 self.curr_node().run(
@@ -2859,6 +2986,11 @@ if HAS_CUDA_AND_TRITON:
                 for batch_size in range(10, 200, 10):
                     iter(batch_size, mod)
 
+<<<<<<< HEAD
+=======
+            print(captured_output)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             FileCheck().check_count(
                 "CUDAGraph supports dynamic shapes by recording a new graph for each "
                 "distinct input size. Recording too many CUDAGraphs may lead to "
@@ -2905,6 +3037,7 @@ if HAS_CUDA_AND_TRITON:
             # 2 graph partitions lead to 2 cudagraph
             self.assertEqual(self.get_manager().new_graph_id().id, 2)
 
+<<<<<<< HEAD
         def test_graph_partition_view_fallback(self):
             def f(x):
                 y = x + 1
@@ -2937,6 +3070,8 @@ if HAS_CUDA_AND_TRITON:
                 "cudagraph partition into 2 partitions"
             ).run(captured_output[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch._inductor.config.patch("graph_partition", True)
         def test_graph_partition_cpu_scalar1(self):
             def f(x, y):
@@ -3061,6 +3196,7 @@ if HAS_CUDA_AND_TRITON:
             self.assertEqual(x, torch.tensor(1, device="cpu"))
 
         @torch._inductor.config.patch("graph_partition", True)
+<<<<<<< HEAD
         def test_graph_partition_cpu_scalar_multiple(self):
             def f(x, y, z):
                 return x + y, x + z
@@ -3083,6 +3219,8 @@ if HAS_CUDA_AND_TRITON:
             self.assertEqual(self.get_manager().new_graph_id().id, 1)
 
         @torch._inductor.config.patch("graph_partition", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch._inductor.config.patch("triton.cudagraphs", False)
         def test_graph_partition_reduce_overhead_mode_effectiveness(self):
             # test that `mode="reduce-overhead"` still controls whether
@@ -3424,6 +3562,7 @@ if HAS_CUDA_AND_TRITON:
 
         @config.patch(implicit_fallbacks=True)
         @torch._inductor.config.patch("graph_partition", True)
+<<<<<<< HEAD
         def test_graph_partition_custom_op_mutation_late_free(self):
             @torch.library.custom_op(
                 "mylib::op1",
@@ -3478,6 +3617,8 @@ if HAS_CUDA_AND_TRITON:
 
         @config.patch(implicit_fallbacks=True)
         @torch._inductor.config.patch("graph_partition", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_graph_partition_custom_op_dynamoc_shapes(self):
             @torch.library.custom_op(
                 "mylib::movement",
@@ -3818,6 +3959,7 @@ if HAS_CUDA_AND_TRITON:
 
             self.assertEqual(self.get_manager().new_graph_id().id, 2)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch("graph_partition", True)
         def test_graph_partition_simple(self):
             def f(x, y):
@@ -4090,6 +4232,8 @@ if HAS_CUDA_AND_TRITON:
             compiled_out = compiled_foo(x)
             self.assertEqual(eager_out, compiled_out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_meta_tensor(self):
             def foobar(x, y):
                 return x * 2, y * 3
@@ -4107,8 +4251,14 @@ if HAS_CUDA_AND_TRITON:
             self.assertEqual(eager_out, compiled_out)
             self.assertEqual(self.get_manager().new_graph_id().id, 1)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch("triton.cudagraph_capture_sizes", (2, 5, 7))
         def test_cudagraph_capture_sizes(self):
+=======
+        def test_cudagraph_capture_sizes(self):
+            torch._inductor.config.triton.cudagraph_capture_sizes = (2, 5, 7)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def f(x):
                 return x + 1
 
@@ -4125,16 +4275,26 @@ if HAS_CUDA_AND_TRITON:
 
             self.assertEqual(self.get_manager().new_graph_id().id, 3)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch(
             "triton.cudagraph_capture_sizes",
             (
+=======
+        def test_cudagraph_capture_sizes1(self):
+            torch._inductor.config.triton.cudagraph_capture_sizes = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (2, 3),
                 (4, 5),
                 (6, 2),
                 (7, 3),
+<<<<<<< HEAD
             ),
         )
         def test_cudagraph_capture_sizes1(self):
+=======
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def f(x):
                 return x + 1
 
@@ -4153,16 +4313,26 @@ if HAS_CUDA_AND_TRITON:
 
             self.assertEqual(self.get_manager().new_graph_id().id, 4)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch(
             "triton.cudagraph_capture_sizes",
             (
+=======
+        def test_cudagraph_capture_sizes2(self):
+            torch._inductor.config.triton.cudagraph_capture_sizes = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (2, 3, 4),
                 (4, 4, 3),
                 (3, 4, 4),
                 (4, 2, 3),
+<<<<<<< HEAD
             ),
         )
         def test_cudagraph_capture_sizes2(self):
+=======
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def f(x):
                 return x + 1
 
@@ -4183,6 +4353,7 @@ if HAS_CUDA_AND_TRITON:
 
             self.assertEqual(self.get_manager().new_graph_id().id, 4)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch("triton.cudagraph_or_error", True)
         def test_cudagraph_or_error(self):
             def f(x):
@@ -4194,6 +4365,8 @@ if HAS_CUDA_AND_TRITON:
             with self.assertRaises(RuntimeError):
                 f(torch.tensor(1, device="cuda"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     class TestSAC(TestCase):
         def _make_observer_mode(self):
             class ObserverMode(TorchDispatchMode):
@@ -4543,7 +4716,11 @@ if HAS_CUDA_AND_TRITON:
             a = torch.randn(4, 4, device="cuda:1", requires_grad=True)
             b = torch.randn(4, 4, device="cuda:1", requires_grad=True)
 
+<<<<<<< HEAD
             # No errors. TODO - get graphs from logging, couldn't figure out how
+=======
+            # No errors. TODO - get graphs from logging, couldnt figure out how
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             multi_fn_c = torch.compile(multi_fn, backend="aot_eager_decomp_partition")
 
             out = multi_fn_c(x, y, a, b)
@@ -4608,5 +4785,9 @@ if __name__ == "__main__":
             sys.exit(0)
         raise unittest.SkipTest("cuda graph test is skipped")
 
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON:
+=======
+    if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

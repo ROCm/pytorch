@@ -12,8 +12,13 @@ import pathlib
 import textwrap
 import traceback
 import typing
+<<<<<<< HEAD
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Literal
+=======
+from collections.abc import Mapping, Sequence
+from typing import Any, Callable, Literal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import onnxscript
 import onnxscript.evaluator
@@ -79,7 +84,11 @@ _STEP_ONE_ERROR_MESSAGE = textwrap.dedent(
     f"""\
     Failed to export the model with torch.export. {_BLUE}This is step 1/3{_END} of exporting the model to ONNX. Next steps:
     - Modify the model code for `torch.export.export` to succeed. Refer to https://pytorch.org/docs/stable/generated/exportdb/index.html for more information.
+<<<<<<< HEAD
     - Debug `torch.export.export` and submit a PR to PyTorch.
+=======
+    - Debug `torch.export.export` and summit a PR to PyTorch.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - Create an issue in the PyTorch GitHub repository against the {_BLUE}*torch.export*{_END} component and attach the full error stack as well as reproduction scripts."""
 )
 
@@ -94,7 +103,11 @@ _STEP_THREE_ERROR_MESSAGE = textwrap.dedent(
     f"""\
     Failed to convert the exported program to an ONNX model. {_BLUE}This is step 3/3{_END} of exporting the model to ONNX. Next steps:
     - If there is a missing ONNX function, implement it and register it to the registry.
+<<<<<<< HEAD
     - If there is an internal error during ONNX conversion, debug the error and submit a PR to PyTorch.
+=======
+    - If there is an internal error during ONNX conversion, debug the error and summit a PR to PyTorch.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - Create an error report with `torch.onnx.export(..., report=True)`, and save the ExportedProgram as a pt2 file. Create an issue in the PyTorch GitHub repository against the {_BLUE}*onnx*{_END} component. Attach the error report and the pt2 model."""
 )
 
@@ -132,10 +145,15 @@ class TorchTensor(ir.Tensor):
         # view the tensor as that dtype so that it is convertible to NumPy,
         # and then view it back to the proper dtype (using ml_dtypes obtained by
         # calling dtype.numpy()).
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         if self.dtype == ir.DataType.BFLOAT16:
             return (
                 # pyrefly: ignore [missing-attribute]
+=======
+        if self.dtype == ir.DataType.BFLOAT16:
+            return (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.raw.view(torch.uint16).numpy(force=True).view(self.dtype.numpy())
             )
         if self.dtype in {
@@ -144,11 +162,17 @@ class TorchTensor(ir.Tensor):
             ir.DataType.FLOAT8E5M2,
             ir.DataType.FLOAT8E5M2FNUZ,
         }:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             return self.raw.view(torch.uint8).numpy(force=True).view(self.dtype.numpy())
         if self.dtype == ir.DataType.FLOAT4E2M1:
             return _type_casting.unpack_float4x2_as_uint8(self.raw).view(
                 # pyrefly: ignore [missing-attribute]
+=======
+            return self.raw.view(torch.uint8).numpy(force=True).view(self.dtype.numpy())
+        if self.dtype == ir.DataType.FLOAT4E2M1:
+            return _type_casting.unpack_float4x2_as_uint8(self.raw).view(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.dtype.numpy()
             )
 
@@ -160,8 +184,15 @@ class TorchTensor(ir.Tensor):
             return self.numpy()
         return self.numpy().__array__(dtype)
 
+<<<<<<< HEAD
     def _get_cbytes(self):
         """Get a ctypes byte array pointing to the tensor data."""
+=======
+    def tobytes(self) -> bytes:
+        # Implement tobytes to support native PyTorch types so we can use types like bloat16
+        # Reading from memory directly is also more efficient because
+        # it avoids copying to a NumPy array
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import torch._subclasses.fake_tensor
 
         with torch._subclasses.fake_tensor.unset_fake_temporarily():
@@ -170,12 +201,16 @@ class TorchTensor(ir.Tensor):
 
         if isinstance(tensor, torch._subclasses.fake_tensor.FakeTensor):
             raise TypeError(
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"Cannot take content out from the FakeTensor ('{self.name}'). Please replace the tensor "
                 "with a tensor backed by real data using ONNXProgram.apply_weights() "
                 "or save the model without initializers by setting include_initializers=False."
             )
 
+<<<<<<< HEAD
         # Return the tensor to ensure it is not garbage collected while the ctypes array is in use
         return tensor, (
             ctypes.c_ubyte * tensor.element_size() * tensor.numel()
@@ -191,6 +226,13 @@ class TorchTensor(ir.Tensor):
     def tofile(self, file) -> None:
         _, data = self._get_cbytes()
         return file.write(data)
+=======
+        return bytes(
+            (ctypes.c_ubyte * tensor.element_size() * tensor.numel()).from_address(
+                tensor.data_ptr()
+            )
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # https://github.com/pytorch/pytorch/blob/ee6cb6daa173896f8ea1876266a19775aaa4f610/torch/export/graph_signature.py#L56C1-L62C19
@@ -251,7 +293,10 @@ def _set_shape_type(
             if isinstance(dim, int):
                 dims.append(dim)
             else:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dims.append(str(dim.node))
 
         # If the dtype is set already (e.g. by the onnx_symbolic ops),
@@ -284,6 +329,11 @@ def _set_shape_type(
     elif isinstance(meta_val, (float, torch.SymFloat)):
         value.dtype = ir.DataType.FLOAT
         value.shape = ir.Shape([])
+<<<<<<< HEAD
+=======
+    else:
+        pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_qualified_module_name(cls: Any) -> str:
@@ -738,12 +788,15 @@ def _handle_output_node(
     # node.args[0] can be a tuple with more than one elements. This happens when,
     # for example, a subgraph has multiple outputs. We flatten them all as ONNX graph outputs
     for output in node.args[0]:  # type: ignore[index,union-attr]
+<<<<<<< HEAD
         if output is None:
             logger.warning(
                 "Output node %s has None output. The output is ignored in the exported graph. Please ensure the graph output order is expected",
                 node.name,
             )
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_value_name = output.name  # type: ignore[union-attr]
         assert isinstance(output_value_name, str), (
             f"Bug: Expected {output_value_name!r} to be a string"
@@ -966,7 +1019,11 @@ def exported_program_to_ir(
     Args:
         exported_program: The exported program to convert.
         lower: Whether to lower the graph to core ONNX operators.
+<<<<<<< HEAD
             at_conversion: Lower when translating the FX graph to ONNX IR.
+=======
+            at_conversion: Lower whe translating the FX graph to ONNX IR.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             none: Do not lower the graph.
         registry: The registry of all ONNX Script decomposition.
     """
@@ -988,6 +1045,7 @@ def _prepare_exported_program_for_export(
 ) -> torch.export.ExportedProgram:
     """Decompose and apply pre-export transformations to the exported program."""
 
+<<<<<<< HEAD
     with (
         # Support the dynamism with 0/1 input dim
         torch.fx.experimental._config.patch(backed_size_oblivious=True),  # type: ignore[attr-defined]
@@ -1004,6 +1062,18 @@ def _prepare_exported_program_for_export(
         # Reassign the graph module to save some runtime.
         exported_program._graph_module = graph_module
         return exported_program
+=======
+    # Decompose the graph given the implemented torch ops in ONNX
+    exported_program = _fx_passes.decompose_with_registry(exported_program, registry)
+
+    graph_module = exported_program.graph_module
+    # Include explicit type promotion nodes
+    _fx_passes.insert_type_promotion_nodes(graph_module)
+    graph_module = _fx_passes.remove_assertion_nodes(graph_module)
+    # Reassign the graph module to save some runtime.
+    exported_program._graph_module = graph_module
+    return exported_program
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_scope_name(scoped_name: str) -> tuple[str, str]:
@@ -1050,7 +1120,11 @@ def _exported_program_to_onnx_program(
         exported_program: The exported program to convert. The exported program
             should be the one that is after decompositions have been applied.
         lower: Whether to lower the graph to core ONNX operators.
+<<<<<<< HEAD
             at_conversion: Lower when translating the FX graph to ONNX IR.
+=======
+            at_conversion: Lower whe translating the FX graph to ONNX IR.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             none: Do not lower the graph.
         registry: The registry of all ONNX Script decomposition.
     """
@@ -1232,7 +1306,10 @@ def _exported_program_to_onnx_program(
     # so we need to get them from the name_* apis.
     for name, torch_tensor in itertools.chain(
         exported_program.named_parameters(),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         exported_program.named_buffers(),
         exported_program.constants.items(),
     ):
@@ -1255,6 +1332,12 @@ def _exported_program_to_onnx_program(
 
     # TODO: Decide if we should keep mutated buffers as inputs/outputs
 
+<<<<<<< HEAD
+=======
+    # TODO(justinchuby): Remove the hack
+    _ir_passes.add_torchlib_common_imports(model)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Collect and add opset imports to the model
     _ir_passes.add_opset_imports(model)
 
@@ -1265,7 +1348,10 @@ def _verbose_printer(verbose: bool | None) -> Callable[..., None]:
     """Prints messages based on `verbose`."""
     if verbose is False:
         return lambda *_, **__: None
+<<<<<<< HEAD
     # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return lambda *args, **kwargs: print("[torch.onnx]", *args, **kwargs)
 
 

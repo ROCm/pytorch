@@ -74,6 +74,11 @@ struct TORCH_API ChannelRegistration {
 
 TORCH_DECLARE_REGISTRY(TensorPipeChannelRegistry, ChannelRegistration);
 
+<<<<<<< HEAD
+=======
+constexpr auto kDefaultNumWorkerThreads = 16;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct TORCH_API TensorPipeRpcBackendOptions : public RpcBackendOptions {
   TensorPipeRpcBackendOptions(
       int numWorkerThreads,
@@ -232,11 +237,19 @@ class TORCH_API TensorPipeAgent : public RpcAgent {
   // messages by server, and write request messages by client. This
   // is a protected method since it is overwritten by FaultyTensorPipeAgent
   virtual void pipeWrite(
+<<<<<<< HEAD
       const std::shared_ptr<tensorpipe::Pipe>& /*pipe*/,
       const c10::intrusive_ptr<Message>& message,
       std::vector<c10::Device>&& devices,
       std::vector<c10::Stream> streams,
       std::function<void(const tensorpipe::Error&)> /*fn*/) noexcept;
+=======
+      const std::shared_ptr<tensorpipe::Pipe>&,
+      const c10::intrusive_ptr<Message>& message,
+      std::vector<c10::Device>&& devices,
+      std::vector<c10::Stream> streams,
+      std::function<void(const tensorpipe::Error&)>) noexcept;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   // Removes the given messageId with the given expirationTime from the
@@ -257,11 +270,19 @@ class TORCH_API TensorPipeAgent : public RpcAgent {
   // TensorPipe read function that could be used to read response messages
   // by client, and read request messages by server.
   void pipeRead(
+<<<<<<< HEAD
       const std::shared_ptr<tensorpipe::Pipe>& /*pipe*/,
       std::function<void(
           const tensorpipe::Error&,
           c10::intrusive_ptr<Message>,
           std::vector<c10::Stream>)> /*fn*/) noexcept;
+=======
+      const std::shared_ptr<tensorpipe::Pipe>&,
+      std::function<void(
+          const tensorpipe::Error&,
+          c10::intrusive_ptr<Message>,
+          std::vector<c10::Stream>)>) noexcept;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Callback of listener accept()
   void onListenerAccepted(

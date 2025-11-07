@@ -7,7 +7,11 @@ from torch import nn
 from torch._dynamo import compiled_autograd
 from torch._dynamo.test_case import run_tests, TestCase
 from torch._dynamo.testing import CompileCounter
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_MACOS, skipIfXpu
+=======
+from torch.testing._internal.common_utils import IS_MACOS, skipIfRocm, skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CPU, requires_gpu
 
 
@@ -205,6 +209,10 @@ class DistributedPatternTests(TestCase):
     def test_storage_resize_zero_cpu(self):
         self._test_storage_resize_zero("cpu")
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gpu()
     def test_storage_resize_zero_gpu(self):
         self._test_storage_resize_zero(GPU_TYPE)
@@ -229,6 +237,10 @@ class DistributedPatternTests(TestCase):
     def test_storage_resize_nonzero_cpu(self):
         self._test_storage_resize_nonzero("cpu")
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gpu()
     def test_storage_resize_nonzero_gpu(self):
         self._test_storage_resize_nonzero(GPU_TYPE)
@@ -434,7 +446,10 @@ class DistributedPatternTests(TestCase):
         self._assert_same_grad(r1, r2)
         self._assert_same_grad(p1, p2)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch("graph_break_on_nn_param_ctor", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nn_param_return3(self):
         def fn(x):
             p = torch.nn.Parameter(x + 123)
@@ -451,7 +466,10 @@ class DistributedPatternTests(TestCase):
         self._assert_same_grad(r1, r2)
         self._assert_same_grad(p1, p2)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch("graph_break_on_nn_param_ctor", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nn_param_return4(self):
         def fn(x):
             p = torch.nn.Parameter(x + 123, requires_grad=False)
@@ -483,6 +501,10 @@ class DistributedPatternTests(TestCase):
         # Recompile on grad==None/grad!=None
         self.assertEqual(bw_cnt.frame_count, 2)
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu
     @requires_gpu()
     @torch._functorch.config.patch(recompute_views=True)

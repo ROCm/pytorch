@@ -31,10 +31,23 @@
 
 #include <c10/macros/Macros.h>
 
+<<<<<<< HEAD
 #include <thrust/iterator/reverse_iterator.h>
 
 namespace at::native {
 
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+#include <thrust/iterator/reverse_iterator.h>
+#endif
+
+namespace at::native {
+
+#if !CUB_SUPPORTS_SCAN_BY_KEY()
+template<typename index_t>
+void embedding_dense_backward_cuda_scan(Tensor &sorted_indices, Tensor &count);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace {
 
@@ -193,6 +206,10 @@ Tensor embedding_bag_backward_cuda_sum_avg(
 
   if (scale_grad_by_freq) {
     count = at::empty_like(indices, LEGACY_CONTIGUOUS_MEMORY_FORMAT);
+<<<<<<< HEAD
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     AT_DISPATCH_INDEX_TYPES(indices.scalar_type(), "embedding_bag_backward_cuda_sum_avg", [&] () {
       cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
@@ -203,7 +220,11 @@ Tensor embedding_bag_backward_cuda_sum_avg(
       auto count_data = count.mutable_data_ptr<index_t>();
       cuda::cub::inclusive_sum_by_key(
         sorted_data,
+<<<<<<< HEAD
         ATEN_CUB_CONSTANT_ITERATOR(index_t)(1),
+=======
+        NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::ConstantInputIterator<index_t>(1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         count_data,
         num_indices
       );
@@ -215,10 +236,22 @@ Tensor embedding_bag_backward_cuda_sum_avg(
         thrust::make_reverse_iterator(sorted_data + num_indices),
         thrust::make_reverse_iterator(count_data + num_indices),
         thrust::make_reverse_iterator(count_data + num_indices),
+<<<<<<< HEAD
         ATEN_CUB_MAXIMUM(),
         num_indices
       );
     });
+=======
+        NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::Max(),
+        num_indices
+      );
+    });
+#else
+    AT_DISPATCH_INDEX_TYPES(indices.scalar_type(), "embedding_bag_backward_cuda_sum_avg", [&] () {
+      embedding_dense_backward_cuda_scan<index_t>(sorted_indices, count);
+    });
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return embedding_backward_cuda_kernel(grad, orig_indices, sorted_indices,
       count, num_weights, padding_idx, mode == EmbeddingBagMode::MEAN, offset2bag,

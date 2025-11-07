@@ -94,7 +94,11 @@ C10_EXPORT std::string kindToString(int kind) {
     TC_FORALL_TOKEN_KINDS(DEFINE_CASE)
 #undef DEFINE_CASE
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unknown kind: ", kind);
+=======
+      throw std::runtime_error("Unknown kind: " + std::to_string(kind));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

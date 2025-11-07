@@ -51,7 +51,11 @@ extern "C" void zaxpy_(int *n, void *a, const void *x, int *incx, void *y, int *
 // brgemm_pack_B is changed to transform and the setting of brgemm beta is changed to set_add_C
 #if (IDEEP_VERSION_MAJOR == 3 && IDEEP_VERSION_MINOR == 5)
 #define ONEDNN_UKERNEL_1
+<<<<<<< HEAD
 #elif ((IDEEP_VERSION_MAJOR == 3 && IDEEP_VERSION_MINOR >= 6) || (IDEEP_VERSION_MAJOR > 3))
+=======
+#elif (IDEEP_VERSION_MAJOR >= 3 && IDEEP_VERSION_MINOR >= 6)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define ONEDNN_UKERNEL_2
 #endif
 #if ((defined(ONEDNN_UKERNEL_1) || defined(ONEDNN_UKERNEL_2)) && (defined(__x86_64__) || (defined(_M_X64) && !defined(_M_ARM64EC))))
@@ -202,7 +206,11 @@ void gemm(
     float *c, int64_t ldc) {
   internal::normalize_last_dims(transa, transb, m, n, k, &lda, &ldb, &ldc);
 #if AT_MKLDNN_ENABLED()
+<<<<<<< HEAD
    if (mkldnn_reduced_f32_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)) {
+=======
+   if (mkldnn_bf32_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      return;
    }
 #endif
@@ -358,6 +366,7 @@ void gemm(
       int m_ = m, n_ = n, k_ = k, lda_ = lda, ldb_ = ldb, ldc_ = ldc;
       char transa_ = to_blas(transa), transb_ = to_blas(transb);
       float alpha_ = alpha, beta_ = beta;
+<<<<<<< HEAD
       int c_size = n_ * m_;
       // C matrix in OpenBLAS sbgemm are of type "float" so we have to convert, copy and copy back.
       std::vector<float> float_v(c_size, 0.0f);
@@ -366,17 +375,28 @@ void gemm(
           float_v[j * m_ + i] = c10::convert<float>(c[j * ldc_ + i]);
         }
       }
+=======
+      int c_size = n_ * ldc_;
+      // C matrix in OpenBLAS sbgemm are of type "float" so we have to convert, copy and copy back.
+      std::vector<float> float_v(c, c + c_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       sbgemm_(&transa_, &transb_,
               &m_, &n_, &k_,
               &alpha_,
               a, &lda_,
               b, &ldb_,
               &beta_,
+<<<<<<< HEAD
               float_v.data(), &m_);
       for (const auto j : c10::irange(n)) {
         for (const auto i : c10::irange(m)) {
           c[j * ldc_ + i] = c10::convert<at::BFloat16>(float_v[j * m_ + i]);
         }
+=======
+              float_v.data(), &ldc_);
+      for (auto cv: float_v) {
+        *(c++) = c10::convert<at::BFloat16>(cv);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       return;
    }
@@ -457,9 +477,30 @@ void gemm(
     return;
   }
 #endif
+<<<<<<< HEAD
   gemm_no_downcast_stub(
       at::kCPU, at::kBFloat16,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+=======
+  // for the fallback path, first compute gemm with beta = 0,
+  // and then add c in full precision.
+  int64_t c_size = n * m;
+  std::vector<float> float_c(c_size, 0.f);
+  gemm_no_downcast_stub(
+      at::kCPU, at::kBFloat16,
+      transa, transb, m, n, k, alpha, a, lda, b, ldb, 0.f, float_c.data(), m);
+  for (const auto j : c10::irange(n)) {
+    for (const auto i : c10::irange(m)) {
+      auto offset = j * ldc + i;
+      // beta == 0 won't propagate NaN from C
+      if (beta == 0.f) {
+        c[offset] = float_c[j * m + i];
+      } else {
+        c[offset] = beta * c[offset] + float_c[j * m + i];
+      }
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void gemm(
@@ -478,9 +519,30 @@ void gemm(
     return;
   }
 #endif
+<<<<<<< HEAD
   gemm_no_downcast_stub(
       at::kCPU, at::kHalf,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+=======
+  // for the fallback path, first compute gemm with beta = 0,
+  // and then add c in full precision.
+  int64_t c_size = n * m;
+  std::vector<at::Half> float16_c(c_size, 0.f);
+  gemm_stub(
+      at::kCPU, at::kHalf,
+      transa, transb, m, n, k, alpha, a, lda, b, ldb, 0.f, float16_c.data(), m);
+  for (const auto j : c10::irange(n)) {
+    for (const auto i : c10::irange(m)) {
+      auto offset = j * ldc + i;
+      // beta == 0 won't propagate NaN from C
+      if (beta == 0.f) {
+        c[offset] = c10::convert<float>(float16_c[j * m + i]);
+      } else {
+        c[offset] = beta * c[offset] + c10::convert<float>(float16_c[j * m + i]);
+      }
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void gemm(
@@ -991,7 +1053,11 @@ std::size_t UnsafeUkernelKeyHasher<PackKey>::operator()(const PackKey& key) cons
 template <typename key_t, typename value_t>
 struct KernelCache  {
   using kstore_t = std::unordered_map<key_t, std::shared_ptr<value_t>, UnsafeUkernelKeyHasher<key_t>>;
+<<<<<<< HEAD
   static std::shared_ptr<value_t>&& fetch_or_create(
+=======
+  static inline std::shared_ptr<value_t>&& fetch_or_create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const key_t& key,
       const std::function<std::shared_ptr<value_t>()>& callback) {
     auto&& search = get_store().find(key);
@@ -1003,7 +1069,11 @@ struct KernelCache  {
     }
   }
 
+<<<<<<< HEAD
   static kstore_t& get_store() {
+=======
+  static inline kstore_t& get_store() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static thread_local kstore_t cache_kernels;
     return cache_kernels;
   }
@@ -1067,7 +1137,11 @@ struct GemmHelper {
 struct Brgemm : public KernelCache <BrgemmKey, GemmHelper> {
   // Fetch/create GemmHelper object and execute brgemm with batch size = 1
   template <typename scalar_t_a, typename scalar_t_b, typename scalar_t_c>
+<<<<<<< HEAD
   static void call(
+=======
+  static inline void call(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t M,
       int64_t N,
       int64_t K,
@@ -1118,12 +1192,20 @@ struct Brgemm : public KernelCache <BrgemmKey, GemmHelper> {
         .execute(A, B, (*value).A_B_offsets, C, (*value).scratchpad.data());
   }
 
+<<<<<<< HEAD
   static std::shared_ptr<GemmHelper>& get_current() {
+=======
+  static inline std::shared_ptr<GemmHelper>& get_current() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static thread_local std::shared_ptr<GemmHelper> current;
     return current;
   }
 
+<<<<<<< HEAD
   static bool device_check(ScalarType dtype) {
+=======
+  static inline bool device_check(ScalarType dtype) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!at::globalContext().userEnabledMkldnn()) {
       return false;
     }
@@ -1153,7 +1235,11 @@ using pack_t = dnnl::ukernel::brgemm_pack_B;
 using pack_t = dnnl::ukernel::transform;
 #endif
 struct Pack : public KernelCache <PackKey, pack_t> {
+<<<<<<< HEAD
   static void call(
+=======
+  static inline void call(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t K,
       int64_t N,
       int64_t ld_in,
@@ -1182,7 +1268,11 @@ struct Pack : public KernelCache <PackKey, pack_t> {
     }
   }
 
+<<<<<<< HEAD
   static bool could_pack(ScalarType dtype) {
+=======
+  static inline bool could_pack(ScalarType dtype) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!at::globalContext().userEnabledMkldnn()) {
       return false;
     }

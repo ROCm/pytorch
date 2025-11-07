@@ -4,6 +4,10 @@
 
 #include <ATen/OpMathType.h>
 #include <ATen/TensorUtils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/OpMathType.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/core/Tensor.h>
 #include <ATen/cpu/vec/functional.h>
 #include <ATen/cpu/vec/vec.h>
@@ -406,7 +410,11 @@ scalar_t cubic_convolution2(scalar_t x, scalar_t A) {
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 static inline void get_cubic_upsample_coefficients(
+=======
+void get_cubic_upsample_coefficients(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t coeffs[4],
     scalar_t t) {
   scalar_t A = -0.75;

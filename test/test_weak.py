@@ -159,7 +159,11 @@ class WeakTest(TestCase):
         self.assertRaises(KeyError, d.__delitem__, o)
         self.assertRaises(KeyError, d.__getitem__, o)
 
+<<<<<<< HEAD
         # If a key isn't of a weakly referenceable type, __getitem__ and
+=======
+        # If a key isn't of a weakly referencable type, __getitem__ and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # __setitem__ raise TypeError.  __delitem__ should too.
         self.assertRaises(TypeError, d.__delitem__, 13)
         self.assertRaises(TypeError, d.__getitem__, 13)

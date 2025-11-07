@@ -134,8 +134,12 @@ class GradScaler:
         if self._device == "cuda":
             if enabled and torch.cuda.amp.common.amp_definitely_not_available():
                 warnings.warn(
+<<<<<<< HEAD
                     "torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.",
                     stacklevel=2,
+=======
+                    "torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 self._enabled = False
 
@@ -176,6 +180,7 @@ class GradScaler:
         )
 
     @overload
+<<<<<<< HEAD
     def scale(self, outputs: torch.Tensor) -> torch.Tensor: ...
 
     @overload
@@ -186,6 +191,22 @@ class GradScaler:
 
     @overload
     def scale(self, outputs: Iterable[torch.Tensor]) -> Iterable[torch.Tensor]: ...
+=======
+    def scale(self, outputs: torch.Tensor) -> torch.Tensor:
+        ...
+
+    @overload
+    def scale(self, outputs: list[torch.Tensor]) -> list[torch.Tensor]:
+        ...
+
+    @overload
+    def scale(self, outputs: tuple[torch.Tensor, ...]) -> tuple[torch.Tensor, ...]:
+        ...
+
+    @overload
+    def scale(self, outputs: Iterable[torch.Tensor]) -> Iterable[torch.Tensor]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def scale(
         self,
@@ -422,7 +443,10 @@ class GradScaler:
                     "optimizer. In the near future GradScaler registers `grad_scale: Tensor` and "
                     "`found_inf: Tensor` to the passed optimizer and let the optimizer use them directly.",
                     FutureWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 kwargs_.update({"grad_scaler": self})
             else:
@@ -456,9 +480,15 @@ class GradScaler:
         if optimizer_state["stage"] is OptState.READY:
             self.unscale_(optimizer)
 
+<<<<<<< HEAD
         assert len(optimizer_state["found_inf_per_device"]) > 0, (
             "No inf checks were recorded for this optimizer."
         )
+=======
+        assert (
+            len(optimizer_state["found_inf_per_device"]) > 0
+        ), "No inf checks were recorded for this optimizer."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         retval = self._maybe_opt_step(optimizer, optimizer_state, *args, **kwargs)
 
@@ -502,10 +532,15 @@ class GradScaler:
             if isinstance(new_scale, float):
                 self._scale.fill_(new_scale)
             else:
+<<<<<<< HEAD
                 reason = (
                     "new_scale should be a float or a 1-element torch.cuda.FloatTensor or "
                     "torch.FloatTensor with requires_grad=False."
                 )
+=======
+                reason = "new_scale should be a float or a 1-element torch.cuda.FloatTensor or \
+                    torch.FloatTensor with requires_grad=False."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert new_scale.device.type == self._device, reason
                 assert new_scale.numel() == 1, reason
                 assert new_scale.requires_grad is False, reason
@@ -683,9 +718,15 @@ class GradScaler:
         dummy_inv_scale = torch.full((), 1.0, dtype=torch.float32, device=_scale.device)
         found_inf = torch.full((), 0.0, dtype=torch.float32, device=_scale.device)
 
+<<<<<<< HEAD
         self._per_optimizer_states[id(optimizer)]["found_inf_per_device"] = (
             self._unscale_grads_(optimizer, dummy_inv_scale, found_inf, True)
         )
+=======
+        self._per_optimizer_states[id(optimizer)][
+            "found_inf_per_device"
+        ] = self._unscale_grads_(optimizer, dummy_inv_scale, found_inf, True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return self._per_optimizer_states[id(optimizer)]["found_inf_per_device"]
 

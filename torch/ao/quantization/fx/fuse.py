@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Union
+=======
+from typing import Any, Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.ao.quantization.backend_config import (
     BackendConfig,

@@ -94,7 +94,10 @@ class ZStandard(StreamTransformExtension):
         return zstandard is not None or pyzstd is not None
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def from_descriptor(version: str) -> "ZStandard":
         if version.partition(".")[0] != "1":
             raise ValueError(f"Unknown extension {version=}")
@@ -217,7 +220,10 @@ class ExtensionRegistry:
             ext = self.extensions.get(name)
             if not ext:
                 raise ValueError(f"Unknown extension {name=}")
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ext.from_descriptor(version)
 
         return [from_descriptor(desc) for desc in descriptors]

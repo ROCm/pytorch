@@ -27,9 +27,13 @@ from .ctx_manager import (
     DisabledSavedTensorsHooksVariable,
     DualLevelContextManager,
     DynamoConfigPatchVariable,
+<<<<<<< HEAD
     ErrorOnGraphBreakVariable,
     FSDPParamGroupUseTrainingStateVariable,
     FxTracebackAnnotateVariable,
+=======
+    FSDPParamGroupUseTrainingStateVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     GradIncrementNestingCtxManagerVariable,
     GradInplaceRequiresGradCtxManagerVariable,
     GradModeVariable,
@@ -37,9 +41,16 @@ from .ctx_manager import (
     JvpIncrementNestingCtxManagerVariable,
     SDPAKernelVariable,
     SetFwdGradEnabledContextManager,
+<<<<<<< HEAD
     TemporarilyPopInterpreterStackCtxManagerVariable,
     VmapIncrementNestingCtxManagerVariable,
     WithEnterFunctionVariable,
+=======
+    StreamContextVariable,
+    StreamVariable,
+    TemporarilyPopInterpreterStackCtxManagerVariable,
+    VmapIncrementNestingCtxManagerVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     WithExitFunctionVariable,
 )
 from .dicts import (
@@ -75,16 +86,26 @@ from .functions import (
 from .higher_order_ops import (
     FunctionalCallVariable,
     FunctorchHigherOrderVariable,
+<<<<<<< HEAD
     ReparametrizeModuleCallVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TorchHigherOrderOperatorVariable,
 )
 from .iter import (
     CountIteratorVariable,
+<<<<<<< HEAD
+=======
+    CycleIteratorVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FilterVariable,
     IteratorVariable,
     ItertoolsVariable,
     MapVariable,
+<<<<<<< HEAD
     ObjectIteratorVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RepeatIteratorVariable,
     ZipVariable,
 )
@@ -129,7 +150,10 @@ from .nn_module import (
 )
 from .optimizer import OptimizerVariable
 from .sdpa import SDPAParamsVariable
+<<<<<<< HEAD
 from .streams import EventVariable, StreamContextVariable, StreamVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .tensor import (
     DataPtrVariable,
     FakeItemVariable,
@@ -141,7 +165,10 @@ from .tensor import (
 )
 from .torch import TorchCtxManagerClassVariable, TorchInGraphFunctionVariable
 from .user_defined import (
+<<<<<<< HEAD
     FrozenDataClassVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MutableMappingVariable,
     RemovableHandleVariable,
     UserDefinedClassVariable,
@@ -150,7 +177,10 @@ from .user_defined import (
     UserDefinedExceptionObjectVariable,
     UserDefinedListVariable,
     UserDefinedObjectVariable,
+<<<<<<< HEAD
     UserDefinedSetVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UserDefinedTupleVariable,
 )
 
@@ -169,6 +199,10 @@ __all__ = [
     "CreateTMADescriptorExperimentalVariable",
     "CreateTMADescriptorStableVariable",
     "CUDADeviceVariable",
+<<<<<<< HEAD
+=======
+    "CycleIteratorVariable",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "DataPtrVariable",
     "DefaultDictVariable",
     "DeletedVariable",
@@ -201,7 +235,10 @@ __all__ = [
     "RemovableHandleVariable",
     "RepeatIteratorVariable",
     "SDPAParamsVariable",
+<<<<<<< HEAD
     "ErrorOnGraphBreakVariable",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "SkipFunctionVariable",
     "SliceVariable",
     "StringFormatVariable",
@@ -224,7 +261,10 @@ __all__ = [
     "UserFunctionVariable",
     "UserMethodVariable",
     "VariableTracker",
+<<<<<<< HEAD
     "WithEnterFunctionVariable",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "WithExitFunctionVariable",
     "MappingProxyVariable",
 ]

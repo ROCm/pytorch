@@ -4,7 +4,11 @@ from __future__ import annotations
 import contextlib
 import copy
 import operator
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
+=======
+from typing import Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -12,8 +16,11 @@ from ..utils import node_replace_, nodes_map
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._ops import HigherOrderOperator
     from torch.export.graph_signature import ExportGraphSignature
 
@@ -35,7 +42,10 @@ def _replace_with_hop_helper(
         )
         call_func_node.meta["torch_fn"] = (
             f"{wrap_hoo.__name__}",
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{wrap_hoo.__class__.__name__}.{wrap_hoo.__name__}",
         )
         if isinstance(output_args, (tuple, list)):
@@ -49,7 +59,11 @@ def _replace_with_hop_helper(
             enter_block_node.meta.get("nn_module_stack", {})
         )
         output_node = next(iter(reversed(sub_gm.graph.nodes)), None)
+<<<<<<< HEAD
         # Split_module pass intentionally doesn't add output node
+=======
+        # Split_module pass intentially doesn't add output node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # if the graph doesn't return anything.
         # TODO (tmanlaibaatar) Figure out if this is right behaviour
         # for split_module
@@ -100,7 +114,11 @@ def _replace_with_hop_helper(
                 node_replace_(node, get_item_node)
             else:
                 raise NotImplementedError(
+<<<<<<< HEAD
                     f"replace_with_hop_pass doesn't support output type {type(output_args)}"
+=======
+                    f"repalce_with_hop_pass doesnt' support output type {type(output_args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         else:
             # TODO (shangdiy): remove this line, since the export graph can be non-functional

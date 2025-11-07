@@ -11,7 +11,10 @@
 #include <torch/csrc/utils/pybind.h>
 
 #include <c10/cuda/CUDAGuard.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 
 using namespace at;
@@ -19,7 +22,11 @@ using namespace torch;
 using namespace torch::cuda::nccl;
 using namespace torch::cuda::nccl::detail;
 
+<<<<<<< HEAD
 static constexpr const char* COMM_CAPSULE_NAME = "torch.cuda.nccl.Communicator";
+=======
+static const char* COMM_CAPSULE_NAME = "torch.cuda.nccl.Communicator";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 PyObject* THCPModule_nccl_version(PyObject* self, PyObject* args) {
   return PyLong_FromUnsignedLongLong(version());
@@ -64,9 +71,16 @@ static std::vector<std::optional<at::cuda::CUDAStream>> unpack_streams(
     return std::vector<std::optional<at::cuda::CUDAStream>>(size, std::nullopt);
   }
   auto streams = THPUtils_PySequence_to_CUDAStreamList(obj);
+<<<<<<< HEAD
   TORCH_CHECK(
       streams.size() == size,
       "number of streams is not equal to number of inputs");
+=======
+  if (streams.size() != size) {
+    throw std::runtime_error(
+        "number of streams is not equal to number of inputs");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return streams;
 }
 
@@ -90,9 +104,16 @@ static std::vector<ncclComm_t> unpack_comms(PyObject* obj, size_t size) {
       comms[i] = unpack_nccl_comm(PySequence_Fast_GET_ITEM(seq.get(), i));
     }
   }
+<<<<<<< HEAD
   TORCH_CHECK(
       comms.size() == size,
       "number of communicators is not equal to number of inputs");
+=======
+  if (comms.size() != size) {
+    throw std::runtime_error(
+        "number of communicators is not equal to number of inputs");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return comms;
 }
 
@@ -140,7 +161,11 @@ PyObject* THCPModule_nccl_reduce(PyObject* self, PyObject* args) {
         "nccl_reduce",
         1,
         "(sequence[Tensor] inputs, Tensor output, int root,"
+<<<<<<< HEAD
         " int op, sequence[torch.cuda.Stream or None])");
+=======
+        " int op, sequence[torch.cuda.Stream or None]");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return nullptr;
   }
 

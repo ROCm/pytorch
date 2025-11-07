@@ -43,7 +43,12 @@ class DynamicCounterBackendIf {
   virtual void unregisterCounter(std::string_view key) = 0;
 };
 
+<<<<<<< HEAD
 void C10_API registerDynamicCounterBackend(
     std::unique_ptr<DynamicCounterBackendIf> /*backend*/);
+=======
+void C10_API
+    registerDynamicCounterBackend(std::unique_ptr<DynamicCounterBackendIf>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace detail
 } // namespace c10::monitor

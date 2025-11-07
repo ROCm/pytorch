@@ -16,8 +16,13 @@ inline void check_size_nonnegative(ArrayRef<int64_t> size) {
 
 inline void check_size_nonnegative(ArrayRef<c10::SymInt> size) {
   for (const auto& x : size) {
+<<<<<<< HEAD
     TORCH_SYM_CHECK(
         x.sym_ge(0),
+=======
+    TORCH_CHECK(
+        x.expect_size(__FILE__, __LINE__),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Trying to create tensor with negative dimension ",
         x,
         ": ",

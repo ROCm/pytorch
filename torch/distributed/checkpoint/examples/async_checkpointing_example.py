@@ -4,7 +4,10 @@
 import os
 import shutil
 import traceback
+<<<<<<< HEAD
 from concurrent.futures import Future
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -60,7 +63,10 @@ def _init_model(rank, world_size):
     optim = torch.optim.Adam(model.parameters(), lr=0.0001)
 
     _patch_model_state_dict(model)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _patch_optimizer_state_dict(model, optimizers=optim)
 
     return model, optim
@@ -93,7 +99,10 @@ def run(rank, world_size):
     loss_calc = torch.nn.BCELoss()
 
     f = None
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for epoch in range(NUM_EPOCHS):
         try:
             torch.manual_seed(epoch)
@@ -109,8 +118,11 @@ def run(rank, world_size):
 
             if epoch % SAVE_PERIOD == 0:
                 if f is not None:
+<<<<<<< HEAD
                     if not isinstance(f, Future):
                         raise AssertionError("f should be a Future instance")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     f.result()
                 f = dcp.state_dict_saver.async_save(
                     state_dict, checkpoint_id=CHECKPOINT_DIR
@@ -127,8 +139,11 @@ def run(rank, world_size):
 
             _print("Reloading model from last checkpoint!")
             if f is not None:
+<<<<<<< HEAD
                 if not isinstance(f, Future):
                     raise AssertionError("f should be a Future instance") from None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f.result()
             dcp.load(state_dict)
 

@@ -369,7 +369,11 @@ void loopnestRandomization(int64_t seed, LoopNest& l) {
 
           // Find a random number of loops to fuse
           int num_loops_to_fuse =
+<<<<<<< HEAD
               std::max(2, (std::rand() % (int)loops.size()));
+=======
+              std::max(2, (int)(std::rand() % (int)loops.size()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           auto [loops_to_fuse, chosen_indices] =
               randomization_helper::select_n_randomly<ForPtr>(

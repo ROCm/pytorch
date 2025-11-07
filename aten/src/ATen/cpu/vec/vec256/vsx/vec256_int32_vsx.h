@@ -155,7 +155,11 @@ class Vectorized<int32_t> {
       const Vectorized<int32_t>& a,
       const Vectorized<int32_t>& b,
       const Vectorized<int32_t>& mask) {
+<<<<<<< HEAD
     // the mask used here returned by comparison of vec256
+=======
+    // the mask used here returned by comparision of vec256
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // assuming this we can use the same mask directly with vec_sel
     // warning intel style mask will not work properly
     return {
@@ -279,6 +283,29 @@ class Vectorized<int32_t> {
 };
 
 template <>
+<<<<<<< HEAD
+=======
+Vectorized<int32_t> inline operator<<(
+    const Vectorized<int32_t>& a,
+    const Vectorized<int32_t>& b) {
+  vuint32 shift_vec0 = reinterpret_cast<vuint32>(b.vec0());
+  vuint32 shift_vec1 = reinterpret_cast<vuint32>(b.vec1());
+  return Vectorized<int32_t>{
+      vec_sl(a.vec0(), shift_vec0), vec_sl(a.vec1(), shift_vec1)};
+}
+
+template <>
+Vectorized<int32_t> inline operator>>(
+    const Vectorized<int32_t>& a,
+    const Vectorized<int32_t>& b) {
+  vuint32 shift_vec0 = reinterpret_cast<vuint32>(b.vec0());
+  vuint32 shift_vec1 = reinterpret_cast<vuint32>(b.vec1());
+  return Vectorized<int32_t>{
+      vec_sr(a.vec0(), shift_vec0), vec_sr(a.vec1(), shift_vec1)};
+}
+
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<int32_t> inline maximum(
     const Vectorized<int32_t>& a,
     const Vectorized<int32_t>& b) {
@@ -292,8 +319,11 @@ Vectorized<int32_t> inline minimum(
   return a.minimum(b);
 }
 
+<<<<<<< HEAD
 DEFINE_SHIFT_FUNCS(int32_t)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 Vectorized<int32_t> C10_ALWAYS_INLINE
 operator+(const Vectorized<int32_t>& a, const Vectorized<int32_t>& b) {

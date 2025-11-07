@@ -1,12 +1,19 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import inspect
 from contextlib import contextmanager
 from functools import wraps
+=======
+from contextlib import contextmanager
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._custom_ops
 from torch._C import DispatchKey
+<<<<<<< HEAD
 from torch._export.utils import _maybe_find_pre_dispatch_tf_mode_for_export
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.flat_apply import (
     _ConstantFunction,
     flat_apply,
@@ -17,6 +24,10 @@ from torch._higher_order_ops.utils import autograd_not_implemented
 from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx.experimental.proxy_tensor import (
+<<<<<<< HEAD
+=======
+    get_proxy_slot,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PreDispatchTorchFunctionMode,
     ProxyTorchDispatchMode,
     track_tensor_tree,
@@ -130,7 +141,11 @@ def _mark_strict_experimental(cls):
     return cls
 
 
+<<<<<<< HEAD
 def _register_func_spec_proxy_in_tracer(tracer, name, spec):
+=======
+def _register_subclass_spec_proxy_in_tracer(tracer, name, spec):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     This is a wrapper utility method on top of tracer to cache the
     already registered subclass spec attribute. This is useful because
@@ -147,6 +162,7 @@ def _register_func_spec_proxy_in_tracer(tracer, name, spec):
     return tracer.create_proxy("get_attr", qualname, (), {})
 
 
+<<<<<<< HEAD
 def _emit_flat_apply_call(
     *,
     tracer,
@@ -182,6 +198,8 @@ def _is_init(fn):
     return callable(fn) and fn.__name__ == "__init__"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def mark_subclass_constructor_exportable_experimental(constructor_subclass):
     """
     Experimental decorator that makes subclass to be traceable in export
@@ -203,6 +221,13 @@ def mark_subclass_constructor_exportable_experimental(constructor_subclass):
         def __init__(self, elem, ...):
             # ...
     """
+<<<<<<< HEAD
+=======
+
+    def _is_init(fn):
+        return callable(fn) and fn.__name__ == "__init__"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not _is_init(constructor_subclass):
         raise RuntimeError(
             f"torch._export.wrappers.mark_constructor_exportable_experimental can only be applied on subclass tensor.__init__"
@@ -211,15 +236,19 @@ def mark_subclass_constructor_exportable_experimental(constructor_subclass):
         )
 
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         constructor_subclass(*args, **kwargs)
 
         if not torch.compiler.is_exporting():
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not is_traceable_wrapper_subclass_type(type(args[0])):
             assert constructor_subclass.__qualname__.endswith("__init__")
             obj_name = constructor_subclass.__qualname__[: -len("__init__")]
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Can't intercept {obj_name} in export because this object is not a traceable "
                 f"tensor subclass. Please look at DTensor.__init__ implementation as an example of proper usage of this API."
             )
@@ -335,3 +364,72 @@ def allow_in_pre_dispatch_graph(func):
         return out
 
     return wrapper
+=======
+                f"Applying mark_constructor_exportable_experimental on {obj_name} is not valid as it is not a traceable "
+                f"tensor subclass. Please look at DTensor.__init__ implementation as an example of proper usage of this API."
+            )
+        constructor_subclass(*args, **kwargs)
+        if not torch._C._is_torch_function_mode_enabled():
+            return
+        torch_function_mode_stack = torch.overrides._get_current_function_mode_stack()
+
+        pre_dispatch_tf_modes = [
+            mode
+            for mode in torch_function_mode_stack
+            if isinstance(mode, PreDispatchTorchFunctionMode)
+        ]
+        assert (
+            len(pre_dispatch_tf_modes) <= 1
+        ), f"Expected only one PreDispatchTorchFunctionMode, found {len(pre_dispatch_tf_modes)}"
+
+        if len(pre_dispatch_tf_modes) == 0:
+            return
+
+        mode = pre_dispatch_tf_modes[0]
+
+        tracer = mode.tracer
+        subclass = args[0]
+
+        flat_args, in_spec = to_graphable((tuple(args[1:]), kwargs))
+
+        constructor_spec_name = "_".join(
+            constructor_subclass.__qualname__.lower().split(".")
+        )
+        qualname = tracer.get_fresh_qualname(constructor_spec_name)  # type: ignore[union-attr]
+        setattr(tracer.root, qualname, in_spec)  # type: ignore[union-attr]
+        spec_proxy = tracer.create_proxy("get_attr", qualname, (), {})
+        flat_proxy_args = pytree.tree_map_only(
+            torch.Tensor, lambda x: get_proxy_slot(x, tracer).proxy, flat_args
+        )
+
+        _, func_spec = torch.utils._pytree.tree_flatten(
+            _ConstantFunction(type(subclass))
+        )
+
+        # We actually don't want to create a new spec for each instance
+        # In fx graph, it will look like dtensor_const_func_spec
+        # We can't directly shove DTensor.__init__ into fx as it is not
+        # allowed type.
+        fxable_constructor_call_spec_name = (
+            type(subclass).__name__.lower() + "_const_func_spec"
+        )
+
+        # We should try to reuse the constructor call spec as it is guaranteed to be same
+        # for each subclass type. This is different from proxy-ing the init arguments which
+        # can't be reused because for example, DTensor can receive different DeviceMesh etc
+        # as it's arguments
+        func_spec_proxy = _register_subclass_spec_proxy_in_tracer(
+            tracer, fxable_constructor_call_spec_name, func_spec
+        )
+
+        inner_proxy = tracer.create_proxy(
+            "call_function",
+            flat_apply,
+            (func_spec_proxy, spec_proxy, *flat_proxy_args),
+            {},
+        )
+        track_tensor_tree(subclass, inner_proxy, constant=None, tracer=tracer)
+        return
+
+    return wrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

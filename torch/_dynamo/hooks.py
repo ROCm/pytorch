@@ -10,8 +10,12 @@ These hooks enable customization of guard export and failure handling behaviors.
 """
 
 import dataclasses
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._guards import GuardsSet
 

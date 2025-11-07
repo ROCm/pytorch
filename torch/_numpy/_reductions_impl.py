@@ -1,11 +1,18 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Implementation of reduction operations, to be wrapped into arrays, dtypes etc
+=======
+""" Implementation of reduction operations, to be wrapped into arrays, dtypes etc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 in the 'public' layer.
 
 Anything here only deals with torch objects, e.g. "dtype" is a torch.dtype instance etc
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import functools
@@ -428,7 +435,11 @@ def percentile(
     interpolation: NotImplementedType = None,
 ):
     # np.percentile(float_tensor, 30) : q.dtype is int64 => q / 100.0 is float32
+<<<<<<< HEAD
     if _dtypes_impl.python_type_for_torch(q.dtype) is int:
+=======
+    if _dtypes_impl.python_type_for_torch(q.dtype) == int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         q = q.to(_dtypes_impl.default_dtypes().float_dtype)
     qq = q / 100.0
 

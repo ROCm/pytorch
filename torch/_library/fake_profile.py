@@ -2,9 +2,15 @@ import contextlib
 import io
 import logging
 import os
+<<<<<<< HEAD
 from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from typing import Any, Optional, Union
+=======
+from collections.abc import Generator
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._library.custom_ops import _maybe_get_opdef
@@ -102,7 +108,11 @@ def unsafe_generate_fake_kernels(op_profiles: dict[str, set[OpProfile]]) -> Gene
     an output with the same metadata as in the recorded profile. If a profile
     doesn't exist then an exception will be thrown.
 
+<<<<<<< HEAD
     The fake kernel generation is considered unsafe because it relies on the
+=======
+    The fake kernel generation is considerd unsafe because it relies on the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     rigid, pre-defined operator profiles that do not account for potential
     variations in output behavior. Specifically, the generated kernels assume a
     fixed relationship between input and output ranks. However, in reality, it's
@@ -198,7 +208,10 @@ def generate_yaml_from_profiles(op_profiles: dict[str, set[OpProfile]]) -> str:
     to a file. The yaml string can be loaded back into an operator profile
     structure using `read_profiles_from_yaml`.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import yaml
 
     from torch._export.serde.serialize import (
@@ -262,7 +275,10 @@ def read_profiles_from_yaml(yaml_str: str) -> dict[str, set[OpProfile]]:
     """
     Reads the yaml saved by `save_op_profiles` and returns the operator profiles.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import yaml
 
     from torch._export.serde.serialize import (

@@ -1,10 +1,17 @@
 from collections import deque
+<<<<<<< HEAD
 from typing import Any, Optional
 
 import torch
 from torch.fx import Graph, map_arg, Node
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._pytree import tree_flatten
+=======
+from typing import Any
+
+from torch.fx import Graph, map_arg, Node
+from torch.utils._ordered_set import OrderedSet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # flattens with support for slices
@@ -77,6 +84,7 @@ def _detect_cycles(
                 pending.append((child, cur_node))
 
     return "no cycle detected"
+<<<<<<< HEAD
 
 
 def _graph_device_type(graph: Optional[Graph]) -> str:
@@ -114,3 +122,5 @@ def _graph_device_type(graph: Optional[Graph]) -> str:
         for obj in flat_args:
             return _device_type(obj)
     return "cpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

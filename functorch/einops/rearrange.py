@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import functools
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Union
 
 import torch
 from functorch.dim import dims  # noqa: F401
+=======
+from typing import Callable, TYPE_CHECKING, Union
+
+import torch
+from functorch._C import dim as _C
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ._parsing import (
     _ellipsis,
@@ -16,10 +23,19 @@ from ._parsing import (
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
 
 __all__ = ["rearrange"]
 
+=======
+    from collections.abc import Sequence
+
+__all__ = ["rearrange"]
+
+dims = _C.dims
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @functools.lru_cache(256)
 def _create_rearrange_callable(

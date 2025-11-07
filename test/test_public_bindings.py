@@ -7,7 +7,11 @@ import logging
 import os
 import pkgutil
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._utils_internal import get_file_path_2  # @manual
@@ -123,7 +127,10 @@ class TestPublicBindings(TestCase):
             "FutureType",
             "Generator",
             "GeneratorType",
+<<<<<<< HEAD
             "GreenContext",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "get_autocast_cpu_dtype",
             "get_autocast_dtype",
             "get_autocast_ipu_dtype",
@@ -513,7 +520,11 @@ class TestPublicBindings(TestCase):
                             "does not have `__all__` defined"
                         )
                         fix_is_public = (
+<<<<<<< HEAD
                             f"remove it from the modules' (`{modname}`) `__all__`"
+=======
+                            f"remove it from the modules's (`{modname}`) `__all__`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if is_all
                             else f"either define a `__all__` for `{modname}` or add a `_` at the beginning of the name"
                         )
@@ -523,7 +534,11 @@ class TestPublicBindings(TestCase):
                             f"it is not inside the module's (`{modname}`) `__all__`"
                         )
                         fix_is_public = (
+<<<<<<< HEAD
                             f"add it from the modules' (`{modname}`) `__all__`"
+=======
+                            f"add it from the modules's (`{modname}`) `__all__`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                     if looks_public:
                         why_looks_public = (

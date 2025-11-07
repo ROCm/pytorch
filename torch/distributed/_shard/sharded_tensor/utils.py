@@ -79,7 +79,10 @@ def _flatten_tensor_size(size) -> torch.Size:
     Checks if tensor size is valid, then flatten/return a torch.Size object.
     """
     if len(size) == 1 and isinstance(size[0], collections.abc.Sequence):
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dims = list(*size)
     else:
         dims = list(size)
@@ -209,7 +212,10 @@ def build_global_metadata(
     global_sharded_tensor_metadata = None
     global_metadata_rank = 0
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for rank, rank_metadata in enumerate(gathered_metadatas):
         if rank_metadata is None:
             continue

@@ -37,10 +37,13 @@ TEST(SingletonOrSharedTypePtr, Comparison) {
 
   EXPECT_NE(empty, p);
   EXPECT_NE(p, p2);
+<<<<<<< HEAD
 
   EXPECT_EQ(empty, empty);
   EXPECT_EQ(p, p);
   EXPECT_EQ(p2, p2);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(SingletonOrSharedTypePtr, SingletonComparison) {
@@ -51,8 +54,11 @@ TEST(SingletonOrSharedTypePtr, SingletonComparison) {
   c10::TypePtr type = c10::NoneType::get();
   EXPECT_NE(type, c10::StringType::get());
   EXPECT_NE(type, c10::DeviceObjType::get());
+<<<<<<< HEAD
   EXPECT_EQ(type, type);
   EXPECT_EQ(type, c10::NoneType::get());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 

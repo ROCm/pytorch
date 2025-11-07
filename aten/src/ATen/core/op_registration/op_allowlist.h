@@ -114,7 +114,11 @@ constexpr bool allowlist_contains(std::string_view allowlist, std::string_view i
         }
         next++;
       } else {
+<<<<<<< HEAD
         if (allowlist.substr(cur) == item) {
+=======
+        if (allowlist.substr(cur).compare(item) == 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return true;
         }
         break;

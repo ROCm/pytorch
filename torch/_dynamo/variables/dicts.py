@@ -41,7 +41,10 @@ from ..utils import (
     dict_keys,
     dict_values,
     istype,
+<<<<<<< HEAD
     raise_args_mismatch,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     specialize_symnode,
 )
 from .base import ValueMutationNew, VariableTracker
@@ -58,6 +61,17 @@ if TYPE_CHECKING:
 # - (perhaps) Define how it is compared in _HashableTracker._eq_impl
 
 
+<<<<<<< HEAD
+=======
+def raise_args_mismatch(tx, name):
+    raise_observed_exception(
+        TypeError,
+        tx,
+        args=[ConstantVariable(f"wrong number of arguments for {name}() call")],
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def was_instancecheck_override(obj):
     return type(obj).__dict__.get("__instancecheck__", False)
 
@@ -68,9 +82,13 @@ def raise_unhashable(arg, tx=None):
 
         tx = InstructionTranslator.current_tx()
     raise_observed_exception(
+<<<<<<< HEAD
         TypeError,
         tx,
         args=[ConstantVariable(f"unhashable type: {type(arg.realize())}")],
+=======
+        TypeError, tx, args=[ConstantVariable(f"unhashable type: {type(arg)}")]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -93,8 +111,11 @@ def is_hashable(x):
         return x.as_proxy().node.meta.get("example_value") is not None
     elif isinstance(x, variables.TupleVariable):
         return all(is_hashable(e) for e in x.items)
+<<<<<<< HEAD
     elif isinstance(x, variables.FrozenDataClassVariable):
         return all(is_hashable(e) for e in x.fields.values())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif (
         isinstance(x, variables.UserDefinedObjectVariable)
         and not was_instancecheck_override(x.value)
@@ -110,7 +131,10 @@ def is_hashable(x):
                 variables.SymNodeVariable,
                 variables.ConstantVariable,
                 variables.EnumVariable,
+<<<<<<< HEAD
                 variables.FrozensetVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 variables.UserDefinedClassVariable,
                 variables.UserFunctionVariable,
                 variables.SkipFunctionVariable,
@@ -122,14 +146,20 @@ def is_hashable(x):
                 variables.TypingVariable,
                 variables.FunctoolsPartialVariable,
                 variables.WeakRefVariable,
+<<<<<<< HEAD
                 variables.TorchHigherOrderOperatorVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
         )
 
 
 class ConstDictVariable(VariableTracker):
+<<<<<<< HEAD
     CONTAINS_GUARD = GuardBuilder.DICT_CONTAINS
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _nonvar_fields = {
         "user_cls",
         *VariableTracker._nonvar_fields,
@@ -174,6 +204,7 @@ class ConstDictVariable(VariableTracker):
                 # Access the underlying value inside the referent_vt for the key representation
                 Hashable = ConstDictVariable._HashableTracker
                 return Hashable(self.vt.referent_vt).underlying_value
+<<<<<<< HEAD
             elif isinstance(self.vt, variables.FrozenDataClassVariable):
                 Hashable = ConstDictVariable._HashableTracker
                 fields_values = {
@@ -182,6 +213,8 @@ class ConstDictVariable(VariableTracker):
                 return variables.FrozenDataClassVariable.HashWrapper(
                     self.vt.python_type(), fields_values
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif isinstance(self.vt, variables.UserDefinedObjectVariable):
                 # The re module in Python 3.13+ has a dictionary (_cache2) with
                 # an object as key (`class _ZeroSentinel(int): ...`):
@@ -197,11 +230,17 @@ class ConstDictVariable(VariableTracker):
         @staticmethod
         def _eq_impl(a, b):
             # TODO: Put this in utils and share it between variables/builtin.py and here
+<<<<<<< HEAD
             type_a, type_b = type(a), type(b)
             if not (issubclass(type_a, type_b) or issubclass(type_b, type_a)):
                 return False
 
             if isinstance(a, tuple):
+=======
+            if type(a) != type(b):
+                return False
+            elif isinstance(a, tuple):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Hashable = ConstDictVariable._HashableTracker
                 return len(a) == len(b) and all(
                     Hashable._eq_impl(u, v) for u, v in zip(a, b)
@@ -249,14 +288,19 @@ class ConstDictVariable(VariableTracker):
         def make_hashable(key):
             return key if isinstance(key, Hashable) else Hashable(key)
 
+<<<<<<< HEAD
         dict_cls = self._get_dict_cls_from_user_cls(user_cls)
         self.items = dict_cls({make_hashable(x): v for x, v in items.items()})
+=======
+        self.items = {make_hashable(x): v for x, v in items.items()}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # need to reconstruct everything if the dictionary is an intermediate value
         # or if a pop/delitem was executed
         self.should_reconstruct_all = not is_from_local_source(self.source)
         self.original_items = items.copy()
         self.user_cls = user_cls
 
+<<<<<<< HEAD
     def _get_dict_cls_from_user_cls(self, user_cls):
         accepted_dict_types = (dict, collections.OrderedDict, collections.defaultdict)
 
@@ -276,6 +320,8 @@ class ConstDictVariable(VariableTracker):
             dict_cls = dict
         return dict_cls
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def as_proxy(self):
         return {k.vt.as_proxy(): v.as_proxy() for k, v in self.items.items()}
 
@@ -310,6 +356,7 @@ class ConstDictVariable(VariableTracker):
             and not isinstance(self.items[Hashable(vt)], variables.DeletedVariable)
         )
 
+<<<<<<< HEAD
     def len(self) -> int:
         return sum(
             not isinstance(x, variables.DeletedVariable) for x in self.items.values()
@@ -317,6 +364,21 @@ class ConstDictVariable(VariableTracker):
 
     def has_new_items(self) -> bool:
         return self.should_reconstruct_all or any(
+=======
+    def len(self):
+        return len(
+            [
+                x
+                for x in self.items.values()
+                if not isinstance(x, variables.DeletedVariable)
+            ]
+        )
+
+    def has_new_items(self):
+        if self.should_reconstruct_all:
+            return True
+        return any(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.is_new_item(self.original_items.get(key.vt), value)
             for key, value in self.items.items()
         )
@@ -424,7 +486,11 @@ class ConstDictVariable(VariableTracker):
             install_guard(
                 self.make_guard(
                     functools.partial(
+<<<<<<< HEAD
                         type(self).CONTAINS_GUARD,
+=======
+                        GuardBuilder.DICT_CONTAINS,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         key=args[0].value,
                         invert=not contains,
                     )
@@ -465,6 +531,7 @@ class ConstDictVariable(VariableTracker):
             return ConstantVariable.create(None)
         elif name == "__getitem__":
             # Key guarding - Nothing to do. LazyVT for value will take care.
+<<<<<<< HEAD
             if len(args) != 1:
                 raise_args_mismatch(tx, name, "1 args", f"{len(args)} args")
             return self.getitem_const_raise_exception_if_absent(tx, args[0])
@@ -476,11 +543,18 @@ class ConstDictVariable(VariableTracker):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert len(args) == 1
+            return self.getitem_const_raise_exception_if_absent(tx, args[0])
+        elif name == "items":
+            assert not (args or kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.install_dict_keys_match_guard()
             if self.source:
                 tx.output.guard_on_key_order.add(self.source)
             return DictItemsVariable(self)
         elif name == "keys":
+<<<<<<< HEAD
             if len(args):
                 raise_args_mismatch(tx, name, "0 args", f"{len(args)} args")
             self.install_dict_keys_match_guard()
@@ -510,10 +584,27 @@ class ConstDictVariable(VariableTracker):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            self.install_dict_keys_match_guard()
+            if self.source:
+                tx.output.guard_on_key_order.add(self.source)
+            assert not (args or kwargs)
+            return DictKeysVariable(self)
+        elif name == "values":
+            self.install_dict_keys_match_guard()
+            if self.source:
+                tx.output.guard_on_key_order.add(self.source)
+            assert not (args or kwargs)
+            return DictValuesVariable(self)
+        elif name == "copy":
+            self.install_dict_keys_match_guard()
+            assert not (args or kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.clone(
                 items=self.items.copy(), mutation_type=ValueMutationNew(), source=None
             )
         elif name == "__len__":
+<<<<<<< HEAD
             if args or kwargs:
                 raise_args_mismatch(
                     tx,
@@ -521,6 +612,9 @@ class ConstDictVariable(VariableTracker):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not (args or kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.install_dict_keys_match_guard()
             return ConstantVariable.create(len(self.items))
         elif name == "__setitem__" and self.is_mutable():
@@ -528,6 +622,7 @@ class ConstDictVariable(VariableTracker):
                 raise_unhashable(args[0])
 
             self.install_dict_keys_match_guard()
+<<<<<<< HEAD
             if kwargs or len(args) != 2:
                 raise_args_mismatch(
                     tx,
@@ -535,6 +630,9 @@ class ConstDictVariable(VariableTracker):
                     "2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs and len(args) == 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tx.output.side_effects.mutation(self)
             self.items[Hashable(args[0])] = args[1]
             return ConstantVariable.create(None)
@@ -544,6 +642,7 @@ class ConstDictVariable(VariableTracker):
             tx.output.side_effects.mutation(self)
             self.items.__delitem__(Hashable(args[0]))
             return ConstantVariable.create(None)
+<<<<<<< HEAD
         elif name == "get":
             if len(args) not in (1, 2):
                 raise_args_mismatch(tx, name, "1 or 2 args", f"{len(args)} args")
@@ -614,6 +713,22 @@ class ConstDictVariable(VariableTracker):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+        elif name in ("pop", "get") and len(args) in (1, 2) and args[0] not in self:
+            # missing item, return the default value. Install no DICT_CONTAINS guard.
+            self.install_dict_contains_guard(tx, args)
+            if len(args) == 1:
+                if name == "pop":
+                    raise_observed_exception(KeyError, tx)
+                return ConstantVariable(None)
+            else:
+                return args[1]
+        elif name == "pop" and arg_hashable and self.is_mutable():
+            self.should_reconstruct_all = True
+            tx.output.side_effects.mutation(self)
+            return self.items.pop(Hashable(args[0]))
+        elif name == "clear":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.should_reconstruct_all = True
             tx.output.side_effects.mutation(self)
             self.items.clear()
@@ -645,6 +760,7 @@ class ConstDictVariable(VariableTracker):
                 return ConstantVariable.create(None)
             else:
                 return super().call_method(tx, name, args, kwargs)
+<<<<<<< HEAD
         elif name == "__contains__":
             if not len(args):
                 raise_args_mismatch(
@@ -654,12 +770,19 @@ class ConstDictVariable(VariableTracker):
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
 
+=======
+        elif name in ("get", "__getattr__") and args[0] in self:
+            # Key guarding - Nothing to do.
+            return self.getitem_const(tx, args[0])
+        elif name == "__contains__" and len(args) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not arg_hashable:
                 raise_unhashable(args[0])
 
             self.install_dict_contains_guard(tx, args)
             contains = args[0] in self
             return ConstantVariable.create(contains)
+<<<<<<< HEAD
         elif name == "setdefault" and self.is_mutable():
             if len(args) not in (1, 2):
                 raise_args_mismatch(
@@ -680,6 +803,12 @@ class ConstDictVariable(VariableTracker):
                     "at most 2 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+        elif name == "setdefault" and arg_hashable and self.is_mutable():
+            self.install_dict_keys_match_guard()
+            assert not kwargs
+            assert len(args) <= 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             value = self.maybe_getitem_const(args[0])
             if value is not None:
                 return value
@@ -693,6 +822,7 @@ class ConstDictVariable(VariableTracker):
                 return x
         elif name == "move_to_end":
             self.install_dict_keys_match_guard()
+<<<<<<< HEAD
             tx.output.side_effects.mutation(self)
             if args[0] not in self:
                 raise_observed_exception(KeyError, tx)
@@ -769,6 +899,25 @@ class ConstDictVariable(VariableTracker):
                 mutation_type=ValueMutationNew(),
                 source=None,
                 user_cls=user_cls,
+=======
+            assert not kwargs and len(args) == 1
+            tx.output.side_effects.mutation(self)
+            key = Hashable(args[0])
+            val = self.items[key]
+            self.items.pop(key)
+            self.items[key] = val
+            return ConstantVariable.create(None)
+        elif name == "__or__":
+            assert len(args) == 1
+            if not isinstance(args[0], ConstDictVariable):
+                raise TypeError(
+                    f"unsupported operand type(s) for |: 'dict' and '{args[0].python_type().__name__}'"
+                )
+
+            self.install_dict_keys_match_guard()
+            new_dict_vt = self.clone(
+                items=self.items.copy(), mutation_type=ValueMutationNew(), source=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             # NB - Guard on all the keys of the other dict to ensure
@@ -776,9 +925,12 @@ class ConstDictVariable(VariableTracker):
             args[0].install_dict_keys_match_guard()
             new_dict_vt.items.update(args[0].items)
             return new_dict_vt
+<<<<<<< HEAD
         elif name == "__ior__":
             self.call_method(tx, "update", args, kwargs)
             return self
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return super().call_method(tx, name, args, kwargs)
 
@@ -922,8 +1074,12 @@ class DefaultDictVariable(ConstDictVariable):
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
         if name == "__getitem__":
+<<<<<<< HEAD
             if len(args) != 1:
                 raise_args_mismatch(tx, name, "1 args", f"{len(args)} args")
+=======
+            assert len(args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if args[0] in self:
                 return self.getitem_const(tx, args[0])
@@ -960,8 +1116,11 @@ class DefaultDictVariable(ConstDictVariable):
 class SetVariable(ConstDictVariable):
     """We model a sets as dictionary with None values"""
 
+<<<<<<< HEAD
     CONTAINS_GUARD = GuardBuilder.SET_CONTAINS
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         items: list[VariableTracker],
@@ -998,6 +1157,7 @@ class SetVariable(ConstDictVariable):
         codegen.foreach([x.vt for x in self.set_items])
         codegen.append_output(create_instruction("BUILD_SET", arg=len(self.set_items)))
 
+<<<<<<< HEAD
     def _fast_set_method(self, tx, fn, args, kwargs):
         try:
             res = fn(
@@ -1010,6 +1170,8 @@ class SetVariable(ConstDictVariable):
             )
         return VariableTracker.build(tx, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_method(
         self,
         tx,
@@ -1018,6 +1180,7 @@ class SetVariable(ConstDictVariable):
         kwargs: dict[str, VariableTracker],
     ) -> "VariableTracker":
         # We forward the calls to the dictionary model
+<<<<<<< HEAD
         from ..utils import check_constant_args
 
         if (
@@ -1035,6 +1198,8 @@ class SetVariable(ConstDictVariable):
             py_type = self.python_type()
             return self._fast_set_method(tx, getattr(py_type, name), args, kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name == "__init__":
             temp_set_vt = variables.BuiltinVariable(set).call_set(tx, *args, *kwargs)
             tx.output.side_effects.mutation(self)
@@ -1042,6 +1207,7 @@ class SetVariable(ConstDictVariable):
             self.items.update(temp_set_vt.items)
             return ConstantVariable.create(None)
         elif name == "add":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1059,6 +1225,16 @@ class SetVariable(ConstDictVariable):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+            name = "__setitem__"
+            args = (args[0], SetVariable._default_value())
+        elif name == "pop":
+            assert not kwargs
+            assert not args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Choose an item at random and pop it via the Dict.pop method
             try:
                 result = self.set_items.pop().vt
@@ -1069,6 +1245,7 @@ class SetVariable(ConstDictVariable):
             super().call_method(tx, name, (result,), kwargs)
             return result
         elif name == "isdisjoint":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1076,42 +1253,67 @@ class SetVariable(ConstDictVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+            assert len(args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_isdisjoint
             ).call_function(tx, [self, args[0]], {})
         elif name == "intersection":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_intersection
             ).call_function(tx, [self, *args], {})
         elif name == "intersection_update":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_intersection_update
             ).call_function(tx, [self, *args], {})
         elif name == "union":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(polyfills.set_union).call_function(
                 tx, [self, *args], {}
             )
         elif name == "difference":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(
                     tx, name, f"Expect: 0 kwargs, Actual: {len(kwargs)} kwargs"
                 )
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_difference
             ).call_function(tx, [self, *args], {})
         elif name == "difference_update":
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_difference_update
             ).call_function(tx, [self, *args], {})
         elif name == "symmetric_difference":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1119,10 +1321,16 @@ class SetVariable(ConstDictVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_symmetric_difference
             ).call_function(tx, [self, *args], {})
         elif name == "symmetric_difference_update":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1130,16 +1338,26 @@ class SetVariable(ConstDictVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(
                 polyfills.set_symmetric_difference_update
             ).call_function(tx, [self, *args], {})
         elif name == "update" and self.is_mutable():
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserFunctionVariable(polyfills.set_update).call_function(
                 tx, [self, *args], {}
             )
         elif name == "remove":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1147,10 +1365,15 @@ class SetVariable(ConstDictVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+            assert len(args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if args[0] not in self:
                 raise_observed_exception(KeyError, tx, args=args)
             return super().call_method(tx, "pop", args, kwargs)
         elif name == "discard":
+<<<<<<< HEAD
             if kwargs or len(args) != 1:
                 raise_args_mismatch(
                     tx,
@@ -1158,14 +1381,21 @@ class SetVariable(ConstDictVariable):
                     "1 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not kwargs
+            assert len(args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if args[0] in self:
                 return super().call_method(tx, "pop", args, kwargs)
             else:
                 return ConstantVariable.create(value=None)
         elif name in ("issubset", "issuperset"):
+<<<<<<< HEAD
             if len(args) != 1:
                 raise_args_mismatch(tx, name, "1 args", f"{len(args)} args")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             op = {
                 "issubset": operator.le,
                 "issuperset": operator.ge,
@@ -1176,6 +1406,7 @@ class SetVariable(ConstDictVariable):
             return variables.BuiltinVariable(op.get(name)).call_function(
                 tx, [self, other], {}
             )
+<<<<<<< HEAD
         elif name in ("__and__", "__or__", "__xor__", "__sub__"):
             m = {
                 "__and__": "intersection",
@@ -1214,6 +1445,8 @@ class SetVariable(ConstDictVariable):
             return ConstantVariable.create(
                 cmp_name_to_op_mapping[name](self.set_items, args[0].set_items)
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def getitem_const(self, tx: "InstructionTranslator", arg: VariableTracker):
@@ -1224,7 +1457,12 @@ class SetVariable(ConstDictVariable):
         pass
 
     def install_dict_contains_guard(self, tx, args):
+<<<<<<< HEAD
         super().install_dict_contains_guard(tx, args)
+=======
+        # Already EQUALS_MATCH guarded
+        pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class FrozensetVariable(SetVariable):
@@ -1249,7 +1487,11 @@ class FrozensetVariable(SetVariable):
         return frozenset
 
     def as_python_constant(self):
+<<<<<<< HEAD
         return frozenset({k.vt.as_python_constant() for k in self.set_items})
+=======
+        return {k.vt.as_python_constant() for k in self.set_items}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def reconstruct(self, codegen: "PyCodegen"):
         codegen.foreach([x.vt for x in self.set_items])
@@ -1280,6 +1522,7 @@ class FrozensetVariable(SetVariable):
             # In[3]: s
             # frozenset({1, 2})
             return ConstantVariable.create(None)
+<<<<<<< HEAD
         elif name in (
             "copy",
             "difference",
@@ -1288,6 +1531,8 @@ class FrozensetVariable(SetVariable):
         ):
             r = super().call_method(tx, name, args, kwargs)
             return FrozensetVariable(r.items)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
 
@@ -1309,6 +1554,7 @@ class DictKeySetVariable(SetVariable):
                 + "])"
             )
 
+<<<<<<< HEAD
     def install_dict_keys_match_guard(self):
         # Already EQUALS_MATCH guarded
         pass
@@ -1317,6 +1563,8 @@ class DictKeySetVariable(SetVariable):
         # Already EQUALS_MATCH guarded
         pass
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def set_items(self):
         return self.items
@@ -1374,11 +1622,14 @@ class DictViewVariable(VariableTracker):
         codegen.load_method(self.kv)
         codegen.call_method(0)
 
+<<<<<<< HEAD
     def call_obj_hasattr(self, tx, name):
         if name in self.python_type().__dict__:
             return ConstantVariable.create(True)
         return ConstantVariable.create(False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_method(
         self,
         tx,
@@ -1415,6 +1666,7 @@ class DictKeysVariable(DictViewVariable):
     ) -> "VariableTracker":
         if name == "__contains__":
             return self.dv_dict.call_method(tx, name, args, kwargs)
+<<<<<<< HEAD
         elif name in (
             "__and__",
             "__iand__",
@@ -1429,6 +1681,8 @@ class DictKeysVariable(DictViewVariable):
             m = getattr(self.set_items, name)
             r = m(args[0].set_items)
             return SetVariable(r)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in cmp_name_to_op_mapping:
             if not isinstance(args[0], (SetVariable, DictKeysVariable)):
                 return ConstantVariable.create(NotImplemented)
@@ -1460,6 +1714,7 @@ class DictItemsVariable(DictViewVariable):
 
     def python_type(self):
         return dict_items
+<<<<<<< HEAD
 
     def call_method(self, tx, name, args, kwargs):
         # TODO(guilhermeleobas): This should actually check if args[0]
@@ -1471,3 +1726,5 @@ class DictItemsVariable(DictViewVariable):
                 return self.dv_dict.call_method(tx, "__eq__", [args[0].dv_dict], {})
             return ConstantVariable.create(False)
         return super().call_method(tx, name, args, kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -3,9 +3,14 @@ import collections
 import functools
 import inspect
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import partial
 from typing import Any, Union
+=======
+from functools import partial
+from typing import Any, Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.nn as nn
 from torch.distributed.fsdp._common_utils import (
@@ -120,8 +125,12 @@ def _warn_on_overridden_mixed_precision(
         "Both mixed precision and an auto_wrap_policy were specified to FSDP, "
         f"where the wrapped module has submodules of type:\n{overridden_module_classes}\n"
         "These modules will be wrapped as separate FSDP instacnes with mixed "
+<<<<<<< HEAD
         "precision disabled.",
         stacklevel=2,
+=======
+        "precision disabled."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -173,7 +182,11 @@ def _validate_frozen_params(
                     f"The following parameters have requires_grad=False:\n{frozen_param_fqns}"
                 )
                 if use_orig_params:
+<<<<<<< HEAD
                     warnings.warn(msg, stacklevel=2)
+=======
+                    warnings.warn(msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     raise ValueError(msg)
 

@@ -30,7 +30,11 @@ skip = functools.partial(skipif, True)
 
 
 @xpassIfTorchDynamo_np  # (
+<<<<<<< HEAD
 #    reason="We do not distinguish between scalar and array types."
+=======
+#    reason="We do not disctinguish between scalar and array types."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #    " Thus, scalars can upcast arrays."
 # )
 class TestCommonType(TestCase):

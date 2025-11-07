@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.qat as nnqat

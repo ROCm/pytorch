@@ -30,7 +30,10 @@ class EventList(list):
         use_device = kwargs.pop("use_device", None)
         profile_memory = kwargs.pop("profile_memory", False)
         with_flops = kwargs.pop("with_flops", False)
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(*args, **kwargs)
         self._use_device = use_device
         self._profile_memory = profile_memory
@@ -49,7 +52,10 @@ class EventList(list):
     def _remove_dup_nodes(self):
         while True:
             to_delete = set()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for idx in range(len(self)):
                 if (
                     self[idx].cpu_parent is not None
@@ -63,11 +69,16 @@ class EventList(list):
                     to_delete.add(idx)
             if len(to_delete) == 0:
                 break
+<<<<<<< HEAD
 
             new_evts = [ev for ind, ev in enumerate(self) if ind not in to_delete]
 
             self.clear()
 
+=======
+            new_evts = [ev for ind, ev in enumerate(self) if ind not in to_delete]
+            self.clear()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.extend(new_evts)
 
     def _populate_cpu_children(self):
@@ -131,10 +142,16 @@ class EventList(list):
                         current_events.pop()
                     else:
                         parent.append_cpu_child(event)
+<<<<<<< HEAD
                         if event.cpu_parent is not None:
                             raise AssertionError(
                                 f"There is already a CPU parent event for {event.key}"
                             )
+=======
+                        assert (
+                            event.cpu_parent is None
+                        ), f"There is already a CPU parent event for {event.key}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         event.set_cpu_parent(parent)
                         break
 
@@ -159,12 +176,21 @@ class EventList(list):
         for evt in self:
             p = bw_parent(evt)
             if p is not None:
+<<<<<<< HEAD
                 if p.fwd_thread is None:
                     raise AssertionError(
                         "Expected fwd_thread to be set for backward parent"
                     )
                 t = (p.sequence_nr, p.fwd_thread)
                 evt.stack = fwd_stacks.get(t, [])
+=======
+                assert p.fwd_thread is not None
+                t = (p.sequence_nr, p.fwd_thread)
+                if t in fwd_stacks:
+                    evt.stack = fwd_stacks[t]
+                else:
+                    evt.stack = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def self_cpu_time_total(self):
@@ -179,7 +205,10 @@ class EventList(list):
         max_shapes_column_width=80,
         header=None,
         top_level_events_only=False,
+<<<<<<< HEAD
         time_unit=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """Print an EventList as a nicely formatted table.
 
@@ -196,8 +225,11 @@ class EventList(list):
                 display events at top level like top-level invocation of python
                 `lstm`, python `add` or other functions, nested events like low-level
                 cpu/cuda/xpu ops events are omitted for profiler result readability.
+<<<<<<< HEAD
             time_unit(str, optional): A time unit to be used for all values in the
                 table. Valid options are: ``s``, ``ms`` and ``us``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Returns:
             A string containing the table.
@@ -213,7 +245,10 @@ class EventList(list):
             profile_memory=self._profile_memory,
             with_flops=self._with_flops,
             top_level_events_only=top_level_events_only,
+<<<<<<< HEAD
             time_unit=time_unit,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def export_chrome_trace(self, path):
@@ -327,10 +362,14 @@ class EventList(list):
         Returns:
             An EventList containing FunctionEventAvg objects.
         """
+<<<<<<< HEAD
         if not self._tree_built:
             raise AssertionError(
                 "Expected tree to be built before calling key_averages"
             )
+=======
+        assert self._tree_built
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stats: dict[tuple[str, ...], FunctionEventAvg] = defaultdict(FunctionEventAvg)
 
         def get_key(
@@ -400,8 +439,12 @@ def _format_time(time_us):
 def _format_time_share(time_us, total_time_us):
     """Define how to format time in FunctionEvent."""
     if total_time_us == 0:
+<<<<<<< HEAD
         if time_us != 0:
             raise AssertionError(f"Expected time_us == 0 but got {time_us}")
+=======
+        assert time_us == 0, f"Expected time_us == 0 but got {time_us}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return "NaN"
     return f"{time_us * 100.0 / total_time_us:.2f}%"
 
@@ -501,14 +544,21 @@ class FunctionEvent(FormattedTimesMixin):
         concrete_inputs=None,
         kwinputs=None,
         is_user_annotation=False,
+<<<<<<< HEAD
         metadata_json=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         self.id: int = id
         self.node_id: int = node_id
         self.name: str = name
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         self.overload_name: str = overload_name
         # pyrefly: ignore [bad-assignment]
+=======
+        self.overload_name: str = overload_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.trace_name: str = trace_name
         self.time_range: Interval = Interval(start_us, end_us)
         self.thread: int = thread
@@ -517,6 +567,7 @@ class FunctionEvent(FormattedTimesMixin):
         self.count: int = 1
         self.cpu_children: list[FunctionEvent] = []
         self.cpu_parent: Optional[FunctionEvent] = None
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         self.input_shapes: tuple[int, ...] = input_shapes
         # pyrefly: ignore [bad-assignment]
@@ -524,6 +575,11 @@ class FunctionEvent(FormattedTimesMixin):
         # pyrefly: ignore [bad-assignment]
         self.kwinputs: dict[str, Any] = kwinputs
         # pyrefly: ignore [bad-assignment]
+=======
+        self.input_shapes: tuple[int, ...] = input_shapes
+        self.concrete_inputs: list[Any] = concrete_inputs
+        self.kwinputs: dict[str, Any] = kwinputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.stack: list = stack
         self.scope: int = scope
         self.use_device: Optional[str] = use_device
@@ -543,11 +599,17 @@ class FunctionEvent(FormattedTimesMixin):
         self.self_cpu_percent = -1
         self.total_cpu_percent = -1
         self.total_device_percent = -1
+<<<<<<< HEAD
         self.metadata_json = metadata_json
 
     def append_kernel(self, name, device, duration):
         if self.device_type != DeviceType.CPU:
             raise AssertionError("Expected device_type to be CPU")
+=======
+
+    def append_kernel(self, name, device, duration):
+        assert self.device_type == DeviceType.CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.kernels.append(Kernel(name, device, duration))
 
     def append_cpu_child(self, child):
@@ -556,12 +618,18 @@ class FunctionEvent(FormattedTimesMixin):
         One is supposed to append only direct children to the event to have
         correct self cpu time being reported.
         """
+<<<<<<< HEAD
         if self.device_type != DeviceType.CPU:
             raise AssertionError("Expected device_type to be CPU")
         if not isinstance(child, FunctionEvent):
             raise AssertionError("Expected child to be a FunctionEvent")
         if child.device_type != DeviceType.CPU:
             raise AssertionError("Expected child device_type to be CPU")
+=======
+        assert self.device_type == DeviceType.CPU
+        assert isinstance(child, FunctionEvent)
+        assert child.device_type == DeviceType.CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.cpu_children.append(child)
 
     def set_cpu_parent(self, parent):
@@ -571,12 +639,18 @@ class FunctionEvent(FormattedTimesMixin):
         the child's range interval is completely inside the parent's. We use
         this connection to determine the event is from top-level op or not.
         """
+<<<<<<< HEAD
         if self.device_type != DeviceType.CPU:
             raise AssertionError("Expected device_type to be CPU")
         if not isinstance(parent, FunctionEvent):
             raise AssertionError("Expected parent to be a FunctionEvent")
         if parent.device_type != DeviceType.CPU:
             raise AssertionError("Expected parent device_type to be CPU")
+=======
+        assert self.device_type == DeviceType.CPU
+        assert isinstance(parent, FunctionEvent)
+        assert parent.device_type == DeviceType.CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.cpu_parent = parent
 
     # Note: async events don't have children, are not used when computing 'self'
@@ -634,15 +708,23 @@ class FunctionEvent(FormattedTimesMixin):
                 # each legacy cpu events has a single (fake) kernel
                 return sum(kinfo.duration for kinfo in self.kernels)
         else:
+<<<<<<< HEAD
             if self.device_type not in [
+=======
+            assert self.device_type in [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 DeviceType.CUDA,
                 DeviceType.PrivateUse1,
                 DeviceType.MTIA,
                 DeviceType.HPU,
+<<<<<<< HEAD
             ]:
                 raise AssertionError(
                     f"Expected device_type to be CUDA, PrivateUse1, MTIA, or HPU, but got {self.device_type}"
                 )
+=======
+            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.time_range.elapsed_us()
 
     @property
@@ -662,15 +744,23 @@ class FunctionEvent(FormattedTimesMixin):
                 child.device_time_total for child in self.cpu_children
             )
         else:
+<<<<<<< HEAD
             if self.device_type not in [
+=======
+            assert self.device_type in [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 DeviceType.CUDA,
                 DeviceType.PrivateUse1,
                 DeviceType.MTIA,
                 DeviceType.HPU,
+<<<<<<< HEAD
             ]:
                 raise AssertionError(
                     f"Expected device_type to be CUDA, PrivateUse1, MTIA, or HPU, but got {self.device_type}"
                 )
+=======
+            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.device_time_total
 
     @property
@@ -748,6 +838,7 @@ class FunctionEventAvg(FormattedTimesMixin):
             self.use_device = other.use_device
             self.is_user_annotation = other.is_user_annotation
 
+<<<<<<< HEAD
         if not isinstance(other, (FunctionEvent, FunctionEventAvg)):
             raise AssertionError(
                 "Expected other to be a FunctionEvent or FunctionEventAvg"
@@ -756,6 +847,10 @@ class FunctionEventAvg(FormattedTimesMixin):
             raise AssertionError(
                 f"Expected keys to match, but got {other.key} vs {self.key}"
             )
+=======
+        assert isinstance(other, (FunctionEvent, FunctionEventAvg))
+        assert other.key == self.key
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.cpu_time_total += other.cpu_time_total
         self.device_time_total += other.device_time_total
@@ -767,7 +862,10 @@ class FunctionEventAvg(FormattedTimesMixin):
         self.self_device_memory_usage += other.self_device_memory_usage
         self.count += other.count
         if self.flops is None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.flops = other.flops
         elif other.flops is not None:
             self.flops += other.flops
@@ -874,7 +972,10 @@ def _build_table(
     with_flops=False,
     profile_memory=False,
     top_level_events_only=False,
+<<<<<<< HEAD
     time_unit=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """Print a summary of events (which can be a list of FunctionEvent or FunctionEventAvg)."""
     if len(events) == 0:
@@ -1002,6 +1103,7 @@ def _build_table(
             "TFLOPs",
             "PFLOPs",
         ]
+<<<<<<< HEAD
         if flops <= 0:
             raise AssertionError(f"Expected flops to be positive, but got {flops}")
         # pyrefly: ignore [no-matching-overload]
@@ -1010,6 +1112,11 @@ def _build_table(
             raise AssertionError(
                 f"Expected log_flops to be in range [0, {len(flop_headers)}), but got {log_flops}"
             )
+=======
+        assert flops > 0
+        log_flops = max(0, min(math.log10(flops) / 3, float(len(flop_headers) - 1)))
+        assert log_flops >= 0 and log_flops < len(flop_headers)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (pow(10, (math.floor(log_flops) * -3.0)), flop_headers[int(log_flops)])
 
     add_column(name_column_width)
@@ -1087,6 +1194,7 @@ def _build_table(
                 path = "..." + path[3:]
         return path
 
+<<<<<<< HEAD
     def override_time_unit(time_us, default_str, time_unit):
         US_IN_SECOND = 1000.0 * 1000.0
         US_IN_MS = 1000.0
@@ -1099,6 +1207,8 @@ def _build_table(
         else:
             return default_str
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     event_limit = 0
     for evt in events:
         if event_limit == row_limit:
@@ -1132,6 +1242,7 @@ def _build_table(
         row_values += [
             # Self CPU total %, 0 for async events.
             evt.self_cpu_percent,
+<<<<<<< HEAD
             override_time_unit(
                 evt.self_cpu_time_total, evt.self_cpu_time_total_str, time_unit
             ),  # Self CPU total
@@ -1143,6 +1254,13 @@ def _build_table(
             override_time_unit(
                 evt.cpu_time, evt.cpu_time_str, time_unit
             ),  # CPU time avg
+=======
+            evt.self_cpu_time_total_str,  # Self CPU total
+            # CPU total %, 0 for async events.
+            evt.total_cpu_percent,
+            evt.cpu_time_total_str,  # CPU total
+            evt.cpu_time_str,  # CPU time avg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         if has_device_time:
             evt.total_device_percent = _format_time_share(
@@ -1150,6 +1268,7 @@ def _build_table(
             )
             row_values.extend(
                 [
+<<<<<<< HEAD
                     override_time_unit(
                         evt.self_device_time_total,
                         evt.self_device_time_total_str,
@@ -1163,6 +1282,13 @@ def _build_table(
                     override_time_unit(
                         evt.device_time, evt.device_time_str, time_unit
                     ),  # device time avg
+=======
+                    evt.self_device_time_total_str,
+                    # device time total %
+                    evt.total_device_percent,
+                    evt.device_time_total_str,
+                    evt.device_time_str,  # device time avg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             )
         if profile_memory:
@@ -1215,6 +1341,7 @@ def _build_table(
             append(row_format.format(*empty_headers))
 
     append(header_sep)
+<<<<<<< HEAD
     append(
         f"Self CPU time total: {override_time_unit(sum_self_cpu_time_total, _format_time(sum_self_cpu_time_total), time_unit)}"
     )
@@ -1222,5 +1349,12 @@ def _build_table(
         append(
             f"Self {use_device.upper() if use_device is not None else 'None'} "
             f"time total: {override_time_unit(sum_self_device_time_total, _format_time(sum_self_device_time_total), time_unit)}"
+=======
+    append(f"Self CPU time total: {_format_time(sum_self_cpu_time_total)}")
+    if has_device_time:
+        append(
+            f"Self {use_device.upper() if use_device is not None else 'None'} "
+            f"time total: {_format_time(sum_self_device_time_total)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     return "".join(result)

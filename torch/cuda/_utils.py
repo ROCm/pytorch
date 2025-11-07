@@ -8,6 +8,7 @@ import torch
 from torch._utils import _get_device_index as _torch_get_device_index
 
 
+<<<<<<< HEAD
 def _get_hip_runtime_library() -> ctypes.CDLL:
     if sys.platform == "win32":
         lib = ctypes.CDLL(f"amdhip64_{torch.version.hip[0]}.dll")
@@ -22,12 +23,17 @@ def _get_hip_runtime_library() -> ctypes.CDLL:
 
 
 def _get_cuda_runtime_library() -> ctypes.CDLL:
+=======
+# Load CUDA driver and NVRTC
+def _get_cuda_library() -> ctypes.CDLL:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.platform == "win32":
         return ctypes.CDLL("nvcuda.dll")
     else:  # Unix-based systems
         return ctypes.CDLL("libcuda.so.1")
 
 
+<<<<<<< HEAD
 # Load GPU driver runtime
 def _get_gpu_runtime_library() -> ctypes.CDLL:
     if torch.version.hip:
@@ -36,12 +42,18 @@ def _get_gpu_runtime_library() -> ctypes.CDLL:
         return _get_cuda_runtime_library()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Helper: check CUDA errors
 def _check_cuda(result: int) -> None:
     if result == 0:
         return
     err_str = ctypes.c_char_p()
+<<<<<<< HEAD
     libcuda = _get_gpu_runtime_library()  # Get reference to CUDA library
+=======
+    libcuda = _get_cuda_library()  # Get reference to CUDA library
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     libcuda.cuGetErrorString(result, ctypes.byref(err_str))
     error_message = (
         err_str.value.decode() if err_str.value is not None else "Unknown CUDA error"
@@ -49,6 +61,7 @@ def _check_cuda(result: int) -> None:
     raise RuntimeError(f"CUDA error: {error_message}")
 
 
+<<<<<<< HEAD
 def _get_hiprtc_library() -> ctypes.CDLL:
     if sys.platform == "win32":
         version_str = "".join(["0", torch.version.hip[0], "0", torch.version.hip[2]])
@@ -120,16 +133,32 @@ def _get_gpu_rtc_compatible_flags() -> list[str]:
         compatible_flags.extend(COMMON_HIPCC_FLAGS)
 
     return compatible_flags
+=======
+def _get_nvrtc_library() -> ctypes.CDLL:
+    # Since PyTorch already loads NVRTC, we can use the system library
+    # which should be compatible with PyTorch's version
+    if sys.platform == "win32":
+        return ctypes.CDLL("nvrtc64_120_0.dll")
+    else:
+        return ctypes.CDLL("libnvrtc.so")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _nvrtc_compile(
     kernel_source: str,
     kernel_name: str,
     compute_capability: Optional[str] = None,
+<<<<<<< HEAD
     cuda_include_dirs: Optional[list] = None,
     nvcc_options: Optional[list] = None,
     auto_pch: bool = False,
 ) -> tuple[bytes, str]:
+=======
+    header_code: str = "",
+    cuda_include_dirs: Optional[list] = None,
+    nvcc_options: Optional[list] = None,
+) -> bytes:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Compiles a CUDA kernel using NVRTC and returns the PTX code.
 
@@ -138,18 +167,31 @@ def _nvrtc_compile(
         kernel_name (str): The name of the kernel function to compile
         compute_capability (str, None): The compute capability to target (e.g., "86").
                                            If None, will detect from current device.
+<<<<<<< HEAD
         cuda_include_dirs (list, None): List of directories containing CUDA headers
         nvcc_options (list, None): Additional options to pass to NVRTC
         auto_pch (bool): Enable automatic precompiled headers (CUDA 12.8+)
 
     Returns:
         Tuple[bytes, str]: The compiled PTX code and mangled kernel name
+=======
+        header_code (str, optional): Additional header code to prepend to the kernel source
+        cuda_include_dirs (list, None): List of directories containing CUDA headers
+        nvcc_options (list, None): Additional options to pass to NVRTC
+
+    Returns:
+        str: The compiled PTX code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     # Ensure CUDA is initialized
     import torch.cuda
 
     # Load NVRTC library
+<<<<<<< HEAD
     libnvrtc = _get_gpu_rtc_library()
+=======
+    libnvrtc = _get_nvrtc_library()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NVRTC constants
     NVRTC_SUCCESS = 0
@@ -166,12 +208,28 @@ def _nvrtc_compile(
             )
             raise RuntimeError(f"CUDA error: {error_message}")
 
+<<<<<<< HEAD
     # Convert source to bytes
     source_bytes = kernel_source.encode("utf-8")
+=======
+    # Add 'extern "C"' if not already present to ensure C linkage
+    if not kernel_source.strip().startswith('extern "C"'):
+        kernel_source = f'extern "C" {kernel_source}'
+
+    # Combine header code and kernel source
+    if header_code:
+        full_source = header_code + "\n" + kernel_source
+    else:
+        full_source = kernel_source
+
+    # Convert source to bytes
+    source_bytes = full_source.encode("utf-8")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Get compute capability if not provided
     if compute_capability is None:
         props = torch.cuda.get_device_properties(torch.cuda.current_device())
+<<<<<<< HEAD
         if torch.version.hip:
             compute_capability = f"{props.gcnArchName}"
         else:
@@ -190,12 +248,20 @@ def _nvrtc_compile(
     cuda_include_paths = include_paths("cuda")
     for cuda_path in cuda_include_paths:
         options.append(f"-I{cuda_path}".encode())
+=======
+        compute_capability = f"{props.major}{props.minor}"
+
+    # Prepare compilation options
+    options = []
+    options.append(f"--gpu-architecture=sm_{compute_capability}".encode())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Add custom include directories
     if cuda_include_dirs:
         for directory in cuda_include_dirs:
             options.append(f"-I{directory}".encode())
 
+<<<<<<< HEAD
     # Enable automatic precompiled headers (CUDA 12.8+)
     if auto_pch:
         assert str(torch.version.cuda) >= "12.8", "PCH requires CUDA 12.8+"
@@ -203,12 +269,24 @@ def _nvrtc_compile(
             nvcc_options = []
         nvcc_options.append("--pch")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Add custom NVCC options
     if nvcc_options:
         for option in nvcc_options:
             options.append(option.encode("utf-8"))
 
+<<<<<<< HEAD
     nvrtc_compatible_flags = _get_gpu_rtc_compatible_flags()
+=======
+    # TODO: Should we refactor flags into a common place?
+    from torch.utils.cpp_extension import COMMON_NVCC_FLAGS
+
+    # Filter out flags not supported by NVRTC
+    nvrtc_compatible_flags = [
+        flag for flag in COMMON_NVCC_FLAGS if flag != "--expt-relaxed-constexpr"
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     options.extend([flag.encode("utf-8") for flag in nvrtc_compatible_flags])
 
     # Convert options to C array
@@ -228,10 +306,13 @@ def _nvrtc_compile(
         )
     )
 
+<<<<<<< HEAD
     # Add kernel name, which can be a template expression
     c_kernel_name = kernel_name.encode("utf-8")
     check_nvrtc(libnvrtc.nvrtcAddNameExpression(prog, c_kernel_name))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Compile program
     res = libnvrtc.nvrtcCompileProgram(prog, num_options, options_array)
 
@@ -249,6 +330,7 @@ def _nvrtc_compile(
     check_nvrtc(libnvrtc.nvrtcGetPTXSize(prog, ctypes.byref(ptx_size)))
     ptx = ctypes.create_string_buffer(ptx_size.value)
     check_nvrtc(libnvrtc.nvrtcGetPTX(prog, ptx))
+<<<<<<< HEAD
 
     # Get mangled name
     c_mangled_name = ctypes.c_char_p()
@@ -267,6 +349,11 @@ def _nvrtc_compile(
     # likely due to the presence of '\0' in the string. So we use .raw instead.
     ptx_bytes = ptx.raw if torch.version.hip else ptx.value
     return ptx_bytes, mangled_name
+=======
+    libnvrtc.nvrtcDestroyProgram(ctypes.byref(prog))
+
+    return ptx.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _CudaModule:
@@ -279,10 +366,16 @@ class _CudaModule:
             return self._kernels[name]
 
         # Import the CUDA library inside the method
+<<<<<<< HEAD
         # pyrefly: ignore [missing-module-attribute]
         from torch.cuda._utils import _get_gpu_runtime_library
 
         libcuda = _get_gpu_runtime_library()
+=======
+        from torch.cuda._utils import _get_cuda_library
+
+        libcuda = _get_cuda_library()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         func = ctypes.c_void_p()
         try:
@@ -307,7 +400,10 @@ class _CudaKernel:
     def __init__(self, func: ctypes.c_void_p, module: ctypes.c_void_p) -> None:
         self.func = func
         self.module = module
+<<<<<<< HEAD
         self._max_shared_mem_bytes = 0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(
         self,
@@ -330,7 +426,11 @@ class _CudaKernel:
         """
         import torch
 
+<<<<<<< HEAD
         libcuda = torch.cuda._utils._get_gpu_runtime_library()
+=======
+        libcuda = torch.cuda._utils._get_cuda_library()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not args:
             args = []
@@ -354,11 +454,20 @@ class _CudaKernel:
                 c_int = ctypes.c_int(arg)
                 # Store the C int for reference keeping, not in processed_args
                 c_args.append(ctypes.byref(c_int))
+<<<<<<< HEAD
             elif isinstance(arg, float):
                 # Python floats are doubles - use double by default
                 c_double = ctypes.c_double(arg)
                 # Store the C double for reference keeping, not in processed_args
                 c_args.append(ctypes.byref(c_double))
+=======
+            # TODO: Python floats are actually doubles
+            elif isinstance(arg, float):
+                # Convert floats to C float
+                c_float = ctypes.c_float(arg)
+                # Store the C float for reference keeping, not in processed_args
+                c_args.append(ctypes.byref(c_float))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 raise TypeError(f"Unsupported argument type: {type(arg)}")
 
@@ -374,6 +483,7 @@ class _CudaKernel:
 
             stream = torch.cuda.current_stream()
 
+<<<<<<< HEAD
         # Check if kernel requires large shared memory but hasn't been configured
         if shared_mem >= 48 * 1024 and (
             self._max_shared_mem_bytes == 0 or shared_mem > self._max_shared_mem_bytes
@@ -390,6 +500,8 @@ class _CudaKernel:
                 "and before launching the kernel."
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _check_cuda(
             libcuda.cuLaunchKernel(
                 self.func,
@@ -406,6 +518,7 @@ class _CudaKernel:
             )
         )
 
+<<<<<<< HEAD
     def set_shared_memory_config(self, shared_mem_bytes: int) -> None:
         if shared_mem_bytes < 48 * 1024:
             # No configuration needed for <= 48KB, just update the value
@@ -448,6 +561,8 @@ class _CudaKernel:
 
         self._max_shared_mem_bytes = shared_mem_bytes
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _cuda_load_module(
     ptx: Union[str, bytes], kernel_names: Optional[list[str]] = None
@@ -468,7 +583,11 @@ def _cuda_load_module(
     import torch.cuda
 
     # Load CUDA driver library
+<<<<<<< HEAD
     libcuda = _get_gpu_runtime_library()
+=======
+    libcuda = _get_cuda_library()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Convert PTX to bytes if it's a string
     if isinstance(ptx, str):

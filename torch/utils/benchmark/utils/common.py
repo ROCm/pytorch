@@ -276,8 +276,12 @@ def unit_to_english(u: str) -> str:
 
 def trim_sigfig(x: float, n: int) -> float:
     """Trim `x` to `n` significant figures. (e.g. 3.14159, 2 -> 3.10000)"""
+<<<<<<< HEAD
     if n != int(n):
         raise AssertionError("Number of significant figures must be an integer")
+=======
+    assert n == int(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     magnitude = int(torch.tensor(x).abs().log10().ceil().item())
     scale = 10 ** (magnitude - n)
     return float(torch.tensor(x / scale).round() * scale)
@@ -313,10 +317,15 @@ def _make_temp_dir(prefix: Optional[str] = None, gc_dev_shm: bool = False) -> st
     use_dev_shm: bool = (os.getenv("BENCHMARK_USE_DEV_SHM") or "").lower() in ("1", "true")
     if use_dev_shm:
         root = "/dev/shm/pytorch_benchmark_utils"
+<<<<<<< HEAD
         if os.name != "posix":
             raise AssertionError(f"tmpfs (/dev/shm) is POSIX only, current platform is {os.name}")
         if not os.path.exists("/dev/shm"):
             raise AssertionError("This system does not appear to support tmpfs (/dev/shm).")
+=======
+        assert os.name == "posix", f"tmpfs (/dev/shm) is POSIX only, current platform is {os.name}"
+        assert os.path.exists("/dev/shm"), "This system does not appear to support tmpfs (/dev/shm)."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         os.makedirs(root, exist_ok=True)
 
         # Because we're working in shared memory, it is more important than

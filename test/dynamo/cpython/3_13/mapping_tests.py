@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/mapping_tests.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -250,6 +253,7 @@ class BasicTestMappingProtocol(__TestCase):
         self.assertRaises((TypeError, AttributeError), d.update, 42)
 
         outerself = self
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class SimpleUserDict:
                 def __init__(self):
@@ -258,12 +262,22 @@ class BasicTestMappingProtocol(__TestCase):
                     return self.d.keys()
                 def __getitem__(self, i):
                     return self.d[i]
+=======
+        class SimpleUserDict:
+            def __init__(self):
+                self.d = outerself.reference
+            def keys(self):
+                return self.d.keys()
+            def __getitem__(self, i):
+                return self.d[i]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d.clear()
         d.update(SimpleUserDict())
         i1 = sorted(d.items())
         i2 = sorted(self.reference.items())
         self.assertEqual(i1, i2)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -272,10 +286,19 @@ class BasicTestMappingProtocol(__TestCase):
             class FailingUserDict:
                 def keys(self):
                     raise Exc
+=======
+        class Exc(Exception): pass
+
+        d = self._empty_mapping()
+        class FailingUserDict:
+            def keys(self):
+                raise Exc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertRaises(Exc, d.update, FailingUserDict())
 
         d.clear()
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class FailingUserDict:
                 def keys(self):
@@ -320,6 +343,49 @@ class BasicTestMappingProtocol(__TestCase):
                     return self
                 def __next__(self):
                     raise Exc()
+=======
+        class FailingUserDict:
+            def keys(self):
+                class BogonIter:
+                    def __init__(self):
+                        self.i = 1
+                    def __iter__(self):
+                        return self
+                    def __next__(self):
+                        if self.i:
+                            self.i = 0
+                            return 'a'
+                        raise Exc
+                return BogonIter()
+            def __getitem__(self, key):
+                return key
+        self.assertRaises(Exc, d.update, FailingUserDict())
+
+        class FailingUserDict:
+            def keys(self):
+                class BogonIter:
+                    def __init__(self):
+                        self.i = ord('a')
+                    def __iter__(self):
+                        return self
+                    def __next__(self):
+                        if self.i <= ord('z'):
+                            rtn = chr(self.i)
+                            self.i += 1
+                            return rtn
+                        raise StopIteration
+                return BogonIter()
+            def __getitem__(self, key):
+                raise Exc
+        self.assertRaises(Exc, d.update, FailingUserDict())
+
+        d = self._empty_mapping()
+        class badseq(object):
+            def __iter__(self):
+                return self
+            def __next__(self):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(Exc, d.update, badseq())
 
@@ -469,6 +535,7 @@ class TestMappingProtocol(BasicTestMappingProtocol):
         d.update(self._full_mapping({1:2, 3:4, 5:6}).items())
         self.assertEqual(d, {1:2, 2:4, 3:4, 5:6})
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class SimpleUserDict:
                 def __init__(self):
@@ -477,6 +544,15 @@ class TestMappingProtocol(BasicTestMappingProtocol):
                     return self.d.keys()
                 def __getitem__(self, i):
                     return self.d[i]
+=======
+        class SimpleUserDict:
+            def __init__(self):
+                self.d = {1:1, 2:2, 3:3}
+            def keys(self):
+                return self.d.keys()
+            def __getitem__(self, i):
+                return self.d[i]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d.clear()
         d.update(SimpleUserDict())
         self.assertEqual(d, {1:1, 2:2, 3:3})
@@ -492,22 +568,33 @@ class TestMappingProtocol(BasicTestMappingProtocol):
             yield 1
         self.assertEqual(d.fromkeys(g()), {1:None})
         self.assertRaises(TypeError, {}.fromkeys, 3)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class dictlike(self.type2test): pass
+=======
+        class dictlike(self.type2test): pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(dictlike.fromkeys('a'), {'a':None})
         self.assertEqual(dictlike().fromkeys('a'), {'a':None})
         self.assertTrue(dictlike.fromkeys('a').__class__ is dictlike)
         self.assertTrue(dictlike().fromkeys('a').__class__ is dictlike)
         self.assertTrue(type(dictlike.fromkeys('a')) is dictlike)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class mydict(self.type2test):
                 def __new__(cls):
                     return collections.UserDict()
+=======
+        class mydict(self.type2test):
+            def __new__(cls):
+                return collections.UserDict()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ud = mydict.fromkeys('ab')
         self.assertEqual(ud, {'a':None, 'b':None})
         self.assertIsInstance(ud, collections.UserDict)
         self.assertRaises(TypeError, dict.fromkeys)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -530,6 +617,27 @@ class TestMappingProtocol(BasicTestMappingProtocol):
             class baddict2(self.type2test):
                 def __setitem__(self, key, value):
                     raise Exc()
+=======
+        class Exc(Exception): pass
+
+        class baddict1(self.type2test):
+            def __init__(self, *args, **kwargs):
+                raise Exc()
+
+        self.assertRaises(Exc, baddict1.fromkeys, [1])
+
+        class BadSeq(object):
+            def __iter__(self):
+                return self
+            def __next__(self):
+                raise Exc()
+
+        self.assertRaises(Exc, self.type2test.fromkeys, BadSeq())
+
+        class baddict2(self.type2test):
+            def __setitem__(self, key, value):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(Exc, baddict2.fromkeys, [1])
 
@@ -603,6 +711,7 @@ class TestHashMappingProtocol(TestMappingProtocol):
 
     def test_getitem(self):
         TestMappingProtocol.test_getitem(self)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -611,11 +720,21 @@ class TestHashMappingProtocol(TestMappingProtocol):
                     raise Exc()
                 def __hash__(self):
                     return 24
+=======
+        class Exc(Exception): pass
+
+        class BadEq(object):
+            def __eq__(self, other):
+                raise Exc()
+            def __hash__(self):
+                return 24
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = self._empty_mapping()
         d[BadEq()] = 42
         self.assertRaises(KeyError, d.__getitem__, 23)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class BadHash(object):
                 fail = False
@@ -624,6 +743,15 @@ class TestHashMappingProtocol(TestMappingProtocol):
                         raise Exc()
                     else:
                         return 42
+=======
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = self._empty_mapping()
         x = BadHash()
@@ -633,10 +761,16 @@ class TestHashMappingProtocol(TestMappingProtocol):
 
     def test_fromkeys(self):
         TestMappingProtocol.test_fromkeys(self)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class mydict(self.type2test):
                 def __new__(cls):
                     return collections.UserDict()
+=======
+        class mydict(self.type2test):
+            def __new__(cls):
+                return collections.UserDict()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ud = mydict.fromkeys('ab')
         self.assertEqual(ud, {'a':None, 'b':None})
         self.assertIsInstance(ud, collections.UserDict)
@@ -644,6 +778,7 @@ class TestHashMappingProtocol(TestMappingProtocol):
     def test_pop(self):
         TestMappingProtocol.test_pop(self)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -654,6 +789,17 @@ class TestHashMappingProtocol(TestMappingProtocol):
                         raise Exc()
                     else:
                         return 42
+=======
+        class Exc(Exception): pass
+
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = self._empty_mapping()
         x = BadHash()
@@ -683,12 +829,20 @@ class TestHashMappingProtocol(TestMappingProtocol):
         d[1] = d
         self.assertEqual(repr(d), '{1: {...}}')
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
             class BadRepr(object):
                 def __repr__(self):
                     raise Exc()
+=======
+        class Exc(Exception): pass
+
+        class BadRepr(object):
+            def __repr__(self):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = self._full_mapping({1: BadRepr()})
         self.assertRaises(Exc, repr, d)
@@ -706,6 +860,7 @@ class TestHashMappingProtocol(TestMappingProtocol):
         self.assertEqual(self._full_mapping({1: 2}),
                          self._full_mapping({1: 2}))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -714,6 +869,15 @@ class TestHashMappingProtocol(TestMappingProtocol):
                     raise Exc()
                 def __hash__(self):
                     return 1
+=======
+        class Exc(Exception): pass
+
+        class BadCmp(object):
+            def __eq__(self, other):
+                raise Exc()
+            def __hash__(self):
+                return 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d1 = self._full_mapping({BadCmp(): 1})
         d2 = self._full_mapping({1: 1})
@@ -723,6 +887,7 @@ class TestHashMappingProtocol(TestMappingProtocol):
     def test_setdefault(self):
         TestMappingProtocol.test_setdefault(self)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -733,6 +898,17 @@ class TestHashMappingProtocol(TestMappingProtocol):
                         raise Exc()
                     else:
                         return 42
+=======
+        class Exc(Exception): pass
+
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = self._empty_mapping()
         x = BadHash()

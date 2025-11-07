@@ -5,11 +5,19 @@ from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Annotated, Optional
 
+<<<<<<< HEAD
 from torch._export.serde.union import _Union, _union_dataclass
 
 
 # NOTE: Please update this value if any modifications are made to the schema
 SCHEMA_VERSION = (8, 14)
+=======
+from torch._export.serde.union import _Union
+
+
+# NOTE: Please update this value if any modifications are made to the schema
+SCHEMA_VERSION = (8, 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TREESPEC_VERSION = 1
 
 
@@ -33,8 +41,11 @@ class ScalarType(IntEnum):
     UINT16 = 28
     FLOAT8E4M3FN = 29
     FLOAT8E5M2 = 30
+<<<<<<< HEAD
     FLOAT8E4M3FNUZ = 31
     FLOAT8E5M2FNUZ = 32
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Layout(IntEnum):
@@ -62,7 +73,11 @@ class Device:
     index: Annotated[Optional[int], 20] = None
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymExprHint(_Union):
     as_int: Annotated[int, 10]
     as_bool: Annotated[bool, 20]
@@ -79,19 +94,31 @@ class SymExpr:
     hint: Annotated[Optional[SymExprHint], 20] = None
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymInt(_Union):
     as_expr: Annotated[SymExpr, 10]
     as_int: Annotated[int, 20]
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymFloat(_Union):
     as_expr: Annotated[SymExpr, 10]
     as_float: Annotated[float, 20]
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymBool(_Union):
     as_expr: Annotated[SymExpr, 10]
     as_bool: Annotated[bool, 20]
@@ -114,7 +141,11 @@ class TensorMeta:
 # of SymInt and ints (ex. [1, s0, ...]). We will serialize this type of list to
 # be List[SymIntArgument] and map the SymInts to the "as_name" field, and ints
 # to the "as_int" field.
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymIntArgument(_Union):
     as_name: Annotated[str, 10]
     as_int: Annotated[int, 20]
@@ -126,7 +157,11 @@ class SymIntArgument(_Union):
 # of SymFloat and float (ex. [1.0, s0, ...]). We will serialize this type of list to
 # be List[SymFloatArgument] and map the SymFloats to the "as_name" field, and ints
 # to the "as_float" field.
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymFloatArgument(_Union):
     as_name: Annotated[str, 10]
     as_float: Annotated[float, 20]
@@ -138,7 +173,11 @@ class SymFloatArgument(_Union):
 # of SymBool and bools (ex. [True, i0, ...]). We will serialize this type of list to
 # be List[SymboolArgument] and map the SymBools to the "as_name" field, and bools
 # to the "as_bool" field.
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymBoolArgument(_Union):
     as_name: Annotated[str, 10]
     as_bool: Annotated[bool, 20]
@@ -156,9 +195,15 @@ class TokenArgument:
 
 # This is use for storing the contents of a list which contain optional tensors
 # (Tensor?[], ex. [Tensor, None, ...]), where the list will be serialized to the
+<<<<<<< HEAD
 # type List[OptionalTensorArgument], with tensor values serialized to the
 # "as_tensor" field, and None values serialized to the "as_none" field.
 @_union_dataclass
+=======
+# type List[OptionalTensorArgument], with tensor values seiralized to the
+# "as_tensor" field, and None values serialized to the "as_none" field.
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OptionalTensorArgument(_Union):
     as_tensor: Annotated[TensorArgument, 20]
     as_none: Annotated[bool, 10]
@@ -176,6 +221,7 @@ class CustomObjArgument:
     class_fqn: Annotated[str, 20]
 
 
+<<<<<<< HEAD
 @dataclass
 class ComplexValue:
     real: Annotated[float, 10]
@@ -184,6 +230,10 @@ class ComplexValue:
 
 # This is actually a union type
 @_union_dataclass
+=======
+# This is actually a union type
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class Argument(_Union):
     as_none: Annotated[bool, 10]
     as_tensor: Annotated[TensorArgument, 20]
@@ -211,7 +261,10 @@ class Argument(_Union):
     as_sym_float: Annotated[SymFloatArgument, 230]
     as_sym_floats: Annotated[list[SymFloatArgument], 240]
     as_optional_tensor: Annotated[OptionalTensorArgument, 250]
+<<<<<<< HEAD
     as_complex: Annotated[ComplexValue, 260]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ArgumentKind(IntEnum):
@@ -262,7 +315,11 @@ class UserInputSpec:
     arg: Annotated[Argument, 10]
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ConstantValue(_Union):
     as_none: Annotated[bool, 10]
     as_int: Annotated[int, 20]
@@ -307,7 +364,11 @@ class InputTokenSpec:
     arg: Annotated[TokenArgument, 10]
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class InputSpec(_Union):
     user_input: Annotated[UserInputSpec, 10]
     parameter: Annotated[InputToParameterSpec, 20]
@@ -335,12 +396,15 @@ class BufferMutationSpec:
 
 
 @dataclass
+<<<<<<< HEAD
 class ParameterMutationSpec:
     arg: Annotated[TensorArgument, 10]
     parameter_name: Annotated[str, 20]
 
 
 @dataclass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GradientToParameterSpec:
     arg: Annotated[TensorArgument, 10]
     parameter_name: Annotated[str, 20]
@@ -363,7 +427,11 @@ class OutputTokenSpec:
     arg: Annotated[TokenArgument, 10]
 
 
+<<<<<<< HEAD
 @_union_dataclass
+=======
+@dataclass(repr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OutputSpec(_Union):
     user_output: Annotated[UserOutputSpec, 10]
     loss_output: Annotated[LossOutputSpec, 20]
@@ -372,7 +440,10 @@ class OutputSpec(_Union):
     gradient_to_user_input: Annotated[GradientToUserInputSpec, 50]
     user_input_mutation: Annotated[UserInputMutationSpec, 60]
     token: Annotated[OutputTokenSpec, 70]
+<<<<<<< HEAD
     parameter_mutation: Annotated[ParameterMutationSpec, 80]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -398,7 +469,11 @@ class ModuleCallSignature:
     out_spec: Annotated[str, 40]
 
     # This field is used to prettify the graph placeholders
+<<<<<<< HEAD
     # after we Ser/Der and retrace
+=======
+    # after we ser/der and retrace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     forward_arg_names: Annotated[Optional[list[str]], 50] = None
 
 
@@ -429,7 +504,11 @@ class GraphModule:
 
 
 # Invariant: Every time a change is made to the schema, one of the versions
+<<<<<<< HEAD
 #            should be updated.
+=======
+#            should be upadted.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass
 class SchemaVersion:
     major: Annotated[
@@ -449,7 +528,10 @@ class ExportedProgram:
     schema_version: Annotated[SchemaVersion, 60]
     verifiers: Annotated[list[str], 70] = field(default_factory=list)
     torch_version: Annotated[str, 80] = "<=2.4"
+<<<<<<< HEAD
     guards_code: Annotated[list[str], 90] = field(default_factory=list)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 #########################################################################
@@ -457,6 +539,7 @@ class ExportedProgram:
 #########################################################################
 
 
+<<<<<<< HEAD
 # The metadata for payload saved in PT2 archive.
 # payload includes params, buffers, tensor constants, and custom objects.
 @dataclass
@@ -476,6 +559,31 @@ class PayloadMeta:
 @dataclass
 class PayloadConfig:
     config: Annotated[dict[str, PayloadMeta], 10]
+=======
+@dataclass
+class Program:
+    methods: Annotated[dict[str, ExportedProgram], 200]
+
+
+# This is the top-level model definition that be will serialized into the package
+@dataclass
+class Model:
+    # unique identifier of the model in the package, e.g. local, remote, merge
+    name: Annotated[str, 10]
+    # key is the FQN of tensor in exported program
+    # value is the archive path of tensor payloads
+    # e.g. "L__self__linear.weight" : "/data/tensor/L__self__linear.weight"
+    tensorPaths: Annotated[dict[str, str], 20]
+    # program exported from torch.export()
+    program: Annotated[Program, 40]
+    # Backend-specialized Lowered GraphModule
+    # e.g. "aotinductor-a100" : ExportedProgram_with_AOTInductor_delegate
+    delegates: Annotated[dict[str, Program], 50]
+    deviceAllocationMap: Annotated[dict[str, str], 60]
+    # key is the FQN of constant in exported program (constant tensor or torchbind objs)
+    # value is the archive path of serialized constants
+    constantPaths: Annotated[dict[str, str], 70]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 #

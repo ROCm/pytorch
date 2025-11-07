@@ -255,6 +255,7 @@ class AOTInductorModelContainer {
     return models_[0]->constant_dtype(static_cast<int64_t>(idx));
   }
 
+<<<<<<< HEAD
   uint64_t constant_blob_size() const {
     if (this->num_models() == 0) {
       throw std::runtime_error("No available models in container!");
@@ -269,6 +270,8 @@ class AOTInductorModelContainer {
     return models_[0]->update_constants_from_blob(weight_blob_ptr);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run_const_fold(
       bool inactive_buffer,
       DeviceStreamType stream,
@@ -348,6 +351,7 @@ class AOTInductorModelContainer {
     return constant_type == ConstantType::Buffer;
   }
 
+<<<<<<< HEAD
   bool _is_empty_parameter_type(const size_t idx) const {
     auto constant_type = models_[0]->constant_type(static_cast<int64_t>(idx));
     auto constant_data_size =
@@ -361,6 +365,10 @@ class AOTInductorModelContainer {
       const size_t idx) const {
     return _is_tensor_constant_type(idx) || _is_buffer_type(idx) ||
         _is_empty_parameter_type(idx);
+=======
+  bool _is_tensor_constant_or_buffer_type(const size_t idx) const {
+    return _is_tensor_constant_type(idx) || _is_buffer_type(idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void assert_all_constants(
@@ -375,11 +383,19 @@ class AOTInductorModelContainer {
           std::string(models_[0]->constant_name(static_cast<int64_t>(idx)));
       auto it = constants_map.find(constant_name);
       if (it == constants_map.end()) {
+<<<<<<< HEAD
         if (_is_tensor_constant_or_buffer_type_or_empty_parameter(idx)) {
           // tracing sometimes creates tensors that are non-existent in
           // original graph. We could skip those and do a direct copy.
           std::cerr << "[WARNING] Found constant or module state buffer or "
                     << "empty module state parameter " << constant_name
+=======
+        if (_is_tensor_constant_or_buffer_type(idx)) {
+          // tracing sometimes creates tensors that are non-existent in
+          // original graph. We could skip those and do a direct copy.
+          std::cerr << "[WARNING] Found constant or module state buffer "
+                    << constant_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     << " in model, but not provided by user!\n";
           continue;
         }
@@ -464,8 +480,12 @@ class AOTInductorModelContainer {
           std::string(models_[0]->constant_name(static_cast<int64_t>(idx)));
       auto it = constants_map.find(constant_name);
       if (it == constants_map.end() &&
+<<<<<<< HEAD
           !(use_inactive &&
             _is_tensor_constant_or_buffer_type_or_empty_parameter(idx))) {
+=======
+          !(use_inactive && _is_tensor_constant_or_buffer_type(idx))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue;
       }
 
@@ -493,6 +513,7 @@ class AOTInductorModelContainer {
           constants_blob_ptr + constants_internal_offset_[idx];
       void* user_constant_ptr;
       int64_t constant_size;
+<<<<<<< HEAD
       int64_t* stride;
       int64_t offset;
       aoti_torch_get_data_ptr(tensor, &user_constant_ptr);
@@ -502,12 +523,17 @@ class AOTInductorModelContainer {
           aoti_torch_get_storage_offset(tensor, &offset));
       auto dtype = models_[0]->constant_dtype(idx);
 
+=======
+      aoti_torch_get_data_ptr(tensor, &user_constant_ptr);
+      aoti_torch_get_storage_size(tensor, &constant_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_XPU
       sycl::queue* queue_ptr = nullptr;
       aoti_torch_get_current_sycl_queue((void**)&queue_ptr);
       queue_ptr
           ->memcpy(internal_constants_ptr, user_constant_ptr, constant_size)
           .wait();
+<<<<<<< HEAD
 #elif USE_MPS
       internal_constants_ptr = constants_blob_ptr;
       aoti_torch_mps_copy_buffer(
@@ -523,6 +549,10 @@ class AOTInductorModelContainer {
           aoti_torch_dtype_element_size(dtype);
 #elif USE_CUDA
       AOTI_RUNTIME_CUDA_CHECK(cudaMemcpy(
+=======
+#elif USE_CUDA
+      AOTI_RUNTIME_DEVICE_CHECK(cudaMemcpy(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           internal_constants_ptr,
           user_constant_ptr,
           constant_size,
@@ -534,15 +564,29 @@ class AOTInductorModelContainer {
       // We extract stride and offset from provided Tensor since we do not
       // guarantee that the tensor is contiguous.
       AtenTensorHandle tensor_handle;
+<<<<<<< HEAD
       int device_type = models_[0]->get_device_type();
       int device_idx = models_[0]->get_device_idx();
+=======
+      int64_t* stride;
+      int64_t offset;
+      int device_type = models_[0]->get_device_type();
+      int device_idx = models_[0]->get_device_idx();
+      AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_strides(tensor, &stride));
+      AOTI_TORCH_ERROR_CODE_CHECK(
+          aoti_torch_get_storage_offset(tensor, &offset));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_create_tensor_from_blob(
           internal_constants_ptr,
           models_[0]->constant_ndim(idx),
           models_[0]->constant_shape(idx),
           stride,
           offset,
+<<<<<<< HEAD
           dtype,
+=======
+          models_[0]->constant_dtype(idx),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           device_type,
           device_idx,
           &tensor_handle));

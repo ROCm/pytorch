@@ -57,7 +57,11 @@ struct ConcretePyInterpreterVTable final
   void reportErrorCallback(PyObject* callback, DispatchKey key) const override;
   void python_dispatcher(
       const c10::OperatorHandle& op,
+<<<<<<< HEAD
       c10::DispatchKeySet /*ks*/,
+=======
+      c10::DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       torch::jit::Stack* stack) const override;
   // NB: this is defined in python_dispatch.cpp
   void python_op_registration_trampoline(
@@ -80,6 +84,7 @@ struct ConcretePyInterpreterVTable final
             opname, pymodule, context);
   }
 
+<<<<<<< HEAD
   bool is_contiguous(
       const c10::TensorImpl* self,
       at::MemoryFormat /*memory_format*/) const override;
@@ -89,6 +94,12 @@ struct ConcretePyInterpreterVTable final
   bool is_strides_like(
       const c10::TensorImpl* self,
       at::MemoryFormat /*memory_format*/) const override;
+=======
+  bool is_contiguous(const c10::TensorImpl* self, at::MemoryFormat)
+      const override;
+  bool is_strides_like(const c10::TensorImpl* self, at::MemoryFormat)
+      const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_non_overlapping_and_dense(const c10::TensorImpl* self) const override;
   c10::Device device(const c10::TensorImpl* self) const override;
   int64_t dim(const c10::TensorImpl* self) const override;
@@ -270,7 +281,11 @@ void ConcretePyInterpreterVTable::decref(PyObject* pyobj, bool has_pyobj_slot)
           "This probably happened because you took out a weak reference to "
           "Tensor and didn't call _fix_weakref() after dereferencing it.  "
           "Subsequent accesses to this tensor via the PyObject will now fail.");
+<<<<<<< HEAD
       (reinterpret_cast<THPVariable*>(pyobj))->cdata =
+=======
+      ((THPVariable*)pyobj)->cdata =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           c10::MaybeOwned<torch::autograd::Variable>();
     } else if (THPStorage_Check(pyobj)) {
       TORCH_WARN(
@@ -278,8 +293,12 @@ void ConcretePyInterpreterVTable::decref(PyObject* pyobj, bool has_pyobj_slot)
           "This probably happened because you took out a weak reference to "
           "UntypedStorage and didn't call _fix_weakref() after dereferencing it.  "
           "Subsequent accesses to this storage via the PyObject will now fail.");
+<<<<<<< HEAD
       (reinterpret_cast<THPStorage*>(pyobj))->cdata =
           c10::MaybeOwned<c10::Storage>();
+=======
+      ((THPStorage*)pyobj)->cdata = c10::MaybeOwned<c10::Storage>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   Py_DECREF(pyobj);
@@ -482,6 +501,7 @@ bool ConcretePyInterpreterVTable::is_contiguous(
   return PyObject_IsTrue(out.ptr());
 }
 
+<<<<<<< HEAD
 c10::SymBool ConcretePyInterpreterVTable::sym_is_contiguous(
     const c10::TensorImpl* self,
     at::MemoryFormat memory_format) const {
@@ -509,6 +529,8 @@ c10::SymBool ConcretePyInterpreterVTable::sym_is_contiguous(
                                 : c10::SymBool{py::cast<bool>(out)};
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool ConcretePyInterpreterVTable::is_strides_like(
     const c10::TensorImpl* self,
     at::MemoryFormat memory_format) const {
@@ -619,7 +641,11 @@ static void set_tensor_attr_with_capsule(
     py::capsule& capsule,
     const char* attr_name) {
   std::optional<PyObject*> mb_obj = tensor->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
       /*ignore_hermetic_tls=*/false);
+=======
+      getPyInterpreter(), /*ignore_hermetic_tls=*/false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       mb_obj.has_value(), "Tensor subclass's PyInterpreter has no value");
   auto obj = mb_obj.value();
@@ -1020,3 +1046,10 @@ py::handle getTorchApiFunction(const c10::OperatorHandle& op) {
 c10::impl::PyInterpreter* getPyInterpreter() {
   return torch::detail::self_interpreter.get();
 }
+<<<<<<< HEAD
+=======
+
+bool isMainPyInterpreter() {
+  return torch::detail::self_interpreter.is_main_interpreter();
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

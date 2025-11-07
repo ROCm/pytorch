@@ -76,4 +76,10 @@ INSTANTIATE_IM2COL(float);
 INSTANTIATE_IM2COL(float2);
 INSTANTIATE_IM2COL(half);
 INSTANTIATE_IM2COL(half2);
+<<<<<<< HEAD
 INSTANTIATE_IM2COL(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_IM2COL(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

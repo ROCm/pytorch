@@ -47,6 +47,7 @@ class ASGD(Optimizer):
         if not 0.0 <= weight_decay:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "lambd": lambd,
@@ -58,6 +59,19 @@ class ASGD(Optimizer):
             "differentiable": differentiable,
             "capturable": capturable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            lambd=lambd,
+            alpha=alpha,
+            t0=t0,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            capturable=capturable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -226,17 +240,28 @@ def _single_tensor_asgd(
         # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
         if not torch.compiler.is_compiling() and capturable:
             capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
             if not (
+=======
+            assert (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 param.device.type
                 == mu.device.type
                 == eta.device.type
                 == step_t.device.type
                 and param.device.type in capturable_supported_devices
+<<<<<<< HEAD
             ):
                 raise AssertionError(
                     f"If capturable=True, params, mus, etas, and state_steps must be "
                     f"on supported devices: {capturable_supported_devices}."
                 )
+=======
+            ), (
+                f"If capturable=True, params, mus, etas, and state_steps must be "
+                f"on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if torch.is_complex(param):
             grad = torch.view_as_real(grad)
@@ -264,7 +289,10 @@ def _single_tensor_asgd(
             ax.copy_(param)
 
         if capturable:
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eta.copy_(lr / ((1 + lambd * lr * step_t) ** alpha))
             mu.copy_(1 / torch.maximum(step_t - t0, torch.ones_like(step_t)))
         else:
@@ -296,14 +324,19 @@ def _multi_tensor_asgd(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
     if not torch.compiler.is_compiling() and capturable:
         capturable_supported_devices = _get_capturable_supported_devices(
             supports_xla=False
         )
+<<<<<<< HEAD
         if not all(
             p.device.type == mu.device.type == eta.device.type == step.device.type
             and p.device.type in capturable_supported_devices
@@ -313,6 +346,15 @@ def _multi_tensor_asgd(
                 f"If capturable=True, params, mus, etas, and state_steps must be on "
                 f"supported devices: {capturable_supported_devices}."
             )
+=======
+        assert all(
+            p.device.type == mu.device.type == eta.device.type == step.device.type
+            and p.device.type in capturable_supported_devices
+            for p, mu, eta, step in zip(params, mus, etas, state_steps)
+        ), (
+            f"If capturable=True, params, mus, etas, and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     lr = _to_scalar(lr)
 

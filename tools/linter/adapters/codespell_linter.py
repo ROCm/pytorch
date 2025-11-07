@@ -20,8 +20,11 @@ FORBIDDEN_WORDS = {
     "multipy",  # project pytorch/multipy is dead  # codespell:ignore multipy
 }
 
+<<<<<<< HEAD
 MAX_FILE_SIZE: int = 1024 * 1024 * 1024  # 1GB in bytes
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class LintSeverity(str, Enum):
     ERROR = "error"
@@ -51,8 +54,13 @@ def format_error_message(
     if message is None and error is not None:
         message = (
             f"Failed due to {error.__class__.__name__}:\n{error}\n"
+<<<<<<< HEAD
             "Please either fix the error or add the word(s) to the dictionary file.\n"
             "HINT: all-lowercase words in the dictionary can cover all case variations."
+=======
+            "Please either fix the error or "
+            "add the word(s) to the dictionary file (lowercase is preferred)."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     return LintMessage(
         path=filename,
@@ -88,6 +96,7 @@ def run_codespell(path: Path) -> str:
 
 def check_file(filename: str) -> list[LintMessage]:
     path = Path(filename).absolute()
+<<<<<<< HEAD
 
     # Check if file is too large
     try:
@@ -121,6 +130,8 @@ def check_file(filename: str) -> list[LintMessage]:
             )
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         run_codespell(path)
     except Exception as err:
@@ -136,7 +147,10 @@ def check_dictionary(filename: str) -> list[LintMessage]:
         words_set = set(words)
         if len(words) != len(words_set):
             raise ValueError("The dictionary file contains duplicate entries.")
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         uncased_words = list(map(str.lower, words))
         if uncased_words != sorted(uncased_words):
             raise ValueError(

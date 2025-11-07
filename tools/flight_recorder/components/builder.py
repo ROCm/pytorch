@@ -24,7 +24,10 @@ from tools.flight_recorder.components.types import (
     Traceback,
 )
 from tools.flight_recorder.components.utils import (
+<<<<<<< HEAD
     add_stack_id_in_entries,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     align_trace_from_beginning,
     check_current_entry_match,
     check_no_missing_dump_files,
@@ -134,7 +137,10 @@ def build_collectives(
     _memberships: dict[str, set[Any]],
     _pg_guids: dict[tuple[str, int], str],
     version: str,
+<<<<<<< HEAD
     mismatch_cap: int = 10,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[list[Traceback], list[Collective], list[NCCLCall]]:
     """
     groups, memberships are the non-flat dicts that are indexable
@@ -172,6 +178,10 @@ def build_collectives(
     # once we find one mismatch, we stop pairing up collectives since the pairing is possibly incorrect
     # instead, just record the remaining ops as NCCLCalls
     mismatch = {_groups[g].id: 0 for g in _groups}
+<<<<<<< HEAD
+=======
+    MISMATCH_TAIL = 10
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # For best effort partial analysis.
     dumps_ranks = {int(key) for key in all_entries.keys()}
@@ -365,7 +375,11 @@ def build_collectives(
                     )
                 )
 
+<<<<<<< HEAD
         if mismatch[pg_name] > mismatch_cap:
+=======
+        if mismatch[pg_name] > MISMATCH_TAIL:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             logger.error(
                 "Too many mismatches for process_group %s: %s aborting", pg_name, desc
             )
@@ -392,9 +406,12 @@ def build_db(
     # Ensure version is consistent across all ranks.
     check_version(version_by_ranks, version)
     entries = align_trace_from_beginning(entries)
+<<<<<<< HEAD
     stack_id_trace_map: dict[str, int] = {}
     if args.just_print_entries:
         entries, stack_id_trace_map = add_stack_id_in_entries(entries)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # flattened database
     groups, _groups, memberships, _memberships, _pg_guids = build_groups_memberships(
@@ -402,6 +419,7 @@ def build_db(
     )
     logger.debug("built groups, memberships")
 
+<<<<<<< HEAD
     if args.just_print_entries:
         just_print_entries(
             entries, _groups, _memberships, _pg_guids, args, stack_id_trace_map
@@ -413,6 +431,17 @@ def build_db(
 
     tracebacks, collectives, nccl_calls = build_collectives(
         entries, _groups, _memberships, _pg_guids, version, args.mismatch_cap
+=======
+    if not args.allow_incomplete_ranks:
+        check_no_missing_dump_files(entries, memberships)
+
+    if args.just_print_entries:
+        just_print_entries(entries, _groups, _memberships, _pg_guids, args)
+        sys.exit(0)
+
+    tracebacks, collectives, nccl_calls = build_collectives(
+        entries, _groups, _memberships, _pg_guids, version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     logger.debug("built collectives, nccl_calls")
     if args.verbose:

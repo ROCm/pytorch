@@ -660,7 +660,11 @@ struct TORCH_API TupleTypeFactory<TupleType> {
 template <>
 struct TORCH_API TupleTypeFactory<c10::DynamicType> {
   static DynamicTypePtr create(const std::vector<TypePtr>& elemTypes);
+<<<<<<< HEAD
   static DynamicTypePtr fallback(const Type& /*unused*/);
+=======
+  static DynamicTypePtr fallback(const Type&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct TORCH_API Tuple : c10::intrusive_ptr_target {
@@ -1501,7 +1505,11 @@ struct C10_EXPORT ivalue::Object final : c10::intrusive_ptr_target {
   // However, the CompilationUnit holds ownership of the type's graphs, so
   // inserting a constant object into a Graph would create a reference cycle if
   // that constant object held a shared_ptr to its CU. For these objects we
+<<<<<<< HEAD
   // instantiate them with non-owning references to its CU
+=======
+  // instatiate them with non-owning references to its CU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Object(WeakOrStrongTypePtr type, size_t numSlots) : type_(std::move(type)) {
     slots_.resize(numSlots);
   }
@@ -1682,7 +1690,11 @@ struct ivalue::EnumHolder : c10::intrusive_ptr_target {
 namespace detail {
 
 struct _guarded_unsigned_long_unique_dummy final {
+<<<<<<< HEAD
   _guarded_unsigned_long_unique_dummy(int64_t /*unused*/){}
+=======
+  _guarded_unsigned_long_unique_dummy(int64_t){}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 using _guarded_unsigned_long = std::conditional_t<
     std::is_same_v<unsigned long, uint32_t> ||
@@ -1776,7 +1788,11 @@ template <class Elem>
 // native_functions.yaml still return std::vector.
 // C10_DEPRECATED_MESSAGE("IValues based on std::vector<T> are potentially slow
 // and deprecated. Please use torch::List<T> instead.")
+<<<<<<< HEAD
 std::vector<Elem> generic_to(IValue ivalue, _fake_type<std::vector<Elem>> /*unused*/) {
+=======
+std::vector<Elem> generic_to(IValue ivalue, _fake_type<std::vector<Elem>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We need to do a deep copy of the vector because there might be other
   // references to this same IValue that also use the list. We can't just
   // move the elements out.
@@ -1826,18 +1842,30 @@ c10::intrusive_ptr<T> IValue::toCustomClass() const& {
 }
 
 template <typename T>
+<<<<<<< HEAD
 T generic_to(IValue ivalue, _fake_type<T> /*unused*/) {
+=======
+T generic_to(IValue ivalue, _fake_type<T>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using ElemType = typename std::remove_pointer<T>::type::element_type;
   return std::move(ivalue).template toCustomClass<ElemType>();
 }
 
 template <typename T>
+<<<<<<< HEAD
 tagged_capsule<T> generic_to(IValue ivalue, _fake_type<tagged_capsule<T>> /*unused*/) {
+=======
+tagged_capsule<T> generic_to(IValue ivalue, _fake_type<tagged_capsule<T>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return tagged_capsule<T>{std::move(ivalue)};
 }
 
 template <typename Elem>
+<<<<<<< HEAD
 c10::List<Elem> generic_to(IValue ivalue, _fake_type<c10::List<Elem>> /*unused*/) {
+=======
+c10::List<Elem> generic_to(IValue ivalue, _fake_type<c10::List<Elem>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return impl::toTypedList<Elem>(std::move(ivalue).toList());
 }
 
@@ -1867,7 +1895,11 @@ std::vector<T> createVectorFromList(const c10::List<T>& impl) {
 }
 
 template <typename T>
+<<<<<<< HEAD
 OptionalArray<T> generic_to(IValue ivalue, _fake_type<OptionalArray<T>> /*unused*/) {
+=======
+OptionalArray<T> generic_to(IValue ivalue, _fake_type<OptionalArray<T>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (ivalue.isNone()) {
     return {};
   }
@@ -1880,8 +1912,13 @@ namespace detail {
 template <typename Elem, size_t... I>
 std::array<Elem, sizeof...(I)> generic_to_array(
     IValue ivalue,
+<<<<<<< HEAD
     _fake_type<std::array<Elem, sizeof...(I)>> /*unused*/,
     std::index_sequence<I...> /*unused*/) {
+=======
+    _fake_type<std::array<Elem, sizeof...(I)>>,
+    std::index_sequence<I...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We need to do a deep copy of the array because there might be other
   // references to this same IValue that also use the list. We can't just
   // move the elements out.
@@ -1906,7 +1943,11 @@ std::array<Elem, N> generic_to(
 template <typename Key, typename Value>
 c10::Dict<Key, Value> generic_to(
     IValue ivalue,
+<<<<<<< HEAD
     _fake_type<c10::Dict<Key, Value>> /*unused*/) {
+=======
+    _fake_type<c10::Dict<Key, Value>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return impl::toTypedDict<Key, Value>(std::move(ivalue).toGenericDict());
 }
 
@@ -1915,7 +1956,11 @@ C10_DEPRECATED_MESSAGE(
     "IValues based on std::unordered_map are slow and deprecated. Please use c10::Dict<K, V> instead.")
 std::unordered_map<K, V> generic_to(
     IValue ivalue,
+<<<<<<< HEAD
     _fake_type<std::unordered_map<K, V>> /*unused*/) {
+=======
+    _fake_type<std::unordered_map<K, V>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unordered_map<K, V> specialized_dict;
 
   for (const auto& item : std::move(ivalue).toGenericDict()) {
@@ -1926,7 +1971,11 @@ std::unordered_map<K, V> generic_to(
 }
 
 template <typename T>
+<<<<<<< HEAD
 std::optional<T> generic_to(IValue ivalue, _fake_type<std::optional<T>> /*unused*/) {
+=======
+std::optional<T> generic_to(IValue ivalue, _fake_type<std::optional<T>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (ivalue.isNone()) {
     return std::nullopt;
   }
@@ -1937,7 +1986,11 @@ namespace detail {
 template <typename Tuple, std::size_t... INDEX>
 Tuple generic_to_tuple_impl(
     const ivalue::TupleElements& t,
+<<<<<<< HEAD
     std::index_sequence<INDEX...> /*unused*/) {
+=======
+    std::index_sequence<INDEX...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::make_tuple(
       t[INDEX].to<typename std::tuple_element<INDEX, Tuple>::type>()...);
 }
@@ -1951,7 +2004,11 @@ template <
             std::is_lvalue_reference<Args>...,
             std::negation<std::is_constructible<IValue, Args>>...>,
         std::nullptr_t> = nullptr>
+<<<<<<< HEAD
 std::tuple<Args...> generic_to(const IValue& ivalue, _fake_type<std::tuple<Args...>> /*unused*/) {
+=======
+std::tuple<Args...> generic_to(const IValue& ivalue, _fake_type<std::tuple<Args...>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto& vals = ivalue.toTupleRef().elements();
   TORCH_CHECK(vals.size() == sizeof...(Args));
   return detail::generic_to_tuple_impl<std::tuple<Args...>>(vals, Indices{});
@@ -2311,7 +2368,11 @@ inline IValue::IValue(std::optional<T> v) : IValue() {
   }
 }
 
+<<<<<<< HEAD
 inline IValue::IValue(std::nullopt_t /*unused*/) : IValue() {}
+=======
+inline IValue::IValue(std::nullopt_t) : IValue() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 inline IValue::IValue(c10::intrusive_ptr<ivalue::Object> v)
     : tag(Tag::Object) {
@@ -2482,6 +2543,7 @@ namespace ivalue {
 namespace detail {
 
 template <typename T>
+<<<<<<< HEAD
 IValue from_(T&& x, std::true_type /*unused*/) {
   return IValue(std::forward<T>(x));
 }
@@ -2491,6 +2553,17 @@ IValue from_(c10::intrusive_ptr<T> x, std::false_type /*unused*/) {
 }
 template <typename T>
 IValue from_(T&& /*x*/, std::false_type /*unused*/) {
+=======
+IValue from_(T&& x, std::true_type) {
+  return IValue(std::forward<T>(x));
+}
+template <typename T>
+IValue from_(c10::intrusive_ptr<T> x, std::false_type) {
+  return IValue(std::move(x));
+}
+template <typename T>
+IValue from_(T&& /*x*/, std::false_type) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static_assert(
       guts::false_t<T>::value,
       "You are calling from with a type that it doesn't support, and isn't a potential custom class (ie: is an intrusive_ptr)");
@@ -2546,19 +2619,31 @@ struct MaybeOwnedTraits<IValue> {
     return &borrow;
   }
 
+<<<<<<< HEAD
   static bool debugBorrowIsValid(const borrow_type& /*unused*/) {
+=======
+  static bool debugBorrowIsValid(const borrow_type&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return true;
   }
 };
 
 template <>
 struct IValue::TagType<c10::Type> {
+<<<<<<< HEAD
   static TORCH_API c10::TypePtr get(const IValue& /*v*/);
+=======
+  static TORCH_API c10::TypePtr get(const IValue&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 template <>
 struct IValue::TagType<c10::DynamicType> {
+<<<<<<< HEAD
   static TORCH_API c10::TypePtr get(const IValue& /*v*/);
+=======
+  static TORCH_API c10::TypePtr get(const IValue&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 template <typename T>

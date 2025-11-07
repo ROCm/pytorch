@@ -3136,7 +3136,10 @@ extern "C" {
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+<<<<<<< HEAD
 #include <share.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static WCHAR* mz_utf8z_to_widechar(const char* str)
 {
@@ -3150,6 +3153,7 @@ static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
   WCHAR* wFilename = mz_utf8z_to_widechar(pFilename);
   WCHAR* wMode = mz_utf8z_to_widechar(pMode);
+<<<<<<< HEAD
   /*
   Must use _wfsopen with _SH_DENYNO on Windows, to open opened temp files.
   */
@@ -3157,6 +3161,13 @@ static FILE *mz_fopen(const char *pFilename, const char *pMode)
   free(wFilename);
   free(wMode);
   return pFile;
+=======
+  FILE* pFile = NULL;
+  errno_t err = _wfopen_s(&pFile, wFilename, wMode);
+  free(wFilename);
+  free(wMode);
+  return err ? NULL : pFile;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)

@@ -95,8 +95,12 @@ def main() -> None:
         sys.exit(-95)
     if not is_devel_setup():
         print(
+<<<<<<< HEAD
             "Not a devel setup of PyTorch, "
             "please run `python -m pip install --no-build-isolation -v -e .` first"
+=======
+            "Not a devel setup of PyTorch, please run `python3 setup.py develop --user` first"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         sys.exit(-1)
     if not has_build_ninja():

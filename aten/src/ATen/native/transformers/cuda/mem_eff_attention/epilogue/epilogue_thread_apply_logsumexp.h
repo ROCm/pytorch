@@ -110,9 +110,15 @@ class ApplyLogSumExp {
   using ElementCompute = ElementCompute_;
   using ElementLSE = ElementLSE_;
 
+<<<<<<< HEAD
   static int constexpr kElementsPerAccess = ElementsPerAccess;
   static int constexpr kCount = kElementsPerAccess;
   static constexpr ScaleType::Kind kScale =
+=======
+  static int const kElementsPerAccess = ElementsPerAccess;
+  static int const kCount = kElementsPerAccess;
+  static const ScaleType::Kind kScale =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       cutlass::epilogue::thread::ScaleType::NoBetaScaling;
 
   using FragmentOutput = Array<ElementOutput, kCount>;

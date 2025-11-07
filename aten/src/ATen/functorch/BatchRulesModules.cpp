@@ -7,7 +7,10 @@
 #include <ATen/functorch/BatchRulesHelper.h>
 #include <ATen/functorch/PlumbingHelper.h>
 #include <ATen/core/dispatch/Dispatcher.h>
+<<<<<<< HEAD
 #include <ATen/DTensorState.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <utility>
 
@@ -45,6 +48,7 @@ static std::tuple<Tensor, std::optional<int64_t>> embedding_batch_rule(
   const auto weight_ = reshape_dim_into(*weight_bdim, 0, weight);
   auto indices_ = moveBatchDimToFront(indices, indices_bdim);
 
+<<<<<<< HEAD
   {
     // getStepTensor returns a regular Tensor. If indices_ is a DTensor
     // we want to allow this mixed DTensor-Tensor operation.
@@ -52,6 +56,10 @@ static std::tuple<Tensor, std::optional<int64_t>> embedding_batch_rule(
     const auto range = getStepTensor(indices, batch_size, num_embeddings);
     indices_ = indices_ + range;
   }
+=======
+  const auto range = getStepTensor(indices, batch_size, num_embeddings);
+  indices_ = indices_ + range;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto result = at::embedding_symint(weight_, indices_, std::move(padding_idx), scale_grad_by_freq, sparse);
   return std::make_tuple(std::move(result), 0);
 }
@@ -213,6 +221,7 @@ static cudnn_grid_sample_backward_batch_rule(
   return grid_sample_backward_helper_out(std::move(bw_out), 0, 0, bdim_size);
 }
 
+<<<<<<< HEAD
 // uses functional formulation for one_hot under vmap to be compatible with
 // fakeTensor/dynamic shapes and compiled functorch transforms.
 // mirrors the meta path in aten/src/ATen/native/Onehot.cpp,
@@ -229,6 +238,42 @@ static Tensor one_hot_decomposition_hack(const Tensor &self, int64_t num_classes
     const auto options = self.options();
     at::Tensor index = at::arange(num_classes, options);
     return at::eq(self.unsqueeze(-1), index).to(at::kLong);
+=======
+// TODO: replace with targetable functionalization
+static Tensor one_hot_decomposition_hack(const Tensor &self, int64_t num_classes) {
+    TORCH_CHECK(self.dtype() == kLong, "one_hot is only applicable to index tensor.");
+    auto shape = self.sym_sizes().vec();
+
+    // empty tensor could be converted to one hot representation,
+    // but shape inference is not possible.
+    if (self.sym_numel() == 0) {
+        if (num_classes <= 0) {
+            TORCH_CHECK(false, "Can not infer total number of classes from empty tensor.");
+        } else {
+            shape.emplace_back(num_classes);
+            return at::empty_symint(shape, self.options());
+        }
+    }
+
+    TORCH_CHECK(num_classes > 0, "When vmap-ing torch.nn.functional.one_hot, please "
+        "provide an explicit positive num_classes argument.");
+
+    // Disabling all of the following checks. This is OK because scatter has checks too.
+    // Maybe one_hot should be a primitive wrt autograd so we don't have to deal with this.
+    // // non-empty tensor
+    // if (self.device().type() != at::kCUDA) {
+    //   //for cuda, rely on device assert thrown by scatter
+    //   TORCH_CHECK(self.min().item().toLong() >= 0, "Class values must be non-negative.");
+    // }
+    // if (self.device().type() != at::kCUDA) {
+    //   //rely on device asserts from scatter to avoid sync here
+    //   TORCH_CHECK(num_classes > self.max().item().toLong(), "Class values must be smaller than num_classes.");
+    // }
+
+    shape.emplace_back(num_classes);
+    Tensor ret = at::zeros_symint(shape, self.options());
+    return ret.scatter(-1, self.unsqueeze(-1), 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename A, A a, typename C>

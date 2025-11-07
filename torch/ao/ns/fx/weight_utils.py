@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.intrinsic as nni
@@ -77,8 +81,12 @@ def get_lstm_mod_weights(mod: nn.Module) -> list[torch.Tensor]:
                 res.append(param_value)
         return res
     else:
+<<<<<<< HEAD
         if not isinstance(mod, nnqd.LSTM):
             raise AssertionError(f"type {type(mod)} not handled yet")
+=======
+        assert isinstance(mod, nnqd.LSTM), f"type {type(mod)} not handled yet"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = []
         for weight_value in mod._all_weight_values:
             res.append(
@@ -93,6 +101,7 @@ def get_lstm_mod_weights(mod: nn.Module) -> list[torch.Tensor]:
 def get_conv_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
     # traverse backwards from the weight arg, accounting for any observers
     weight_arg_node = node.args[1]
+<<<<<<< HEAD
     if not isinstance(weight_arg_node, Node):
         raise AssertionError(f"Expected Node, got {type(weight_arg_node)}")
     weight_node = return_first_non_observer_node(weight_arg_node, gm)
@@ -100,6 +109,12 @@ def get_conv_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
         raise AssertionError(f"Expected Node, got {type(weight_node)}")
     if weight_node.op != "get_attr":
         raise AssertionError(f"Expected get_attr, got {weight_node.op}")
+=======
+    assert isinstance(weight_arg_node, Node)
+    weight_node = return_first_non_observer_node(weight_arg_node, gm)
+    assert isinstance(weight_node, Node)
+    assert weight_node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     weight = getattr_from_fqn(gm, weight_node.target)  # type: ignore[arg-type]
     return weight.detach()
 
@@ -107,10 +122,15 @@ def get_conv_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
 def get_qconv_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
     # qconv state is arg 1
     qconv_state_node = node.args[1]
+<<<<<<< HEAD
     if not isinstance(qconv_state_node, Node):
         raise AssertionError(f"Expected Node, got {type(qconv_state_node)}")
     if qconv_state_node.op != "get_attr":
         raise AssertionError(f"Expected get_attr, got {qconv_state_node.op}")
+=======
+    assert isinstance(qconv_state_node, Node)
+    assert qconv_state_node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     qconv_state_obj = getattr_from_fqn(gm, qconv_state_node.target)  # type: ignore[arg-type]
     return qconv_state_obj.weight()
 
@@ -121,12 +141,17 @@ def get_linear_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
     # weight -> obs -> linear
     # weight -> to(torch.float16) -> dequantize -> linear
     linear_second_arg = node.args[1]
+<<<<<<< HEAD
     if not isinstance(linear_second_arg, Node):
         raise AssertionError(f"Expected Node, got {type(linear_second_arg)}")
+=======
+    assert isinstance(linear_second_arg, Node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if linear_second_arg.op == "call_module":
         # weight -> obs -> linear
         weight_arg_node = node.args[1]
+<<<<<<< HEAD
         if not isinstance(weight_arg_node, Node):
             raise AssertionError(f"Expected Node, got {type(weight_arg_node)}")
         weight_node = weight_arg_node.args[0]
@@ -134,10 +159,17 @@ def get_linear_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
             raise AssertionError(f"Expected Node, got {type(weight_node)}")
         if weight_node.op != "get_attr":
             raise AssertionError(f"Expected get_attr, got {weight_node.op}")
+=======
+        assert isinstance(weight_arg_node, Node)
+        weight_node = weight_arg_node.args[0]
+        assert isinstance(weight_node, Node)
+        assert weight_node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weight = getattr_from_fqn(gm, weight_node.target)  # type: ignore[arg-type]
         return weight.detach()
     elif linear_second_arg.op == "call_method":
         # weight -> to(torch.float16) -> dequantize -> linear
+<<<<<<< HEAD
         if linear_second_arg.op != "call_method":
             raise AssertionError(f"Expected call_method, got {linear_second_arg.op}")
         dequant_node = node.args[1]
@@ -153,12 +185,28 @@ def get_linear_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
             raise AssertionError(f"Expected Node, got {type(weight_node)}")
         if weight_node.op != "get_attr":
             raise AssertionError(f"Expected get_attr, got {weight_node.op}")
+=======
+        assert linear_second_arg.op == "call_method"
+        dequant_node = node.args[1]
+        assert isinstance(dequant_node, Node)
+        to_fp16_node = dequant_node.args[0]
+        assert isinstance(to_fp16_node, Node)
+        # extract the dtype, so we can cast to it before returning
+        target_dtype = to_fp16_node.args[1]
+        weight_node = to_fp16_node.args[0]
+        assert isinstance(weight_node, Node)
+        assert weight_node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weight = getattr_from_fqn(gm, weight_node.target)  # type: ignore[arg-type]
         # return the weight with fp16 cast
         return weight.detach().to(target_dtype)
     else:
+<<<<<<< HEAD
         if linear_second_arg.op != "get_attr":
             raise AssertionError(f"Expected get_attr, got {linear_second_arg.op}")
+=======
+        assert linear_second_arg.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weight = getattr_from_fqn(gm, linear_second_arg.target)  # type: ignore[arg-type]
         return weight.detach()
 
@@ -166,10 +214,15 @@ def get_linear_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
 def get_qlinear_fun_weight(node: Node, gm: GraphModule) -> torch.Tensor:
     # packed weight is arg 1
     packed_weight_node = node.args[1]
+<<<<<<< HEAD
     if not isinstance(packed_weight_node, Node):
         raise AssertionError(f"Expected Node, got {type(packed_weight_node)}")
     if packed_weight_node.op != "get_attr":
         raise AssertionError(f"Expected get_attr, got {packed_weight_node.op}")
+=======
+    assert isinstance(packed_weight_node, Node)
+    assert packed_weight_node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     packed_weight = getattr_from_fqn(gm, packed_weight_node.target)  # type: ignore[arg-type]
     # TODO(future PR): why does packed_weight.unpack() not work?
     (weight, _bias), _name = packed_weight.__getstate__()
@@ -282,12 +335,20 @@ def extract_weight_from_node(
 
     elif node.op == "call_module":
         # for call_module, we need to look up the modules to do the type check
+<<<<<<< HEAD
         if not isinstance(node.target, str):
             raise AssertionError(f"Expected str, got {type(node.target)}")
         mod = getattr_from_fqn(gm, node.target)
         module_mapping = op_to_type_to_weight_extraction_fn["call_module"]
         for target_mod_type, weight_extraction_fn in module_mapping.items():
             if type(mod) is target_mod_type:
+=======
+        assert isinstance(node.target, str)
+        mod = getattr_from_fqn(gm, node.target)
+        module_mapping = op_to_type_to_weight_extraction_fn["call_module"]
+        for target_mod_type, weight_extraction_fn in module_mapping.items():
+            if type(mod) == target_mod_type:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 weight = weight_extraction_fn(mod)
                 return {
                     "type": res_type,

@@ -81,13 +81,18 @@ git remote add upstream git@github.com:pytorch/pytorch.git
 make setup-env
 # Or run `make setup-env-cuda` for pre-built CUDA binaries
 # Or run `make setup-env-rocm` for pre-built ROCm binaries
+<<<<<<< HEAD
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ### Tips and Debugging
 
 * If you want to have no-op incremental rebuilds (which are fast), see [Make no-op build fast](#make-no-op-build-fast) below.
 
+<<<<<<< HEAD
 * When installing with `python -m pip install -e . -v --no-build-isolation` (in contrast to `python -m pip install . -v --no-build-isolation`) Python runtime will use
   the current local source-tree when importing `torch` package. (This is done by creating [`.egg-link`](https://wiki.python.org/moin/PythonPackagingTerminology#egg-link) file in `site-packages` folder)
   This way you do not need to repeatedly install after modifying Python files (`.py`).
@@ -101,6 +106,22 @@ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
   ```
   Afterwards rebuilding a library (for example to rebuild `libtorch_cpu.so` issue `ninja torch_cpu` from `build` folder),
   would be sufficient to make change visible in `torch` package.
+=======
+* When installing with `python setup.py develop` (in contrast to `python setup.py install`) Python runtime will use
+  the current local source-tree when importing `torch` package. (This is done by creating [`.egg-link`](https://wiki.python.org/moin/PythonPackagingTerminology#egg-link) file in `site-packages` folder)
+  This way you do not need to repeatedly install after modifying Python files (`.py`).
+  However, you would need to reinstall if you modify Python interface (`.pyi`, `.pyi.in`) or
+   non-Python files (`.cpp`, `.cc`, `.cu`, `.h`, ...).
+
+
+  One way to avoid running `python setup.py develop` every time one makes a change to C++/CUDA/ObjectiveC files on Linux/Mac,
+  is to create a symbolic link from `build` folder to `torch/lib`, for example, by issuing following:
+  ```bash
+   pushd torch/lib; sh -c "ln -sf ../../build/lib/libtorch_cpu.* ."; popd
+  ```
+   Afterwards rebuilding a library (for example to rebuild `libtorch_cpu.so` issue `ninja torch_cpu` from `build` folder),
+   would be sufficient to make change visible in `torch` package.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
   To reinstall, first uninstall all existing PyTorch installs. You may need to run `pip
@@ -114,9 +135,15 @@ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
   pip uninstall torch
   ```
 
+<<<<<<< HEAD
   Next run `python setup.py clean`. After that, you can install in editable mode again.
 
 * If you run into errors when running `python -m pip install -e . -v --no-build-isolation`, here are some debugging steps:
+=======
+  Next run `python setup.py clean`. After that, you can install in `develop` mode again.
+
+* If you run into errors when running `python setup.py develop`, here are some debugging steps:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   1. Run `printf '#include <stdio.h>\nint main() { printf("Hello World");}'|clang -x c -; ./a.out` to make sure
   your CMake works and can compile this simple Hello World program without errors.
   2. Nuke your `build` directory. The `setup.py` script compiles binaries into the `build` folder and caches many
@@ -129,6 +156,7 @@ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
       git clean -xdf
       python setup.py clean
       git submodule update --init --recursive
+<<<<<<< HEAD
       python -m pip install --group dev
       python -m pip install --no-build-isolation -v -e .
       ```
@@ -143,6 +171,15 @@ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
       python -m pip install --no-build-isolation -v -e .
       ```
 
+=======
+      python setup.py develop
+      ```
+  4. The main step within `python setup.py develop` is running `make` from the `build` directory. If you want to
+    experiment with some environment variables, you can pass them into the command:
+      ```bash
+      ENV_KEY1=ENV_VAL1[, ENV_KEY2=ENV_VAL2]* python setup.py develop
+      ```
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 * If you run into issue running `git submodule update --init --recursive`. Please try the following:
   - If you encounter an error such as
@@ -182,26 +219,39 @@ You can use this script to check out a new nightly branch with the following:
 
 ```bash
 ./tools/nightly.py checkout -b my-nightly-branch
+<<<<<<< HEAD
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 To install the nightly binaries built with CUDA, you can pass in the flag `--cuda`:
 
 ```bash
 ./tools/nightly.py checkout -b my-nightly-branch --cuda
+<<<<<<< HEAD
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 To install the nightly binaries built with ROCm, you can pass in the flag `--rocm`:
 
 ```bash
 ./tools/nightly.py checkout -b my-nightly-branch --rocm
+<<<<<<< HEAD
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 You can also use this tool to pull the nightly commits into the current branch:
 
 ```bash
+<<<<<<< HEAD
 ./tools/nightly.py pull
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
 ```
@@ -212,6 +262,10 @@ pass in the `--python` argument:
 ```bash
 ./tools/nightly.py --python /path/to/python3.12
 source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+./tools/nightly.py pull -p my-env
+source my-env/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 Pulling will recreate a fresh virtual environment and reinstall the development
@@ -267,7 +321,10 @@ dependencies as well as the nightly binaries into the repo directory.
       support for PyTorch.
 * [tools](tools) - Code generation scripts for the PyTorch library.
   See [README](tools/README.md) of this directory for more details.
+<<<<<<< HEAD
 * [torchgen](torchgen) - contains the logic and tooling for generating PyTorch's low-level C++ and Python bindings from operator definitions, typically specified in native_functions.yaml
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 * [test](test) - Python unit tests for PyTorch Python frontend.
   * [test_torch.py](test/test_torch.py) - Basic tests for PyTorch
     functionality.
@@ -303,7 +360,11 @@ The following packages should be installed with `pip`:
 - `pytest` - recommended to run tests more selectively
 Running
 ```
+<<<<<<< HEAD
 pip install --group dev
+=======
+pip install -r requirements.txt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 will install these dependencies for you.
 
@@ -654,9 +715,15 @@ can be selected interactively with your mouse to zoom in on a particular part of
 the program execution timeline. The `--native` command-line option tells
 `py-spy` to record stack frame entries for PyTorch C++ code. To get line numbers
 for C++ code it may be necessary to compile PyTorch in debug mode by prepending
+<<<<<<< HEAD
 your `python -m pip install -e . -v --no-build-isolation` call to compile
 PyTorch with `DEBUG=1`. Depending on your operating system it may also be
 necessary to run `py-spy` with root privileges.
+=======
+your `setup.py develop` call to compile PyTorch with `DEBUG=1`. Depending on
+your operating system it may also be necessary to run `py-spy` with root
+privileges.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 `py-spy` can also work in an `htop`-like "live profiling" mode and can be
 tweaked to adjust the stack sampling rate, see the `py-spy` readme for more
@@ -664,10 +731,17 @@ details.
 
 ## Managing multiple build trees
 
+<<<<<<< HEAD
 One downside to using `python -m pip install -e . -v --no-build-isolation` is
 that your development version of PyTorch will be installed globally on your
 account (e.g., if you run `import torch` anywhere else, the development version
 will be used).
+=======
+One downside to using `python setup.py develop` is that your development
+version of PyTorch will be installed globally on your account (e.g., if
+you run `import torch` anywhere else, the development version will be
+used).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 If you want to manage multiple builds of PyTorch, you can make use of
 [venv environments](https://docs.python.org/3/library/venv.html) to maintain
@@ -678,7 +752,11 @@ specific build of PyTorch. To set one up:
 python -m venv pytorch-myfeature
 source pytorch-myfeature/bin/activate  # or `& .\pytorch-myfeature\Scripts\Activate.ps1` on Windows
 # if you run python now, torch will NOT be installed
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ## C++ development tips
@@ -716,9 +794,13 @@ variables `DEBUG`, `USE_DISTRIBUTED`, `USE_MKLDNN`, `USE_CUDA`, `USE_FLASH_ATTEN
 For example:
 
 ```bash
+<<<<<<< HEAD
 DEBUG=1 USE_DISTRIBUTED=0 USE_MKLDNN=0 USE_CUDA=0 BUILD_TEST=0 \
     USE_FBGEMM=0 USE_NNPACK=0 USE_QNNPACK=0 USE_XNNPACK=0 \
     python -m pip install --no-build-isolation -v -e .
+=======
+DEBUG=1 USE_DISTRIBUTED=0 USE_MKLDNN=0 USE_CUDA=0 BUILD_TEST=0 USE_FBGEMM=0 USE_NNPACK=0 USE_QNNPACK=0 USE_XNNPACK=0 python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 For subsequent builds (i.e., when `build/CMakeCache.txt` exists), the build
@@ -728,7 +810,11 @@ options.
 
 ### Code completion and IDE support
 
+<<<<<<< HEAD
 When using `python -m pip install -e . -v --no-build-isolation`, PyTorch will generate
+=======
+When using `python setup.py develop`, PyTorch will generate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 a `compile_commands.json` file that can be used by many editors
 to provide command completion and error highlighting for PyTorch's
 C++ code. You need to `pip install ninja` to generate accurate
@@ -789,7 +875,11 @@ If not, you can define these variables on the command line before invoking `setu
 export CMAKE_C_COMPILER_LAUNCHER=ccache
 export CMAKE_CXX_COMPILER_LAUNCHER=ccache
 export CMAKE_CUDA_COMPILER_LAUNCHER=ccache
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 #### Use a faster linker
@@ -802,7 +892,11 @@ If you are editing a single file and rebuilding in a tight loop, the time spent 
 Starting with CMake 3.29, you can specify the linker type using the [`CMAKE_LINKER_TYPE`](https://cmake.org/cmake/help/latest/variable/CMAKE_LINKER_TYPE.html) variable. For example, with `mold` installed:
 
 ```sh
+<<<<<<< HEAD
 CMAKE_LINKER_TYPE=MOLD python -m pip install --no-build-isolation -v -e .
+=======
+CMAKE_LINKER_TYPE=MOLD python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 #### Use pre-compiled headers
@@ -814,7 +908,11 @@ setting `USE_PRECOMPILED_HEADERS=1` either on first setup, or in the
 `CMakeCache.txt` file.
 
 ```sh
+<<<<<<< HEAD
 USE_PRECOMPILED_HEADERS=1 python -m pip install --no-build-isolation -v -e .
+=======
+USE_PRECOMPILED_HEADERS=1 python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 This adds a build step where the compiler takes `<ATen/ATen.h>` and essentially
@@ -837,7 +935,11 @@ A compiler-wrapper to fix this is provided in `tools/nvcc_fix_deps.py`. You can 
 this as a compiler launcher, similar to `ccache`
 ```bash
 export CMAKE_CUDA_COMPILER_LAUNCHER="python;`pwd`/tools/nvcc_fix_deps.py;ccache"
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ### Rebuild few files with debug information
@@ -1188,7 +1290,11 @@ build_with_asan()
   CFLAGS="-fsanitize=address -fno-sanitize-recover=all -shared-libasan -pthread" \
   CXX_FLAGS="-pthread" \
   USE_CUDA=0 USE_OPENMP=0 USE_DISTRIBUTED=0 DEBUG=1 \
+<<<<<<< HEAD
   python -m pip install --no-build-isolation -v -e .
+=======
+  python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 run_with_asan()

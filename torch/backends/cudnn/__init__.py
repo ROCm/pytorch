@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 import torch
+<<<<<<< HEAD
 from torch.backends import (
     __allow_nonbracketed_mutation,
     _FP32Precision,
@@ -14,6 +15,9 @@ from torch.backends import (
     ContextProp,
     PropModule,
 )
+=======
+from torch.backends import __allow_nonbracketed_mutation, ContextProp, PropModule
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -34,11 +38,16 @@ if _cudnn is not None:
     def _init():
         global __cudnn_version
         if __cudnn_version is None:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             __cudnn_version = _cudnn.getVersionInt()
             # pyrefly: ignore [missing-attribute]
             runtime_version = _cudnn.getRuntimeVersion()
             # pyrefly: ignore [missing-attribute]
+=======
+            __cudnn_version = _cudnn.getVersionInt()
+            runtime_version = _cudnn.getRuntimeVersion()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compile_version = _cudnn.getCompileVersion()
             runtime_major, runtime_minor, _ = runtime_version
             compile_major, compile_minor, _ = compile_version
@@ -47,7 +56,10 @@ if _cudnn is not None:
             # Not sure about MIOpen (ROCm), so always do a strict check
             if runtime_major != compile_major:
                 cudnn_compatible = False
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif runtime_major < 7 or not _cudnn.is_cuda:
                 cudnn_compatible = runtime_minor == compile_minor
             else:
@@ -118,8 +130,12 @@ def is_acceptable(tensor):
     if not is_available():
         warnings.warn(
             "PyTorch was compiled without cuDNN/MIOpen support. To use cuDNN/MIOpen, rebuild "
+<<<<<<< HEAD
             "PyTorch making sure the library is visible to the build system.",
             stacklevel=2,
+=======
+            "PyTorch making sure the library is visible to the build system."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return False
     if not _init():
@@ -128,8 +144,12 @@ def is_acceptable(tensor):
                 libpath={"darwin": "DYLD_LIBRARY_PATH", "win32": "PATH"}.get(
                     sys.platform, "LD_LIBRARY_PATH"
                 )
+<<<<<<< HEAD
             ),
             stacklevel=2,
+=======
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return False
     return True
@@ -141,7 +161,10 @@ def set_flags(
     _benchmark_limit=None,
     _deterministic=None,
     _allow_tf32=None,
+<<<<<<< HEAD
     _fp32_precision="none",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     orig_flags = (
         torch._C._get_cudnn_enabled(),
@@ -149,7 +172,10 @@ def set_flags(
         None if not is_available() else torch._C._cuda_get_cudnn_benchmark_limit(),
         torch._C._get_cudnn_deterministic(),
         torch._C._get_cudnn_allow_tf32(),
+<<<<<<< HEAD
         torch._C._get_fp32_precision_getter("cuda", "all"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     if _enabled is not None:
         torch._C._set_cudnn_enabled(_enabled)
@@ -161,8 +187,11 @@ def set_flags(
         torch._C._set_cudnn_deterministic(_deterministic)
     if _allow_tf32 is not None:
         torch._C._set_cudnn_allow_tf32(_allow_tf32)
+<<<<<<< HEAD
     if _fp32_precision is not None:
         torch._C._set_fp32_precision_setter("cuda", "all", _fp32_precision)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return orig_flags
 
 
@@ -173,6 +202,7 @@ def flags(
     benchmark_limit=10,
     deterministic=False,
     allow_tf32=True,
+<<<<<<< HEAD
     fp32_precision="none",
 ):
     with __allow_nonbracketed_mutation():
@@ -183,6 +213,12 @@ def flags(
             deterministic,
             allow_tf32,
             fp32_precision,
+=======
+):
+    with __allow_nonbracketed_mutation():
+        orig_flags = set_flags(
+            enabled, benchmark, benchmark_limit, deterministic, allow_tf32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     try:
         yield
@@ -217,12 +253,15 @@ class CudnnModule(PropModule):
     allow_tf32 = ContextProp(
         torch._C._get_cudnn_allow_tf32, torch._C._set_cudnn_allow_tf32
     )
+<<<<<<< HEAD
     conv = _FP32Precision("cuda", "conv")
     rnn = _FP32Precision("cuda", "rnn")
     fp32_precision = ContextProp(
         _get_fp32_precision_getter("cuda", "all"),
         _set_fp32_precision_setter("cuda", "all"),
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This is the sys.modules replacement trick, see

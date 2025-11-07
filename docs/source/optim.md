@@ -165,7 +165,10 @@ for input, target in dataset:
     Adamax
     ASGD
     LBFGS
+<<<<<<< HEAD
     Muon
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NAdam
     RAdam
     RMSprop
@@ -211,7 +214,10 @@ Below is a table showing the available and default implementations of each algor
     :class:`Adamax`;foreach;yes;no
     :class:`ASGD`;foreach;yes;no
     :class:`LBFGS`;for-loop;no;no
+<<<<<<< HEAD
     :class:`Muon`;for-loop;no;no
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     :class:`NAdam`;foreach;yes;no
     :class:`RAdam`;foreach;yes;no
     :class:`RMSprop`;foreach;yes;no
@@ -235,7 +241,10 @@ Below table is showing the stability status for fused implementations:
     :class:`Adamax`;unsupported;unsupported;unsupported
     :class:`ASGD`;unsupported;unsupported;unsupported
     :class:`LBFGS`;unsupported;unsupported;unsupported
+<<<<<<< HEAD
     :class:`Muon`;unsupported;unsupported;unsupported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     :class:`NAdam`;unsupported;unsupported;unsupported
     :class:`RAdam`;unsupported;unsupported;unsupported
     :class:`RMSprop`;unsupported;unsupported;unsupported
@@ -691,6 +700,7 @@ We train the model for a total of 300 epochs and start to collect EMA averages i
 <!-- This module needs to be documented. Adding here in the meantime
 for tracking purposes -->
 ```{eval-rst}
+<<<<<<< HEAD
 .. py:module:: torch.optim.lr_scheduler
 .. py:module:: torch.optim.optimizer
 .. py:module:: torch.optim.swa_utils
@@ -702,3 +712,22 @@ for tracking purposes -->
 
     optim.aliases.md
 ```
+=======
+.. py:module:: torch.optim.adadelta
+.. py:module:: torch.optim.adagrad
+.. py:module:: torch.optim.adam
+.. py:module:: torch.optim.adamax
+.. py:module:: torch.optim.adamw
+.. py:module:: torch.optim.asgd
+.. py:module:: torch.optim.lbfgs
+.. py:module:: torch.optim.lr_scheduler
+.. py:module:: torch.optim.nadam
+.. py:module:: torch.optim.optimizer
+.. py:module:: torch.optim.radam
+.. py:module:: torch.optim.rmsprop
+.. py:module:: torch.optim.rprop
+.. py:module:: torch.optim.sgd
+.. py:module:: torch.optim.sparse_adam
+.. py:module:: torch.optim.swa_utils
+```
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

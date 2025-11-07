@@ -47,6 +47,7 @@ class Adafactor(Optimizer):
             raise ValueError(f"Clipping threshold d should be >= 1 but is: {d}")
         if not 0.0 <= weight_decay:
             raise ValueError(f"weight_decay should be >= 0 but is: {weight_decay}")
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "beta2_decay": beta2_decay,
@@ -56,6 +57,17 @@ class Adafactor(Optimizer):
             "foreach": foreach,
             "maximize": maximize,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            beta2_decay=beta2_decay,
+            eps=eps,
+            d=d,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -315,9 +327,12 @@ Adafactor.__doc__ = (
                 &\hspace{5mm}U_t \leftarrow \frac{G_t}{\sqrt{\widehat{V}_t}}                                            \\
             \end{aligned}
 
+<<<<<<< HEAD
         You may note that Noam Shazeer and Mitchell Stern describe using the sum of squared gradients,
         while this implementation uses the mean instead. This choice is mathematically equivalent and
         allows for greater numerical stability for large sums.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. _Adafactor\: Adaptive Learning Rates with Sublinear Memory Cost:
         https://arxiv.org/pdf/1804.04235
@@ -350,16 +365,26 @@ def _single_tensor_adafactor(
     maximize: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
     if grad_scale is not None or found_inf is not None:
         raise AssertionError("Grad scaling should occur outside of optimizer.step()")
+=======
+    assert grad_scale is None and found_inf is None, (
+        "Grad scaling should occur outside of optimizer.step()"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if torch.jit.is_scripting():
         # this assert is due to JIT being dumb and not realizing that the ops below
         # have overloads to handle both float and Tensor lrs, so we just assert it's
         # a float since most people using JIT are using floats
+<<<<<<< HEAD
         if not isinstance(lr, float):
             raise AssertionError(f"Expected lr to be a float, but got {type(lr)}")
 
+=======
+        assert isinstance(lr, float)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         lr = _to_scalar(lr)
 
@@ -385,10 +410,16 @@ def _single_tensor_adafactor(
             param.mul_(1 - lr * weight_decay)
 
         if grad.dim() > 1:
+<<<<<<< HEAD
             if row_var is None or col_var is None:
                 raise AssertionError(
                     "row_var and col_var should be defined when grad is multidimensional"
                 )
+=======
+            assert row_var is not None and col_var is not None, (
+                "row_var and col_var should be defined when grad is multidimensional"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # same as (g * g).mean(dim=-1) w/o materializing an intermediate size g
             row_mean = (
                 torch.norm(grad, dim=-1, keepdim=True).square_().div_(grad.size(-1))
@@ -402,8 +433,14 @@ def _single_tensor_adafactor(
             var_estimate = row_var @ col_var
             var_estimate.div_(row_var.mean(dim=-2, keepdim=True).clamp_(min=eps1))
         else:
+<<<<<<< HEAD
             if variance is None:
                 raise AssertionError("variance should be defined when grad is a vector")
+=======
+            assert variance is not None, (
+                "variance should be defined when grad is a vector"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             grad_squared = grad * grad
             variance.lerp_(grad_squared, one_minus_beta2_t)
             # avoid writing into variance during update
@@ -436,8 +473,12 @@ def _group_tensors_by_device_dtype_and_is_multidim(
 
         # assumes grad is the second tensorlist
         for j, tensor in enumerate(tensorlists[1]):
+<<<<<<< HEAD
             if tensor is None:
                 raise AssertionError("grad should not be None")
+=======
+            assert tensor is not None, "grad should not be None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if tensor.dim() > 1:
                 if matrix_key not in ultra_grouped_tensors:
                     ultra_grouped_tensors[matrix_key] = [[] for _ in tensorlists]
@@ -477,8 +518,14 @@ def _multi_tensor_adafactor(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if grad_scale is not None or found_inf is not None:
         raise AssertionError("Grad scaling should occur outside of optimizer.step()")
+=======
+    assert grad_scale is None and found_inf is None, (
+        "Grad scaling should occur outside of optimizer.step()"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     lr = _to_scalar(lr)
 
@@ -499,10 +546,16 @@ def _multi_tensor_adafactor(
         device_grads = cast(list[Tensor], device_grads_)
         device_state_steps = cast(list[Tensor], device_state_steps_)
         if eps1 is None:
+<<<<<<< HEAD
             if dtype is None:
                 raise AssertionError(
                     "dtype is needed to compute eps1 when eps1 is unset"
                 )
+=======
+            assert dtype is not None, (
+                "dtype is needed to compute eps1 when eps1 is unset"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eps1 = torch.finfo(dtype).eps
 
         if TYPE_CHECKING:
@@ -542,10 +595,16 @@ def _multi_tensor_adafactor(
         if is_multidim:
             device_row_vars = cast(list[Tensor], device_row_vars_)
             device_col_vars = cast(list[Tensor], device_col_vars_)
+<<<<<<< HEAD
             if device_row_vars[0] is None or device_col_vars[0] is None:
                 raise AssertionError(
                     "row_var and col_var should be defined when grad is multidimensional"
                 )
+=======
+            assert device_row_vars[0] is not None and device_col_vars[0] is not None, (
+                "row_var and col_var should be defined when grad is multidimensional"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # same as (g * g).mean(dim=-1) w/o materializing an intermediate size g
             row_means = [
                 torch.norm(grad, dim=-1, keepdim=True) for grad in device_grads
@@ -576,8 +635,14 @@ def _multi_tensor_adafactor(
             del row_var_means
         else:
             device_variances = cast(list[Tensor], device_variances_)
+<<<<<<< HEAD
             if device_variances[0] is None:
                 raise AssertionError("variance should be defined when grad is a vector")
+=======
+            assert device_variances[0] is not None, (
+                "variance should be defined when grad is a vector"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             grads_squared = torch._foreach_mul(device_grads, device_grads)
             torch._foreach_lerp_(device_variances, grads_squared, one_minus_beta2_ts)

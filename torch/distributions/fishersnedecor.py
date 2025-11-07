@@ -29,7 +29,10 @@ class FisherSnedecor(Distribution):
         df2 (float or Tensor): degrees of freedom parameter 2
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"df1": constraints.positive, "df2": constraints.positive}
     support = constraints.positive
     has_rsample = True

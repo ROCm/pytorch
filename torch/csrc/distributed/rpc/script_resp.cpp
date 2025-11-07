@@ -20,7 +20,11 @@ c10::intrusive_ptr<Message> ScriptResp::toMessageImpl() && {
 }
 
 std::unique_ptr<ScriptResp> ScriptResp::fromMessage(const Message& message) {
+<<<<<<< HEAD
   auto payload = message.payload().data();
+=======
+  auto payload = static_cast<const char*>(message.payload().data());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto payload_size = message.payload().size();
   auto value = jit::unpickle(
       payload,

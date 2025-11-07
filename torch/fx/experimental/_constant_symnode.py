@@ -41,12 +41,15 @@ class ConstantIntNode:
     def _graph_repr(self) -> str:
         return self._str()
 
+<<<<<<< HEAD
     def add(self, other: Any) -> Any:
         return other.add(self)
 
     def sub(self, other: Any) -> Any:
         return other.neg().add(self.val)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def mul(self, other: Any) -> Any:
         return other.mul(self)
 
@@ -73,6 +76,9 @@ class ConstantIntNode:
 
     def constant_int(self) -> int:
         return self.val
+<<<<<<< HEAD
 
     def guard_int(self, file: str, line: int) -> int:
         return self.val
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

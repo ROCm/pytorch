@@ -185,7 +185,11 @@ def _prepare_standalone_module_fx(
               same as input_quantized_idxs configuration provided
               for the standalone module
             * `standalone_module_output_quantized_idxs(List[Int])`: a list of
+<<<<<<< HEAD
               indices for the graph output that is quantized
+=======
+              indexs for the graph output that is quantized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               same as input_quantized_idxs configuration provided
               for the standalone module
 

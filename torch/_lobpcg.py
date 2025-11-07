@@ -57,7 +57,11 @@ def _polynomial_coefficients_given_roots(roots):
         # So the code below tries to circumvent the explicit root finding by series
         # of operations on memory copies imitating the Horner's method.
         # The memory copies are required to construct nodes in the computational graph
+<<<<<<< HEAD
         # by exploiting the explicit (not in-place, separate node for each step)
+=======
+        # by exploting the explicit (not in-place, separate node for each step)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # recursion of the Horner's method.
         # Needs more memory, O(... * k^2), but with only O(... * k^2) complexity.
         poly_coeffs_new = poly_coeffs.clone() if roots.requires_grad else poly_coeffs
@@ -80,7 +84,11 @@ def _polynomial_value(poly, x, zero_power, transition):
                      poly[..., i] = (a_{i_0}, ..., a{i_n} (==1)), and
                      poly(x) = poly[..., 0] * zero_power + ... + poly[..., n] * x^n
 
+<<<<<<< HEAD
       x (Tensor): the value (possible batched) to evaluate the polynomial `poly` at.
+=======
+      x (Tensor): the value (possible batched) to evalate the polynomial `poly` at.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       zero_power (Tensor): the representation of `x^0`. It is application-specific.
 
@@ -168,7 +176,11 @@ def _symeig_backward_partial_eigenspace(D_grad, U_grad, A, D, U, largest):
     # of the characteristic polynomial.
     chr_poly_D = _polynomial_coefficients_given_roots(D)
 
+<<<<<<< HEAD
     # the code below finds the explicit solution to the Sylvester equation
+=======
+    # the code belows finds the explicit solution to the Sylvester equation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # U_ortho^T A U_ortho dX - dX D = -U_ortho^T A U
     # and incorporates it into the whole gradient stored in the `res` variable.
     #
@@ -301,7 +313,11 @@ class LOBPCGAutogradFunction(torch.autograd.Function):
         return D, U
 
     @staticmethod
+<<<<<<< HEAD
     def backward(ctx, D_grad, U_grad):  # pyrefly: ignore  # bad-override
+=======
+    def backward(ctx, D_grad, U_grad):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         A_grad = B_grad = None
         grads = [None] * 14
 
@@ -391,17 +407,23 @@ def lobpcg(
       we do the following symmetrization map: `A -> (A + A.t()) / 2`.
       The map is performed only when the `A` requires gradients.
 
+<<<<<<< HEAD
     .. warning:: LOBPCG algorithm is not applicable when the number of `A`'s rows
       is smaller than 3x the number of requested eigenpairs `n`.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Args:
 
       A (Tensor): the input tensor of size :math:`(*, m, m)`
 
+<<<<<<< HEAD
       k (integer, optional): the number of requested
                   eigenpairs. Default is the number of :math:`X`
                   columns (when specified) or `1`.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       B (Tensor, optional): the input tensor of size :math:`(*, m,
                   m)`. When not specified, `B` is interpreted as
                   identity matrix.
@@ -411,6 +433,7 @@ def lobpcg(
                   initial approximation of eigenvectors. X must be a
                   dense tensor.
 
+<<<<<<< HEAD
       n (integer, optional): if :math:`X` is not specified then `n`
                   specifies the size of the generated random
                   approximation of eigenvectors. Default value for `n`
@@ -426,6 +449,21 @@ def lobpcg(
                  the current approximation of eigenpairs is returned.
                  For infinite iteration but until convergence criteria
                  is met, use `-1`.
+=======
+      iK (tensor, optional): the input tensor of size :math:`(*, m,
+                  m)`. When specified, it will be used as preconditioner.
+
+      k (integer, optional): the number of requested
+                  eigenpairs. Default is the number of :math:`X`
+                  columns (when specified) or `1`.
+
+      n (integer, optional): if :math:`X` is not specified then `n`
+                  specifies the size of the generated random
+                  approximation of eigenvectors. Default value for `n`
+                  is `k`. If :math:`X` is specified, the value of `n`
+                  (when specified) must be the number of :math:`X`
+                  columns.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       tol (float, optional): residual tolerance for stopping
                  criterion. Default is `feps ** 0.5` where `feps` is
@@ -441,6 +479,15 @@ def lobpcg(
                  description of the function above. Default is
                  "ortho".
 
+<<<<<<< HEAD
+=======
+      niter (int, optional): maximum number of iterations. When
+                 reached, the iteration process is hard-stopped and
+                 the current approximation of eigenpairs is returned.
+                 For infinite iteration but until convergence criteria
+                 is met, use `-1`.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       tracker (callable, optional) : a function for tracing the
                  iteration process. When specified, it is called at
                  each iteration step with LOBPCG instance as an
@@ -1048,11 +1095,15 @@ class LOBPCG:
         else:
             E[(torch.where(E < t))[0]] = t
 
+<<<<<<< HEAD
         return torch.matmul(
             U * d_col.mT,
             # pyrefly: ignore [unsupported-operation]
             Z * E**-0.5,
         )
+=======
+        return torch.matmul(U * d_col.mT, Z * E**-0.5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _get_ortho(self, U, V):
         """Return B-orthonormal U with columns are B-orthogonal to V.

@@ -47,8 +47,14 @@ class TORCH_API IRVerifier : public IRVisitor {
   void visit(const BlockPtr& v) override;
 };
 
+<<<<<<< HEAD
 TORCH_API void verify(const StmtPtr& /*s*/);
 TORCH_API void verify(const ExprPtr& /*e*/);
 TORCH_API void verify(const ExprHandle& /*e*/);
+=======
+TORCH_API void verify(const StmtPtr&);
+TORCH_API void verify(const ExprPtr&);
+TORCH_API void verify(const ExprHandle&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::jit::tensorexpr

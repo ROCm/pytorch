@@ -38,6 +38,7 @@ class ConvTranspose1dBenchmark(op_bench.TorchBenchmarkBase):
 op_bench.generate_pt_test(
     configs.conv_1d_configs_short + configs.conv_1d_configs_long, Conv1dBenchmark
 )
+<<<<<<< HEAD
 
 
 if not torch.backends.mkldnn.is_acl_available():
@@ -48,6 +49,14 @@ if not torch.backends.mkldnn.is_acl_available():
         + configs.conv_1d_configs_long,
         ConvTranspose1dBenchmark,
     )
+=======
+op_bench.generate_pt_test(
+    configs.convtranspose_1d_configs_short
+    + configs.conv_1d_configs_short
+    + configs.conv_1d_configs_long,
+    ConvTranspose1dBenchmark,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 """

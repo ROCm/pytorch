@@ -22,15 +22,22 @@ import os
 import re
 from enum import Enum
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, NamedTuple, Optional, TYPE_CHECKING
+=======
+from typing import Any, Callable, NamedTuple, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from yaml import load
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Safely load fast C Yaml loader/dumper if they are available
 try:
     from yaml import CSafeLoader as Loader

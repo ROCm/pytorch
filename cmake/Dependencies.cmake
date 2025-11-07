@@ -108,19 +108,28 @@ if(CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO AND NOT INTERN_BUILD_MOBILE)
   enable_ubsan()
 endif()
 
+<<<<<<< HEAD
 if(USE_ASAN OR USE_LSAN OR USE_TSAN)
+=======
+if(USE_ASAN OR USE_TSAN)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   find_package(Sanitizer REQUIRED)
   if(USE_ASAN)
     if(TARGET Sanitizer::address)
       list(APPEND Caffe2_DEPENDENCY_LIBS Sanitizer::address)
     else()
+<<<<<<< HEAD
       message(WARNING "ASAN not found. Suppress this warning with -DUSE_ASAN=OFF.")
+=======
+      message(WARNING "Not ASAN found. Suppress this warning with -DUSE_ASAN=OFF.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       caffe2_update_option(USE_ASAN OFF)
     endif()
     if(TARGET Sanitizer::undefined)
       list(APPEND Caffe2_DEPENDENCY_LIBS Sanitizer::undefined)
     endif()
   endif()
+<<<<<<< HEAD
   if(USE_LSAN)
     if(TARGET Sanitizer::leak)
       list(APPEND Caffe2_DEPENDENCY_LIBS Sanitizer::leak)
@@ -129,11 +138,17 @@ if(USE_ASAN OR USE_LSAN OR USE_TSAN)
       caffe2_update_option(USE_LSAN OFF)
     endif()
   endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if(USE_TSAN)
     if(TARGET Sanitizer::thread)
       list(APPEND Caffe2_DEPENDENCY_LIBS Sanitizer::thread)
     else()
+<<<<<<< HEAD
       message(WARNING "TSAN not found. Suppress this warning with -DUSE_TSAN=OFF.")
+=======
+      message(WARNING "Not TSAN found. Suppress this warning with -DUSE_TSAN=OFF.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       caffe2_update_option(USE_TSAN OFF)
     endif()
   endif()
@@ -161,7 +176,10 @@ set(AT_MKLDNN_ACL_ENABLED 0)
 set(AT_MKLDNN_ENABLED 0)
 set(AT_MKL_ENABLED 0)
 set(AT_KLEIDIAI_ENABLED 0)
+<<<<<<< HEAD
 set(AT_USE_EIGEN_SPARSE 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # setting default preferred BLAS options if not already present.
 if(NOT INTERN_BUILD_MOBILE)
   set(BLAS "MKL" CACHE STRING "Selected BLAS library")
@@ -172,7 +190,10 @@ else()
 endif()
 set_property(CACHE BLAS PROPERTY STRINGS "ATLAS;BLIS;Eigen;FLAME;Generic;MKL;OpenBLAS;vecLib;APL")
 message(STATUS "Trying to find preferred BLAS backend of choice: " ${BLAS})
+<<<<<<< HEAD
 set(BLAS_CHECK_F2C 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(BLAS STREQUAL "Eigen")
   # Eigen is header-only and we do not have any dependent libraries
@@ -185,7 +206,10 @@ elseif(BLAS STREQUAL "ATLAS")
   set(BLAS_INFO "atlas")
   set(BLAS_FOUND 1)
   set(BLAS_LIBRARIES ${ATLAS_LIBRARIES} cblas)
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "OpenBLAS")
   find_package(OpenBLAS REQUIRED)
   include_directories(SYSTEM ${OpenBLAS_INCLUDE_DIR})
@@ -193,12 +217,18 @@ elseif(BLAS STREQUAL "OpenBLAS")
   set(BLAS_INFO "open")
   set(BLAS_FOUND 1)
   set(BLAS_LIBRARIES ${OpenBLAS_LIB})
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "BLIS")
   find_package(BLIS REQUIRED)
   include_directories(SYSTEM ${BLIS_INCLUDE_DIR})
   list(APPEND Caffe2_DEPENDENCY_LIBS ${BLIS_LIB})
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "MKL")
   if(BLAS_SET_BY_USER)
     find_package(MKL REQUIRED)
@@ -228,7 +258,10 @@ elseif(BLAS STREQUAL "NVPL")
   set(BLAS_INFO "nvpl")
   set(BLAS_FOUND 1)
   set(BLAS_USE_CBLAS_DOT TRUE)
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "vecLib")
   find_package(vecLib REQUIRED)
   include_directories(SYSTEM ${vecLib_INCLUDE_DIR})
@@ -240,14 +273,20 @@ elseif(BLAS STREQUAL "FlexiBLAS")
   find_package(FlexiBLAS REQUIRED)
   include_directories(SYSTEM ${FlexiBLAS_INCLUDE_DIR})
   list(APPEND Caffe2_DEPENDENCY_LIBS ${FlexiBLAS_LIB})
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "APL")
   find_package(APL REQUIRED)
   include_directories(SYSTEM ${APL_INCLUDE_DIR})
   set(BLAS_INFO "apl")
   set(BLAS_FOUND 1)
   set(BLAS_LIBRARIES ${APL_LIBRARIES})
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 elseif(BLAS STREQUAL "Generic")
   # On Debian family, the CBLAS ABIs have been merged into libblas.so
   if(ENV{GENERIC_BLAS_LIBRARIES} STREQUAL "")
@@ -261,11 +300,15 @@ elseif(BLAS STREQUAL "Generic")
   set(GENERIC_BLAS_FOUND TRUE)
   set(BLAS_INFO "generic")
   set(BLAS_FOUND 1)
+<<<<<<< HEAD
   set(BLAS_CHECK_F2C 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else()
   message(FATAL_ERROR "Unrecognized BLAS option: " ${BLAS})
 endif()
 
+<<<<<<< HEAD
 # Determine if blas was compiled with the f2c conventions
 if(BLAS_LIBRARIES AND BLAS_CHECK_F2C)
   include(cmake/BLAS_ABI.cmake)
@@ -280,6 +323,8 @@ if(USE_EIGEN_SPARSE)
   set(AT_USE_EIGEN_SPARSE 1)
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(NOT INTERN_BUILD_MOBILE)
   set(AT_MKL_SEQUENTIAL 0)
   set(USE_BLAS 1)
@@ -594,7 +639,11 @@ elseif(NOT TARGET XNNPACK AND USE_SYSTEM_XNNPACK)
   find_library(microkernels-prod_LIBRARY microkernels-prod)
   set_property(TARGET XNNPACK PROPERTY IMPORTED_LOCATION "${XNNPACK_LIBRARY}")
   set_property(TARGET microkernels-prod PROPERTY IMPORTED_LOCATION "${microkernels-prod_LIBRARY}")
+<<<<<<< HEAD
   if(NOT XNNPACK_LIBRARY OR NOT microkernels-prod_LIBRARY)
+=======
+  if(NOT XNNPACK_LIBRARY or NOT microkernels-prod_LIBRARY)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     message(FATAL_ERROR "Cannot find XNNPACK")
   endif()
   message("-- Found XNNPACK: ${XNNPACK_LIBRARY}")
@@ -682,20 +731,71 @@ if(USE_FBGEMM)
   if(NOT DEFINED FBGEMM_SOURCE_DIR)
     set(FBGEMM_SOURCE_DIR "${CAFFE2_THIRD_PARTY_ROOT}/fbgemm" CACHE STRING "FBGEMM source directory")
   endif()
+<<<<<<< HEAD
   if(USE_FBGEMM AND NOT TARGET fbgemm)
     set(FBGEMM_BUILD_TESTS OFF CACHE BOOL "")
     set(FBGEMM_BUILD_BENCHMARKS OFF CACHE BOOL "")
     set(FBGEMM_LIBRARY_TYPE "static" CACHE STRING "")
     add_subdirectory("${FBGEMM_SOURCE_DIR}")
 
+=======
+  if(NOT CAFFE2_COMPILER_SUPPORTS_AVX512_EXTENSIONS)
+    message(WARNING
+      "A compiler with AVX512 support is required for FBGEMM. "
+      "Not compiling with FBGEMM. "
+      "Turn this warning off by USE_FBGEMM=OFF.")
+    set(USE_FBGEMM OFF)
+  endif()
+  if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(WARNING
+      "x64 operating system is required for FBGEMM. "
+      "Not compiling with FBGEMM. "
+      "Turn this warning off by USE_FBGEMM=OFF.")
+    set(USE_FBGEMM OFF)
+  endif()
+  if(USE_FBGEMM AND NOT TARGET fbgemm)
+    set(FBGEMM_BUILD_TESTS OFF CACHE BOOL "")
+    set(FBGEMM_BUILD_BENCHMARKS OFF CACHE BOOL "")
+    if(MSVC AND BUILD_SHARED_LIBS)
+      set(FBGEMM_LIBRARY_TYPE "shared" CACHE STRING "")
+    else()
+      set(FBGEMM_LIBRARY_TYPE "static" CACHE STRING "")
+    endif()
+    if(USE_ASAN)
+      set(USE_SANITIZER "address,undefined" CACHE STRING "-fsanitize options for FBGEMM")
+    endif()
+    add_subdirectory("${FBGEMM_SOURCE_DIR}")
+    set_property(TARGET fbgemm_generic PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET fbgemm_avx2 PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET fbgemm_avx512 PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET fbgemm PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+    # Disabling autovec in fbgemm due to large library size causing symbol relocation issues, which is only allowed in static builds.
+    # Long-term solution involves modularizing fbgemm targets.
+    target_compile_definitions(fbgemm_generic PUBLIC DISABLE_FBGEMM_AUTOVEC)
+    target_compile_definitions(fbgemm_avx2 PUBLIC DISABLE_FBGEMM_AUTOVEC)
+    target_compile_definitions(fbgemm_avx512 PUBLIC DISABLE_FBGEMM_AUTOVEC)
+
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0.0)
+      # See https://github.com/pytorch/pytorch/issues/74352
+      target_compile_options_if_supported(asmjit -Wno-deprecated-copy)
+      target_compile_options_if_supported(asmjit -Wno-unused-but-set-variable)
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       target_compile_options_if_supported(asmjit -Wno-extra-semi)
       target_compile_options_if_supported(fbgemm -Wno-extra-semi)
     endif()
+<<<<<<< HEAD
     target_compile_options_if_supported(asmjit -Wno-unused-but-set-variable)
     target_compile_options_if_supported(asmjit -Wno-unused-variable)
   endif()
   if(USE_FBGEMM)
+=======
+  endif()
+  if(USE_FBGEMM)
+    target_compile_definitions(fbgemm PUBLIC DISABLE_FBGEMM_AUTOVEC)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list(APPEND Caffe2_DEPENDENCY_LIBS fbgemm)
   endif()
 endif()
@@ -704,6 +804,12 @@ if(USE_FBGEMM)
   caffe2_update_option(USE_FBGEMM ON)
 else()
   caffe2_update_option(USE_FBGEMM OFF)
+<<<<<<< HEAD
+=======
+  message(WARNING
+    "Turning USE_FAKELOWP off as it depends on USE_FBGEMM.")
+  caffe2_update_option(USE_FAKELOWP OFF)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 if(USE_OPENCL)
@@ -821,9 +927,15 @@ if(NOT Python_Interpreter_FOUND)
   message(FATAL_ERROR "Python3 could not be found.")
 endif()
 
+<<<<<<< HEAD
 if(${Python_VERSION} VERSION_LESS 3.10)
   message(FATAL_ERROR
     "Found Python libraries version ${Python_VERSION}. Python < 3.10 is no longer supported by PyTorch.")
+=======
+if(${Python_VERSION} VERSION_LESS 3.9)
+  message(FATAL_ERROR
+    "Found Python libraries version ${Python_VERSION}. Python < 3.9 is no longer supported by PyTorch.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 # ---[ Python + Numpy
@@ -961,6 +1073,7 @@ endif()
 # ---[ nvtx
 if(USE_SYSTEM_NVTX)
   find_path(nvtx3_dir NAMES nvtx3 PATHS ${CUDA_INCLUDE_DIRS})
+<<<<<<< HEAD
 else()
   find_path(nvtx3_dir NAMES nvtx3 PATHS "${PROJECT_SOURCE_DIR}/third_party/NVTX/c/include" NO_DEFAULT_PATH)
 endif()
@@ -973,6 +1086,19 @@ else()
   message(WARNING "Cannot find NVTX3, find old NVTX instead")
   add_library(torch::nvtoolsext INTERFACE IMPORTED)
   set_property(TARGET torch::nvtoolsext PROPERTY INTERFACE_LINK_LIBRARIES CUDA::nvToolsExt)
+=======
+  find_package_handle_standard_args(nvtx3 DEFAULT_MSG nvtx3_dir)
+  if(NOT nvtx3_FOUND)
+    message(WARNING "Cannot find system NVTX3, find shipped NVTX3 instead")
+  endif()
+endif()
+if(NOT TARGET CUDA::nvtx3)
+  add_library(CUDA::nvtx3 INTERFACE IMPORTED)
+endif()
+if(NOT nvtx3_dir)
+  find_path(nvtx3_dir NAMES nvtx3 PATHS "${PROJECT_SOURCE_DIR}/third_party/NVTX/c/include" NO_DEFAULT_PATH)
+  target_include_directories(CUDA::nvtx3 INTERFACE "${nvtx3_dir}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 
@@ -1013,6 +1139,10 @@ if(USE_ROCM)
     list(APPEND HIP_CXX_FLAGS -DTORCH_HIP_VERSION=${TORCH_HIP_VERSION})
     list(APPEND HIP_CXX_FLAGS -Wno-shift-count-negative)
     list(APPEND HIP_CXX_FLAGS -Wno-shift-count-overflow)
+<<<<<<< HEAD
+=======
+    list(APPEND HIP_CXX_FLAGS -Wno-duplicate-decl-specifier)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list(APPEND HIP_CXX_FLAGS -DCAFFE2_USE_MIOPEN)
     list(APPEND HIP_CXX_FLAGS -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP)
     list(APPEND HIP_CXX_FLAGS -std=c++17)
@@ -1024,9 +1154,12 @@ if(USE_ROCM)
     if(HIPBLASLT_VEC_EXT)
       list(APPEND HIP_CXX_FLAGS -DHIPBLASLT_VEC_EXT)
     endif()
+<<<<<<< HEAD
     if(USE_ROCM_CK_GEMM)
       list(APPEND HIP_CXX_FLAGS -DUSE_ROCM_CK_GEMM)
     endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list(APPEND HIP_HIPCC_FLAGS --offload-compress)
     if(WIN32)
       add_definitions(-DROCM_ON_WINDOWS)
@@ -1044,6 +1177,7 @@ if(USE_ROCM)
        list(APPEND HIP_HIPCC_FLAGS -fdebug-info-for-profiling)
     endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
+<<<<<<< HEAD
     # Get EnVar 'USE_LAYERNORM_FAST_RECIPROCAL' (or default to on).
     if(DEFINED ENV{USE_LAYERNORM_FAST_RECIPROCAL})
       set(USE_LAYERNORM_FAST_RECIPROCAL $ENV{USE_LAYERNORM_FAST_RECIPROCAL})
@@ -1053,6 +1187,22 @@ if(USE_ROCM)
 
     if(USE_LAYERNORM_FAST_RECIPROCAL)
       add_definitions(-DUSE_LAYERNORM_FAST_RECIPROCAL)
+=======
+    # Get EnVar 'PYTORCH_LAYERNORM_FAST_RECIPROCAL' (or default to on).
+    if(DEFINED ENV{PYTORCH_LAYERNORM_FAST_RECIPROCAL})
+      set(PYTORCH_LAYERNORM_FAST_RECIPROCAL_CMAKE $ENV{PYTORCH_LAYERNORM_FAST_RECIPROCAL})
+    else()
+      set(PYTORCH_LAYERNORM_FAST_RECIPROCAL_CMAKE ON)
+    endif()
+
+    set(PYTORCH_LAYERNORM_FAST_RECIPROCAL
+      ${PYTORCH_LAYERNORM_FAST_RECIPROCAL_CMAKE}
+      CACHE BOOL "Enable fast reciprocals within layer normalization." FORCE
+    )
+
+    if(PYTORCH_LAYERNORM_FAST_RECIPROCAL)
+      add_definitions(-DPYTORCH_LAYERNORM_FAST_RECIPROCAL)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     endif()
 
     # needed for compat with newer versions of hip-clang that introduced C++20 mangling rules
@@ -1136,7 +1286,11 @@ if(USE_UCC)
 endif()
 
 # ---[ CUB
+<<<<<<< HEAD
 if(USE_CUDA AND CUDA_VERSION VERSION_LESS 13.0)
+=======
+if(USE_CUDA)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   find_package(CUB)
   if(NOT CUB_FOUND)
     message(FATAL_ERROR "Cannot find CUB.")
@@ -1159,10 +1313,23 @@ if(USE_DISTRIBUTED AND USE_TENSORPIPE)
 
     # Tensorpipe uses cuda_add_library
     torch_update_find_cuda_flags()
+<<<<<<< HEAD
+=======
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
+      message(WARNING "Archived TensorPipe forces CMake compatibility mode")
+      set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/tensorpipe)
     # Suppress warning to unblock libnop compilation by clang-17
     # See https://github.com/pytorch/pytorch/issues/151316
     target_compile_options_if_supported(tensorpipe -Wno-missing-template-arg-list-after-template-kw)
+<<<<<<< HEAD
+=======
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
+      unset(CMAKE_POLICY_VERSION_MINIMUM)
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     list(APPEND Caffe2_DEPENDENCY_LIBS tensorpipe)
     list(APPEND Caffe2_DEPENDENCY_LIBS nlohmann)
@@ -1228,6 +1395,7 @@ if(USE_GLOO)
       if(NOT Gloo_FOUND)
         message(FATAL_ERROR "Cannot find gloo")
       endif()
+<<<<<<< HEAD
       message("Found gloo: ${Gloo_NATIVE_LIBRARY}, cuda lib: ${Gloo_CUDA_LIBRARY}, hip lib: ${Gloo_HIP_LIBRARY}")
       message("Found gloo include directories: ${Gloo_INCLUDE_DIRS}")
       add_library(gloo SHARED IMPORTED)
@@ -1239,6 +1407,12 @@ if(USE_GLOO)
         add_library(gloo_hip SHARED IMPORTED)
         set_target_properties(gloo_hip PROPERTIES IMPORTED_LOCATION ${Gloo_HIP_LIBRARY})
       endif()
+=======
+      message("Found gloo: ${Gloo_LIBRARY}")
+      message("Found gloo include directories: ${Gloo_INCLUDE_DIRS}")
+      add_library(gloo SHARED IMPORTED)
+      set_target_properties(gloo PROPERTIES IMPORTED_LOCATION ${Gloo_LIBRARY})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # need to use Gloo_INCLUDE_DIRS over third_party/gloo to find Gloo's auto-generated config.h
       include_directories(BEFORE SYSTEM ${Gloo_INCLUDE_DIRS})
     endif()
@@ -1551,11 +1725,14 @@ if(NOT INTERN_BUILD_MOBILE)
     if(HAVE_MALLOC_USABLE_SIZE)
       add_definitions(-DHAVE_MALLOC_USABLE_SIZE=1)
     endif(HAVE_MALLOC_USABLE_SIZE)
+<<<<<<< HEAD
     set(CMAKE_EXTRA_INCLUDE_FILES "fcntl.h")
     CHECK_FUNCTION_EXISTS(posix_fallocate HAVE_POSIX_FALLOCATE)
     if(HAVE_POSIX_FALLOCATE)
       add_definitions(-DHAVE_POSIX_FALLOCATE=1)
     endif(HAVE_POSIX_FALLOCATE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif(UNIX)
 
   add_definitions(-DUSE_EXTERNAL_MZCRC)
@@ -1567,12 +1744,15 @@ endif()
 #
 # End ATen checks
 #
+<<<<<<< HEAD
 
 # Install `fmtlib` header.
 # This was the default behavior before version 12.0.0.
 # Since PyTorch C API depends on it, make it available for projects that
 # depend on PyTorch.
 set(FMT_INSTALL ON)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 set(TEMP_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libs" FORCE)
 add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
@@ -1695,9 +1875,15 @@ if(USE_KINETO)
         set(CMAKE_REQUIRED_LINK_OPTIONS "")
         if(NOT EXCEPTIONS_WORK)
           message(FATAL_ERROR
+<<<<<<< HEAD
             "Detected that statically linking against CUPTI causes exceptions to stop working.  "
             "See https://github.com/pytorch/pytorch/issues/57744 for more details.  "
             "Perhaps try: USE_CUPTI_SO=1 CMAKE_FRESH=1 python -m pip install -e . -v --no-build-isolation")
+=======
+            "Detected that statically linking against CUPTI causes exceptions to stop working. "
+            "See https://github.com/pytorch/pytorch/issues/57744 for more details. "
+            "Perhaps try: USE_CUPTI_SO=1 CMAKE_FRESH=1 python setup.py develop")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         endif()
       endif()
 

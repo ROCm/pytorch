@@ -26,8 +26,12 @@ import torch.utils._pytree as pytree
 from torch._dynamo.utils import counters
 from torch._higher_order_ops.associative_scan import associative_scan_op
 from torch._higher_order_ops.triton_kernel_wrap import triton_kernel_wrapper_mutation
+<<<<<<< HEAD
 from torch._library.utils import get_layout_constraint_tag
 from torch._prims_common import (  # pyrefly: ignore  # deprecated
+=======
+from torch._prims_common import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     canonicalize_dim,
     canonicalize_dims,
     check,
@@ -41,6 +45,7 @@ from torch._prims_common import (  # pyrefly: ignore  # deprecated
     Number,
 )
 from torch.fx.experimental.sym_node import magic_methods, method_to_operator
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import (
     free_unbacked_symbols,
     has_free_unbacked_symbols,
@@ -54,24 +59,38 @@ from torch.utils._sympy.functions import (
     Mod,
     ModularIndexing,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
+from torch.utils._ordered_set import OrderedSet
+from torch.utils._sympy.functions import CeilDiv, FloorDiv, Identity, ModularIndexing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .._dynamo.utils import import_submodule
 from . import config, inductor_prims, ir, test_operators  # NOQA: F401
 from .decomposition import decompositions, get_decompositions
 from .ir import (
+<<<<<<< HEAD
     BaseView,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DtypeView,
     ExpandView,
     IndexingConstant,
     IRNode,
     is_triton,
+<<<<<<< HEAD
     MutableBox,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     OnlineSoftmaxReduction,
     ops_wrapper,
     PermuteView,
     Pointwise,
     Reduction,
+<<<<<<< HEAD
     ShapeAsConstantBuffer,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SqueezeView,
     TensorBox,
     validate_ir,
@@ -160,7 +179,10 @@ def group_foreach_args(arg_pairs: Iterable[Union[tuple[Any, Any], Any]]):
                 break
         assert device is not None, "foreach op should have at least one tensor arg"
         if unpack_args:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-unpacking]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (args,) = args
         out[(device, use_foreach)].append((i, args))
     return out
@@ -171,10 +193,13 @@ def maybe_layout_constraints(fn: Callable[..., Any]) -> Optional[Callable[..., A
     if not isinstance(fn, torch._ops.OpOverload):
         # Only OpOverloads have layout constraints.
         return None
+<<<<<<< HEAD
 
     if maybe_layout_tag := get_layout_constraint_tag(fn, with_default=False):
         return tag_to_layout_constraint(maybe_layout_tag)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if fn in _maybe_layout_constraints:
         return _maybe_layout_constraints[fn]
     return None
@@ -183,7 +208,11 @@ def maybe_layout_constraints(fn: Callable[..., Any]) -> Optional[Callable[..., A
 def tag_to_layout_constraint(tag):
     if tag == torch._C.Tag.needs_exact_strides:
         return constrain_to_fake_tensors
+<<<<<<< HEAD
     if tag == torch._C.Tag.needs_contiguous_strides:  # type: ignore[attr-defined]
+=======
+    if tag == torch._C.Tag.needs_contiguous_strides:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return require_contiguous_strides
     if tag == torch._C.Tag.needs_fixed_stride_order:
         return constrain_to_fx_strides
@@ -263,7 +292,10 @@ def decode_dtype(dtype: int):
     if not isinstance(dtype, int):
         return dtype
     assert dtype in DTYPE_ID_LOOKUP, f"id {dtype} missing from DTYPE_ID_LOOKUP"
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dtype = DTYPE_ID_LOOKUP[dtype]
     return dtype
 
@@ -322,6 +354,7 @@ def in_namespace(op, namespace):
     return False
 
 
+<<<<<<< HEAD
 def maybe_copy_cpu_scalar(x: TensorBox, device: torch.device) -> TensorBox:
     """
     Copy cpu scalar if doesn't not match with given `device`
@@ -342,6 +375,8 @@ def maybe_copy_cpu_scalar(x: TensorBox, device: torch.device) -> TensorBox:
     return x
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def transform_args(
     args: list[Any],
     kwargs: dict[str, Any],
@@ -349,10 +384,13 @@ def transform_args(
     type_promotion_kind: Optional[ELEMENTWISE_TYPE_PROMOTION_KIND],
     convert_input_to_bool: bool,
 ) -> tuple[list[Any], dict[str, Any]]:
+<<<<<<< HEAD
     """
     Transforms arguments for broadcasting and type promotion
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     args_indices = [i for i, x in enumerate(args) if isinstance(x, TensorBox)]
     kwargs_indices = [k for k, v in kwargs.items() if isinstance(v, TensorBox)]
     # check that there's something to transform
@@ -380,12 +418,15 @@ def transform_args(
             args[args_indices[0]] if args_indices else kwargs[kwargs_indices[0]]
         ).get_device()
 
+<<<<<<< HEAD
         for i in args_indices:
             args[i] = maybe_copy_cpu_scalar(args[i], device)
 
         for k in kwargs_indices:
             kwargs[k] = maybe_copy_cpu_scalar(kwargs[k], device)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # sometimes args are an immutable list so we can't mutate them
         def promote(arg):
             if isinstance(arg, TensorBox):
@@ -535,12 +576,25 @@ def broadcast_symbolic_shapes(a, b):
     """
     output = []
     for x, y in itertools.zip_longest(reversed(a), reversed(b), fillvalue=sympy.S.One):
+<<<<<<< HEAD
         if V.graph.sizevars.is_size_one_or_false(y):
             output.append(x)
         elif V.graph.sizevars.is_size_one_or_false(x):
             output.append(y)
         else:
             V.graph.sizevars.check_equals(x, y)
+=======
+        if V.graph.sizevars.shape_env.evaluate_expr(
+            sympy.Eq(y, 1), size_oblivious=True
+        ):
+            output.append(x)
+        elif V.graph.sizevars.shape_env.evaluate_expr(
+            sympy.Eq(x, 1), size_oblivious=True
+        ):
+            output.append(y)
+        else:
+            V.graph.sizevars.guard_equals(x, y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if len(sympy.expand(y).free_symbols) < len(sympy.expand(x).free_symbols):
                 output.append(y)  # prefer shorter formula
             else:
@@ -560,9 +614,13 @@ def promote_constants(inputs, override_return_dtype=None, type_promotion_kind=No
         return inputs
     if all(isinstance(x, (int, float, sympy.Basic)) for x in inputs):
         dtype = override_return_dtype or get_promoted_dtype(
+<<<<<<< HEAD
             *inputs,
             # pyrefly: ignore [bad-argument-type]
             type_promotion_kind=type_promotion_kind,
+=======
+            *inputs, type_promotion_kind=type_promotion_kind
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         def const_func(x):
@@ -619,9 +677,13 @@ def make_pointwise(
         inputs = promote_constants(inputs, override_return_dtype)
         if allow_alpha:
             if alpha is not None and alpha != 1:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 inputs = list(inputs)
                 # pyrefly: ignore [unsupported-operation]
+=======
+                inputs = list(inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inputs[-1] = mul(inputs[-1], alpha)
         else:
             assert alpha is None
@@ -643,8 +705,13 @@ def make_pointwise(
             and getattr(V.graph, "current_node", None) is not None
             and V.graph.current_node.meta is not None
             and V.graph.current_node.meta.get("low_precision_pointwise_barrier", False)
+<<<<<<< HEAD
         )
         emulate_output_cast = emulate_precision_casts and dtype in low_pr_fp
+=======
+            and dtype in low_pr_fp
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def inner_fn(index):
             assert len(index) == len(ranges), f"wrong ndim {index} {ranges}"
@@ -661,7 +728,11 @@ def make_pointwise(
                     inputs_loaded.append(out)
 
                 out = fn(*inputs_loaded)
+<<<<<<< HEAD
                 if emulate_output_cast:
+=======
+                if emulate_precision_casts:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # fp16/bf16 kernels are computed in fp32. Casting down to fp16/bf16 here,
                     # then upcasting again, to emulate casts that eager would do.
                     downcast = ops.to_dtype(out, dtype, use_compute_types=False)
@@ -671,14 +742,20 @@ def make_pointwise(
         if not override_device:
             device = None
             for i in inputs:
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if is_gpu(i.get_device().type):
                     device = i.get_device()
                     break
             if not device:
                 device = inputs[0].get_device()
 
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device = override_device or device
 
         return Pointwise.create(
@@ -733,7 +810,10 @@ def make_foreach_pointwise(pw_fn, allow_alpha=False):
                 outputs[output_ind] = output
 
                 if (
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     V.graph.has_feature(device, BackendFeature.FOREACH)
                     and use_foreach
                     and realize_outputs
@@ -742,7 +822,10 @@ def make_foreach_pointwise(pw_fn, allow_alpha=False):
                     operation_list.append(output.get_operation_name())
 
             if operation_list:
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 V.graph.register_operation_list(operation_list)
 
         assert all(x is not None for x in outputs)
@@ -751,9 +834,13 @@ def make_foreach_pointwise(pw_fn, allow_alpha=False):
     return inner
 
 
+<<<<<<< HEAD
 def to_dtype(
     x: Union[TensorBox, ShapeAsConstantBuffer], dtype: torch.dtype, copy: bool = False
 ):
+=======
+def to_dtype(x: TensorBox, dtype: torch.dtype, copy=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     src_dtype = x.get_dtype()
     if src_dtype == dtype:
         return clone(x) if copy else x
@@ -990,10 +1077,32 @@ def broadcast_tensors(*inputs):
     outputs = []
     for x in inputs:
         sizes = x.get_size()
+<<<<<<< HEAD
 
         if len(sizes) != len(target) or any(
             V.graph.sizevars.is_size_one_or_false(a)
             != V.graph.sizevars.is_size_one_or_false(b)
+=======
+        if len(sizes) != len(target) or any(
+            (
+                (
+                    V.graph.sizevars.shape_env.evaluate_expr(
+                        sympy.Eq(a, 1), size_oblivious=True
+                    )
+                    and not V.graph.sizevars.shape_env.evaluate_expr(
+                        sympy.Eq(b, 1), size_oblivious=True
+                    )
+                )
+                or (
+                    not V.graph.sizevars.shape_env.evaluate_expr(
+                        sympy.Eq(a, 1), size_oblivious=True
+                    )
+                    and V.graph.sizevars.shape_env.evaluate_expr(
+                        sympy.Eq(b, 1), size_oblivious=True
+                    )
+                )
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for a, b in zip(sizes, target)
         ):
             x = expand(x, target)
@@ -1017,16 +1126,29 @@ def squeeze(x, dim=None):
         return TensorBox(SqueezeView.create(x.data))
 
     dim = (
+<<<<<<< HEAD
         V.graph.sizevars.guard_int(dim)
         if isinstance(dim, (int, sympy.Expr))
         else tuple(V.graph.sizevars.guard_int(d) for d in dim)
+=======
+        V.graph.sizevars.evaluate_static_shape(dim)
+        if isinstance(dim, (int, sympy.Expr))
+        else tuple(V.graph.sizevars.evaluate_static_shape(d) for d in dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     dim = canonicalize_dims(len(x.get_size()), dim)  # type: ignore[call-overload]
     dims = OrderedSet((dim,) if not isinstance(dim, tuple) else dim)
 
     new_shape = []
     for d, s in enumerate(x.get_size()):
+<<<<<<< HEAD
         if not (d in dims and V.graph.sizevars.guard_or_false(sympy.Eq(s, 1))):
+=======
+        if not (
+            d in dims
+            and V.graph.sizevars.evaluate_expr(sympy.Eq(s, 1), size_oblivious=True)
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_shape.append(s)
 
     # squeeze does nothing if the size isn't 1
@@ -1198,7 +1320,13 @@ def repeat(x, repeats):
 @register_lowering(aten._unsafe_view, type_promotion_kind=None)
 @register_lowering(aten.view, type_promotion_kind=None)
 @register_lowering(aten.reshape, type_promotion_kind=None)
+<<<<<<< HEAD
 def view(x: TensorBox, sizes: Sequence[sympy.Expr]) -> TensorBox:
+=======
+def view(x, sizes):
+    assert isinstance(x, TensorBox)
+    assert isinstance(sizes, (list, tuple))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return TensorBox(View.create(x.data, sizes))
 
 
@@ -1211,6 +1339,7 @@ def permute(x, dims):
 
 @register_lowering(aten.slice, type_promotion_kind=None)
 def slice_(x, dim=0, start=0, end=2**63, step=1, clamp=True):
+<<<<<<< HEAD
     """
     Lowers a slice call, creating ExternKernels for the output size & storage offset symbols,
     if the indices are unbacked and appropriate semantics aren't known.
@@ -1325,10 +1454,16 @@ def slice_(x, dim=0, start=0, end=2**63, step=1, clamp=True):
     new_sizes[dim] = new_size
     new_strides[dim] *= step
     return as_strided(x, new_sizes, new_strides, new_storage_offset)
+=======
+    assert isinstance(x, TensorBox)
+    dim = _validate_dim(x, dim, 0)
+    return TensorBox(ir.SliceView.create(x.data, dim, start, end, step, clamp=clamp))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_lowering(aten.as_strided, type_promotion_kind=None)
 def as_strided(x, size, stride, storage_offset=None):
+<<<<<<< HEAD
     new_device = None
     new_dtype = None
     if isinstance(x, TensorBox) and isinstance(x.data, ir.BaseView):
@@ -1341,14 +1476,23 @@ def as_strided(x, size, stride, storage_offset=None):
         # to have a cross-device view today.
         new_device = x.get_device()
         new_dtype = x.dtype
+=======
+    if isinstance(x, TensorBox) and isinstance(x.data, ir.BaseView):
+        # as_strided ignores views
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = x.data.unwrap_view()
     x.realize()
     if not ir.is_storage_and_layout(x):
         raise NotImplementedError(f"unrealized as_strided({x}, ...)")
     storage, old_layout = ir.as_storage_and_layout(x)
     new_layout = ir.FixedLayout(
+<<<<<<< HEAD
         new_device if new_device else old_layout.device,
         new_dtype if new_dtype else old_layout.dtype,
+=======
+        old_layout.device,
+        old_layout.dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [sympy.expand(s) for s in size],
         [sympy.expand(s) for s in stride],
         sympy.expand(storage_offset or 0),
@@ -1447,7 +1591,11 @@ def quantized_decomposed_quantize_per_channel(
     quant_min: int,
     quant_max: int,
     dtype: torch.dtype,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert len(scales.get_size()) == 1, "expect scales 1 dim"
     assert len(zero_points.get_size()) == 1, "expect zero_points 1 dim"
 
@@ -1489,6 +1637,7 @@ def quantized_decomposed_quantize_per_channel(
     )
 
 
+<<<<<<< HEAD
 def _assert_async(cond, msg):
     cond.realize()
     cond = to_dtype(cond, torch.bool)
@@ -1517,6 +1666,8 @@ def lower_assert_functional_async(cond, msg):
     return _assert_async(cond, msg)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_lowering(
     quantized_decomposed.dequantize_per_channel, type_promotion_kind=None
 )
@@ -1530,7 +1681,11 @@ def quantized_decomposed_dequantize_per_channel(
     dtype: torch.dtype,
     *,
     out_dtype: Optional[torch.dtype] = None,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert len(scales.get_size()) == 1, "expect scales 1 dim"
     assert len(zero_points.get_size()) == 1, "expect zero_points 1 dim"
     assert input.get_dtype() == dtype, (
@@ -1580,7 +1735,11 @@ def quantized_decomposed_quantize_per_tensor_default(
     quant_min: int,
     quant_max: int,
     dtype: torch.dtype,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if input.get_dtype() == torch.bfloat16:
         input = to_dtype(input, torch.float32)
     assert input.get_dtype() == torch.float32, (
@@ -1621,7 +1780,11 @@ def quantized_decomposed_dequantize_per_tensor_default(
     dtype: torch.dtype,
     *,
     out_dtype: Optional[torch.dtype] = None,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert input.get_dtype() == dtype, (
         f"Expecting input to have dtype {dtype}, but got dtype: {input.get_dtype()}"
     )
@@ -1658,7 +1821,11 @@ def quantized_decomposed_quantize_per_tensor_tensor(
     quant_min: int,
     quant_max: int,
     dtype: torch.dtype,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if input.get_dtype() == torch.bfloat16:
         input = to_dtype(input, torch.float32)
     assert input.get_dtype() == torch.float32, (
@@ -1708,7 +1875,11 @@ def quantized_decomposed_dequantize_per_tensor_tensor(
     dtype: torch.dtype,
     *,
     out_dtype: Optional[torch.dtype] = None,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert len(scale.get_size()) == 0 or (
         len(scale.get_size()) == 1 and scale.get_size()[0] == 1
     ), "expect scale as scalar tensor"
@@ -1941,6 +2112,7 @@ def diagonal_scatter(input, src, offset: int = 0, dim1: int = 0, dim2: int = 1):
 
 @register_lowering(aten.select, type_promotion_kind=None)
 def select(x, dim, idx):
+<<<<<<< HEAD
     idx = sympy.expand(idx)
     size = sympy.expand(x.get_size()[dim])
     actual_index = None
@@ -2002,6 +2174,10 @@ def select(x, dim, idx):
     del new_size[dim]
     del new_stride[dim]
     return as_strided(x, new_size, new_stride, new_storage_offset)
+=======
+    idx = View.handle_negative_index(idx, x.get_size()[dim])
+    return squeeze(slice_(x, dim, idx, idx + 1), dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_lowering(aten.split, type_promotion_kind=None)
@@ -2013,7 +2189,13 @@ def split(x, sizes, dim=0):
     # by computing what the actual size of each chunk should be.
     if not isinstance(sizes, (list, tuple)):
         x_size = x.get_size()[dim]
+<<<<<<< HEAD
         chunks = V.graph.sizevars.guard_int(FloorDiv(x_size + sizes - 1, sizes))
+=======
+        chunks = V.graph.sizevars.evaluate_static_shape(
+            FloorDiv(x_size + sizes - 1, sizes)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sizes_ = [sizes] * chunks
         # The last chunk might have a smaller size than the rest.
         sizes_[-1] = x_size - (chunks - 1) * sizes
@@ -2039,7 +2221,11 @@ def split_with_sizes(x, sizes, dim=0):
 @register_lowering(aten.unbind, type_promotion_kind=None)
 def unbind(x, dim=0):
     dim = _validate_dim(x, dim, 0)
+<<<<<<< HEAD
     x_size = V.graph.sizevars.guard_int(x.get_size()[dim])
+=======
+    x_size = V.graph.sizevars.evaluate_static_shape(x.get_size()[dim])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     result = [select(x, dim, i) for i in range(x_size)]
     return result
 
@@ -2051,12 +2237,21 @@ def unfold(x, dimension, size, step):
     dim = canonicalize_dim(ndim, dimension)
 
     if ndim == 0:
+<<<<<<< HEAD
         return slice_(unsqueeze(x, 0), end=size, clamp=False)
 
     dim_size = sizes[dim]
     sizevars = V.graph.sizevars
     sizevars.check_leq(size, dim_size)
     sizevars.check_lt(0, step)  # type: ignore[arg-type]
+=======
+        return slice_(unsqueeze(x, 0), end=size)
+
+    dim_size = sizes[dim]
+    sizevars = V.graph.sizevars
+    sizevars.guard_leq(size, dim_size)
+    sizevars.guard_lt(0, step)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     new_dim_size = FloorDiv(dim_size - size, step) + 1
     if sizevars.size_hint_or_throw(dim_size) > 0:
@@ -2103,10 +2298,16 @@ def _validate_dim(x, dim, offset=0):
 def glu(x, dim=-1):
     dim = _validate_dim(x, dim, 0)
     # TODO: don't guard on static shape here
+<<<<<<< HEAD
     new_len = V.graph.sizevars.guard_int(x.get_size()[dim]) // 2
     # no need to clamp, index is int based on input size
     a = slice_(x, dim, 0, new_len, clamp=False)
     b = slice_(x, dim, new_len, new_len * 2, clamp=False)
+=======
+    new_len = V.graph.sizevars.evaluate_static_shape(x.get_size()[dim]) // 2
+    a = slice_(x, dim, 0, new_len)
+    b = slice_(x, dim, new_len, new_len * 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return mul(a, sigmoid(b))
 
 
@@ -2147,9 +2348,12 @@ def unsupported_input_tensor(t: torch.Tensor, node=None):
     if t.is_meta:
         return True
 
+<<<<<<< HEAD
     if t.is_sparse:
         return True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if t.dtype == torch.float8_e8m0fnu:
         if not node:
             return True
@@ -2384,7 +2588,11 @@ make_fallback(aten.randint)
 
 @register_lowering(aten.rand)
 def rand(*args, **kwargs):
+<<<<<<< HEAD
     if kwargs.get("generator") is not None:
+=======
+    if kwargs.get("generator", None) is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fallback_rand_generator(*args, **kwargs)
     elif config.fallback_random:
         kwargs.pop("generator", None)
@@ -2394,7 +2602,11 @@ def rand(*args, **kwargs):
 
 @register_lowering(aten.randn)
 def randn(*args, **kwargs):
+<<<<<<< HEAD
     if kwargs.get("generator") is not None:
+=======
+    if kwargs.get("generator", None) is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fallback_randn_generator(*args, **kwargs)
     elif config.fallback_random:
         kwargs.pop("generator", None)
@@ -2511,7 +2723,11 @@ def searchsorted(
     right: bool = False,
     side: Optional[str] = None,
     sorter: Optional[TensorBox] = None,
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     validate_bucketize = lambda tb: V.graph.has_feature(  # noqa: E731
         tb, BackendFeature.BUCKETIZE
     )
@@ -2746,8 +2962,13 @@ def sdpa_constraint(fx_node, *args, **kwargs):
         meta_stride_expr = [
             s.node.expr if isinstance(s, torch.SymInt) else s for s in meta_val.stride()
         ]
+<<<<<<< HEAD
         shape_env = V.graph.sizevars.shape_env
         stride_order = ir.get_stride_order(meta_val.stride(), shape_env)
+=======
+
+        stride_order = ir.get_stride_order(meta_val.stride())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if stride_order and stride_order[-1] != 0:
             # contiguous stride order
@@ -2783,8 +3004,12 @@ def sdpa_constraint(fx_node, *args, **kwargs):
         if len(arg.get_size()) not in (3, 4):
             return arg
 
+<<<<<<< HEAD
         is_aligned_tensor = ir.is_aligned_realized_tensor(arg, ALIGNMENT)
         if is_aligned_tensor:
+=======
+        if ir.is_aligned_realized_tensor(arg, ALIGNMENT):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ir.try_match_insignificant_strides(
                 ir.ExternKernel.realize_input(arg), meta_stride_expr
             )
@@ -2792,7 +3017,11 @@ def sdpa_constraint(fx_node, *args, **kwargs):
         if (
             isinstance(arg, IRNode)
             and arg.maybe_get_stride() is not None
+<<<<<<< HEAD
             and is_aligned_tensor
+=======
+            and ir.is_aligned_realized_tensor(arg, ALIGNMENT)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return ir.try_match_insignificant_strides(
                 ir.ExternKernel.realize_input(arg), meta_stride_expr
@@ -2836,7 +3065,11 @@ def sdpa_constraint(fx_node, *args, **kwargs):
 
             return ir.ExternKernel.require_exact_strides(arg, out_strides)
 
+<<<<<<< HEAD
         if is_aligned_tensor:
+=======
+        if ir.is_aligned_realized_tensor(arg, ALIGNMENT):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ir.try_match_insignificant_strides(
                 ir.ExternKernel.realize_input(arg), meta_stride_expr
             )
@@ -2844,16 +3077,24 @@ def sdpa_constraint(fx_node, *args, **kwargs):
         if (
             isinstance(arg, IRNode)
             and arg.maybe_get_stride() is not None
+<<<<<<< HEAD
             and is_aligned_tensor
+=======
+            and ir.is_aligned_realized_tensor(arg, ALIGNMENT)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return ir.try_match_insignificant_strides(
                 ir.ExternKernel.realize_input(arg), meta_stride_expr
             )
 
         def is_aligned(x):
+<<<<<<< HEAD
             return V.graph.sizevars.guard_or_false(
                 sympy.Eq(Mod(x.get_size()[-1], ALIGNMENT), 0)
             )
+=======
+            return (V.graph.sizevars.size_hint(x.get_size()[-1]) % ALIGNMENT) == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(arg.data, ir.BaseView):
             if not is_aligned(arg):
@@ -2945,7 +3186,11 @@ make_fallback(aten.replication_pad2d_backward)
 make_fallback(aten.upsample_linear1d_backward)
 make_fallback(aten.upsample_bicubic2d_backward, require_contiguous)
 make_fallback(aten.upsample_trilinear3d_backward)
+<<<<<<< HEAD
 make_fallback(aten.grid_sampler_2d_backward)
+=======
+make_fallback(aten.grid_sampler_2d_backward, require_dense)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 make_fallback(aten._pdist_backward)
 
 
@@ -3080,13 +3325,17 @@ make_fallback(aten._efficient_attention_backward.default, sdpa_constraint)
 
 # index_reduce requires fallback when use_scatter_fallback(...) returns True
 make_fallback(aten.index_reduce)
+<<<<<<< HEAD
 make_fallback(aten.repeat_interleave.Tensor, override_decomp=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Register with type_promotion_kind None.
 # For example, fp16.copy_(fp32) should **not** promote the first input's dtype.
 @register_lowering(aten.copy, type_promotion_kind=None)
 def copy(self, src, non_blocking=False):
+<<<<<<< HEAD
     if not isinstance(src, ir.IRNode):
         src = tensor(src, dtype=self.get_dtype(), device=self.get_device())
     x = src
@@ -3095,6 +3344,12 @@ def copy(self, src, non_blocking=False):
         x = to_device(x, self.get_device())
     if self.get_dtype() != src.get_dtype():
         # pyrefly: ignore [bad-argument-type]
+=======
+    x = src
+    if self.get_device() != src.get_device():
+        x = to_device(x, self.get_device())
+    if self.get_dtype() != src.get_dtype():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = to_dtype(x, self.get_dtype())
 
     if self.get_size() != src.get_size():
@@ -3118,7 +3373,10 @@ def clone_preserve_reinterpret_view(x):
     reinterpret_view_layouts = []
     if isinstance(x, TensorBox) and isinstance(x.data, ir.ReinterpretView):
         x = x.data  # unwrap TensorBox
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while isinstance(x, ir.ReinterpretView):
             reinterpret_view_layouts.append(x.get_layout())
             x = x.data
@@ -3165,6 +3423,7 @@ def select_scatter(x, src, dim: int, index: int):
     assert x.get_dtype() == src.get_dtype()
     x_loader = x.make_loader()
     dim = _validate_dim(x, dim, 0)
+<<<<<<< HEAD
     if V.graph.sizevars.guard_or_false(sympy.Lt(index, 0)):
         index = index + x.get_size()[dim]
     elif V.graph.sizevars.guard_or_false(sympy.Ge(index, 0)):
@@ -3175,6 +3434,12 @@ def select_scatter(x, src, dim: int, index: int):
 
     V.graph.sizevars.check_leq(0, index)  # type: ignore[arg-type]
     V.graph.sizevars.check_lt(index, x.get_size()[dim])  # type: ignore[arg-type]
+=======
+    if V.graph.sizevars.evaluate_expr(sympy.Lt(index, 0)):
+        index = index + x.get_size()[dim]
+    V.graph.sizevars.guard_leq(0, index)  # type: ignore[arg-type]
+    V.graph.sizevars.guard_lt(index, x.get_size()[dim])  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     src = expand(unsqueeze(src, dim), x.get_size())
     src_loader = src.make_loader()
 
@@ -3198,12 +3463,19 @@ def select_scatter(x, src, dim: int, index: int):
 
 @register_lowering(aten.slice_scatter, type_promotion_kind=None)
 def slice_scatter(x, src, dim=0, start=None, end=None, step=1):
+<<<<<<< HEAD
     src = to_dtype(src, x.get_dtype())
+=======
+    assert x.get_dtype() == src.get_dtype()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     x_loader = x.make_loader()
     dim = _validate_dim(x, dim, 0)
     dim_size = x.get_size()[dim]
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     start, end = ir.SliceView.normalize_start_end(x, dim, start, end)
 
     src_size = list(x.get_size())
@@ -3346,6 +3618,11 @@ def long_tensor(data):
 
 @register_lowering(aten._local_scalar_dense)
 def _local_scalar_dense(data):
+<<<<<<< HEAD
+=======
+    from torch.fx.experimental.symbolic_shapes import resolve_unbacked_bindings
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This is interesting!  Most lowerings return tensors, so you can just
     # return the buffer you allocated and it will get used (or not used, if
     # it's dead.)  But _local_scalar_dense (aka item) returns an int,
@@ -3436,6 +3713,10 @@ def _full(fill_value, device, dtype, size):
     )
 
 
+<<<<<<< HEAD
+=======
+@register_lowering(aten.full_like, type_promotion_kind=None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def full_like(x, fill_value, **kwargs):
     return create_tensor_like(tensor_constructor(fill_value))(x, **kwargs)
 
@@ -3526,7 +3807,10 @@ def new_constant(fill_value):
         assert isinstance(size, (list, tuple))
         assert_nyi(not pin_memory, "pin_memory")
         assert_nyi(layout in (None, torch.strided), f"layout={layout}")
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype = decode_dtype(dtype) or x.get_dtype()
         device = device or x.get_device()
         size = [sympy.Integer(s) for s in size]
@@ -3559,7 +3843,10 @@ def empty_strided(
     assert isinstance(stride, (list, tuple, type(None)))
     assert_nyi(not pin_memory, "pin_memory")
     assert_nyi(layout in (None, torch.strided), f"layout={layout}")
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dtype = decode_dtype(dtype) or torch.get_default_dtype()
     device = device or torch.tensor(0.0).device
     device = decode_device(device)
@@ -3731,7 +4018,11 @@ def index_output_size_and_inner_fn(
     # Then, a[:,x,:,x,:] will have shape 2,3,5,7 as due to x,:,x then 2 will
     # be pulled to the front.
     non_consecutive_tensors = False
+<<<<<<< HEAD
     for previous, current in itertools.pairwise(tensor_indices):
+=======
+    for previous, current in zip(tensor_indices, tensor_indices[1:]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if current - previous != 1:
             non_consecutive_tensors = True
 
@@ -3881,8 +4172,12 @@ def index_put_as_masked_fill(self, indices, value, accumulate):
 
 
 def index_put_fallback(self, indices, values, accumulate):
+<<<<<<< HEAD
     op_overload = getattr(aten.index_put_, V.graph.current_node.target._overloadname)  # type: ignore[union-attr]
     ir.IndexPutFallback(op_overload, self, indices, values, accumulate)
+=======
+    ir.IndexPutFallback(V.graph.current_node.target, self, indices, values, accumulate)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return self
 
 
@@ -4005,10 +4300,15 @@ def index_put_impl_(self, indices, values, accumulate, check, may_realize=False)
     values = expand(values, expected_vals_size)
     # all guards are set above during broadcast_tensors and expand
 
+<<<<<<< HEAD
     device = self.get_device()
     assert device is not None
     scatter = ir.Scatter(
         device=device,
+=======
+    scatter = ir.Scatter(
+        device=self.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype=self.get_dtype(),
         inner_fn=values.make_loader(),
         ranges=expected_vals_size,  # iter_ranges,
@@ -4218,7 +4518,10 @@ def scatter_reduce_(self, dim: int, index, src, reduce, *, include_self: bool = 
             return src_loader(idx)
         else:
             # src is a scalar
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ops.constant(src, self.get_dtype())
 
     def backend_reduce_str(reduce):
@@ -4229,6 +4532,7 @@ def scatter_reduce_(self, dim: int, index, src, reduce, *, include_self: bool = 
             assert reduce is None
             return None
 
+<<<<<<< HEAD
     device = self.get_device()
     assert device is not None
 
@@ -4236,6 +4540,12 @@ def scatter_reduce_(self, dim: int, index, src, reduce, *, include_self: bool = 
         # zero out the corresponding elements first
         zero_out = ir.Scatter(
             device=device,
+=======
+    if not include_self:
+        # zero out the corresponding elements first
+        zero_out = ir.Scatter(
+            device=self.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dtype=self.get_dtype(),
             inner_fn=lambda index: ops.constant(0, self.get_dtype()),
             ranges=index.get_size(),
@@ -4254,7 +4564,11 @@ def scatter_reduce_(self, dim: int, index, src, reduce, *, include_self: bool = 
     # self[i][index[i][j][k]][k] += src[i][j][k]  # if dim == 1
     # self[i][j][index[i][j][k]] += src[i][j][k]  # if dim == 2
     scatter = ir.Scatter(
+<<<<<<< HEAD
         device=device,
+=======
+        device=self.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype=self.get_dtype(),
         inner_fn=fn,
         ranges=index.get_size(),
@@ -4285,7 +4599,11 @@ def upsample_nearestnd(
     x_loader = x.make_loader()
     i_sizes = x.get_size()[-n:]
     batch = x.get_size()[:-n]
+<<<<<<< HEAD
     i_sizes = [V.graph.sizevars.guard_int(i) for i in i_sizes]
+=======
+    i_sizes = [V.graph.sizevars.evaluate_static_shape(i) for i in i_sizes]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert len(scales_x) == n
     o_sizes = output_size
@@ -4483,7 +4801,11 @@ def inplace_constant_pad_nd(
         layout.offset,
     )
 
+<<<<<<< HEAD
     sliced_x = slice_(resized_x, dim=1, start=rowsize, end=rowsize + npad, clamp=False)
+=======
+    sliced_x = slice_(resized_x, dim=1, start=rowsize, end=rowsize + npad)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fill_(sliced_x, fill_value)
 
     counters["inductor"]["inplace_padding"] += 1
@@ -4572,7 +4894,10 @@ def constant_boundary_condition(
 ):
     h = x.get_size()[-dim:]
     x_loader = x.make_loader()
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     padding_h = padding or [0] * dim
 
     def load(index):
@@ -4581,7 +4906,10 @@ def constant_boundary_condition(
 
         mask = functools.reduce(
             ops.and_,
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [range_mask(ih[i], h[i] + padding_h[i], -padding_h[i]) for i in range(dim)],
         )
         return (
@@ -4619,10 +4947,17 @@ def pooling_size(x, i, kernel_size, stride, padding, ceil_mode, *, dilation=None
         if V.graph.sizevars.size_hint((x_alt - 1) * stride[i] - x - padding[i]) >= 0:
             # Sliding windows must start within the input or left padding
             x_alt -= 1  # type: ignore[assignment]
+<<<<<<< HEAD
             V.graph.sizevars.check_leq(0, x_alt * stride[i] - x - padding[i])  # type: ignore[arg-type]
         if V.graph.sizevars.size_hint(x_out - x_alt) == 0:
             # ceil mode is actually a no-op, lets guard on that
             V.graph.sizevars.check_equals(x_out, x_alt)
+=======
+            V.graph.sizevars.guard_leq(0, x_alt * stride[i] - x - padding[i])  # type: ignore[arg-type]
+        if V.graph.sizevars.size_hint(x_out - x_alt) == 0:
+            # ceil mode is actually a no-op, lets guard on that
+            V.graph.sizevars.guard_equals(x_out, x_alt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ceil_mode = False
         else:
             x_out = x_alt
@@ -4729,10 +5064,17 @@ def _max_pool_with_offsets(
         ranges=new_size,
         reduction_ranges=kernel_size,
     )
+<<<<<<< HEAD
     if isinstance(result.data.data, Reduction):  # type: ignore[attr-defined, union-attr]
         # Only realize if reduction isn't unrolled
         result.realize()
     if isinstance(offsets.data.data, Reduction):  # type: ignore[attr-defined, union-attr]
+=======
+    if isinstance(result.data.data, Reduction):  # type: ignore[attr-defined]
+        # Only realize if reduction isn't unrolled
+        result.realize()
+    if isinstance(offsets.data.data, Reduction):  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Only realize if reduction isn't unrolled
         offsets.realize()
 
@@ -4782,7 +5124,11 @@ def _pool_offsets_to_indices(
         [Sequence[Union[int, torch.SymInt]], Sequence[Union[int, torch.SymInt]]],
         torch._inductor.virtualized.OpsValue,
     ],
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     n_dim = len(kernel_size)
     offsets_loader = offsets.make_loader()
     window_size = sympy.sympify(functools.reduce(operator.mul, kernel_size))
@@ -4915,12 +5261,19 @@ def max_pool2d_with_indices_backward(
     x_stride: Optional[Sequence[Any]]
     if isinstance(x, TensorBox) and isinstance(x.data.data, Pointwise):  # type: ignore[attr-defined]
         data = x.data.data  # type: ignore[attr-defined]
+<<<<<<< HEAD
         device = data.get_device()
         assert device is not None
         x_buffer = ir.ComputedBuffer(
             name=None,
             layout=ir.FlexibleLayout(
                 device=device,
+=======
+        x_buffer = ir.ComputedBuffer(
+            name=None,
+            layout=ir.FlexibleLayout(
+                device=data.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype=data.get_dtype(),
                 size=data.get_size(),
             ),
@@ -4948,11 +5301,19 @@ def max_pool2d_with_indices_backward(
     new_size = list(x.get_size())
 
     h_window_size = max(
+<<<<<<< HEAD
         max(FloorDiv(h, stride[0]) - max(0, FloorDiv(h - kernel_size[0], stride[0])), 1)
         for h in range(kernel_size[0] * 2)
     )
     w_window_size = max(
         max(FloorDiv(w, stride[1]) - max(0, FloorDiv(w - kernel_size[1], stride[1])), 1)
+=======
+        max(h // stride[0] - max(0, (h - kernel_size[0]) // stride[0]), 1)
+        for h in range(kernel_size[0] * 2)
+    )
+    w_window_size = max(
+        max(w // stride[1] - max(0, (w - kernel_size[1]) // stride[1]), 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for w in range(kernel_size[1] * 2)
     )
 
@@ -5185,8 +5546,13 @@ def _adaptive_avg_pool2d(x, output_size):
 
     *batch, h_in, w_in = x.get_size()
 
+<<<<<<< HEAD
     h_in = V.graph.sizevars.guard_int(h_in)
     w_in = V.graph.sizevars.guard_int(w_in)
+=======
+    h_in = V.graph.sizevars.evaluate_static_shape(h_in)
+    w_in = V.graph.sizevars.evaluate_static_shape(w_in)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     h_out, w_out = output_size
 
@@ -5198,7 +5564,11 @@ def _adaptive_avg_pool2d(x, output_size):
         o_size = [*batch, h_out, w_out]
         return empty(o_size, dtype=x.get_dtype(), device=x.get_device())
     if h_in % h_out == 0 and w_in % w_out == 0:
+<<<<<<< HEAD
         kernel_size = [FloorDiv(h_in, h_out), FloorDiv(w_in, w_out)]
+=======
+        kernel_size = [h_in // h_out, w_in // w_out]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return avg_pool2d(x, kernel_size)
 
     h_kernel_max = ceildiv((h_in + h_out - 1), h_out)
@@ -5260,8 +5630,13 @@ def adaptive_max_pool2d(x, output_size):
 
     *batch, h_in, w_in = x.get_size()
 
+<<<<<<< HEAD
     h_in = V.graph.sizevars.guard_int(h_in)
     w_in = V.graph.sizevars.guard_int(w_in)
+=======
+    h_in = V.graph.sizevars.evaluate_static_shape(h_in)
+    w_in = V.graph.sizevars.evaluate_static_shape(w_in)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     h_out, w_out = output_size
 
@@ -5338,6 +5713,7 @@ def _fractional_pooling_offsets(samples, in_sz, out_sz, kernel_sz, dim, ndims):
     samples_loader = samples.make_loader()
 
     def load(prefix, i):
+<<<<<<< HEAD
         # Handle indexing for samples tensor correctly for different input dimensions
         # samples tensor always has shape (N, C, 2) for fractional_max_pool2d where:
         # - N=1 for 3D inputs (C,H,W), N=batch_size for 4D inputs (N,C,H,W)
@@ -5360,6 +5736,9 @@ def _fractional_pooling_offsets(samples, in_sz, out_sz, kernel_sz, dim, ndims):
         else:
             # Fallback for unexpected tensor shapes
             sample = samples_loader([*prefix, ndims - 1 - dim])
+=======
+        sample = samples_loader([*prefix, ndims - 1 - dim])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         i_expr = ops.index_expr(i, samples.get_dtype())
         diff = ops.index_expr(in_sz - kernel_sz, torch.int64)
         out_sz_expr = ops.index_expr(out_sz - 1, torch.int64)
@@ -5438,11 +5817,17 @@ def _fractional_max_pool(x, kernel_size, output_size, random_samples, n_dim):
             ranges=new_size,
             reduction_ranges=kernel_size,
         )
+<<<<<<< HEAD
         assert isinstance(result, TensorBox), result
         if isinstance(result.data.data, Reduction):  # type: ignore[attr-defined]
             # Only realize if reduction isn't unrolled
             result.realize()
         assert isinstance(offsets, TensorBox), offsets
+=======
+        if isinstance(result.data.data, Reduction):  # type: ignore[attr-defined]
+            # Only realize if reduction isn't unrolled
+            result.realize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(offsets.data.data, Reduction):  # type: ignore[attr-defined]
             # Only realize if reduction isn't unrolled
             offsets.realize()
@@ -5460,6 +5845,7 @@ def upsample_nearest2d_backward(
     x.realize_hint()
 
     *_batch, inp_h, inp_w = x.get_size()
+<<<<<<< HEAD
     inp_h = V.graph.sizevars.guard_int(inp_h)
     inp_w = V.graph.sizevars.guard_int(inp_w)
 
@@ -5470,6 +5856,15 @@ def upsample_nearest2d_backward(
         return avg_pool2d(
             x, [FloorDiv(inp_h, out_h), FloorDiv(inp_w, out_w)], divisor_override=1
         )
+=======
+    inp_h = V.graph.sizevars.evaluate_static_shape(inp_h)
+    inp_w = V.graph.sizevars.evaluate_static_shape(inp_w)
+
+    *_batch, out_h, out_w = input_size
+
+    if inp_h % out_h == 0 and inp_w % out_w == 0:
+        return avg_pool2d(x, [inp_h // out_h, inp_w // out_w], divisor_override=1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     h_kernel_max = ceildiv(inp_h, out_h)
     w_kernel_max = ceildiv(inp_w, out_w)
@@ -5496,7 +5891,10 @@ def upsample_nearest2d_backward(
         device=x.get_device(),
         dtype=x.get_dtype(),
         inner_fn=fn,
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ranges=list(input_size),
     )
 
@@ -5724,11 +6122,19 @@ def avg_pool2d_backward(
     dtype = x.get_dtype()
 
     h_window_size = max(
+<<<<<<< HEAD
         max(FloorDiv(h, stride[0]) - max(0, FloorDiv(h - kernel_size[0], stride[0])), 1)
         for h in range(kernel_size[0] * 2)
     )
     w_window_size = max(
         max(FloorDiv(w, stride[1]) - max(0, FloorDiv(w - kernel_size[1], stride[1])), 1)
+=======
+        max(h // stride[0] - max(0, (h - kernel_size[0]) // stride[0]), 1)
+        for h in range(kernel_size[0] * 2)
+    )
+    w_window_size = max(
+        max(w // stride[1] - max(0, (w - kernel_size[1]) // stride[1]), 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for w in range(kernel_size[1] * 2)
     )
 
@@ -6071,9 +6477,13 @@ def _validate_reduction_axis(x, axis):
     return axis
 
 
+<<<<<<< HEAD
 def _make_reduction_inner(
     x, *, axis, keepdims, dtype, override_return_dtype, reduction_type=None
 ):
+=======
+def _make_reduction_inner(x, *, axis, keepdims, dtype, override_return_dtype):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if dtype is not None:
         x = to_dtype(x, dtype)
     size = x.get_size()
@@ -6091,6 +6501,7 @@ def _make_reduction_inner(
             kept_idx.append(i)
             kept_sizes.append(size[i])
 
+<<<<<<< HEAD
     # For argmax/argmin compute logical indices when the tensor has non-contiguous layout.
     should_compute_logical_index = False
     if (
@@ -6108,6 +6519,8 @@ def _make_reduction_inner(
                 layout.is_transposed() or not layout.is_contiguous()
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def loader(index, reduction_index):
         assert len(reduction_index) == len(reduced_idx)
         if keepdims:
@@ -6119,6 +6532,7 @@ def _make_reduction_inner(
             zip(kept_idx, index), zip(reduced_idx, reduction_index)
         ):
             new_index[idx] = var
+<<<<<<< HEAD
         value = inner_loader(new_index)
 
         # For argmax/argmin, return tuple with logical linear index if needed
@@ -6134,6 +6548,9 @@ def _make_reduction_inner(
             return (value, ops.index_expr(linear_idx, torch.int64))
 
         return value
+=======
+        return inner_loader(new_index)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if keepdims:
         new_size = list(size)
@@ -6161,11 +6578,18 @@ def make_reduction(reduction_type: ReductionType, override_return_dtype=None):
             keepdims=keepdims,
             dtype=dtype,
             override_return_dtype=override_return_dtype,
+<<<<<<< HEAD
             reduction_type=reduction_type,
         )
         result = Reduction.create(reduction_type=reduction_type, input_node=x, **kwargs)
         if isinstance(
             result.data.data,  # type: ignore[attr-defined, attr-type, union-attr]
+=======
+        )
+        result = Reduction.create(reduction_type=reduction_type, input_node=x, **kwargs)
+        if isinstance(
+            result.data.data,  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Reduction,
         ):  # Only realize if reduction isn't unrolled
             result.realize()
@@ -6386,7 +6810,10 @@ def pow(a, b):
     if isinstance(a, Number):
         if a == 1:
             return full_like(b, 1)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if a == 2 and is_float_dtype(b.get_dtype()):
             return exp2(b)
 
@@ -6412,14 +6839,22 @@ def mutate_to(changed, val, unsafe_alias=False):
 
     if not isinstance(val, ir.StorageBox):
         # introduce a copy to handle views
+<<<<<<< HEAD
         node = Pointwise.create(
+=======
+        val = Pointwise.create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device=changed.get_device(),
             dtype=changed.get_dtype(),
             inner_fn=val.make_loader(),
             ranges=changed.get_size(),
+<<<<<<< HEAD
         )
         assert isinstance(node, (BaseView, MutableBox))
         val = node.data
+=======
+        ).data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(val, ir.StorageBox)
 
     if isinstance(changed_data, ir.StorageBox) and not (
@@ -6530,11 +6965,16 @@ def div_prim(a, b):
     if is_integral:
         return truncdiv(a, b)
 
+<<<<<<< HEAD
     # Disable CPU optimization to avoid precision issues.
     # see https://github.com/pytorch/pytorch/issues/157959
     if (divisor := get_constant_value(b)) is not None and a.get_device().type != "cpu":
         # Replace divide by constant with multiply by reciprocal
 
+=======
+    if (divisor := get_constant_value(b)) is not None:
+        # Replace divide by constant with multiply by reciprocal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if divisor.value == 0:
             reciprocal = math.copysign(float("inf"), divisor.value)
         else:
@@ -6995,7 +7435,11 @@ register_foreach_pointwise(aten._foreach_clamp_max.List, minimum)
 register_foreach_pointwise(aten._foreach_clamp_max.Scalar, minimum)
 register_foreach_pointwise(aten._foreach_reciprocal, reciprocal)
 register_foreach_pointwise(aten._foreach_sign, sign)
+<<<<<<< HEAD
 foreach_copy = register_foreach_pointwise(aten._foreach_copy, copy)
+=======
+register_foreach_pointwise(aten._foreach_copy, copy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # these are only encountered as outputs of the graph
@@ -7034,9 +7478,12 @@ register_foreach_inplace(
 register_foreach_inplace(
     aten._foreach_div_.Scalar, aten._foreach_div.Scalar, foreach_div_scalar
 )
+<<<<<<< HEAD
 register_foreach_inplace(
     aten._foreach_copy_.default, aten._foreach_copy.default, foreach_copy
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def register_inplace(aten_op, outplace_op):
@@ -7099,9 +7546,13 @@ def sym_size(a, dim):
     # int, but you KNOW that int must always be a constant,
     # then you do not need trace that call at all (and just
     # constant propagate the integer as is.)
+<<<<<<< HEAD
     assert isinstance(val, torch.SymInt), (
         f"Expect val to be torch.SymInt but got val={val}"
     )
+=======
+    assert isinstance(val, torch.SymInt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return val.node.expr
 
 
@@ -7109,9 +7560,13 @@ def sym_size(a, dim):
 def sym_stride(a, dim):
     val = V.graph.current_node.meta["val"]
     # See Note [Can val be an int?]
+<<<<<<< HEAD
     assert isinstance(val, torch.SymInt), (
         f"Expect val to be torch.SymInt but got val={val}"
     )
+=======
+    assert isinstance(val, torch.SymInt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return val.node.expr
 
 
@@ -7194,6 +7649,7 @@ def resize(x, size, *, memory_format=None):
         and torch.utils.deterministic.fill_uninitialized_memory  # type: ignore[attr-defined]
     ):
         if is_float_dtype(dtype):
+<<<<<<< HEAD
             uninitialized_val = float("nan")
         elif is_integer_dtype(dtype):
             uninitialized_val = torch.iinfo(dtype).max
@@ -7205,6 +7661,19 @@ def resize(x, size, *, memory_format=None):
 
     if V.graph.sizevars.statically_known_equals(old_numel, 0):  # type: ignore[arg-type]
         return full(size, uninitialized_val, dtype=dtype, device=device)
+=======
+            uninitalized_val = float("nan")
+        elif is_integer_dtype(dtype):
+            uninitalized_val = torch.iinfo(dtype).max
+        else:
+            uninitalized_val = True
+    else:
+        # using zero as that is what empty does
+        uninitalized_val = 0.0
+
+    if V.graph.sizevars.statically_known_equals(old_numel, 0):  # type: ignore[arg-type]
+        return full(size, uninitalized_val, dtype=dtype, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     x_flat = as_strided(
         x,
@@ -7224,7 +7693,11 @@ def resize(x, size, *, memory_format=None):
         flat_index_expr = ops.index_expr(flat_index, torch.int64)
         limit = ops.index_expr(old_numel, torch.int64)
         mask = ops.lt(flat_index_expr, limit)
+<<<<<<< HEAD
         return ops.masked(mask, lambda: flat_loader([flat_index]), uninitialized_val)
+=======
+        return ops.masked(mask, lambda: flat_loader([flat_index]), uninitalized_val)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     out = Pointwise.create(
         device=device, dtype=dtype, inner_fn=inner_fn, ranges=list(size)
@@ -7272,7 +7745,11 @@ def cond(pred, true_fn, false_fn, operands):
 
 
 @register_lowering(torch.ops.higher_order.while_loop, type_promotion_kind=None)
+<<<<<<< HEAD
 def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs, stack_output=False):
+=======
+def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if any(
         isinstance(x, IRNode) and is_triton(x)
         for x in carried_inputs + additional_inputs
@@ -7282,6 +7759,7 @@ def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs, stack_output
             msg = f"{msg} Found from : \n {stack_trace}"
         V.graph.disable_cudagraphs_reason = msg
 
+<<<<<<< HEAD
     result = ir.WhileLoop.create(
         cond_fn, body_fn, carried_inputs, additional_inputs, stack_output
     )
@@ -7292,11 +7770,26 @@ def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs, stack_output
 register_lowering(
     torch.ops.higher_order.while_loop_stack_output, type_promotion_kind=None
 )(functools.partial(while_loop, stack_output=True))
+=======
+    def _map_output(out: Any):
+        if isinstance(out, TensorBox):
+            return out
+        elif isinstance(out, ir.StorageBox):
+            return TensorBox(out)
+        elif isinstance(out, ir.MultiOutput):
+            return TensorBox.create(out)
+        else:
+            raise RuntimeError(f"NYI unsupported output type: {type(out)}")
+
+    result = ir.WhileLoop.create(cond_fn, body_fn, carried_inputs, additional_inputs)
+    return list(map(_map_output, result))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_lowering(torch.ops.higher_order.invoke_subgraph, type_promotion_kind=None)
 def invoke_subgraph(subgraph_fn: ir.Subgraph, identifier: str, *operands):
     result = ir.InvokeSubgraph.create(subgraph_fn, *operands)
+<<<<<<< HEAD
     return list(map(TensorBox.create, result))  # type: ignore[call-overload]
 
 
@@ -7359,6 +7852,9 @@ def control_deps_op_lowering(additional_deps, subgraph_fn, *args):
             V.graph.additional_buffer_deps[op_name].add(dep_name)
 
     return output
+=======
+    return list(map(TensorBox.create, result))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_lowering(torch._higher_order_ops.invoke_quant, type_promotion_kind=None)
@@ -7476,8 +7972,14 @@ def prepare_softmax_online(x, dim):
         reduction_numel=rnumel,
     )
 
+<<<<<<< HEAD
     if num_split == 1 and V.graph.sizevars.statically_known_geq(
         rnumel, config.unroll_reductions_threshold
+=======
+    if (
+        num_split == 1
+        and V.graph.sizevars.size_hint(rnumel) >= config.unroll_reductions_threshold
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         max_tensor, sum_tensor = OnlineSoftmaxReduction.create(
             input_node=x, num_output=2, reduction_hint=hint, **kwargs

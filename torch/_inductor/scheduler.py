@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import collections
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import dataclasses
 import functools
 import inspect
@@ -16,6 +19,7 @@ import traceback
 import typing
 from collections import Counter, defaultdict
 from typing import Any, Callable, Generic, Optional, TYPE_CHECKING, TypeVar, Union
+<<<<<<< HEAD
 from typing_extensions import ParamSpec, TypeAlias
 
 from torch.utils._ordered_set import OrderedSet
@@ -27,10 +31,19 @@ if TYPE_CHECKING:
 
 import weakref
 
+=======
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from types import ModuleType
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sympy
 
 import torch
 import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
 from torch._dynamo.utils import counters, dynamo_timed
 from torch._inductor.codecache import LambdaFuture, PyCodeCache
@@ -52,6 +65,24 @@ from .exc import GPUTooOldForTriton, TritonMissing
 from .fx_utils import count_flops_fx
 from .ir import (
     assign_origin_node,
+=======
+from torch._dynamo.utils import counters, dynamo_timed
+from torch._inductor.codecache import LambdaFuture, PyCodeCache
+from torch._inductor.metrics import get_metric_table, is_metric_table_enabled
+from torch.fx.experimental.symbolic_shapes import free_symbols
+from torch.utils._ordered_set import OrderedSet
+from torch.utils._sympy.symbol import free_symbol_is_type, symbol_is_type, SymT
+from torch.utils._triton import has_triton
+
+from . import comms, config, dependencies, ir, metrics
+from .analyze_preserves_zero_mask import can_codegen_without_upcasts
+from .codegen.common import BackendFeature, get_scheduling_for_device, Kernel
+from .comm_analysis import estimate_nccl_collective_runtime
+from .dependencies import Dep, MemoryDep, StarDep, WeakDep
+from .exc import GPUTooOldForTriton, TritonMissing
+from .fx_utils import count_flops_fx, countable_fx
+from .ir import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_device_type,
     GraphPartitionSignature,
     MultiOutput,
@@ -60,11 +91,17 @@ from .ir import (
 )
 from .loop_body import LoopBody
 from .memory import MemoryPlanningInfoForBuffer, MemoryPlanningInfoForNode
+<<<<<<< HEAD
 from .runtime.hints import ReductionHint
 from .runtime.runtime_utils import green_text, red_text
 from .sizevars import SimplifyIndexing
 from .utils import (
     _unstable_customized_partition_wrapper,
+=======
+from .runtime.runtime_utils import green_text, red_text
+from .sizevars import SimplifyIndexing
+from .utils import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cache_on_self,
     cmp,
     device_need_guard,
@@ -79,7 +116,10 @@ from .utils import (
     is_multi_outputs_template,
     is_output_of_multi_outputs_template,
     is_wait,
+<<<<<<< HEAD
     maybe_log_cudagraph_partition,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_product,
 )
 from .virtualized import V
@@ -92,6 +132,7 @@ compute_dependencies_log = torch._logging.getArtifactLogger(
     __name__, "compute_dependencies"
 )
 
+<<<<<<< HEAD
 PartitionType: TypeAlias = list["BaseSchedulerNode"]
 _T = TypeVar("_T")
 _P = ParamSpec("_P")
@@ -293,6 +334,9 @@ class MixOrderReduction:
             if n_congituous_read > 0:
                 break
         return n_congituous_read > 0
+=======
+PartitionType = list["BaseSchedulerNode"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclasses.dataclass
@@ -409,10 +453,16 @@ class SchedulerDonatedBuffer(SchedulerBuffer):
 
 
 class BaseSchedulerNode:
+<<<<<<< HEAD
     ancestors: OrderedSet[str]
     debug_device_str: Callable[[BaseSchedulerNode], list[str]]
     group: tuple[torch.device, tuple[tuple[sympy.Expr, ...], ...]]
     last_usage: OrderedSet[str]
+=======
+    group: tuple[torch.device, tuple[tuple[sympy.Expr, ...], ...]]
+    read_writes: dependencies.ReadWrites
+    unmet_dependencies: OrderedSet[Dep]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # .min_order and .max_order are only relevant for "grouped" nodes such as FusedSchedulerNode.
     # e.g. if the FusedSchedulerNode includes nodes (op_1, op_2, op_3), and op_X is X-th node
     # in `self.scheduler.nodes`, then for this FusedSchedulerNode, .min_order is 1 and .max_order is 3.
@@ -421,6 +471,7 @@ class BaseSchedulerNode:
     min_order: int
     max_order: int
     mpi_node: MemoryPlanningInfoForNode
+<<<<<<< HEAD
     mutation_renames: dict[str, str]
     node: Optional[ir.Operation]
     outputs: list[SchedulerBuffer]
@@ -439,6 +490,23 @@ class BaseSchedulerNode:
         self.last_usage = OrderedSet()  # buffers that won't be used after this kernel
         self.written = False
         self.outputs = [
+=======
+
+    def __init__(self, scheduler: Scheduler) -> None:
+        self.scheduler: Scheduler = scheduler
+        self.debug_device_str: Callable[[BaseSchedulerNode], list[str]] = (
+            lambda *args, **kwargs: []
+        )
+
+    def _init_from_node(self, node: ir.Operation) -> None:
+        self.node: Optional[ir.Operation] = node
+        self.ancestors: OrderedSet[str] = OrderedSet()
+        self.last_usage = OrderedSet[
+            str
+        ]()  # buffers that won't be used after this kernel
+        self.written = False
+        self.outputs: list[SchedulerBuffer] = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             SchedulerBuffer(
                 scheduler=self.scheduler,
                 node=output,
@@ -446,6 +514,7 @@ class BaseSchedulerNode:
             )
             for output in node.get_outputs()
         ]
+<<<<<<< HEAD
         self.outputs_by_name = {buf.get_name(): buf for buf in self.outputs}
 
         # mutation_renames for the current node. Due to potential
@@ -454,6 +523,11 @@ class BaseSchedulerNode:
         # since only mutation information relevant to the deps for this
         # node is stored here.
         self.mutation_renames = {}
+=======
+        self.outputs_by_name: dict[str, SchedulerBuffer] = {
+            buf.get_name(): buf for buf in self.outputs
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(name={self.get_name()!r})"
@@ -514,6 +588,7 @@ class BaseSchedulerNode:
 
     def reorder_loops_by_dep_pair(
         self, self_dep: MemoryDep, other_dep: MemoryDep
+<<<<<<< HEAD
     ) -> bool:
         return False
 
@@ -524,6 +599,13 @@ class BaseSchedulerNode:
             if name in renames
         }
         self.set_read_writes(self.read_writes.rename(self.mutation_renames))
+=======
+    ) -> None:
+        return
+
+    def update_mutated_names(self, renames: dict[str, str]) -> None:
+        self.set_read_writes(self.read_writes.rename(renames))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def add_fake_dep(self, dep: Dep) -> None:
         self.set_read_writes(self.read_writes.with_read(dep))
@@ -654,9 +736,12 @@ class BaseSchedulerNode:
     def is_reduction(self) -> bool:
         return False
 
+<<<<<<< HEAD
     def is_native_matmul(self) -> bool:
         return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def is_split_scan(self) -> bool:
         return False
 
@@ -831,15 +916,22 @@ class BaseSchedulerNode:
             out_lines.append(op_info_str)
             if "stack_trace" in o.meta:
                 stack_trace = f"{o.meta['stack_trace']}"
+<<<<<<< HEAD
                 stack_trace_last_line = stack_trace.rsplit("|", maxsplit=1)[-1]
+=======
+                stack_trace_last_line = stack_trace.split("|")[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out_lines.append(
                     "#pragma CMT "
                     + stack_trace_last_line.replace("{", "{{")
                     .replace("}", "}}")
                     .replace("\n", "\\")
+<<<<<<< HEAD
                     .replace(
                         "\\", "\\\\"
                     )  # For windows safe path, avoid for example \x, \U.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 out_lines.append("#pragma CMT END ORIGIN")
                 out_lines.append("")
@@ -1027,6 +1119,7 @@ class BaseSchedulerNode:
         fx_node = self.node.get_origin_node()
         if fx_node is None:
             return None
+<<<<<<< HEAD
 
         flops = count_flops_fx(fx_node)
         if flops is None:
@@ -1046,6 +1139,21 @@ class BaseSchedulerNode:
     def _get_estimated_runtime(self) -> float:
         """
         Returns estimated op runtime in milliseconds (ms)
+=======
+        if not countable_fx(fx_node):
+            return None
+
+        flops = count_flops_fx(fx_node)
+
+        resolved_flops = V.graph.sizevars.size_hints((flops,), fallback=0)[0]
+        counters["inductor"]["flop_count"] += resolved_flops
+        return resolved_flops
+
+    @cache_on_self
+    def get_estimated_runtime(self) -> float:
+        """
+        Returns estimated op runtime in nanoseconds (ns)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         buf = self.get_nodes()[0].get_outputs()[0]
         layout = buf.node.get_output_spec()
@@ -1057,6 +1165,7 @@ class BaseSchedulerNode:
         if is_collective(self.node):
             assert isinstance(self.node, ir.IRNode)
             try:
+<<<<<<< HEAD
                 if config_comms.runtime_estimations_use_nccl_lib_estimations:
                     cache_key = get_estimate_runtime_cache_key_from_snode(self)
                     cache = get_estimate_runtime_cache()
@@ -1072,15 +1181,25 @@ class BaseSchedulerNode:
 
                     cache.set_value(cache_key, value=ms)
                     return ms
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return estimate_nccl_collective_runtime(self.node)
             except ValueError as e:
                 # We don't know how to estimate runtime for this collective,
                 # falling back to 0
+<<<<<<< HEAD
                 log.info(e)  # noqa: G200
                 return 0
             except TypeError as e:
                 # this happens when the collective is not of type ir._CollectiveKernel
                 log.info(e)  # noqa: G200
+=======
+                log.info(e)
+                return 0
+            except TypeError as e:
+                # this happens when the collective is not of type ir._CollectiveKernel
+                log.info(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return 0
 
         elif is_wait(self.node):
@@ -1090,10 +1209,13 @@ class BaseSchedulerNode:
             # since it doesn't take extra time to get the result after the collective is completed.
             return 0
 
+<<<<<<< HEAD
         ret = maybe_estimate_runtime_benchmark(self)
         if ret is not None:
             return ret
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype = buf.node.maybe_get_dtype()
         try:
             gpu_memory_bandwidth = get_gpu_dram_gbps()
@@ -1114,9 +1236,13 @@ class BaseSchedulerNode:
 
         if flops_est == 0 or flops_est is None:
             # no flops estimate, so fall back to memory estimate
+<<<<<<< HEAD
             ns = self.get_read_write_buffers_sizes() / gpu_memory_bandwidth
             ms = ns / 1e6
             return ms
+=======
+            return self.get_read_write_buffers_sizes() / gpu_memory_bandwidth
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TODO(xmfan): find a better heuristic to model FLOPS/latency relationship
         factor = 1.0
@@ -1125,10 +1251,15 @@ class BaseSchedulerNode:
         compute_time = (factor * flops_est / gpu_flops) * 1e9
         transfer_time = counted_bytes / gpu_memory_bandwidth
 
+<<<<<<< HEAD
         # Return estimated runtime in milliseconds
         ns = max(compute_time, transfer_time)
         ms = ns / 1e6
         return ms
+=======
+        # Return estimated runtime in nanoseconds
+        return max(compute_time, transfer_time)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_template_node(self) -> Optional[ir.TemplateBuffer]:
         return None
@@ -1153,6 +1284,7 @@ class BaseSchedulerNode:
         return prologue, template_node, epilogue
 
 
+<<<<<<< HEAD
 @functools.cache
 def get_estimate_runtime_cache() -> torch._inductor.codecache.LocalCache:
     return torch._inductor.codecache.LocalCache()
@@ -1229,6 +1361,12 @@ def maybe_estimate_runtime_benchmark(snode: BaseSchedulerNode) -> Optional[float
 class WhyNoFuse:
     name1: str
     name2: str
+=======
+class WhyNoFuse:
+    # TODO when we drop support for Python < 3.10, we can use
+    # @dataclass(slots=True) instead of manually specifying __slots__.
+    __slots__ = ["name1", "name2", "reason", "args"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reason: str
     args: tuple[Any, ...]
 
@@ -1296,11 +1434,15 @@ def _prune_redundant_deps(
     def should_prune(dep: Dep) -> bool:
         if isinstance(dep, WeakDep):
             op_name = name_to_buf[dep.name].defining_op_name()
+<<<<<<< HEAD
             is_redundant = name_to_dep_count[
                 name_to_fused_node[op_name].get_name()
             ] > 0 and node.scheduler.fusable_weak_dep(
                 dep, name_to_fused_node[op_name], node
             )
+=======
+            is_redundant = name_to_dep_count[name_to_fused_node[op_name].get_name()] > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # These can occur because fused nodes always gather deps from their snodes
             # If B has a weakdep on A
             # B gets fused with C, then any time BC is fused, the weakdep will reappear
@@ -1343,11 +1485,14 @@ class NopKernelSchedulerNode(BaseSchedulerNode):
 
 
 class SchedulerNode(BaseSchedulerNode):
+<<<<<<< HEAD
     """
     A SchedulerNode is a node for scheduling that encapsulates either
     a ComputedBuffer or a TemplateBuffer.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _sizes: tuple[Sequence[sympy.Expr], ...]
     _body: LoopBody
 
@@ -1363,6 +1508,7 @@ class SchedulerNode(BaseSchedulerNode):
     def _compute_attrs(
         self,
         extra_indexing_constraints: Optional[tuple[dict[Any, Any], list[Any]]] = None,
+<<<<<<< HEAD
         recompute_sizes_body_func: Optional[Callable[_P, _T]] = None,
     ) -> None:
         assert isinstance(self.node, (ir.ComputedBuffer, ir.TemplateBuffer))
@@ -1371,6 +1517,15 @@ class SchedulerNode(BaseSchedulerNode):
             recompute_sizes_body_func=recompute_sizes_body_func,
         )
         self._body = body  # type: ignore[assignment]
+=======
+        recompute_sizes_body_func: Optional[Callable[..., Any]] = None,
+    ) -> None:
+        assert isinstance(self.node, (ir.ComputedBuffer, ir.TemplateBuffer))
+        self._sizes, self._body = self.node.simplify_and_reorder(
+            extra_indexing_constraints=extra_indexing_constraints,
+            recompute_sizes_body_func=recompute_sizes_body_func,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         device = self.node.get_device_or_error()
         group_fn = self.scheduler.get_backend(device).group_fn
@@ -1417,9 +1572,13 @@ class SchedulerNode(BaseSchedulerNode):
         self.set_read_writes(
             dependencies.extract_read_writes(
                 self._body, *self._sizes, normalize=normalize
+<<<<<<< HEAD
             )
             .with_read(fake_deps)
             .rename(self.mutation_renames)
+=======
+            ).with_read(fake_deps)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.pointwise_read_writes.clear_cache(self)
@@ -1441,6 +1600,7 @@ class SchedulerNode(BaseSchedulerNode):
 
         self.refresh_dependencies(normalize=False, need_clear_tiling_cache=True)
 
+<<<<<<< HEAD
     def swap_pw_red_dimension(self) -> None:
         assert len(self._body.sizes[0]) == 2
         self.apply_new_loop_order([1, 0])
@@ -1468,6 +1628,8 @@ class SchedulerNode(BaseSchedulerNode):
         # Need normalize the prefix name to facilitate finding common dependencies
         self.refresh_dependencies(normalize=True, need_clear_tiling_cache=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def merge_loops(self) -> None:
         self._body = self._body.merge_loops()
         self._sizes = self._body.sizes
@@ -1482,26 +1644,39 @@ class SchedulerNode(BaseSchedulerNode):
 
     def reorder_loops_by_dep_pair(
         self, self_dep: MemoryDep, other_dep: MemoryDep
+<<<<<<< HEAD
     ) -> bool:
+=======
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_order = None
         self_sizes = self._sizes[0]
         if len(self_sizes) == self_dep.num_vars == other_dep.num_vars:
             new_order = self_dep.decide_loop_order_to_match(other_dep)
 
         if new_order:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             metrics.num_loop_reordering += 1
             loop_ordering_log.debug(
                 "Reorder loops for %s with order %s", self.get_name(), new_order
             )
             self.apply_new_loop_order(new_order)
+<<<<<<< HEAD
             return True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             loop_ordering_log.debug(
                 "Don't reordering %s because we can not decide the suitable loop order",
                 self.get_name(),
             )
+<<<<<<< HEAD
             return False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def debug_str_extra(self) -> str:
         name = self.get_name()
@@ -1532,6 +1707,7 @@ class SchedulerNode(BaseSchedulerNode):
         assert isinstance(self.node, (ir.ComputedBuffer, ir.TemplateBuffer)), (
             f"{type(self.node)=}"
         )
+<<<<<<< HEAD
 
         # self._body containing partial accumulate means the reduction is
         # converted to a pointwise node.  Need this extra check since
@@ -1544,6 +1720,9 @@ class SchedulerNode(BaseSchedulerNode):
     def is_native_matmul(self) -> bool:
         assert isinstance(self.node, ir.ComputedBuffer), f"{type(self.node)=}"
         return self.node.get_reduction_type() == "dot"
+=======
+        return bool(self.node.get_reduction_type())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_split_scan(self) -> bool:
         assert isinstance(self.node, (ir.ComputedBuffer, ir.TemplateBuffer)), (
@@ -1578,6 +1757,7 @@ class SchedulerNode(BaseSchedulerNode):
         return var_ranges
 
     def codegen(self, index_vars: Sequence[Sequence[sympy.Expr]]) -> None:
+<<<<<<< HEAD
         """
         Generate code for this node using the provided index variables.
 
@@ -1589,6 +1769,8 @@ class SchedulerNode(BaseSchedulerNode):
             index_vars: A sequence of sequences of sympy expressions representing
                         the index variables for each dimension of the computation.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var_ranges = self.ranges_from_index_vars(index_vars)
         try:
             with (
@@ -1658,6 +1840,7 @@ class SchedulerNode(BaseSchedulerNode):
                     )
         return buffers_store_as_atomic_add
 
+<<<<<<< HEAD
     @cache_on_self
     def has_side_effects(self) -> bool:
         # self._body is None sometimes that's why this check was added
@@ -1665,6 +1848,8 @@ class SchedulerNode(BaseSchedulerNode):
             return True
         return super().has_side_effects()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def refresh_group_node_dependencies(
     group_snode: Union[FusedSchedulerNode, GroupedSchedulerNode],
@@ -1749,6 +1934,7 @@ class FusedSchedulerNode(BaseSchedulerNode):
         nodes = list(itertools.chain(node1.get_nodes(), node2.get_nodes()))
         return cls(node1.scheduler, nodes)
 
+<<<<<<< HEAD
     def extract_pw_from_reduction(self) -> BaseSchedulerNode:
         for subnode in self.snodes:
             assert isinstance(subnode, SchedulerNode)
@@ -1761,6 +1947,8 @@ class FusedSchedulerNode(BaseSchedulerNode):
             assert isinstance(subnode, SchedulerNode)
             subnode.swap_pw_red_dimension()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @cache_on_self
     def estimate_flops(self) -> int | None:
         # don't increment counters in fused methods so we don't double count
@@ -1781,6 +1969,7 @@ class FusedSchedulerNode(BaseSchedulerNode):
 
     def reorder_loops_by_dep_pair(
         self, self_dep: MemoryDep, other_dep: MemoryDep
+<<<<<<< HEAD
     ) -> bool:
         """
         Return true if a loop reordering is performed.
@@ -1788,6 +1977,12 @@ class FusedSchedulerNode(BaseSchedulerNode):
         if self.is_template():
             # We can not really reorder loops for a triton template
             return False
+=======
+    ) -> None:
+        if self.is_template():
+            # We can not really reorder loops for a triton template
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self_sizes = None
         for snode in self.snodes:
             assert isinstance(snode, SchedulerNode)
@@ -1795,7 +1990,11 @@ class FusedSchedulerNode(BaseSchedulerNode):
                 loop_ordering_log.debug(
                     "Can not reorder fused node due to different sizes"
                 )
+<<<<<<< HEAD
                 return False
+=======
+                return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self_sizes = snode._sizes[0]
         new_order = None
 
@@ -1808,8 +2007,12 @@ class FusedSchedulerNode(BaseSchedulerNode):
                 "Dont reordering fused node %s because we can not decide the suitable loop order",
                 self.get_name(),
             )
+<<<<<<< HEAD
             return False
         # pyrefly: ignore [bad-assignment]
+=======
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metrics.num_loop_reordering += 1
         loop_ordering_log.debug(
             "Reorder loops for fused node %s with order %s", self.get_name(), new_order
@@ -1819,7 +2022,10 @@ class FusedSchedulerNode(BaseSchedulerNode):
             snode.apply_new_loop_order(new_order)
 
         refresh_group_node_dependencies(self)
+<<<<<<< HEAD
         return True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, scheduler: Scheduler, snodes: list[BaseSchedulerNode]) -> None:
         super().__init__(scheduler)
@@ -1893,10 +2099,13 @@ class FusedSchedulerNode(BaseSchedulerNode):
         return any(x.is_reduction() for x in self.snodes)
 
     @cache_on_self
+<<<<<<< HEAD
     def is_native_matmul(self) -> bool:
         return any(x.is_native_matmul() for x in self.snodes)
 
     @cache_on_self
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def is_split_scan(self) -> bool:
         return any(x.is_split_scan() for x in self.snodes)
 
@@ -1955,6 +2164,7 @@ class FusedSchedulerNode(BaseSchedulerNode):
 
         return buf.getrawvalue().rstrip()
 
+<<<<<<< HEAD
     @cache_on_self
     def has_side_effects(self) -> bool:
         if self.snodes is not None:
@@ -1970,6 +2180,8 @@ class FusedMixOrderReductions(FusedSchedulerNode):
             node1.scheduler, list(node1.get_nodes()) + list(node2.get_nodes())
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ForeachKernelSchedulerNode(FusedSchedulerNode):
     """
@@ -2314,6 +2526,7 @@ class GroupedSchedulerNode(BaseSchedulerNode):
         scheduler.name_to_fused_node[grouped_snode.get_name()] = grouped_snode
         return grouped_snode
 
+<<<<<<< HEAD
     def __init__(
         self,
         scheduler: Scheduler,
@@ -2328,15 +2541,23 @@ class GroupedSchedulerNode(BaseSchedulerNode):
         # Reusing calculation of grouped unmed_dependencies etc.
         # No fusion logic in this case.
         self.temp_grouping = temp_grouping
+=======
+    def __init__(self, scheduler: Scheduler, snodes: list[BaseSchedulerNode]) -> None:
+        super().__init__(scheduler)
+        init_group_node(self, scheduler, snodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def unpack(self) -> list[BaseSchedulerNode]:
         """
         Do fusion among nodes within this GroupedSchedulerNode,
         and then unpack this GroupedSchedulerNode into regular nodes.
         """
+<<<<<<< HEAD
         if self.temp_grouping:
             return self.snodes
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for snode in self.snodes:
             self.scheduler.name_to_fused_node[snode.get_name()] = snode
         del self.scheduler.name_to_fused_node[self.get_name()]
@@ -2393,7 +2614,11 @@ class GroupedSchedulerNode(BaseSchedulerNode):
 def pick_loop_order(
     stride_lengths: list[list[int]],
     sizes: Sequence[sympy.Expr],
+<<<<<<< HEAD
     priority_idx: Sequence[int] = (),
+=======
+    priority_idx: tuple[int, ...] = (),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[int]:
     """
     A heuristic to decide loop iteration orders.  This has not been well
@@ -2436,6 +2661,7 @@ def pick_loop_order(
     return order
 
 
+<<<<<<< HEAD
 def _replace_operation_buffer(
     orig_node: ir.MultiTemplateBuffer, new_node: ir.OperationBuffer
 ) -> None:
@@ -2464,6 +2690,8 @@ def _replace_operation_buffer(
     V.graph.name_to_op[orig_op_name] = new_node
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class NodeUser:
     node: Union[BaseSchedulerNode, OutputNode]
@@ -2499,22 +2727,34 @@ class NodeUser:
 _post_grad_graph_counter = itertools.count()
 
 
+<<<<<<< HEAD
 def used_non_deterministic_runtime_estimations() -> bool:
     return config.runtime_estimations_mms_benchmark
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class Scheduler:
     """
     A Scheduler is a graph of BaseSchedulerNodes. It is responsible for
     optimizations such as fusion, reorder, and graph partition.
     """
 
+<<<<<<< HEAD
+=======
+    __dep_size_hint_cache: dict[Dep, int]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, nodes: list[ir.Operation]) -> None:
         with dynamo_timed("Scheduler.__init__"):
             self._init(nodes)
 
     def _init(self, nodes: list[ir.Operation]) -> None:
         super().__init__()
+<<<<<<< HEAD
+=======
+        self.__dep_size_hint_cache = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         V.graph.scheduler = self
         self.backends: dict[torch.device, BaseScheduling] = {}
         self.post_grad_graph_id = next(_post_grad_graph_counter)
@@ -2528,17 +2768,25 @@ class Scheduler:
                 *V.graph.torchbind_constants.keys(),
             ]
         )
+<<<<<<< HEAD
         self.nodes = [self.create_scheduler_node(n) for n in nodes]
         self.current_node: Optional[BaseSchedulerNode] = None
+=======
+
+        self.nodes = [self.create_scheduler_node(n) for n in nodes]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.update_zero_dim_cpu_tensor()
         # some new constants could have been created above
         self.available_buffer_names.update(V.graph.constants.keys())
         for node in self.nodes:
             node.prune_deps()
 
+<<<<<<< HEAD
         # See [Note: Graph Partition Device Contexts]
         self.default_device_context: Optional[torch.device] = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.name_to_donated_buffer: dict[str, SchedulerDonatedBuffer] = (
             self.get_donated_buffers()
         )
@@ -2581,7 +2829,10 @@ class Scheduler:
         self.name_to_fused_node = {n.get_name(): n for n in self.nodes}
         self.compute_ancestors()
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metrics.ir_nodes_pre_fusion += len(self.nodes)
         from torch._inductor.debug import log_ir_post_fusion, log_ir_pre_fusion
 
@@ -2592,6 +2843,7 @@ class Scheduler:
         self.logged_slow_fusion = OrderedSet[tuple[str, str]]()
         if config._pre_fusion_custom_pass is not None:
             self.nodes = config._pre_fusion_custom_pass(self.nodes)
+<<<<<<< HEAD
 
         self.nodes = self.fuse_nodes(self.nodes)
         if config._post_fusion_custom_pass is not None:
@@ -2606,6 +2858,15 @@ class Scheduler:
                 log_waitcounter=True,
             ):
                 self.create_combo_kernel_nodes(num_ck_nodes=None)
+=======
+        self.nodes = self.fuse_nodes(self.nodes)
+        if config._post_fusion_custom_pass is not None:
+            self.nodes = config._post_fusion_custom_pass(self.nodes)
+        self.merge_loops()
+        self.finalize_multi_template_buffers()
+        if config.combo_kernels:
+            self.create_combo_kernel_nodes(num_ck_nodes=None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Peak memory pass and overlap pass must run last, otherwise
         # other reordering passes could undo their effects.
@@ -2619,6 +2880,7 @@ class Scheduler:
                 OrderedSet(V.graph.graph_inputs.keys()),
                 OrderedSet(V.graph.get_output_names()),
             )
+<<<<<<< HEAD
 
         # reorder_for_compute_comm_overlap may do benchmarking to estimate
         # op runtime. Disable it for now in deterministic mode.
@@ -2664,14 +2926,24 @@ class Scheduler:
             torch._inductor.config.graph_partition
             and torch._inductor.config.triton.cudagraphs
         ):
+=======
+        if config.reorder_for_compute_comm_overlap:
+            self.nodes = comms.reorder_compute_and_comm_for_overlap(self.nodes)
+        self.process_grouped_nodes()
+
+        if torch._inductor.config.graph_partition:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.nodes = self.maybe_reorder_for_minimizing_partition(self.nodes)
             self.nodes = self.reorder_for_partition_with_simple_dependency(self.nodes)
 
         self.compute_last_usage()
+<<<<<<< HEAD
 
         if torch._inductor.config.test_configs.track_memory_lifecycle:
             self.insert_memory_check_nodes()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log_ir_post_fusion(self.nodes)
         V.debug.graph_diagram(self.nodes)
         self.debug_draw_graph()
@@ -2778,7 +3050,13 @@ class Scheduler:
         mutation properly.
         """
 
+<<<<<<< HEAD
         class DedupList(Generic[_T]):
+=======
+        T = TypeVar("T")
+
+        class DedupList(Generic[T]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
             This data structure behaves like a list except it makes sure the
             elements remain unique.
@@ -2790,26 +3068,42 @@ class Scheduler:
 
             def __init__(
                 self,
+<<<<<<< HEAD
                 items: Optional[list[_T]] = None,
                 membership: Optional[OrderedSet[_T]] = None,
+=======
+                items: Optional[list[T]] = None,
+                membership: Optional[OrderedSet[T]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ) -> None:
                 self.items = items or []
                 self.membership = membership or OrderedSet()
 
+<<<<<<< HEAD
             def append(self, node_user: _T) -> None:
+=======
+            def append(self, node_user: T) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if node_user in self.membership:
                     return
                 self.items.append(node_user)
                 self.membership.add(node_user)
 
+<<<<<<< HEAD
             def __add__(self, other: DedupList[_T]) -> DedupList[_T]:
+=======
+            def __add__(self, other: DedupList[T]) -> DedupList[T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_membership = OrderedSet.union(self.membership, other.membership)
                 new_items = self.items + [
                     x for x in other.items if x not in self.membership
                 ]
                 return DedupList(new_items, new_membership)
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name_to_users: defaultdict[str, DedupList[NodeUser]] = collections.defaultdict(
             DedupList
         )
@@ -2846,14 +3140,20 @@ class Scheduler:
                     else:
                         name_to_users[buf1_name] = name_to_users[buf2_name]
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def rename(n: str) -> str:
             if n in self.mutation_renames:
                 return rename(self.mutation_renames[n])
             return n
 
         def add_user(
+<<<<<<< HEAD
             # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             used_by_name: str,
             user_node: Union[BaseSchedulerNode, OutputNode],
             can_inplace: bool = False,
@@ -2863,7 +3163,10 @@ class Scheduler:
                 NodeUser(user_node, can_inplace, is_weak)
             )
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unbacked_symbol_to_origin_node: dict[sympy.Symbol, Optional[str]] = {}
 
         # NB: None means that the dependency is on an input.  Don't actually
@@ -2881,11 +3184,20 @@ class Scheduler:
                     for fs in s.free_symbols:
                         unbacked_symbol_to_origin_node[fs] = None
 
+<<<<<<< HEAD
         has_non_input_unbacked_defs = False
         for node in self.nodes:
             assert node.node is not None
             # unbacked symbols don't follow ordinary buffer dependencies, so
             # we track their def/uses separately
+=======
+        for node in self.nodes:
+            log.debug("scheduling %s", node.node)
+
+            # unbacked symbols don't follow ordinary buffer dependencies, so
+            # we track their def/uses separately
+            assert node.node is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unbacked_symbol_defs = sorted(
                 node.node.get_unbacked_symbol_defs(), key=lambda x: x.name
             )
@@ -2894,6 +3206,7 @@ class Scheduler:
                 # Pick the first definer as canonical.  There may be multiple
                 # because if a MultiOutputLayout buffer propagates an unbacked
                 # symint to multiple outputs, they will all claim to def it.
+<<<<<<< HEAD
                 has_non_input_unbacked_defs = True
                 if s not in unbacked_symbol_to_origin_node:
                     unbacked_symbol_to_origin_node[s] = node.get_name()
@@ -2916,6 +3229,22 @@ class Scheduler:
                     if (r := unbacked_symbol_to_origin_node[s]) is not None:
                         for buf in self.name_to_node[r].get_outputs():
                             node.add_fake_dep(StarDep(buf.get_name()))
+=======
+                if s not in unbacked_symbol_to_origin_node:
+                    unbacked_symbol_to_origin_node[s] = node.get_name()
+
+            unbacked_symbol_uses = sorted(
+                node.node.get_free_symbol_uses(unbacked_only=True), key=lambda x: x.name
+            )
+            # if a kernel takes unbacked symints, register dependencies
+            for s in unbacked_symbol_uses:
+                assert s in unbacked_symbol_to_origin_node, (
+                    f"{s} not in {unbacked_symbol_to_origin_node}"
+                )
+                if (r := unbacked_symbol_to_origin_node[s]) is not None:
+                    for buf in self.name_to_node[r].get_outputs():
+                        node.add_fake_dep(StarDep(buf.get_name()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if (
                 len(node.read_writes.writes) == 1
@@ -2948,10 +3277,13 @@ class Scheduler:
                             )
                             add_user(other_name, node, is_weak=True)
 
+<<<<<<< HEAD
             for add_dep in V.graph.additional_buffer_deps[node.get_name()]:
                 add_user(add_dep, node, is_weak=True)
                 node.add_fake_dep(WeakDep(add_dep, node.get_name()))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # add normal non-mutation dependencies
             for read in node.read_writes.reads:
                 if not isinstance(read, WeakDep):
@@ -2974,6 +3306,7 @@ class Scheduler:
             add_user(buf_name, OutputNode(StarDep(buf_name)))
 
         # make sure unbacked symints aren't dead-code-eliminated
+<<<<<<< HEAD
         if has_non_input_unbacked_defs:
             for out in V.graph.graph_outputs:
                 for s in out.get_free_symbol_uses(unbacked_only=True):
@@ -2988,6 +3321,19 @@ class Scheduler:
                                 s,
                             )
                             add_user(buf_name, OutputNode(StarDep(buf_name)))
+=======
+        for out in V.graph.graph_outputs:
+            for s in out.get_free_symbol_uses(unbacked_only=True):
+                assert s in unbacked_symbol_to_origin_node, (
+                    f"{s} not in {unbacked_symbol_to_origin_node.keys()}"
+                )
+                if r := unbacked_symbol_to_origin_node[s]:
+                    for buf_name in self.name_to_node[r].get_buffer_names():
+                        log.debug(
+                            "scheduling output %s for unbacked symint %s", buf_name, s
+                        )
+                        add_user(buf_name, OutputNode(StarDep(buf_name)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # make sure input mutation isn't dead-code-eliminated
         for name in self.mutation_renames:
@@ -3025,6 +3371,7 @@ class Scheduler:
         compute_dependencies_log.debug("BUFFER USER LIST\n")
         compute_dependencies_log.debug("===== AFTER SCHEDULING =====\n%s", str)
 
+<<<<<<< HEAD
     def insert_memory_check_nodes(self) -> None:
         from .memory import (
             assign_memory_planning_info_for_scheduler_buffers,
@@ -3102,6 +3449,8 @@ class Scheduler:
 
         self.nodes = new_nodes
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def dead_node_elimination(self) -> None:
         """
         Remove any nodes without users
@@ -3237,10 +3586,17 @@ class Scheduler:
             node.max_order = order
 
     def merge_loops(self) -> None:
+<<<<<<< HEAD
         if not config.loop_ordering_after_fusion:
             return
 
         for node in self.nodes:
+=======
+        for node in self.nodes:
+            if not config.loop_ordering_after_fusion:
+                continue
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Even for CPU, if we are using the halide backend, we still need
             # the merge loops steps below
             if not isinstance(node, (SchedulerNode, FusedSchedulerNode)) or (
@@ -3277,7 +3633,11 @@ class Scheduler:
                     i + 1,
                     old_len,
                 )
+<<<<<<< HEAD
                 nodes = self.fuse_nodes_once(nodes, is_reorder_round=False)
+=======
+                nodes = self.fuse_nodes_once(nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_len = len(nodes)
                 fusion_log.debug(
                     "completed fusion round (%d/10): fused %d nodes into %d nodes\n",
@@ -3290,9 +3650,12 @@ class Scheduler:
                         "===== fusion complete (%d iterations) =====", i + 1
                     )
                     break
+<<<<<<< HEAD
 
             if config.loop_ordering_after_fusion:
                 nodes = self.fuse_nodes_once(nodes, is_reorder_round=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return nodes
 
     def process_grouped_nodes(self) -> None:
@@ -3325,10 +3688,14 @@ class Scheduler:
             return backend.benchmark_fused_nodes(nodes)
 
     def generate_kernel_code_from_nodes(
+<<<<<<< HEAD
         self,
         nodes: Sequence[BaseSchedulerNode],
         benchmark_kernel: bool,
         hint_override: Optional[int] = None,
+=======
+        self, nodes: Sequence[BaseSchedulerNode], benchmark_kernel: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> str:
         """
         Benchmark fused list of nodes and return the execution time
@@ -3339,9 +3706,13 @@ class Scheduler:
         self.current_device = device
         backend = self.get_backend(device)
         with dynamo_timed("benchmark_fused_nodes"):
+<<<<<<< HEAD
             return backend.generate_kernel_code_from_nodes(
                 nodes, benchmark_kernel, hint_override=hint_override
             )
+=======
+            return backend.generate_kernel_code_from_nodes(nodes, benchmark_kernel)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def benchmark_codegened_module(
         self, module: ModuleType, device: torch.device
@@ -3365,6 +3736,36 @@ class Scheduler:
         will force completion of compilation and benchmarking.
         """
 
+<<<<<<< HEAD
+=======
+        def replace_operation_buffer(
+            orig_node: ir.MultiTemplateBuffer, new_node: ir.OperationBuffer
+        ) -> None:
+            replaced_buf_name = new_node.get_name()
+            orig_buf_name = orig_node.get_name()
+            assert isinstance(orig_buf_name, str) and isinstance(replaced_buf_name, str)
+
+            replaced_op_name = new_node.get_operation_name()
+            orig_op_name = orig_node.get_operation_name()
+            assert isinstance(orig_op_name, str) and isinstance(replaced_op_name, str)
+
+            del V.graph.name_to_buffer[replaced_buf_name]
+            new_node.name = orig_buf_name
+
+            del V.graph.name_to_op[replaced_op_name]
+            new_node.operation_name = orig_op_name
+
+            orig = V.graph.buffers.index(orig_node)
+            V.graph.buffers.remove(new_node)
+            V.graph.buffers[orig] = new_node
+            V.graph.name_to_buffer[orig_buf_name] = new_node
+
+            orig = V.graph.operations.index(orig_node)
+            V.graph.operations.remove(new_node)
+            V.graph.operations[orig] = new_node
+            V.graph.name_to_op[orig_op_name] = new_node
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, node in enumerate(self.nodes):
             if isinstance(node, SchedulerNode) and isinstance(
                 node.node, ir.MultiTemplateBuffer
@@ -3376,7 +3777,11 @@ class Scheduler:
                     min_node_unfused = next(
                         (
                             timing
+<<<<<<< HEAD
                             for timing in multi_node.choice_timings()
+=======
+                            for timing in multi_node.choice_timings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if isinstance(
                                 timing,
                                 torch._inductor.select_algorithm.ExternKernelCaller,
@@ -3388,6 +3793,7 @@ class Scheduler:
                     min_node_unfused,
                     torch._inductor.ir.TritonTemplateCallerBase,
                 ):
+<<<<<<< HEAD
                     if config.multi_kernel_hints:
                         callers: dict[Optional[int], TritonTemplateCallerBase] = {}
                         callers[None] = min_node_unfused
@@ -3410,10 +3816,18 @@ class Scheduler:
                 with ir.IRNode.current_origins(multi_node.origins):
                     out_tensorbox = min_node_unfused.output_node()
                 out_storage = out_tensorbox.data  # type: ignore[union-attr]
+=======
+                    node.node.finalize_as_triton_caller(min_node_unfused)
+                    continue
+
+                out_tensorbox = min_node_unfused.output_node()
+                out_storage = out_tensorbox.data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert isinstance(out_storage, ir.StorageBox)
                 out_buffer = out_storage.data
                 assert isinstance(out_buffer, ir.OperationBuffer)
 
+<<<<<<< HEAD
                 if multi_node.origin_node:
                     assign_origin_node(out_tensorbox, multi_node.origin_node)
 
@@ -3459,6 +3873,43 @@ class Scheduler:
         new_scheduler_node.min_order = node.min_order
         new_scheduler_node.max_order = node.max_order
         new_scheduler_node.last_usage = node.last_usage
+=======
+                out_buffer.layout = multi_node.layout
+                replace_operation_buffer(multi_node, out_buffer)
+                new_scheduler_node = self.create_scheduler_node(out_buffer)
+
+                self.nodes[i] = new_scheduler_node
+                self.name_to_node[node.get_name()] = new_scheduler_node
+                self.name_to_fused_node[node.get_name()] = new_scheduler_node
+
+                # We need to reflect the mutation renames that were recorded in the original node
+                mutation_renames = {}
+                for dep in itertools.chain(
+                    node.read_writes.reads, node.unmet_dependencies
+                ):
+                    if real_name := self.mutation_real_name.get(dep.name, None):
+                        mutation_renames[real_name] = dep.name
+
+                def rename_deps(deps: OrderedSet[Dep]) -> OrderedSet[Dep]:
+                    return OrderedSet(dep.rename(mutation_renames) for dep in deps)
+
+                new_scheduler_node.unmet_dependencies = rename_deps(
+                    new_scheduler_node.unmet_dependencies
+                )
+                new_scheduler_node.read_writes.reads = rename_deps(
+                    new_scheduler_node.read_writes.reads
+                )
+
+                for new_out, old_out in zip(
+                    new_scheduler_node.get_outputs(), node.get_outputs()
+                ):
+                    self.name_to_buf[old_out.get_name()] = new_out
+                    new_out.users = old_out.users
+
+                new_scheduler_node.min_order = node.min_order
+                new_scheduler_node.max_order = node.max_order
+                new_scheduler_node.last_usage = node.last_usage
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _any_atomic_add(self, node_list: Sequence[BaseSchedulerNode]) -> bool:
         return any(
@@ -3538,10 +3989,17 @@ class Scheduler:
         async_compile = torch._inductor.async_compile.AsyncCompile()
 
         def compile_kernel(
+<<<<<<< HEAD
             nodes: Sequence[BaseSchedulerNode], hint_override: Optional[int] = None
         ) -> tuple[Optional[LambdaFuture], ModuleType]:
             src_code = self.generate_kernel_code_from_nodes(
                 nodes, benchmark_kernel=True, hint_override=hint_override
+=======
+            nodes: Sequence[BaseSchedulerNode],
+        ) -> tuple[Optional[LambdaFuture], ModuleType]:
+            src_code = self.generate_kernel_code_from_nodes(
+                nodes, benchmark_kernel=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             mod = PyCodeCache.load(src_code)
             if not async_compile.use_process_pool():
@@ -3563,6 +4021,7 @@ class Scheduler:
             )
             assert isinstance(multi_node, ir.MultiTemplateBuffer)
 
+<<<<<<< HEAD
             hint_override_best_fusion_choice: dict[
                 Optional[int], TritonTemplateCallerBase
             ] = {}
@@ -3615,6 +4074,10 @@ class Scheduler:
 
             # Eagerly compile and benchmark non-template nodes
             choice_timings = multi_node.choice_timings()
+=======
+            # Eagerly compile and benchmark non-template nodes
+            choice_timings = multi_node.choice_timings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _, ms1 = multi_node.get_min_choice()
             ms2, path2 = (
                 self.benchmark_fused_nodes(node_list_2)
@@ -3671,18 +4134,28 @@ class Scheduler:
                     # triton  will unpredictably error with valid prologue fusions
                     except Exception as e:
                         if fusion_log.isEnabledFor(logging.DEBUG):
+<<<<<<< HEAD
                             fusion_log.debug(  # noqa: G200
+=======
+                            fusion_log.debug(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 "Exception in compiling %s: %s",
                                 "prologue" if not epilogue_fusion else "epilogue",
                                 str(e),
                             )
                         continue
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
                     with multi_node.swap_as_triton_caller(choice):
                         ms_fused, path = self.benchmark_codegened_module(
                             mod_fused,
                             # pyrefly: ignore [bad-argument-type]
                             device,
+=======
+                    with multi_node.swap_as_triton_caller(choice):
+                        ms_fused, path = self.benchmark_codegened_module(
+                            mod_fused, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                         new_timings[choice] = ms_fused
                         if ms_fused < min_ms_fused:
@@ -3692,6 +4165,7 @@ class Scheduler:
                 log_fusion(min_ms_fused, ms1, ms2)
 
                 if min_ms_fused < (ms1 + ms2) and ms_fused_choice is not None:
+<<<<<<< HEAD
                     if config.multi_kernel_hints:
                         hint_override_best_fusion_choice[None] = ms_fused_choice
                         # pyrefly: ignore [missing-attribute]
@@ -3704,6 +4178,10 @@ class Scheduler:
 
                     # pyrefly: ignore [missing-attribute]
                     multi_node._choice_timings[None] = new_timings
+=======
+                    multi_node.finalize_as_triton_caller(ms_fused_choice)
+                    multi_node._choice_timings = new_timings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return True
                 else:
                     return False
@@ -3732,27 +4210,39 @@ class Scheduler:
                             fut.result()
 
                     ms1, path1 = self.benchmark_codegened_module(
+<<<<<<< HEAD
                         future_and_mod_l1[1],
                         # pyrefly: ignore [bad-argument-type]
                         device,
+=======
+                        future_and_mod_l1[1], device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     if math.isinf(ms1):
                         why("register spilling of the first kernel")
                         return False
 
                     ms2, path2 = self.benchmark_codegened_module(
+<<<<<<< HEAD
                         future_and_mod_l2[1],
                         # pyrefly: ignore [bad-argument-type]
                         device,
+=======
+                        future_and_mod_l2[1], device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     if math.isinf(ms2):
                         why("register spilling of the second kernel")
                         return False
 
                     ms_fused, path_fused = self.benchmark_codegened_module(
+<<<<<<< HEAD
                         future_and_mod_l1_fused[1],
                         # pyrefly: ignore [bad-argument-type]
                         device,
+=======
+                        future_and_mod_l1_fused[1], device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     if math.isinf(ms_fused):
                         why("register spilling of the fused kernel")
@@ -3795,9 +4285,13 @@ class Scheduler:
         return self.name_to_fused_node[node.get_first_name()]
 
     def fuse_nodes_once(
+<<<<<<< HEAD
         self,
         nodes: list[BaseSchedulerNode],
         is_reorder_round: bool,
+=======
+        self, nodes: list[BaseSchedulerNode]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> list[BaseSchedulerNode]:
         """
         Combine eligible nodes into FusedSchedulerNodes.
@@ -3806,7 +4300,10 @@ class Scheduler:
             - self.can_fuse(): checks if a fusion is legal
             - self.score_fusion(): assigns priority to a given fusion
         """
+<<<<<<< HEAD
         self.prune_redundant_deps(nodes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fused_nodes = OrderedSet(nodes)
         if fusion_log.isEnabledFor(logging.DEBUG):
             fusion_log.debug("fuse_nodes_once, candidates:")
@@ -3861,7 +4358,11 @@ class Scheduler:
 
                 fuse_two_nodes(node_key1, node_key2)
 
+<<<<<<< HEAD
         for node1, node2 in self.get_possible_fusions(nodes, is_reorder_round):
+=======
+        for node1, node2 in self.get_possible_fusions(nodes):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # if either node is in a pending fusion, resolve it.
             # since we iterate on potential fusions based on profitability
             # the first potential fusion should take precedence.
@@ -3869,9 +4370,15 @@ class Scheduler:
             node1 = self.get_fused_node(node1)
             node2 = self.get_fused_node(node2)
 
+<<<<<<< HEAD
             if self.can_fuse(
                 node1, node2, is_reorder_round
             ) and not self.will_fusion_create_cycle(node1, node2):
+=======
+            if self.can_fuse(node1, node2) and not self.will_fusion_create_cycle(
+                node1, node2
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 speedup = self.speedup_by_fusion(node1, node2)
                 if callable(speedup):
                     pending_fusions[node1] = (speedup, node1, node2)
@@ -3900,6 +4407,10 @@ class Scheduler:
 
         nodes = sorted(fused_nodes, key=lambda x: x.min_order)
         nodes = self.topological_sort_schedule(nodes)
+<<<<<<< HEAD
+=======
+        self.prune_redundant_deps(nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return nodes
 
     def create_combo_kernel_nodes(self, num_ck_nodes: Optional[int] = None) -> None:
@@ -3955,9 +4466,13 @@ class Scheduler:
             node.prune_redundant_deps(self.name_to_fused_node)
 
     def get_possible_fusions(
+<<<<<<< HEAD
         self,
         nodes: list[BaseSchedulerNode],
         is_reorder_round: bool,
+=======
+        self, nodes: list[BaseSchedulerNode]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> list[tuple[BaseSchedulerNode, BaseSchedulerNode]]:
         """
         Helper to find all legal fusion opportunities, sorted by self.score_fusion()
@@ -3977,10 +4492,17 @@ class Scheduler:
                         continue
                     seen.add(key)
 
+<<<<<<< HEAD
                     if self.can_fuse(node1, node2, is_reorder_round):
                         possible_fusions.append(key)
                     elif (node2.is_template() or node2.is_foreach()) and self.can_fuse(
                         node2, node1, is_reorder_round
+=======
+                    if self.can_fuse(node1, node2):
+                        possible_fusions.append(key)
+                    elif (node2.is_template() or node2.is_foreach()) and self.can_fuse(
+                        node2, node1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         # foreach fusions and epilogue fusions are order dependent
                         possible_fusions.append((node2, node1))
@@ -4113,6 +4635,7 @@ class Scheduler:
             return True
         return False
 
+<<<<<<< HEAD
     def fusion_prevent_too_many_reads_and_writes(
         self, node1: BaseSchedulerNode, node2: BaseSchedulerNode, threshold: int
     ) -> bool:
@@ -4161,6 +4684,8 @@ class Scheduler:
 
         return len(unique_io_buffers) > threshold
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def are_long_distant_nodes(
         self, node1: BaseSchedulerNode, node2: BaseSchedulerNode
     ) -> bool:
@@ -4257,11 +4782,14 @@ class Scheduler:
         Right now just greedily reorder the loop of node1 to be compatible with node2,
         but ideally we should have some heuristics to reorder the loop for node2
         to be compatible with node1 if that's more efficient.
+<<<<<<< HEAD
 
         Return the amount of shared data re-computed in this method.
         If no such recomputation happens, return -1 (not return 0 since 0 is a valid
         amount of shared data).
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         # TODO Don't do loop reordering for CPU for now.
@@ -4269,6 +4797,7 @@ class Scheduler:
         if not config.loop_ordering_after_fusion or any(
             n.is_cpu() for n in [node1, node2]
         ):
+<<<<<<< HEAD
             return -1
 
         # in some rare case, a template can be passed in.
@@ -4276,13 +4805,20 @@ class Scheduler:
         # and https://github.com/pytorch/pytorch/issues/165579
         if node1.is_template() or node2.is_template():
             return -1
+=======
+            return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         node1_buffer_names = node1.read_writes.buffer_names()
         node2_buffer_names = node2.read_writes.buffer_names()
         # Fast path: no common buffers.
         common_buffer_names = node1_buffer_names & node2_buffer_names
         if not common_buffer_names:
+<<<<<<< HEAD
             return -1
+=======
+            return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         node1_name2dep = {dep.name: dep for dep in node1.read_writes.reads_and_writes()}
         node2_name2dep = {dep.name: dep for dep in node2.read_writes.reads_and_writes()}
@@ -4305,13 +4841,21 @@ class Scheduler:
                 )
 
         if len(candidates) == 0:
+<<<<<<< HEAD
             return -1
+=======
+            return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Pick the largest buffer to guide the loop reordering
         _numel, lhs_dep, rhs_dep = max(candidates, key=operator.itemgetter(0))
 
         if not isinstance(lhs_dep, MemoryDep) or not isinstance(rhs_dep, MemoryDep):
+<<<<<<< HEAD
             return -1
+=======
+            return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if lhs_dep.num_vars != rhs_dep.num_vars:
             # this can happen due to we don't merge loops.
@@ -4320,6 +4864,7 @@ class Scheduler:
             # normalization (merging loops)
             if lhs_dep.normalize() == rhs_dep.normalize():
                 return self.dep_size_hint(lhs_dep)
+<<<<<<< HEAD
             return -1
 
         reordered = False
@@ -4328,6 +4873,15 @@ class Scheduler:
             reordered = node1.reorder_loops_by_dep_pair(lhs_dep, rhs_dep)
         elif not node2.is_reduction():
             reordered = node2.reorder_loops_by_dep_pair(rhs_dep, lhs_dep)
+=======
+            return 0
+
+        # Only reorder loops for pointwise for now
+        if not node1.is_reduction():
+            node1.reorder_loops_by_dep_pair(lhs_dep, rhs_dep)
+        elif not node2.is_reduction():
+            node2.reorder_loops_by_dep_pair(rhs_dep, lhs_dep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             loop_ordering_log.debug(
                 "Don't reorder loops since both nodes are reductions: %s v.s. %s",
@@ -4335,7 +4889,11 @@ class Scheduler:
                 node2.get_name(),
             )
 
+<<<<<<< HEAD
         return self.score_fusion_memory(node1, node2) if reordered else -1
+=======
+        return self.score_fusion_memory(node1, node2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def unfusable_node(self, node: BaseSchedulerNode) -> bool:
         """
@@ -4406,6 +4964,7 @@ class Scheduler:
 
         return True
 
+<<<<<<< HEAD
     def get_expand_dim_for_pointwise_nodes(
         self, node1: BaseSchedulerNode, node2: BaseSchedulerNode
     ) -> Optional[tuple[int, SchedulerNode, sympy.Expr]]:
@@ -4510,10 +5069,17 @@ class Scheduler:
         node2: BaseSchedulerNode,
         can_reorder: bool = False,
     ) -> bool:
+=======
+    def can_fuse(self, node1: BaseSchedulerNode, node2: BaseSchedulerNode) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Determine if it is possible to combine node1 and node2 into a
         single fused node.
         """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if node1 is node2:
             return False
 
@@ -4563,7 +5129,11 @@ class Scheduler:
             allowed_prologue_inps = template.get_allowed_prologue_inps()
 
             unsupported_prologue_args = (
+<<<<<<< HEAD
                 OrderedSet(inp.get_name() for inp in template.inputs)  # type: ignore[union-attr]
+=======
+                OrderedSet(inp.get_name() for inp in template.inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 - allowed_prologue_inps
             )
 
@@ -4617,6 +5187,10 @@ class Scheduler:
         ):
             why("fusion for buffer explicit disabled")
             return False
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device = node1.get_device()
         device2 = node2.get_device()
         if device != device2:
@@ -4626,6 +5200,7 @@ class Scheduler:
 
         shared_data_score = self.score_fusion_memory(node1, node2)
         if (
+<<<<<<< HEAD
             can_reorder
             and shared_data_score < config.score_fusion_memory_threshold
             and config.loop_ordering_after_fusion
@@ -4640,6 +5215,12 @@ class Scheduler:
             (expand_dim, smaller_node, expand_size) = expand_analysis
             smaller_node.expand_dimension_for_pointwise_node(expand_dim, expand_size)
             shared_data_score = self.score_fusion_memory(node1, node2)
+=======
+            shared_data_score < config.score_fusion_memory_threshold
+            and config.loop_ordering_after_fusion
+        ):
+            shared_data_score = self.shared_data_after_reordering_loop(node1, node2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if loop_ordering_log.isEnabledFor(logging.DEBUG):
             loop_ordering_log.debug(
@@ -4693,7 +5274,11 @@ class Scheduler:
             if remaining:
                 for rd in remaining:
                     if self.fusable_read_and_write(rd, cd):
+<<<<<<< HEAD
                         remaining.remove(rd)  # noqa: B909
+=======
+                        remaining.remove(rd)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         remaining_deps = OrderedSet(
             dep.name
@@ -4733,14 +5318,18 @@ class Scheduler:
         if len(mutating_writes) != 1:
             return False
         write = mutating_writes[0]
+<<<<<<< HEAD
         if isinstance(write, StarDep):
             return False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(write, MemoryDep)
 
         if free_symbol_is_type(write.index, SymT.TMP):
             return False
 
         real_name = self.mutation_real_name[weak_dep.mutating_buf]
+<<<<<<< HEAD
         relevant_reading_nodes = [node1]
         if isinstance(node1, ForeachKernelSchedulerNode):
             relevant_reading_nodes = node1.snodes
@@ -4763,6 +5352,18 @@ class Scheduler:
             ):
                 return False
         return num_concurrent_reads <= 1
+=======
+        relevant_reads = [
+            read for read in node1.read_writes.reads if read.name == real_name
+        ]
+        return all(
+            isinstance(read, MemoryDep)
+            and not free_symbol_is_type(read.index, SymT.TMP)
+            and read.index == write.index
+            and read.size == write.size
+            for read in relevant_reads
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # StarDep doesn't match MemoryDep, different indices don't match
     # However, broadcasting sometimes strips dimensions, and if that's the case
@@ -4803,7 +5404,24 @@ class Scheduler:
         return False
 
     def dep_size_hint(self, dep: Dep) -> int:
+<<<<<<< HEAD
         return V.graph.get_dep_size_hint(dep)
+=======
+        res = 0
+        if dep not in self.__dep_size_hint_cache:
+            try:
+                if not dep.has_unbacked_symbols():
+                    res = dep.numbytes_hint()
+            except KeyError:
+                # In at least one test (test/inductor/test_torchbind.py) we
+                # create a StarDep that doesn't exist in the graph and calling
+                # `has_unbacked_symbols()` throws an error.
+                pass
+            self.__dep_size_hint_cache[dep] = res
+        else:
+            res = self.__dep_size_hint_cache[dep]
+        return res
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def score_fusion_memory(
         self, node1: BaseSchedulerNode, node2: BaseSchedulerNode
@@ -4813,12 +5431,22 @@ class Scheduler:
         memory operations.
         """
         node1_dep_len = len(node1.read_writes.reads) + len(node1.read_writes.writes)
+<<<<<<< HEAD
         node2_dep_len = len(node2.read_writes.reads) + len(node2.read_writes.writes)
+=======
+        node2_dep_len = len(node1.read_writes.reads) + len(node2.read_writes.writes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # optimization: iter over smaller set
         if min(node1_dep_len, node2_dep_len) * 4 < max(node1_dep_len, node2_dep_len):
             if node1_dep_len > node2_dep_len:
+<<<<<<< HEAD
                 node1, node2 = node2, node1
+=======
+                tmp = node1
+                node1 = node2
+                node2 = tmp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             deps = [
                 dep
@@ -4988,6 +5616,7 @@ class Scheduler:
             and name not in self.mutation_real_name
         )
 
+<<<<<<< HEAD
     def should_partition(
         self, node: BaseSchedulerNode, should_log: bool = False
     ) -> bool:
@@ -5052,6 +5681,29 @@ class Scheduler:
 
         if is_cudagraph_unsafe_op(node.node):
             log_partition_reason("CUDAGraph-unsafe custom ops", node=node)
+=======
+    def should_partition(self, node: BaseSchedulerNode) -> bool:
+        """Return True if we should partition the inductor graph on this node"""
+        if isinstance(node, FusedSchedulerNode):
+            return any(self.should_partition(snode) for snode in node.snodes)
+
+        if not node.is_gpu():
+            return True
+
+        if node.node is None:
+            return True
+
+        if isinstance(node.node, ir.DeviceCopy):
+            return True
+
+        if isinstance(node.node, ir.Conditional):
+            return True
+
+        if getattr(node.node, "unbacked_bindings", None):
+            return True
+
+        if is_cudagraph_unsafe_op(node.node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return True
 
         return False
@@ -5286,6 +5938,7 @@ class Scheduler:
             for node in partition:
                 buffer_names_to_free.update(node.last_usage)
 
+<<<<<<< HEAD
             # buffer_names_to_free may contain buffers allocated in previous
             # graph partitions. These buffers should also be a partition
             # input.
@@ -5296,13 +5949,19 @@ class Scheduler:
             ]
             partition_input_names.update(extra_input_names)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input_nodes = {
                 name: name_to_node[name]
                 for name in partition_input_names
                 if name in name_to_node
             }
             input_deallocation = {
+<<<<<<< HEAD
                 name: name in buffer_names_to_free
+=======
+                name: True if name in buffer_names_to_free else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for name in partition_input_names
                 if name in name_to_node
             }
@@ -5350,7 +6009,10 @@ class Scheduler:
             signatures.append(partition_signature)
 
             unmet_output_names = partition_input_names.union(
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 unmet_output_names - returned_output_names
             )
 
@@ -5532,7 +6194,11 @@ class Scheduler:
         cur_partition: PartitionType = []
         skip_cudagraphs = []
         for node in self.nodes:
+<<<<<<< HEAD
             should_partition = self.should_partition(node, should_log=True)
+=======
+            should_partition = self.should_partition(node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if cur_partition and skip_cudagraph != should_partition:
                 partitions.append(cur_partition)
                 skip_cudagraphs.append(skip_cudagraph)
@@ -5593,16 +6259,23 @@ class Scheduler:
             V.graph.wrapper_code.partition_signatures = signature
             V.graph.wrapper_code.write_prefix()
 
+<<<<<<< HEAD
             graph_name = V.graph.name
             partition_code, _ = V.graph.wrapper_code.generate(V.graph.is_inference)
 
         V.graph.wrapper_code.define_subgraph_launcher_fn(graph_name, partition_code)
+=======
+            partition_code, _ = V.graph.wrapper_code.generate(V.graph.is_inference)
+
+        V.graph.wrapper_code.define_subgraph_launcher_fn(partition_code.value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         V.graph.wrapper_code.codegen_partition_call(graph_partition_id, signature)
         V.graph.wrapper_code.allocated.update(  # type: ignore[has-type]
             [node.get_name() for node in signature.output_nodes]
         )
 
+<<<<<<< HEAD
     def use_default_device_context(
         self, partitions: list[PartitionType], signatures: list[GraphPartitionSignature]
     ) -> contextlib.AbstractContextManager[None]:
@@ -5677,6 +6350,8 @@ class Scheduler:
 
         self.default_device_context = cudagraph_partition_device
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _codegen_partitions(self) -> None:
         """
         Split nodes into partitions and codegen each partition into separate functions.
@@ -5685,6 +6360,7 @@ class Scheduler:
         """
         partitions, signatures = self.graph_partition()
 
+<<<<<<< HEAD
         if len(partitions) > 1:
             msg = f"cudagraph partition into {len(partitions)} partitions"
             maybe_log_cudagraph_partition(msg=msg, prefix="")
@@ -5699,6 +6375,17 @@ class Scheduler:
                     self._codegen(partition)
                 else:
                     self._codegen_partition_wrapper(partition, signature)
+=======
+        for partition, signature in zip(partitions, signatures):
+            assert len(partition) >= 1, (
+                f"Each partition must have at least one node but found {len(partition)}"
+            )
+
+            if signature.skip_cudagraph:
+                self._codegen(partition)
+            else:
+                self._codegen_partition_wrapper(partition, signature)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         num_partitions = next(self._graph_partition_counter)
         V.graph.wrapper_code.set_all_partition_names(num_partitions)
@@ -5731,12 +6418,16 @@ class Scheduler:
                 )
                 seen.add(key)
 
+<<<<<<< HEAD
         self.current_device = self.default_device_context
 
         # pyrefly: ignore [unbound-name]
         if self.default_device_context and config.triton.autotune_at_compile_time:
             V.graph.wrapper_code.write_get_raw_stream_header()
 
+=======
+        self.current_device = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in nodes:
             if log.isEnabledFor(logging.DEBUG):
                 try:
@@ -5770,14 +6461,20 @@ class Scheduler:
                         assert device.index is not None, "device should have an index"
                         V.graph.wrapper_code.codegen_device_guard_enter(device.index)
 
+<<<<<<< HEAD
             self.current_node = node
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.buffer_names_to_free.update(node.last_usage)
 
             if node.is_template():
                 prologue, template_node, epilogue = node.get_prologue_template_epilogue(
                     list(node.get_nodes())
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.get_backend(device).codegen_template(
                     template_node, epilogue, prologue
                 )
@@ -5786,7 +6483,10 @@ class Scheduler:
                 self.codegen_extern_call(node)
             elif node.is_foreach():
                 node = typing.cast(ForeachKernelSchedulerNode, node)
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 backend_ = self.get_backend(device)
                 from .codegen.cuda_combined_scheduling import CUDACombinedScheduling
                 from .codegen.simd import SIMDScheduling
@@ -5796,19 +6496,27 @@ class Scheduler:
                 else:
                     raise AssertionError(f"{type(self)=}")
                 backend.codegen_combo_kernel(node)
+<<<<<<< HEAD
             elif isinstance(node, FusedMixOrderReductions):
                 # pyrefly: ignore [unbound-name]
                 self.get_backend(device).codegen_mix_order_reduction(node)
             elif isinstance(node, (FusedSchedulerNode, SchedulerNode)):
                 # pyrefly: ignore [unbound-name]
+=======
+            elif isinstance(node, (FusedSchedulerNode, SchedulerNode)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.get_backend(device).codegen_node(node)
             else:
                 assert isinstance(node, NopKernelSchedulerNode)
                 node.mark_run()
 
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
             if config.triton.debug_sync_kernel:
                 # pyrefly: ignore [unbound-name]
+=======
+            if config.triton.debug_sync_kernel:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.get_backend(device).codegen_sync()
 
             self.available_buffer_names.update(node.get_buffer_names())
@@ -5823,6 +6531,7 @@ class Scheduler:
                 ):
                     self.flush()
 
+<<<<<<< HEAD
         if self.current_device != self.default_device_context:
             # when default_device_context is not None, we are codegen
             # for graph partitions and all nodes must be on
@@ -5832,6 +6541,12 @@ class Scheduler:
                 # exit the outermost CUDA device guard. this is
                 # important for nested indentation codegen-ing.
                 V.graph.wrapper_code.codegen_device_guard_exit()
+=======
+        if self.current_device and device_need_guard(self.current_device.type):
+            # exit the outermost CUDA device guard. this is
+            # important for nested indentation codegen-ing.
+            V.graph.wrapper_code.codegen_device_guard_exit()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.flush()
 
@@ -5945,7 +6660,11 @@ class Scheduler:
                         V.graph.zero_dim_cpu_tensor_list.add(read.name)
 
 
+<<<<<<< HEAD
 class BaseScheduling:  # noqa: docstring_linter
+=======
+class BaseScheduling:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, scheduler: Optional[Scheduler]):
         super().__init__()
         self.scheduler = scheduler
@@ -5994,8 +6713,11 @@ class BaseScheduling:  # noqa: docstring_linter
         """
         if node1.is_foreach() or node2.is_foreach():
             return ForeachKernelSchedulerNode.fuse(node1, node2)
+<<<<<<< HEAD
         elif MixOrderReduction.are_mix_order_reductions(node1, node2):
             return FusedMixOrderReductions(node1, node2)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return FusedSchedulerNode.fuse(node1, node2)
 
@@ -6022,10 +6744,14 @@ class BaseScheduling:  # noqa: docstring_linter
         raise NotImplementedError
 
     def generate_kernel_code_from_nodes(
+<<<<<<< HEAD
         self,
         nodes: Sequence[BaseSchedulerNode],
         benchmark_kernel: bool,
         hint_override: Optional[int] = None,
+=======
+        self, nodes: Sequence[BaseSchedulerNode], benchmark_kernel: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> str:
         """
         Generate a kernel given a list of pre-fused nodes.
@@ -6038,9 +6764,12 @@ class BaseScheduling:  # noqa: docstring_linter
         """
         raise NotImplementedError
 
+<<<<<<< HEAD
     def codegen_mix_order_reduction(self, node: FusedMixOrderReductions) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_sync(self) -> None:
         """
         Generate synchronization code for the kernel. This method depends on the hardware characteristics.
@@ -6093,6 +6822,7 @@ class BaseScheduling:  # noqa: docstring_linter
         and memory copy time in milliseconds on randomly generated inputs.
         """
         raise NotImplementedError
+<<<<<<< HEAD
 
     def codegen_comment(
         self,
@@ -6109,3 +6839,5 @@ class BaseScheduling:  # noqa: docstring_linter
             V.graph.wrapper_code.write_provenance_debug_handle(
                 kernel_name, debug_handle
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

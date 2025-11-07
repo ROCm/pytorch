@@ -69,6 +69,17 @@
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
+=======
+.. autofunction:: write_file_on_exit
+```
+
+```{eval-rst}
+.. autofunction:: write_file
+```
+
+```{eval-rst}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. autofunction:: read_file
 ```
 
@@ -87,7 +98,10 @@
 ```{eval-rst}
 .. autofunction:: get_rotating_buffer_size
 ```
+<<<<<<< HEAD
 
 ```{eval-rst}
 .. autofunction:: set_numerical_check_tolerances
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -1,6 +1,9 @@
 # Owner(s): ["module: intel"]
 
+<<<<<<< HEAD
 import gc
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import subprocess
 import sys
@@ -25,7 +28,10 @@ from torch.testing._internal.common_utils import (
     IS_LINUX,
     IS_WINDOWS,
     run_tests,
+<<<<<<< HEAD
     serialTest,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     suppress_warnings,
     TEST_XPU,
     TestCase,
@@ -103,7 +109,10 @@ class TestXpu(TestCase):
         self.assertEqual(device_name, torch.xpu.get_device_name())
 
         device_capability = torch.xpu.get_device_capability(current_device)
+<<<<<<< HEAD
         self.assertTrue(device_capability["device_id"] > 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(device_capability["max_work_group_size"] > 0)
         self.assertTrue(device_capability["max_num_sub_groups"] > 0)
         self.assertEqual(
@@ -135,10 +144,13 @@ class TestXpu(TestCase):
                 device_properties.architecture,
                 device_capability["architecture"],
             )
+<<<<<<< HEAD
         self.assertEqual(
             len(str(device_properties.uuid)), 36
         )  # xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         self.assertEqual(len(device_properties.uuid.bytes), 16)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     def test_wrong_xpu_fork(self):
@@ -483,6 +495,7 @@ if __name__ == "__main__":
         with self.assertRaises(torch.OutOfMemoryError):
             torch.empty(1024 * 1024 * 1024 * 1024, device="xpu")
 
+<<<<<<< HEAD
     @serialTest()
     def test_set_per_process_memory_fraction(self):
         gc.collect()
@@ -509,6 +522,8 @@ if __name__ == "__main__":
 
         torch.xpu.set_per_process_memory_fraction(1.0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_memory_allocation(self):
         torch.xpu.empty_cache()
         prev_allocated = torch.xpu.memory_allocated()
@@ -552,6 +567,7 @@ if __name__ == "__main__":
         )
         del a
 
+<<<<<<< HEAD
     def test_memory_stats(self):
         gc.collect()
         torch.xpu.empty_cache()
@@ -588,6 +604,8 @@ if __name__ == "__main__":
         self.assertEqual(torch.accelerator.max_memory_allocated(), prev_max_allocated)
         self.assertEqual(torch.accelerator.max_memory_reserved(), prev_max_reserved)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipXPUIf(
         int(torch.version.xpu) < 20250000,
         "Test requires SYCL compiler version 2025.0.0 or newer.",
@@ -612,6 +630,7 @@ if __name__ == "__main__":
         for arch in arch_list:
             self.assertTrue(arch in flags)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_MULTIXPU, "only one GPU detected")
     def test_can_device_access_peer(self):
         device_count = torch.xpu.device_count()
@@ -622,6 +641,8 @@ if __name__ == "__main__":
                     torch.xpu.can_device_access_peer(peer, device),
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_version_xpu(self):
         self.assertEqual(len(torch.version.xpu), 8)
         compiler_version = int(torch.version.xpu)
@@ -803,10 +824,13 @@ class TestXPUAPISanity(TestCase):
             torch.xpu.is_available(),
         )
 
+<<<<<<< HEAD
     def test_is_tf32_supported(self):
         if not torch.xpu.is_available():
             self.assertFalse(torch.xpu.is_tf32_supported())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_arch_list(self):
         if not torch.xpu._is_compiled():
             self.assertEqual(len(torch.xpu.get_arch_list()), 0)

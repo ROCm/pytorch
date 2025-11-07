@@ -185,12 +185,17 @@ def benchmark_utilization(
     ```
     def f(a):
         return a.sum()
+<<<<<<< HEAD
 
 
     a = torch.rand(2**20, device="cuda")
     utilization, mm_conv_utilization = benchmark_utilization(
         f, a, "tmp", trace_file_name="tmp_chrome_trace"
     )
+=======
+    a = torch.rand(2**20, device="cuda")
+    utilization, mm_conv_utilization = benchmark_utilization(f, a, "tmp", trace_file_name = "tmp_chrome_trace")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ```
 
     Args:

@@ -13,8 +13,12 @@ def get_enum(reduction: str) -> int:
     elif reduction == "elementwise_mean":
         warnings.warn(
             "reduction='elementwise_mean' is deprecated. "
+<<<<<<< HEAD
             "Please use reduction='mean' instead.",
             stacklevel=2,
+=======
+            "Please use reduction='mean' instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ret = 1
     elif reduction == "sum":
@@ -49,7 +53,11 @@ def legacy_get_string(
     else:
         ret = "none"
     if emit_warning:
+<<<<<<< HEAD
         warnings.warn(warning.format(ret), stacklevel=2)
+=======
+        warnings.warn(warning.format(ret))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ret
 
 

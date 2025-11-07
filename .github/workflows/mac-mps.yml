@@ -28,6 +28,10 @@ jobs:
       # than our AWS macos-m1-14 runners
       test-matrix: |
         { include: [
+<<<<<<< HEAD
+=======
+          { config: "test_mps", shard: 1, num_shards: 1, runner: "macos-m1-13" },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           { config: "test_mps", shard: 1, num_shards: 1, runner: "macos-m1-14" },
           { config: "test_mps", shard: 1, num_shards: 1, runner: "macos-m2-15" },
         ]}

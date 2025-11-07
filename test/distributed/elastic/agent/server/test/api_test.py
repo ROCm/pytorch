@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
 # Owner(s): ["oncall: r2p"]
 
+<<<<<<< HEAD
 import functools
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-style license found in the
+<<<<<<< HEAD
 # LICENSE file in the root directory  of this source tree.
 import json
+=======
+# LICENSE file in the root directory of this source tree.
+
+
+import functools
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 import signal
 import unittest
 import uuid
 from multiprocessing.pool import ThreadPool
 from typing import Any
+<<<<<<< HEAD
 from unittest.mock import call, MagicMock, patch
+=======
+from unittest.mock import call, patch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.distributed as dist
 import torch.distributed.elastic.rendezvous.registry as rdzv_registry
@@ -29,7 +43,10 @@ from torch.distributed.elastic.agent.server.api import (
     WorkerSpec,
     WorkerState,
 )
+<<<<<<< HEAD
 from torch.distributed.elastic.events import EventSource
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.elastic.multiprocessing import SignalException
 from torch.distributed.elastic.multiprocessing.errors import ProcessFailure
 from torch.distributed.elastic.rendezvous import RendezvousHandler, RendezvousParameters
@@ -158,6 +175,7 @@ def monres(state: WorkerState):
         return RunResult(state=state)
 
 
+<<<<<<< HEAD
 class RecordWorkerEventsTest(unittest.TestCase):
     def setUp(self):
         self.spec = MagicMock()
@@ -398,6 +416,8 @@ class ConstructEventTest(unittest.TestCase):
         self.assertNotIn("exit_code", [None])
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SimpleElasticAgentTest(unittest.TestCase):
     def _get_worker_spec(
         self,
@@ -636,7 +656,11 @@ class SimpleElasticAgentTest(unittest.TestCase):
         worker_group = agent.get_worker_group()
 
         num_restarts = 3
+<<<<<<< HEAD
         for _ in range(num_restarts):
+=======
+        for _ in range(0, num_restarts):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             agent._restart_workers(worker_group)
             self.assertEqual(WorkerState.HEALTHY, worker_group.state)
 

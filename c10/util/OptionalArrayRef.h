@@ -27,7 +27,11 @@ class OptionalArrayRef final {
 
   constexpr OptionalArrayRef() noexcept = default;
 
+<<<<<<< HEAD
   constexpr OptionalArrayRef(std::nullopt_t /*unused*/) noexcept {}
+=======
+  constexpr OptionalArrayRef(std::nullopt_t) noexcept {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   OptionalArrayRef(const OptionalArrayRef& other) = default;
 
@@ -89,7 +93,11 @@ class OptionalArrayRef final {
 
   // Assignment
 
+<<<<<<< HEAD
   constexpr OptionalArrayRef& operator=(std::nullopt_t /*unused*/) noexcept {
+=======
+  constexpr OptionalArrayRef& operator=(std::nullopt_t) noexcept {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wrapped_opt_array_ref = std::nullopt;
     return *this;
   }

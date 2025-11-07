@@ -62,11 +62,21 @@ inline int32_t THPUtils_unpackInt(PyObject* obj) {
   if (value == -1 && PyErr_Occurred()) {
     throw python_error();
   }
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(overflow == 0, "Overflow when unpacking long long");
   TORCH_CHECK_VALUE(
       value <= std::numeric_limits<int32_t>::max() &&
           value >= std::numeric_limits<int32_t>::min(),
       "Overflow when unpacking long");
+=======
+  if (overflow != 0) {
+    throw std::runtime_error("Overflow when unpacking long");
+  }
+  if (value > std::numeric_limits<int32_t>::max() ||
+      value < std::numeric_limits<int32_t>::min()) {
+    throw std::runtime_error("Overflow when unpacking long");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (int32_t)value;
 }
 
@@ -76,7 +86,13 @@ inline int64_t THPUtils_unpackLong(PyObject* obj) {
   if (value == -1 && PyErr_Occurred()) {
     throw python_error();
   }
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(overflow == 0, "Overflow when unpacking long long");
+=======
+  if (overflow != 0) {
+    throw std::runtime_error("Overflow when unpacking long");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (int64_t)value;
 }
 
@@ -85,9 +101,15 @@ inline uint32_t THPUtils_unpackUInt32(PyObject* obj) {
   if (PyErr_Occurred()) {
     throw python_error();
   }
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(
       value <= std::numeric_limits<uint32_t>::max(),
       "Overflow when unpacking long long");
+=======
+  if (value > std::numeric_limits<uint32_t>::max()) {
+    throw std::runtime_error("Overflow when unpacking unsigned long");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (uint32_t)value;
 }
 
@@ -120,7 +142,11 @@ inline bool THPUtils_unpackBool(PyObject* obj) {
   } else if (obj == Py_False) {
     return false;
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "couldn't convert python object to boolean");
+=======
+    throw std::runtime_error("couldn't convert python object to boolean");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -163,6 +189,7 @@ inline c10::complex<double> THPUtils_unpackComplexDouble(PyObject* obj) {
 }
 
 inline bool THPUtils_unpackNumberAsBool(PyObject* obj) {
+<<<<<<< HEAD
 #ifdef USE_NUMPY
   // Handle NumPy boolean scalars (np.bool_)
   if (torch::utils::is_numpy_bool(obj)) {
@@ -173,6 +200,8 @@ inline bool THPUtils_unpackNumberAsBool(PyObject* obj) {
     return truth != 0;
   }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (PyFloat_Check(obj)) {
     return (bool)PyFloat_AS_DOUBLE(obj);
   }
@@ -199,6 +228,7 @@ inline c10::DeviceIndex THPUtils_unpackDeviceIndex(PyObject* obj) {
   if (value == -1 && PyErr_Occurred()) {
     throw python_error();
   }
+<<<<<<< HEAD
   TORCH_CHECK(overflow == 0, "Overflow when unpacking DeviceIndex");
   TORCH_CHECK(
       value <= std::numeric_limits<c10::DeviceIndex>::max() &&
@@ -225,3 +255,14 @@ inline T THPUtils_unpackInteger(PyObject* obj) {
   }
   return static_cast<uint64_t>(uvalue);
 }
+=======
+  if (overflow != 0) {
+    throw std::runtime_error("Overflow when unpacking DeviceIndex");
+  }
+  if (value > std::numeric_limits<c10::DeviceIndex>::max() ||
+      value < std::numeric_limits<c10::DeviceIndex>::min()) {
+    throw std::runtime_error("Overflow when unpacking DeviceIndex");
+  }
+  return (c10::DeviceIndex)value;
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

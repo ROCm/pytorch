@@ -1,6 +1,10 @@
 import importlib
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _MESSAGE_TEMPLATE = (
@@ -45,7 +49,11 @@ def lazy_deprecated_import(
         if name in all:
             # We are using the "RuntimeWarning" to make sure it is not
             # ignored by default.
+<<<<<<< HEAD
             warnings.warn(warning_message, RuntimeWarning, stacklevel=2)
+=======
+            warnings.warn(warning_message, RuntimeWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package = importlib.import_module(new_module)
             return getattr(package, name)
         raise AttributeError(f"Module {new_module!r} has no attribute {name!r}.")

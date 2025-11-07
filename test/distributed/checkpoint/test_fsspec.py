@@ -2,9 +2,14 @@
 
 import shutil
 import tempfile
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, Optional
+=======
+from functools import wraps
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -19,10 +24,14 @@ from torch.distributed.checkpoint.optimizer import load_sharded_optimizer_state_
 from torch.distributed.checkpoint.utils import CheckpointException
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp.fully_sharded_data_parallel import StateDictType
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     requires_accelerator_dist_backend,
     skip_if_lt_x_gpu,
 )
+=======
+from torch.testing._internal.common_distributed import requires_nccl, skip_if_lt_x_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests, TestCase
 from torch.testing._internal.distributed._shard.sharded_tensor import (
     ShardedTensorTestBase,
@@ -30,10 +39,13 @@ from torch.testing._internal.distributed._shard.sharded_tensor import (
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 BACKEND = torch.distributed.get_default_backend_for_device(device_type)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def with_temp_dir(
     func: Optional[Callable] = None,
 ) -> Optional[Callable]:
@@ -83,14 +95,24 @@ class TestFSSpec(ShardedTensorTestBase):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @with_comms(backend=BACKEND, init_rpc=False)
     @requires_accelerator_dist_backend()
     @skip_if_lt_x_gpu(2)
+=======
+    @with_comms(init_rpc=False)
+    @skip_if_lt_x_gpu(2)
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     def test_fsspec(self):
         CHECKPOINT_DIR = self.temp_dir
 
+<<<<<<< HEAD
         model = FSDP(MyTestModule().to(device_type))
+=======
+        model = FSDP(MyTestModule().cuda())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim = torch.optim.Adam(model.parameters(), lr=0.1)
         model(torch.rand(8, 8, device=dist.get_rank())).sum().backward()
         optim.step()
@@ -107,7 +129,11 @@ class TestFSSpec(ShardedTensorTestBase):
                 planner=dcp.DefaultSavePlanner(),
             )
 
+<<<<<<< HEAD
         model_2 = FSDP(MyTestModule().to(device_type))
+=======
+        model_2 = FSDP(MyTestModule().cuda())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim_2 = torch.optim.Adam(model_2.parameters(), lr=0.1)
 
         with FSDP.summon_full_params(model):
@@ -157,9 +183,15 @@ class TestFSSpec(ShardedTensorTestBase):
             opt_at(optim, 0)["exp_avg_sq"], opt_at(optim_2, 0)["exp_avg_sq"]
         )
 
+<<<<<<< HEAD
     @with_comms(backend=BACKEND, init_rpc=False)
     @requires_accelerator_dist_backend()
     @skip_if_lt_x_gpu(2)
+=======
+    @with_comms(init_rpc=False)
+    @skip_if_lt_x_gpu(2)
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     def test_overwrite(self):
         t1, t2 = torch.randn(10), torch.randn(10)

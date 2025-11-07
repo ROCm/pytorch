@@ -76,8 +76,13 @@ static std::optional<at::Tensor> runTorchSlice_opset9(
   if (!(node->hasAttributeS("starts") && node->hasAttributeS("ends"))) {
     return std::nullopt;
   }
+<<<<<<< HEAD
   auto const& startsAttr = node->is(attr::starts);
   auto const& endsAttr = node->is(attr::ends);
+=======
+  auto startsAttr = node->is(attr::starts);
+  auto endsAttr = node->is(attr::ends);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (startsAttr.size() != endsAttr.size()) {
     return std::nullopt;
   }

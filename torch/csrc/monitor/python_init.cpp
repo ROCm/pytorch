@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <utility>
 
 #include <c10/util/WaitCounter.h>
@@ -24,7 +27,11 @@ struct type_caster<torch::monitor::data_value_t> {
   PYBIND11_TYPE_CASTER(torch::monitor::data_value_t, _("data_value_t"));
 
   // Python -> C++
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* source = src.ptr();
     if (THPUtils_checkLong(source)) {
       this->value = THPUtils_unpackLong(source);
@@ -59,7 +66,11 @@ struct type_caster<torch::monitor::data_value_t> {
       std::string& str = std::get<std::string>(src);
       return THPUtils_packString(str);
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, "unknown data_value_t type");
+=======
+    throw std::runtime_error("unknown data_value_t type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 } // namespace pybind11::detail

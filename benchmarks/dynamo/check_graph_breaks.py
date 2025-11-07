@@ -10,9 +10,15 @@ import pandas as pd
 
 flaky_models = {
     "yolov3",
+<<<<<<< HEAD
     "detectron2_maskrcnn_r_101_c4",
     "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
     "detectron2_fcos_r_50_fpn",
+=======
+    "gluon_inception_v3",
+    "detectron2_maskrcnn_r_101_c4",
+    "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -31,21 +37,38 @@ def check_graph_breaks(actual_csv, expected_csv, expected_filename):
         flaky_models.update(
             {
                 "alexnet",
+<<<<<<< HEAD
+=======
+                "cait_m36_384",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "demucs",
                 "densenet121",
                 "detectron2_fcos_r_50_fpn",
                 "doctr_det_predictor",
                 "doctr_reco_predictor",
+<<<<<<< HEAD
                 "levit_128",
                 "llava",
                 "microbench_unbacked_tolist_sum",
                 "resnet50",
                 "resnet152",
+=======
+                "hf_BigBird",
+                "hf_Longformer",
+                "hf_Reformer",
+                "hf_Roberta_base",
+                "hf_T5",
+                "hf_T5_base",
+                "levit_128",
+                "llava",
+                "microbench_unbacked_tolist_sum",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "sam",
                 "sam_fast",
                 "stable_diffusion_text_encoder",
                 "stable_diffusion_unet",
                 "timm_efficientdet",
+<<<<<<< HEAD
                 "torchrec_dlrm",
                 "vgg16",
                 # LLM
@@ -56,6 +79,11 @@ def check_graph_breaks(actual_csv, expected_csv, expected_filename):
                 "Qwen/Qwen3-0.6B",
                 "mistralai/Mistral-7B-Instruct-v0.3",
                 "openai/gpt-oss-20b",
+=======
+                "timm_nfnet",
+                "torchrec_dlrm",
+                "vgg16",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         )
 

@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import enum
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, overload
+=======
+from typing import Any, Callable, overload
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.distributed.algorithms.join import Joinable, JoinHook

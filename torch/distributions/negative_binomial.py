@@ -33,7 +33,10 @@ class NegativeBinomial(Distribution):
         logits (Tensor): Event log-odds for probabilities of success
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "total_count": constraints.greater_than_eq(0),
         "probs": constraints.half_open_interval(0.0, 1.0),
@@ -55,7 +58,10 @@ class NegativeBinomial(Distribution):
         if probs is not None:
             (
                 self.total_count,
+<<<<<<< HEAD
                 # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.probs,
             ) = broadcast_all(total_count, probs)
             self.total_count = self.total_count.type_as(self.probs)
@@ -63,7 +69,10 @@ class NegativeBinomial(Distribution):
             assert logits is not None  # helps mypy
             (
                 self.total_count,
+<<<<<<< HEAD
                 # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.logits,
             ) = broadcast_all(total_count, logits)
             self.total_count = self.total_count.type_as(self.logits)

@@ -7,7 +7,10 @@ from __future__ import annotations
 import builtins
 import functools
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import TYPE_CHECKING, TypeVar
 
 from ..decorators import substitute_in_graph
@@ -59,6 +62,7 @@ def enumerate(iterable: Iterable[_T], start: int = 0) -> Iterable[tuple[int, _T]
 @substitute_in_graph(builtins.sum, can_constant_fold_through=True)  # type: ignore[arg-type]
 def sum(iterable: Iterable[_T], /, start: _T = 0) -> _T:  # type: ignore[assignment]
     return functools.reduce(operator.add, iterable, start)
+<<<<<<< HEAD
 
 
 class _CallableIterator:
@@ -121,3 +125,5 @@ def iter_(fn_or_iterable, sentinel=_SENTINEL_MISSING, /):  # type: ignore[no-unt
             raise TypeError("iter(v, w): v must be a callable")
 
         return _CallableIterator(fn, sentinel)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

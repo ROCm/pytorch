@@ -9,9 +9,15 @@ except ImportError as e:
 import numbers
 import os
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from datetime import timedelta
 from typing import Optional
+=======
+from collections.abc import Iterator
+from datetime import timedelta
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed import FileStore, Store, TCPStore
 
@@ -93,7 +99,10 @@ def _rendezvous_helper(url: str, rank: int, world_size_opt: Optional[int], **kwa
         result = result._replace(
             query=f"{'&'.join([f'{k}={v}' for k, v in query_dict.items()])}"
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         url = urlunparse(result)
 
     if result.scheme not in _rendezvous_handlers:
@@ -111,7 +120,10 @@ def rendezvous(url: str, rank: int = -1, world_size: int = -1, **kwargs):
     if not isinstance(world_size, numbers.Integral):
         raise RuntimeError(f"`world_size` must be an integer. {world_size}")
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _rendezvous_helper(url, rank, world_size, **kwargs)
 
 

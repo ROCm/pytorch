@@ -838,7 +838,11 @@ void dyn_quant_pack_4bit_weight_kernel(
   }
 }
 
+<<<<<<< HEAD
 void ref_dyn_quant_matmul_4bit_channelwise_kernel(
+=======
+static void ref_dyn_quant_matmul_4bit_channelwise_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size_t m,
     size_t n,
     size_t k,
@@ -906,7 +910,11 @@ void ref_dyn_quant_matmul_4bit_channelwise_kernel(
           // Round to nearest integer
           const int32_t nudged_zero_point0 = lrintf(zero_point0);
 
+<<<<<<< HEAD
           int8_t* dst_ptr = lhs_qa8dx + m_idx * dst_stride;
+=======
+          int8_t* dst_ptr = (int8_t*)lhs_qa8dx + m_idx * dst_stride;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           // LHS offset at the beginning of the row
           *((float*)(dst_ptr)) = recip_scale0;
@@ -930,7 +938,11 @@ void ref_dyn_quant_matmul_4bit_channelwise_kernel(
         }
       };
 
+<<<<<<< HEAD
   // Dynamically Quantize the float32 input to 8 bit asymmetric
+=======
+  // Dynamically Quantize the float32 input to 8 bit assymetric
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   input_quant_pack_8bit_channelwise(m, k, lhs_f32, (int8_t*)lhs_qa8dx);
 
   const size_t lhs_stride =
@@ -997,7 +1009,11 @@ void ref_dyn_quant_matmul_4bit_channelwise_kernel(
   }
 }
 
+<<<<<<< HEAD
 void ref_dyn_quant_matmul_4bit_groupwise_kernel(
+=======
+static void ref_dyn_quant_matmul_4bit_groupwise_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size_t m,
     size_t n,
     size_t k,
@@ -1048,7 +1064,11 @@ void ref_dyn_quant_matmul_4bit_groupwise_kernel(
       zero_point0 = (std::min)(zero_point0, qmax);
       const int32_t nudged_zero_point0 = lrintf(zero_point0);
 
+<<<<<<< HEAD
       int8_t* dst_ptr = lhs_qa8dx + row_idx * dst_stride;
+=======
+      int8_t* dst_ptr = (int8_t*)lhs_qa8dx + row_idx * dst_stride;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       *((float*)(dst_ptr)) = recip_scale0;
       dst_ptr += sizeof(float);
@@ -1163,7 +1183,11 @@ void dyn_quant_matmul_4bit_kernel(
   const int64_t weight_packed_size =
       kleidiai::kai_pack_rhs_int4_size(N, K, block_size);
   if (weight_packed_size == packed_weights.numel()) {
+<<<<<<< HEAD
     // KleidiAI interface internally handles the Channelwise and groupwise
+=======
+    // KleidiAI interface intenally handles the Channelwise and groupwise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // distinction
     kleidiai::kai_quant_pack_lhs_int4_mm(
         output, inp, packed_weights, M, N, K, block_size);

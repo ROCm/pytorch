@@ -282,7 +282,11 @@ Value* CloneValueFromListConstruct(
   auto input = n_graph->addInput();
   if (scalar_type) {
     auto v_type = TensorType::create(
+<<<<<<< HEAD
         scalar_type,
+=======
+        scalar_type.value(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         at::kCPU,
         c10::SymbolicShape(),
         c10::VaryingShape<c10::Stride>{},
@@ -411,9 +415,13 @@ void ConvertGraphToONNXProto(
   }
 }
 
+<<<<<<< HEAD
 std::optional<at::Tensor> ComputeConstantFolding(
     const Node* n,
     int opset_version) {
+=======
+std::optional<at::Tensor> ComputeConstantFolding(Node* n, int opset_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (n->inputs().empty()) {
     return std::nullopt;
   }
@@ -465,7 +473,11 @@ std::optional<::c10::SymbolicShape> ComputeShapeFromReshape(
   auto it_0 = std::find_if(shape_vector.begin(), shape_vector.end(), is_zero);
   bool shape_has_zero = it_0 != shape_vector.end();
 
+<<<<<<< HEAD
   int64_t minus_one_pos = -1;
+=======
+  int minus_one_pos = -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto i : c10::irange(shape_vector.size())) {
     if (shape_vector[i].value() == -1) {
       minus_one_pos = i;
@@ -775,7 +787,11 @@ void ProcessBroadcastNode(Node* n) {
 }
 
 void ProcessShapeForConcatNode(Node* n) {
+<<<<<<< HEAD
   auto axis = n->i(attr::axis);
+=======
+  int axis = n->i(attr::axis);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (ConstantValueMap::HasRank(n->input(0)->debugName())) {
     auto rank = ConstantValueMap::GetRank(n->input(0)->debugName()).value();
     size_t axis_adjust = 0;
@@ -1246,7 +1262,11 @@ void ProcessUnsqueezeNode(Node* n) {
 void ComputeConstant(Node* n, int opset_version) {
   if (n->kind() == ::c10::onnx::Constant) {
     if (n->kindOf(attr::value) == AttributeKind::t) {
+<<<<<<< HEAD
       const at::Tensor& const_val = n->t(attr::value);
+=======
+      at::Tensor const_val = n->t(attr::value);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       at::Tensor const_val_copy =
           at::empty(const_val.sizes(), const_val.options());
       const_val_copy.copy_(const_val);
@@ -1383,7 +1403,11 @@ void ComputeConstant(Node* n, int opset_version) {
                 .value()
                 .sizes();
         if (input0_shape_size.has_value()) {
+<<<<<<< HEAD
           const auto& input0_shape_value = input0_shape_size.value();
+=======
+          auto input0_shape_value = input0_shape_size.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           if (ConstantValueMap::HasValue(n->input(1)->debugName())) {
             // When value of `shape` is statically known,
             // output shape can be computed.
@@ -1439,8 +1463,13 @@ void ComputeConstant(Node* n, int opset_version) {
                   for (auto cur_dim : shape_vector_0) {
                     num_elements *= cur_dim.static_size();
                   }
+<<<<<<< HEAD
                   dims.emplace_back(
                       c10::ShapeSymbol::fromStaticSize(num_elements));
+=======
+                  dims.emplace_back(c10::ShapeSymbol::fromStaticSize(
+                      static_cast<int64_t>(num_elements)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 }
               }
             }
@@ -1476,7 +1505,11 @@ void ComputeConstant(Node* n, int opset_version) {
                 .value()
                 .sizes();
         if (input0_shape_size.has_value()) {
+<<<<<<< HEAD
           const auto& input0_shape_value = input0_shape_size.value();
+=======
+          auto input0_shape_value = input0_shape_size.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           int64_t total_size = 1;
           auto is_full_static = true;
           for (const auto i : c10::irange(input0_shape_value.size())) {
@@ -1512,7 +1545,11 @@ void ComputeConstant(Node* n, int opset_version) {
                 .value()
                 .sizes();
         if (input0_shape_size.has_value()) {
+<<<<<<< HEAD
           const auto& input0_shape_value = input0_shape_size.value();
+=======
+          auto input0_shape_value = input0_shape_size.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           if (ConstantValueMap::HasValue(n->input(1)->debugName())) {
             auto shape_temp = ConstantValueMap::GetValueInto1DInt64Vector(
                 n->input(1)->debugName());
@@ -1661,10 +1698,17 @@ void SpecialPostProcess(Node* n) {
       };
 
       auto find_sequence_empty = [](Value* input,
+<<<<<<< HEAD
                                     const TensorTypePtr& t_type) -> Node* {
         auto find_sequence_empty_impl =
             [](Value* input,
                const TensorTypePtr& t_type,
+=======
+                                    TensorTypePtr t_type) -> Node* {
+        auto find_sequence_empty_impl =
+            [](Value* input,
+               TensorTypePtr t_type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                auto& find_sequence_empty_ref) -> Node* {
           auto input_node = input->node();
           TORCH_INTERNAL_ASSERT(input_node);
@@ -1710,7 +1754,11 @@ void SpecialPostProcess(Node* n) {
           return nullptr;
         };
         return find_sequence_empty_impl(
+<<<<<<< HEAD
             input, t_type, find_sequence_empty_impl);
+=======
+            input, std::move(t_type), find_sequence_empty_impl);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       };
 
       if (seq_node && t_type && t_type->scalarType()) {
@@ -2257,7 +2305,11 @@ void ONNXSetDynamicInputShape(
   }
 }
 
+<<<<<<< HEAD
 static bool HasSequenceTypeOutput(const Node* node) {
+=======
+static bool HasSequenceTypeOutput(Node* node) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (node->kind() == ::c10::onnx::SplitToSequence ||
       node->kind() == ::c10::onnx::SequenceInsert ||
       node->kind() == ::c10::onnx::SequenceEmpty ||

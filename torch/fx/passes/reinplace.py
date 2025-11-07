@@ -2,9 +2,14 @@
 import _operator
 import itertools
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from typing import Any
+=======
+from enum import Enum
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._subclasses.fake_tensor import FakeTensor, FakeTensorMode
@@ -267,7 +272,11 @@ def _get_view_inverse_node_usages(
                 continue
             self_alias_base = self_alias.meta["view_of"]
             try:
+<<<<<<< HEAD
                 # The we're trying to reuse the args from the view_scatter call inside of the corresponding
+=======
+                # The we're trying to re-use the args from the view_scatter call inside of the corresponding
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # view op, which might throw. This just indicates that view_scatter op isn't a valid inverse
                 # of the current alias we're looking at.
                 view_replay_metadata = original_view(
@@ -292,7 +301,11 @@ def reinplace(gm, *sample_args):
     mutating the nodes of the graph.
     We look for out-of-place op call sites like `b = a.add(...)`,
     and convert them to be inplace (`b = a.add_(...)`),
+<<<<<<< HEAD
     as long as the input to the current operator ("a") isn't reused
+=======
+    as long as the input to the current operator ("a") isn't re-used
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     anywhere later in the graph.
 
     This pass currently expects to operate on a **functional, ATen** graph.
@@ -343,7 +356,11 @@ def reinplace(gm, *sample_args):
           NOTE: there's a future optimization that we should make:
           if "a" is a (alias of a)  program input, but later in the program
           there is a node that looks like "a.copy_(...)",
+<<<<<<< HEAD
           Then re-inplacing is ok to do - we are temporarily reusing a's buffer,
+=======
+          Then re-inplacing is ok to do - we are temporarily re-using a's buffer,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           which will later be overwritten by the copy_() call.
 
           This will be an important optimization to have for programs that mutate
@@ -543,7 +560,11 @@ def reinplace(gm, *sample_args):
                 continue
             if len(node.target._schema.arguments) < 1:
                 continue
+<<<<<<< HEAD
             if type(node.target._schema.arguments[0].type) is not torch.TensorType:
+=======
+            if type(node.target._schema.arguments[0].type) != torch.TensorType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
 
             # Step 1a: Check that the self argument we're attempting to reinplace
@@ -600,7 +621,11 @@ def reinplace(gm, *sample_args):
                 later_node_usages, self_aliases
             )
 
+<<<<<<< HEAD
             # Step 2: Check to see if the input to the op is reused later in the graph.
+=======
+            # Step 2: Check to see if the input to the op is re-used later in the graph.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # If not (same goes for its aliases), then this op is safe to re-in place.
             # This is a slightly roundabout way to check that there are no later usages of the current self argument.
             # (later_view_inverse_node_usages corresponds to "view_scatter" nodes that we are allowed to delete)

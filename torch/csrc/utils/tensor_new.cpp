@@ -304,7 +304,11 @@ Tensor internal_new_from_data(
     TORCH_CHECK(
         !pin_memory,
         "Can't pin tensor constructed from __cuda_array_interface__");
+<<<<<<< HEAD
     auto tensor = tensor_from_cuda_array_interface(data, device_opt);
+=======
+    auto tensor = tensor_from_cuda_array_interface(data);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto& inferred_scalar_type =
         type_inference ? tensor.scalar_type() : scalar_type;
 
@@ -556,7 +560,10 @@ void check_base_legacy_new(
         c10::DispatchKey::SparseCUDA,
         c10::DispatchKey::SparseHIP,
         c10::DispatchKey::SparseXPU,
+<<<<<<< HEAD
         c10::DispatchKey::SparseMPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c10::DispatchKey::SparsePrivateUse1,
     });
     TORCH_CHECK(
@@ -670,6 +677,7 @@ Tensor legacy_sparse_tensor_generic_ctor_new(
       // new(sequence) binds to this signature but should be treated differently
       // unless the sequences is a torch.Size
       if (ctor_or_new == CtorOrNew::CTOR) {
+<<<<<<< HEAD
         TORCH_CHECK_TYPE(
             false,
             "torch.sparse.SparseTensor(sequence) only accepts sizes.  Please use torch.sparse_coo_tensor() "
@@ -677,6 +685,13 @@ Tensor legacy_sparse_tensor_generic_ctor_new(
       } else {
         TORCH_CHECK_TYPE(
             false,
+=======
+        throw TypeError(
+            "torch.sparse.SparseTensor(sequence) only accepts sizes.  Please use torch.sparse_coo_tensor() "
+            "or construct a strided tensor and convert it to sparse via to_sparse.");
+      } else {
+        throw TypeError(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "SparseTensor.new(sequence) only accepts sizes.  Please use torch.sparse_coo_tensor() "
             "or construct a strided tensor and convert it to sparse via to_sparse.");
       }
@@ -689,7 +704,11 @@ Tensor legacy_sparse_tensor_generic_ctor_new(
     return new_with_sizes(
         options, scalar_type, deviceOptional, r.symintlist(0));
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "new(): invalid arguments");
+=======
+  throw std::runtime_error("new(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // NB: device_idx here is NOT a DeviceIndex, but index into PythonArgs
@@ -808,7 +827,11 @@ static Tensor legacy_tensor_generic_ctor_new(
     return legacy_new_from_sequence(
         options, scalar_type, deviceOptional, r.pyobject(0));
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "new(): invalid arguments");
+=======
+  throw std::runtime_error("new(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Handles ONLY torch.Tensor
@@ -1072,7 +1095,11 @@ static Tensor sparse_compressed_tensor_ctor_worker(
                values.options().layout(layout).pinned_memory(pin_memory))
         .set_requires_grad(r.toBool(ARG_REQUIRES_GRAD1));
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, name + ": invalid arguments");
+=======
+  throw std::runtime_error(name + ": invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor sparse_compressed_tensor_ctor(
@@ -1274,7 +1301,11 @@ Tensor sparse_coo_tensor_ctor(
                inferred_options.dtype(inferred_scalar_type).layout(at::kSparse))
         .set_requires_grad(r.toBool(ARG_REQUIRES_GRAD2));
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "sparse_coo_tensor(): invalid arguments");
+=======
+  throw std::runtime_error("sparse_coo_tensor(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void _validate_sparse_coo_tensor_args(
@@ -1497,14 +1528,22 @@ Tensor tensor_ctor(
         pin_memory);
     auto names = r.toDimnameListOptional(5);
     if (names) {
+<<<<<<< HEAD
       at::namedinference::propagate_names_if_nonempty(
+=======
+      at::namedinference::propagate_names(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           new_tensor, *names, /*validate_names=*/true);
     }
     new_tensor.detach_(); // ensure new_tensor a leaf node
     new_tensor.set_requires_grad(args_requires_grad);
     return new_tensor;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "tensor(): invalid arguments");
+=======
+  throw std::runtime_error("tensor(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor as_tensor(
@@ -1523,7 +1562,11 @@ Tensor as_tensor(
         /*copy_numpy=*/false,
         /*type_inference=*/type_inference);
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "tensor(): invalid arguments");
+=======
+  throw std::runtime_error("tensor(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor new_tensor(
@@ -1561,7 +1604,11 @@ Tensor new_tensor(
     new_tensor.set_requires_grad(args_requires_grad);
     return new_tensor;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "new_tensor(): invalid arguments");
+=======
+  throw std::runtime_error("new_tensor(): invalid arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor tensor_frombuffer(
@@ -1656,6 +1703,7 @@ Tensor tensor_frombuffer(
   return tensor;
 }
 
+<<<<<<< HEAD
 namespace {
 
 template <class T>
@@ -1673,6 +1721,21 @@ at::Tensor tensor_fromDLPackImpl(PyObject* data, T* tensor) {
       } else {
         tensor->deleter(tensor);
       }
+=======
+Tensor tensor_fromDLPack(PyObject* data) {
+  DLManagedTensor* dlMTensor =
+      (DLManagedTensor*)PyCapsule_GetPointer(data, "dltensor");
+  TORCH_CHECK(
+      dlMTensor,
+      "from_dlpack received an invalid capsule. "
+      "Note that DLTensor capsules can be consumed only once, "
+      "so you might have already constructed a tensor from it once.");
+
+  auto deleter_with_gil = [dlMTensor](void*) {
+    if (dlMTensor->deleter) {
+      pybind11::gil_scoped_acquire gil;
+      dlMTensor->deleter(dlMTensor);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   };
 
@@ -1680,11 +1743,22 @@ at::Tensor tensor_fromDLPackImpl(PyObject* data, T* tensor) {
   // destructor function that will be called when the underlying storage goes
   // out of scope. When the destructor is called, the dlMTensor is destructed
   // too.
+<<<<<<< HEAD
   auto atensor =
       at::DLPackTraits<T>::fromDLPack(tensor, std::move(deleter_maybe_gil));
 
   // Make sure this capsule will never be used again.
   PyCapsule_SetName(data, at::DLPackTraits<T>::used);
+=======
+  // HACK: Ensure that we hold the GIL here just in case the
+  // managed tensor originating from a buggy NumPy build.
+  auto atensor = torch::utils::is_numpy_dlpack_deleter_bugged()
+      ? at::fromDLPack(dlMTensor, std::move(deleter_with_gil))
+      : at::fromDLPack(dlMTensor);
+
+  // Make sure this capsule will never be used again.
+  PyCapsule_SetName(data, "used_dltensor");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // It is possible that the call to at::fromDLPack is the very first
   // call to create a Tensor in PyTorch. If so, then _lazy_init has
@@ -1696,6 +1770,7 @@ at::Tensor tensor_fromDLPackImpl(PyObject* data, T* tensor) {
   return atensor;
 }
 
+<<<<<<< HEAD
 // Check whether `data` is a valid DLPack capsule.
 // This function checks for the versioned and unversioned forms.
 bool isValidDLPackCapsule(PyObject* data) {
@@ -1734,6 +1809,8 @@ Tensor tensor_fromDLPack(PyObject* data) {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor asarray(
     PyObject* obj,
     std::optional<ScalarType> dtype,
@@ -1798,7 +1875,11 @@ Tensor asarray(
 #endif
 
   // Check whether 'obj' is a 'DLPack' capsule
+<<<<<<< HEAD
   if (!tensor.defined() && isValidDLPackCapsule(obj)) {
+=======
+  if (!tensor.defined() && PyCapsule_IsValid(obj, "dltensor") != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tensor = tensor_fromDLPack(obj);
   }
 

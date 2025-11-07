@@ -57,7 +57,10 @@ def get_rocm_version() -> str:
     rocm_version_h = f"{rocm_path}/include/rocm-core/rocm_version.h"
     if not os.path.isfile(rocm_version_h):
         rocm_version_h = f"{rocm_path}/include/rocm_version.h"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # The file could be missing due to 1) ROCm version < 5.2, or 2) no ROCm install.
     if os.path.isfile(rocm_version_h):
         RE_MAJOR = re.compile(r"#define\s+ROCM_VERSION_MAJOR\s+(\d+)")
@@ -90,23 +93,38 @@ def build_triton(
     if "MAX_JOBS" not in env:
         max_jobs = os.cpu_count() or 1
         env["MAX_JOBS"] = str(max_jobs)
+<<<<<<< HEAD
 
     version_suffix = ""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not release:
         # Nightly binaries include the triton commit hash, i.e. 2.1.0+e6216047b8
         # while release build should only include the version, i.e. 2.1.0
         rocm_version = get_rocm_version()
         version_suffix = f"+rocm{rocm_version}.git{commit_hash[:8]}"
         version += version_suffix
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with TemporaryDirectory() as tmpdir:
         triton_basedir = Path(tmpdir) / "triton"
         triton_pythondir = triton_basedir / "python"
 
         triton_repo = "https://github.com/openai/triton"
         if device == "rocm":
+<<<<<<< HEAD
             triton_pkg_name = "triton"
             triton_repo = "https://github.com/ROCm/triton"
+=======
+            triton_repo = "https://github.com/ROCm/triton"
+            rocm_version = get_rocm_version()  # e.g., "7.0.1"
+            if tuple(map(int, rocm_version.split("."))) > (7, 0, 0):
+                triton_pkg_name = "triton"
+            else:
+                triton_pkg_name = "pytorch-triton-rocm"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif device == "xpu":
             triton_pkg_name = "pytorch-triton-xpu"
             triton_repo = "https://github.com/intel/intel-xpu-backend-for-triton"
@@ -119,7 +137,10 @@ def build_triton(
                 ["git", "checkout", f"release/{ver}.{rev}.x"], cwd=triton_basedir
             )
         else:
+<<<<<<< HEAD
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version
@@ -163,6 +184,7 @@ def build_triton(
                 cwd=triton_basedir,
             )
 
+<<<<<<< HEAD
         # For gpt-oss models, triton requires this extra triton_kernels wheel
         # triton_kernels came after pytorch release/2.8
         triton_kernels_dir = Path(f"{triton_basedir}/python/triton_kernels")
@@ -170,6 +192,8 @@ def build_triton(
         kernels_whl_path = next(iter((triton_kernels_dir / "dist").glob("*.whl")))
         shutil.copy(kernels_whl_path, Path.cwd())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return Path.cwd() / whl_path.name
 
 

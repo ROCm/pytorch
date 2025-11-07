@@ -69,7 +69,11 @@ struct TORCH_API BatchedTensorImpl : public c10::TensorImpl {
   IntArrayRef strides_custom() const override;
   SymIntArrayRef sym_strides_custom() const override;
   // Override a bunch of methods inherited from TensorImpl to return error messages.
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous_custom(at::MemoryFormat memory_format) const override;
+=======
+  bool is_contiguous_custom(at::MemoryFormat memory_format=at::MemoryFormat::Contiguous) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_size(int64_t dim, int64_t new_size) override;
   void set_stride(int64_t dim, int64_t new_stride) override;
   c10::intrusive_ptr<TensorImpl> shallow_copy_and_detach(
@@ -160,10 +164,13 @@ constexpr DispatchKeySet kKeysToPropagateToWrapper({
   DispatchKey::CUDA,
   DispatchKey::CPU,
   DispatchKey::PrivateUse1,
+<<<<<<< HEAD
   DispatchKey::SparseCPU,
   DispatchKey::SparseCUDA,
   DispatchKey::SparseCsrCPU,
   DispatchKey::SparseCsrCUDA,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 });
 
 inline DispatchKeySet getKeysToPropagateToWrapper(const Tensor& tensor, DispatchKeySet to_propagate=kKeysToPropagateToWrapper) {

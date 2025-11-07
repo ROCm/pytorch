@@ -13,7 +13,10 @@ from torch import optim
 
 def partialclass(cls, *args, **kwargs):  # noqa: D103
     class NewCls(cls):
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         __init__ = partialmethod(cls.__init__, *args, **kwargs)
 
     return NewCls

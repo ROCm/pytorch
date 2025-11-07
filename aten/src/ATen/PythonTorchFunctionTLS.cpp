@@ -42,6 +42,7 @@ const PythonTorchFunctionTLS& PythonTorchFunctionTLS::get_state() {
 }
 
 bool torch_function_mode_enabled() {
+<<<<<<< HEAD
   // Manually flatten because gcc is refusing to inline here.  Note
   // that we are still calling __tls_get_addr twice here with GCC,
   // presumably because of
@@ -50,6 +51,10 @@ bool torch_function_mode_enabled() {
   // performance.
   const auto& ptfs = pythonTorchFunctionState;
   return ptfs.disabled_state_ != TorchFunctionDisabledState::ALL_DISABLED && !ptfs.stack_.empty();
+=======
+  return PythonTorchFunctionTLS::get_disabled_state() != TorchFunctionDisabledState::ALL_DISABLED &&
+         PythonTorchFunctionTLS::stack_len() > 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // This is needed to disambiguate the ternary torch function disabled states

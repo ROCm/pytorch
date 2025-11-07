@@ -1,7 +1,10 @@
 # mypy: allow-untyped-defs
 import ast
 import inspect
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import warnings
 
@@ -75,6 +78,7 @@ class AttributeTypeIsSupportedChecker(ast.NodeVisitor):
         init_ast = ast.parse(textwrap.dedent(source_lines))
 
         # Get items annotated in the class body
+<<<<<<< HEAD
         if sys.version_info >= (3, 14):
             import annotationlib
 
@@ -85,6 +89,9 @@ class AttributeTypeIsSupportedChecker(ast.NodeVisitor):
             )
         else:
             self.class_level_annotations = list(nn_module.__annotations__.keys())
+=======
+        self.class_level_annotations = list(nn_module.__annotations__.keys())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Flag for later
         self.visiting_class_level_ann = False
@@ -190,8 +197,12 @@ class AttributeTypeIsSupportedChecker(ast.NodeVisitor):
             "instance-level annotations on empty non-base "
             "types in `__init__`. Instead, either 1) use a "
             "type annotation in the class body, or 2) wrap "
+<<<<<<< HEAD
             "the type in `torch.jit.Attribute`.",
             stacklevel=2,
+=======
+            "the type in `torch.jit.Attribute`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def visit_Call(self, node):
@@ -256,6 +267,10 @@ class AttributeTypeIsSupportedChecker(ast.NodeVisitor):
             "instance-level annotations on empty non-base "
             "types in `__init__`. Instead, either 1) use a "
             "type annotation in the class body, or 2) wrap "
+<<<<<<< HEAD
             "the type in `torch.jit.Attribute`.",
             stacklevel=2,
+=======
+            "the type in `torch.jit.Attribute`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )

@@ -354,6 +354,7 @@ class Vectorized<c10::BFloat16> : public Vectorized16<
 
   DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(abs)
   Vectorized frac() const;
+<<<<<<< HEAD
   DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(trunc)
   DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(sqrt)
 
@@ -395,6 +396,11 @@ class Vectorized<c10::BFloat16> : public Vectorized16<
   }
 #else
   DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(neg)
+=======
+  DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(neg)
+  DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(trunc)
+  DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(sqrt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD(reciprocal)
   DEFINE_BINARY_COMPARISON_OPERATOR_VIA_FLOAT_METHOD(operator==)
   DEFINE_BINARY_COMPARISON_OPERATOR_VIA_FLOAT_METHOD(operator!=)
@@ -402,7 +408,10 @@ class Vectorized<c10::BFloat16> : public Vectorized16<
   DEFINE_BINARY_COMPARISON_OPERATOR_VIA_FLOAT_METHOD(operator<=)
   DEFINE_BINARY_COMPARISON_OPERATOR_VIA_FLOAT_METHOD(operator>)
   DEFINE_BINARY_COMPARISON_OPERATOR_VIA_FLOAT_METHOD(operator>=)
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #undef DEFINE_UNARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD
 #undef DEFINE_BINARY_ELEMENTWISE_FUNC_VIA_FLOAT_METHOD
@@ -451,6 +460,7 @@ template <>
 Vectorized<c10::BFloat16> inline operator+(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
@@ -458,12 +468,16 @@ Vectorized<c10::BFloat16> inline operator+(
 #else
   return binary_operator_via_float(std::plus<Vectorized<float>>(), a, b);
 #endif
+=======
+  return binary_operator_via_float(std::plus<Vectorized<float>>(), a, b);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
 Vectorized<c10::BFloat16> inline operator-(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
@@ -471,12 +485,16 @@ Vectorized<c10::BFloat16> inline operator-(
 #else
   return binary_operator_via_float(std::minus<Vectorized<float>>(), a, b);
 #endif
+=======
+  return binary_operator_via_float(std::minus<Vectorized<float>>(), a, b);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
 Vectorized<c10::BFloat16> inline operator*(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
@@ -484,12 +502,16 @@ Vectorized<c10::BFloat16> inline operator*(
 #else
   return binary_operator_via_float(std::multiplies<Vectorized<float>>(), a, b);
 #endif
+=======
+  return binary_operator_via_float(std::multiplies<Vectorized<float>>(), a, b);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
 Vectorized<c10::BFloat16> inline operator/(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
@@ -497,6 +519,9 @@ Vectorized<c10::BFloat16> inline operator/(
 #else
   return binary_operator_via_float(std::divides<Vectorized<float>>(), a, b);
 #endif
+=======
+  return binary_operator_via_float(std::divides<Vectorized<float>>(), a, b);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // frac. Implement this here so we can use subtraction
@@ -607,18 +632,22 @@ Vectorized<c10::BFloat16> inline fmadd(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b,
     const Vectorized<c10::BFloat16>& c) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
   bfloat16x8_t z = c;
   return x * y + z;
 #else
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOTE [BF16 FMA]: There isn't an FMA that accumulates into BF16!  Also,
   // vbfmlalbq_f32 and vbfmlaltq_f32 take the even and odd-numbered
   // elements, not the bottom and top half, so they don't seem
   // particularly useful here. Ideally we would include dot product in
   // the Vectorized interface...
   return a * b + c;
+<<<<<<< HEAD
 #endif
 }
 
@@ -636,6 +665,8 @@ Vectorized<c10::BFloat16> inline fnmadd(
   // See NOTE [BF16 FMA] above.
   return -a * b + c;
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
@@ -643,6 +674,7 @@ Vectorized<c10::BFloat16> inline fmsub(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b,
     const Vectorized<c10::BFloat16>& c) {
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_BF16
   bfloat16x8_t x = a;
   bfloat16x8_t y = b;
@@ -668,6 +700,10 @@ Vectorized<c10::BFloat16> inline fnmsub(
   // See NOTE [BF16 FMA] above.
   return -a * b - c;
 #endif
+=======
+  // See NOTE [BF16 FMA] above.
+  return a * b - c;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #endif // !defined(C10_MOBILE) && defined(__aarch64__)

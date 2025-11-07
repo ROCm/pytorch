@@ -4,7 +4,10 @@
 #include <c10/core/ScalarType.h>
 #include <c10/core/SymIntArrayRef.h>
 #include <c10/util/DimVector.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 #include <sstream>
 #include <vector>
@@ -27,7 +30,13 @@ inline void infer_size_impl(
   std::optional<int64_t> infer_dim;
   for (int64_t dim = 0, ndim = shape.size(); dim != ndim; dim++) {
     if (TORCH_GUARD_OR_FALSE(sym_eq(shape[dim], -1))) {
+<<<<<<< HEAD
       TORCH_CHECK(!infer_dim, "only one dimension can be inferred");
+=======
+      if (infer_dim) {
+        throw std::runtime_error("only one dimension can be inferred");
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       infer_dim = dim;
     } else {
       // in case of unbacked shape[dim] we assume it's not -1 and add a runtime
@@ -44,6 +53,7 @@ inline void infer_size_impl(
     }
   }
 
+<<<<<<< HEAD
   if (infer_dim) {
     // numel is the product of known sizes, it has to be divisible by newsize.
     // and newsize should be positive unless newsize == numel (we throw
@@ -77,6 +87,9 @@ inline void infer_size_impl(
           numel);
     }
 
+=======
+  auto set_infer_dim = [&]() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // We have a degree of freedom here to select the dimension size; follow
     // NumPy semantics and just bail.  However, a nice error message is needed
     // because users often use `view` as a way to flatten & unflatten
@@ -85,15 +98,29 @@ inline void infer_size_impl(
     // works yet
     //   empty_tensor.view(-1, 0)
     // doesn't.
+<<<<<<< HEAD
     TORCH_MAYBE_SYM_CHECK(
+=======
+    TORCH_CHECK(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         newsize != 0,
         "cannot reshape tensor of 0 elements into shape ",
         shape,
         " because the unspecified dimension size -1 can be any "
         "value and is ambiguous");
+<<<<<<< HEAD
 
     res[*infer_dim] = numel / newsize;
     return;
+=======
+    res[*infer_dim] = numel / newsize;
+    return;
+  };
+
+  if (infer_dim && newsize > 0 && numel % newsize == 0) {
+    set_infer_dim();
+    return;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   TORCH_MAYBE_SYM_CHECK(
@@ -102,6 +129,12 @@ inline void infer_size_impl(
       shape,
       "' is invalid for input of size ",
       numel);
+<<<<<<< HEAD
+=======
+  if (infer_dim) {
+    set_infer_dim();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::vector<int64_t> infer_size(IntArrayRef shape, int64_t numel) {

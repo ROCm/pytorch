@@ -76,7 +76,17 @@ void _print_dispatch_trace(const std::string& label, const std::string& op_name,
 
 OpRegistrationListener::~OpRegistrationListener()= default;
 
+<<<<<<< HEAD
 Dispatcher::Dispatcher(): backendFallbackKernels_(), listeners_(std::make_unique<detail::RegistrationListenerList>()), guard_(std::make_shared<Guard>())
+=======
+Dispatcher::Dispatcher()
+: operators_()
+, operatorLookupTable_()
+, backendFallbackKernels_()
+, listeners_(std::make_unique<detail::RegistrationListenerList>())
+, cond_var_()
+, guard_(std::make_shared<Guard>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 {}
 
 Dispatcher::~Dispatcher() {
@@ -442,6 +452,7 @@ RegistrationHandleRAII Dispatcher::registerFallback(DispatchKey dispatchKey, Ker
 
   auto idx = getDispatchTableIndexForDispatchKey(dispatchKey);
   TORCH_CHECK(idx >= 0 && static_cast<uint64_t>(idx) < backendFallbackKernels_.size(), "idx=", idx);
+<<<<<<< HEAD
   // NB: Perserve BC for registering fallback for AutogradPrivateUse1 multiple time,
   // refer to https://github.com/pytorch/pytorch/issues/163979 for more informations.
   TORCH_CHECK(
@@ -453,6 +464,13 @@ RegistrationHandleRAII Dispatcher::registerFallback(DispatchKey dispatchKey, Ker
       backendFallbackKernels_[idx].debug,
       ", new registration ",
       debug);
+=======
+  TORCH_CHECK(
+    !backendFallbackKernels_[idx].kernel.isValid(),
+    "Tried to register multiple backend fallbacks for the same dispatch key ", dispatchKey, "; previous registration ",
+    backendFallbackKernels_[idx].debug, ", new registration ", debug
+  );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NB: inferred function schema is always nullptr for fallbacks, as fallbacks
   // cannot be unboxed
   backendFallbackKernels_[idx] = impl::AnnotatedKernel(std::move(kernel), nullptr, std::move(debug));
@@ -537,7 +555,11 @@ int64_t Dispatcher::sequenceNumberForRunningRecordFunction(DispatchKey dispatchK
 
   // Note: this records a sequence number for both Autograd keys, and for
   // non-Autograd keys where the dispatchKeySet still contains an autograd key.
+<<<<<<< HEAD
   // This means that we might collect the same sequence number two different
+=======
+  // This means that we might collect the same sequence nubmer two different
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // events if they all occurred above Autograd and still had the Autograd
   // dispatch key in the dispatch key set.
   // However, this usually doesn't happen: normally the first call will
@@ -568,9 +590,15 @@ bool Dispatcher::profilingOperatorEvents() {
   return TORCH_SDT_IS_ENABLED(operator_start) || TORCH_SDT_IS_ENABLED(operator_end);
 }
 
+<<<<<<< HEAD
 C10_NOINLINE void Dispatcher::fireOpStartUSDT(at::RecordFunction::schema_ref_t schema_ref, std::vector<void*>& argsAddresses, std::vector<const char*>& argsTypes) {
   if (TORCH_SDT_IS_ENABLED(operator_start)) {
     TORCH_SDT_WITH_SEMAPHORE(operator_start, schema_ref.get().name().c_str(), argsAddresses.size(), argsAddresses.data(), argsTypes.data());
+=======
+C10_NOINLINE void Dispatcher::fireOpStartUSDT(at::RecordFunction::schema_ref_t schema_ref) {
+  if (TORCH_SDT_IS_ENABLED(operator_start)) {
+    TORCH_SDT_WITH_SEMAPHORE(operator_start, schema_ref.get().name().c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

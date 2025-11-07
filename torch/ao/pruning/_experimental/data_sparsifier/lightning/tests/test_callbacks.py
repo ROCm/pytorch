@@ -74,7 +74,10 @@ class StepSLScheduler(BaseDataScheduler):
                 "To get the last learning rate computed by the scheduler, "
                 "please use `get_last_lr()`.",
                 UserWarning,
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         data_groups = self.data_sparsifier.data_groups
         if (self.last_epoch == 0) or (self.last_epoch % self.step_size != 0):
@@ -200,7 +203,11 @@ class TestTrainingAwareCallback(TestCase):
                    do not want as the config of each layer changes after
                    .step()
 
+<<<<<<< HEAD
         Hence, we need to dump and restore the state_dict() every time because we're
+=======
+        Hence, we need to dump and restore the state_dict() everytime because we're
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         copying the model after each epoch.
         Hence, it is essential to make sure that the sparsifier's state_dict() is being
         correctly dumped and restored.
@@ -300,7 +307,11 @@ class TestTrainingAwareCallback(TestCase):
         self._check_on_train_start(pl_module, callback, sparsifier_args, scheduler_args)
 
         num_epochs = 5
+<<<<<<< HEAD
         for _ in range(num_epochs):
+=======
+        for _ in range(0, num_epochs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._check_on_train_epoch_start(pl_module, callback)
             self._simulate_update_param_model(pl_module)
             self._check_on_train_epoch_end(pl_module, callback)

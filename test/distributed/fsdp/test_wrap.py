@@ -5,9 +5,14 @@ import itertools
 import os
 import tempfile
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import auto, Enum
 from typing import Union
+=======
+from enum import auto, Enum
+from typing import Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -51,15 +56,21 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     TEST_CUDA,
+<<<<<<< HEAD
     TEST_XPU,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 backend = torch.distributed.get_default_backend_for_device(device_type)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class BatchNormNet(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -138,14 +149,23 @@ class TestFSDPWrap(FSDPTest):
 
     class NestedSequentialModel:
         @staticmethod
+<<<<<<< HEAD
         def get_model(device=True):
+=======
+        def get_model(cuda=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sequential = nn.Sequential(
                 nn.Linear(5, 5),
                 nn.Linear(5, 5),
                 nn.Sequential(nn.Linear(5, 5), nn.Linear(5, 5)),
             )
+<<<<<<< HEAD
             if device:
                 sequential = sequential.to(device=device_type)
+=======
+            if cuda:
+                sequential = sequential.cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return sequential
 
         @staticmethod
@@ -220,7 +240,11 @@ class TestFSDPWrap(FSDPTest):
             nested=nested, device_init_mode=device_init_mode
         )
         if device_init_mode == DEVICEInitMode.DEVICE_AFTER:
+<<<<<<< HEAD
             wrapped_fsdp = wrapped_fsdp.to(device=device_type)
+=======
+            wrapped_fsdp = wrapped_fsdp.cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         wrapped_module_name = "lin1.1" if nested else "lin1"
         with self.assertRaisesRegex(
@@ -375,7 +399,11 @@ class TestFSDPWrap(FSDPTest):
             forward_prefetch=forward_prefetch,
         )
         if device_init_mode == DEVICEInitMode.DEVICE_AFTER:
+<<<<<<< HEAD
             wrapped_model = wrapped_model.to(device=device_type)
+=======
+            wrapped_model = wrapped_model.cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         modules_in_fsdp_graph_order = [
             wrapped_model.module.lin1,
@@ -394,7 +422,11 @@ class TestFSDPWrap(FSDPTest):
 
         # Run model a few times for sanity check.
         optim = torch.optim.SGD(wrapped_model.parameters(), lr=1e-2, momentum=0.9)
+<<<<<<< HEAD
         inp = torch.ones(1).to(device=device_type)
+=======
+        inp = torch.ones(1).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(6):
             optim.zero_grad()
             loss = wrapped_model(inp).sum()
@@ -467,13 +499,21 @@ class TestAutoWrap(TestCase):
         self.assertEqual(layer.rank, 0)
         self.assertEqual(layer.world_size, 2)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "Test Requires CUDA or XPU")
+=======
+    @unittest.skipIf(not TEST_CUDA, "Test Requires CUDA")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_always_wrap(self):
         """
         Test to ensure that if `always_wrap_policy` is
         passed into FSDP, all submodules are wrapped.
         """
+<<<<<<< HEAD
         seq = TestFSDPWrap.NestedSequentialModel.get_model(device=True)
+=======
+        seq = TestFSDPWrap.NestedSequentialModel.get_model(cuda=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = FSDP(
             seq, process_group=self.process_group, auto_wrap_policy=always_wrap_policy
         )
@@ -635,7 +675,11 @@ class TestAutoWrap(TestCase):
         Test to ensure with auto wrap, we wrap child modules correctly based on the min_num_params.
         ``nn.Linear(5, 5)`` does not exceed the bucket size, but combined they do.
         """
+<<<<<<< HEAD
         sequential = TestFSDPWrap.NestedSequentialModel.get_model(device=False)
+=======
+        sequential = TestFSDPWrap.NestedSequentialModel.get_model(cuda=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         my_auto_wrap_policy = functools.partial(
             size_based_auto_wrap_policy, min_num_params=40
         )
@@ -732,7 +776,11 @@ class TestAutoWrap(TestCase):
         self.assertTrue(isinstance(model.module[0], nn.Linear))
         self.assertTrue(isinstance(model.module[1], nn.ModuleList))
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "Test Requires CUDA or XPU")
+=======
+    @unittest.skipIf(not TEST_CUDA, "Test Requires CUDA")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "device_init_mode", [DEVICEInitMode.DEVICE_BEFORE, DEVICEInitMode.DEVICE_AFTER]
     )
@@ -749,12 +797,19 @@ class TestAutoWrap(TestCase):
         ):
             return
 
+<<<<<<< HEAD
         device = torch.device(device_type)
         torch.accelerator.set_device_index(0)
         device_id = (
             torch.device(device_type, torch.accelerator.current_device_index())
             if use_device_id
             else None
+=======
+        device = torch.device("cuda")
+        torch.cuda.set_device(0)
+        device_id = (
+            torch.device("cuda", torch.cuda.current_device()) if use_device_id else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Random port in case the next test run quickly, same port would cause conflict.
@@ -763,18 +818,31 @@ class TestAutoWrap(TestCase):
 
         file_name = tempfile.NamedTemporaryFile(delete=False).name
         torch.distributed.init_process_group(
+<<<<<<< HEAD
             backend=backend,
+=======
+            backend="nccl",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             init_method=f"{FILE_SCHEMA}_{file_name}",
             rank=0,
             world_size=1,
         )
 
+<<<<<<< HEAD
         # NOTE: We move model to GPU after init with FSDP to simulate real use
         # cases where full model cannot be loaded onto GPU, but their shards can.
         device_after_init = device_init_mode == DEVICEInitMode.DEVICE_AFTER
         try:
             sequential = TestFSDPWrap.NestedSequentialModel.get_model(
                 device=(not device_after_init)
+=======
+        # NOTE: We move model to CUDA after init with FSDP to simulate real use
+        # cases where full model cannot be loaded onto GPU, but their shards can.
+        cuda_after_init = device_init_mode == DEVICEInitMode.DEVICE_AFTER
+        try:
+            sequential = TestFSDPWrap.NestedSequentialModel.get_model(
+                cuda=(not cuda_after_init)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             my_auto_wrap_policy = functools.partial(
                 size_based_auto_wrap_policy, min_num_params=40
@@ -786,8 +854,13 @@ class TestAutoWrap(TestCase):
                 device_id=device_id,
             )
             TestFSDPWrap.NestedSequentialModel.verify_model(self, model)
+<<<<<<< HEAD
             if device_after_init:
                 model = model.to(device=device_type)
+=======
+            if cuda_after_init:
+                model = model.cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input = torch.rand((1, 5), dtype=torch.float).to(device)
             output = model(input)
             loss = F.mse_loss(input, output)
@@ -803,7 +876,11 @@ class TestAutoWrap(TestCase):
     @unittest.skipIf(not TEST_MULTIGPU, "Requires at least 2 GPUs")
     @parametrize("wrap_method", [WrapMethod.FSDP_CTOR, WrapMethod.WRAP_API])
     def test_always_wrap_with_ignored_modules(self, wrap_method: WrapMethod):
+<<<<<<< HEAD
         sequential = TestFSDPWrap.NestedSequentialModel.get_model(device=False)
+=======
+        sequential = TestFSDPWrap.NestedSequentialModel.get_model(cuda=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ignored_modules = [sequential[1], sequential[2][0]]
         fsdp_kwargs = {
             "process_group": self.process_group,
@@ -828,7 +905,11 @@ class TestAutoWrap(TestCase):
     @unittest.skipIf(not TEST_MULTIGPU, "Requires at least 2 GPUs")
     @parametrize("wrap_method", [WrapMethod.FSDP_CTOR, WrapMethod.WRAP_API])
     def test_auto_wrap_with_ignored_modules(self, wrap_method: WrapMethod):
+<<<<<<< HEAD
         sequential = TestFSDPWrap.NestedSequentialModel.get_model(device=False)
+=======
+        sequential = TestFSDPWrap.NestedSequentialModel.get_model(cuda=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ignored_modules = [sequential[1], sequential[2][0]]
         my_auto_wrap_policy = functools.partial(
             size_based_auto_wrap_policy,
@@ -891,7 +972,11 @@ class TestAutoWrap(TestCase):
             self._test_frozen_params(use_orig_params, policy)
 
     def _test_frozen_params(self, use_orig_params: bool, policy: _Policy):
+<<<<<<< HEAD
         model = LoraModel().to(device=device_type)
+=======
+        model = LoraModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         msg = "layers.0.attn has both parameters with requires_grad=True and False. "
         if use_orig_params:
             msg += "We do not recommend wrapping such modules"

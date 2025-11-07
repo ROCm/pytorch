@@ -78,7 +78,12 @@ void flatten_rec(PyObject* obj, ParsedArgs& args) {
     args.desc.metadata.emplace_back(var);
     args.desc.structure.push_back(D::Bool);
   } else if (PyLong_Check(obj)) { // Wrap longs in Long tensors
+<<<<<<< HEAD
     at::Tensor var = scalar_to_tensor(at::Scalar(THPUtils_unpackLong(obj)));
+=======
+    at::Tensor var = scalar_to_tensor(
+        at::Scalar(static_cast<int64_t>(THPUtils_unpackLong(obj))));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     args.vars.push_back(var);
     args.desc.metadata.emplace_back(var);
     args.desc.structure.push_back(D::Long);

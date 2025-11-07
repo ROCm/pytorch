@@ -19,6 +19,7 @@ static auto& lib = MetalShaderLibrary::getBundledLibrary();
 #include <ATen/native/mps/RMSNorm_metallib.h>
 #endif
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor> _fused_rms_norm_mps(const Tensor& input,
                                                IntArrayRef normalized_shape,
                                                const std::optional<Tensor>& weight_opt,
@@ -27,6 +28,9 @@ std::tuple<Tensor, Tensor> _fused_rms_norm_mps(const Tensor& input,
   const int64_t normalized_ndim = normalized_shape.size();
   auto eps_val = eps.value_or(std::numeric_limits<double>::epsilon());
 
+=======
+Tensor _fused_rms_norm_mps(const Tensor& input, const int64_t normalized_ndim, const Tensor& weight, const double eps) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(input.is_contiguous() && weight.is_contiguous(), "Expected contiguous input and weight tensors");
   auto output = at::empty_like(input);
   const auto input_shape = input.sizes();
@@ -48,7 +52,11 @@ std::tuple<Tensor, Tensor> _fused_rms_norm_mps(const Tensor& input,
       const std::string kernel = fmt::format("{}_{}", name, scalarToMetalTypeString(output));
       id<MTLComputePipelineState> rms_norm_pso = lib.getPipelineStateForFunc(kernel);
       [computeEncoder setComputePipelineState:rms_norm_pso];
+<<<<<<< HEAD
       mtl_setArgs(computeEncoder, input, weight, output, eps_val, N, 1);
+=======
+      mtl_setArgs(computeEncoder, input, weight, output, eps, N, 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       const auto maxThreadsPerGroup = static_cast<size_t>([rms_norm_pso maxTotalThreadsPerThreadgroup]);
       size_t threadgroup_size = maxThreadsPerGroup;
@@ -65,7 +73,11 @@ std::tuple<Tensor, Tensor> _fused_rms_norm_mps(const Tensor& input,
     }
   });
 
+<<<<<<< HEAD
   return std::make_tuple(output, Tensor());
+=======
+  return output;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace at::native

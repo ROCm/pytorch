@@ -121,8 +121,12 @@ class _InputEqualizationObserver(nn.Module):
         ):
             warnings.warn(
                 "Must call calculate_equalization_scale before calling calculate_scaled_minmax. "
+<<<<<<< HEAD
                 + "Will not scale the next quantization observer.",
                 stacklevel=2,
+=======
+                + "Will not scale the next quantization observer."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return None, None
 
@@ -227,8 +231,12 @@ def calculate_equalization_scale(
     ):
         warnings.warn(
             "Must run observer before calling calculate_equalization_scale. "
+<<<<<<< HEAD
             + "Returning default equalization scale torch.tensor(1).",
             stacklevel=2,
+=======
+            + "Returning default equalization scale torch.tensor(1)."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return torch.tensor(1)
 
@@ -248,7 +256,10 @@ def calculate_equalization_scale(
 
 
 class EqualizationQConfig(
+<<<<<<< HEAD
     # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     namedtuple("EqualizationQConfig", ["input_activation", "weight"])
 ):
     """
@@ -463,7 +474,10 @@ def maybe_get_next_equalization_scale(
     In this case, the node given is linear1 and we want to locate the InputEqObs.
     """
     next_inp_eq_obs = maybe_get_next_input_eq_obs(node, modules)
+<<<<<<< HEAD
     # pyrefly: ignore [invalid-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if next_inp_eq_obs:
         if (
             next_inp_eq_obs.equalization_scale.nelement() == 1
@@ -825,18 +839,25 @@ def convert_eq_obs(
             # Scale the weight nodes
             if node.op == "call_module":
                 scale_weight_node(
+<<<<<<< HEAD
                     node,
                     modules,
                     # pyrefly: ignore [bad-argument-type]
                     equalization_scale,
                     maybe_next_equalization_scale,
+=======
+                    node, modules, equalization_scale, maybe_next_equalization_scale
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             elif node.op == "call_function":
                 scale_weight_functional(
                     node,
                     model,
                     modules,
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     equalization_scale,
                     maybe_next_equalization_scale,
                 )

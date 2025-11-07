@@ -1,6 +1,11 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from typing import TypeVar
+=======
+from collections.abc import Iterator
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes.dataframe import dataframe_wrapper as df_wrapper
@@ -88,7 +93,11 @@ class FilterIterDataPipe(IterDataPipe[_T_co]):
             for idx, mask in enumerate(df_wrapper.iterate(condition)):
                 if mask:
                     result.append(df_wrapper.get_item(data, idx))
+<<<<<<< HEAD
             if result:
+=======
+            if len(result):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return True, df_wrapper.concat(result)
             else:
                 return False, None  # type: ignore[return-value]

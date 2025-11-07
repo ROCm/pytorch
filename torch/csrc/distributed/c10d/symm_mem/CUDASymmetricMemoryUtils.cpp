@@ -123,7 +123,11 @@ void IpcChannel::send_fd(int dst_pid, int fd) {
     msg.msg_controllen = 0;
   }
 
+<<<<<<< HEAD
   // Finally send the message
+=======
+  // Finally send the the message
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       sendmsg(socket_, &msg, 0) > 0,
       "Failed to send fd: ",
@@ -178,7 +182,11 @@ std::vector<int> IpcChannel::all_gather_fds(
     int rank,
     const std::vector<int>& pids,
     int fd) {
+<<<<<<< HEAD
   int world_size = static_cast<int>(pids.size());
+=======
+  int world_size = (int)pids.size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<int> fds(pids.size());
   fds[rank] = fd;
 
@@ -197,10 +205,17 @@ int IpcChannel::broadcast_fds(
     int src_rank,
     const std::vector<int>& pids,
     int fd) {
+<<<<<<< HEAD
   int world_size = static_cast<int>(pids.size());
 
   if (rank == src_rank) {
     for (int dst_rank = 0; dst_rank < world_size; ++dst_rank) {
+=======
+  int world_size = (int)pids.size();
+
+  if (rank == src_rank) {
+    for (int dst_rank = 0; dst_rank < (int)world_size; ++dst_rank) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (dst_rank == rank) {
         continue;
       }
@@ -242,7 +257,11 @@ void map_block(
   CUmemAccessDesc desc;
   desc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
   // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+<<<<<<< HEAD
   desc.location.id = device_idx;
+=======
+  desc.location.id = static_cast<int>(device_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   desc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
   C10_CUDA_DRIVER_CHECK(driver_api->cuMemSetAccess_(*dev_ptr, size, &desc, 1));
 #elif defined(USE_ROCM)

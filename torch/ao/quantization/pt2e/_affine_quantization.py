@@ -1,6 +1,10 @@
 # copied from https://github.com/pytorch/ao/blob/main/torchao/quantization/observer.py
 # and https://github.com/pytorch/ao/blob/main/torchao/quantization/quant_primitives.py
+<<<<<<< HEAD
 # PLEASE DON'T MODIFY THIS FILE SO THAT WE DON'T GET OUT OF SYNC
+=======
+# PLESE DON'T MODIFY THIS FILE SO THAT WE DON'T GET OUT OF SYNC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 from abc import ABCMeta
 from typing import Any, Optional, Union
@@ -79,6 +83,7 @@ def _get_and_check_qmin_qmax(dtype, quant_min, quant_max):
     if quant_max is None:
         quant_max = quant_max_upper_bound
 
+<<<<<<< HEAD
     if quant_min < quant_min_lower_bound:
         raise AssertionError(
             "quant_min out of bound for dtype, "
@@ -90,6 +95,17 @@ def _get_and_check_qmin_qmax(dtype, quant_min, quant_max):
             "quant_max out of bound for dtype, "
             f"quant_max_upper_bound: {quant_max_upper_bound} quant_max: {quant_max}"
         )
+=======
+    assert quant_min >= quant_min_lower_bound, (
+        "quant_min out of bound for dtype, "
+        f"quant_min_lower_bound: {quant_min_lower_bound} quant_min: {quant_min}"
+    )
+
+    assert quant_max <= quant_max_upper_bound, (
+        "quant_max out of bound for dtype, "
+        f"quant_max_upper_bound: {quant_max_upper_bound} quant_max: {quant_max}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return quant_min, quant_max
 
 
@@ -109,21 +125,32 @@ def _get_reduction_params(block_size, input_size):
           shape_for_reduction: (3, 3, 5, 2, 10)
           reduction_dim: [0, 1, 3, 4]
     """
+<<<<<<< HEAD
     if len(block_size) != len(input_size):
         raise AssertionError(
             "block_size length must equal input_size length, got "
             f"block_size={block_size}, input_size={input_size}"
         )
+=======
+    assert len(block_size) == len(input_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shape_for_reduction = []
     reduction_dims = []
     cur_dim = 0
     for i in range(len(block_size)):
         if block_size[i] != input_size[i] and block_size[i] > 1:
+<<<<<<< HEAD
             if input_size[i] % block_size[i] != 0:
                 raise AssertionError(
                     f"Expecting input size at {i} dimension: {input_size[i]} to be divisible "
                     f"by block_size at {i} dimension: {block_size[i]}"
                 )
+=======
+            assert input_size[i] % block_size[i] == 0, (
+                f"Expecting input size at {i} dimension: "
+                f"{input_size[i]} to be divisible by block_size at {i} dimension: {block_size[i]}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shape_for_reduction.append(input_size[i] // block_size[i])
             shape_for_reduction.append(block_size[i])
             # reduce over the block_size[i] dim
@@ -172,6 +199,7 @@ def _register_custom_op(lib):
 
         # expecting fn.__name__ starts with `_` and we want to take the rest
         # to be the name of the custom op
+<<<<<<< HEAD
         if fn.__name__[0] != "_":
             raise AssertionError(
                 f"Expecting function name starts with `_`, got {fn.__name__}"
@@ -180,6 +208,14 @@ def _register_custom_op(lib):
             raise AssertionError(
                 f"Expecting op to be defined in normal functions, not lambda or local: {fn.__name__}"
             )
+=======
+        assert fn.__name__[0] == "_", (
+            f"Expecting function name starts with `_`, got {fn.__name__}"
+        )
+        assert not any(c in fn.__name__ for c in ".<>"), (
+            f"Expecting op to be defined in normal functions, not lambda or local: {fn.__name__}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op_name = fn.__name__[1:]
         schema = op_name + infer_schema(fn, mutates_args={})
         lib.define(schema)
@@ -264,6 +300,7 @@ def _choose_qparams_affine(
        and `zero_point_domain`
     """
     quant_min, quant_max = _get_and_check_qmin_qmax(target_dtype, quant_min, quant_max)
+<<<<<<< HEAD
     if mapping_type not in [
         MappingType.SYMMETRIC.name,
         MappingType.SYMMETRIC_NO_CLIPPING_ERR.name,
@@ -275,6 +312,17 @@ def _choose_qparams_affine(
             raise AssertionError(
                 f"Only symmetric quantization is supported for FP8 types, got {mapping_type}"
             )
+=======
+    assert mapping_type in [
+        MappingType.SYMMETRIC.name,
+        MappingType.SYMMETRIC_NO_CLIPPING_ERR.name,
+        MappingType.ASYMMETRIC.name,
+    ], f"Unsupported mapping type: {mapping_type}"
+    if target_dtype in FP8_TYPES:
+        assert mapping_type == MappingType.SYMMETRIC.name, (
+            f"Only symmetric quantization is supported for FP8 types, got {mapping_type}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if input is not None:
         if scale_dtype is None:
@@ -284,10 +332,16 @@ def _choose_qparams_affine(
         if eps is None:
             eps = torch.finfo(input.dtype).eps
 
+<<<<<<< HEAD
         if len(block_size) != input.dim():
             raise AssertionError(
                 f"Got input dim:{input.dim()}, block_size: {block_size}"
             )
+=======
+        assert len(block_size) == input.dim(), (
+            f"Got input dim:{input.dim()}, block_size: {block_size}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shape_for_reduction, reduction_dims = _get_reduction_params(
             block_size, input.size()
         )
@@ -296,6 +350,7 @@ def _choose_qparams_affine(
         min_val = torch.amin(input, dim=reduction_dims, keepdim=False)
         max_val = torch.amax(input, dim=reduction_dims, keepdim=False)
     else:
+<<<<<<< HEAD
         if min_val is None or max_val is None:
             raise AssertionError(
                 f"Need to provide `min_val` and `max_val` when `input` is None, got: {min_val, max_val}"
@@ -304,6 +359,14 @@ def _choose_qparams_affine(
             raise AssertionError(
                 f"Expecting `min_val` and `max_val` to have the same dtype, got: {min_val.dtype, max_val.dtype}"
             )
+=======
+        assert min_val is not None and max_val is not None, (
+            "Need to provide `min_val` and `max_val` when `input` is None, got: {min_val, max_val}"
+        )
+        assert min_val.dtype == max_val.dtype, (
+            "Expecting `min_val` and `max_val` to have the same dtype, got: {min_val.dtype, max_val.dtype}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if scale_dtype is None:
             scale_dtype = min_val.dtype
@@ -328,10 +391,14 @@ def _choose_qparams_affine(
             max_val_pos = torch.max(-min_val_neg, max_val_pos)
             scale = max_val_pos / (float(quant_max - quant_min) / 2)
         else:
+<<<<<<< HEAD
             if mapping_type != MappingType.SYMMETRIC_NO_CLIPPING_ERR.name:
                 raise AssertionError(
                     f"Expected mapping_type to be SYMMETRIC_NO_CLIPPING_ERR, got {mapping_type}"
                 )
+=======
+            assert mapping_type == MappingType.SYMMETRIC_NO_CLIPPING_ERR.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # calculate smin and smax individually and choose the larger one. For example, if quant_min = -8 and
             # quant_max = 7.
             # - If smin is bigger: There would be coverage on negative values down to -8, and less rounding
@@ -358,10 +425,14 @@ def _choose_qparams_affine(
         scale = torch.clamp(scale, min=eps)
         zero_point = torch.full_like(scale, int((quant_max + quant_min + 1) / 2))
     else:
+<<<<<<< HEAD
         if mapping_type != MappingType.ASYMMETRIC.name:
             raise AssertionError(
                 f"Expected mapping_type to be ASYMMETRIC, got {mapping_type}"
             )
+=======
+        assert mapping_type == MappingType.ASYMMETRIC.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         scale = (max_val_pos - min_val_neg) / float(quant_max - quant_min)
         scale = torch.clamp(scale, min=eps)
         if zero_point_domain == ZeroPointDomain.NONE.name:
@@ -371,10 +442,16 @@ def _choose_qparams_affine(
                 zero_point = quant_min - torch.round(min_val_neg / scale)
                 zero_point = torch.clamp(zero_point, quant_min, quant_max)
             else:
+<<<<<<< HEAD
                 if zero_point_domain != ZeroPointDomain.FLOAT.name:
                     raise AssertionError(
                         "if not preserve_zero, zero_point must be in FLOAT domain"
                     )
+=======
+                assert zero_point_domain == ZeroPointDomain.FLOAT.name, (
+                    "if not preserve_zero, zero_point must be in FLOAT domain"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mid_point = (quant_max + quant_min + 1) / 2
                 zero_point = min_val_neg + scale * mid_point
 
@@ -490,6 +567,7 @@ def _quantize_affine_no_dtype_cast(
     1. figure out the dimension for reduction based on block_size, also reshape the input to align with
        the shape after reduction
     2. quantize the input based on the quantization parameters scale and zero_point and args like zero_point_domain
+<<<<<<< HEAD
     3. reshape the quantized result to original shape
     """
     # TODO: validations
@@ -498,6 +576,20 @@ def _quantize_affine_no_dtype_cast(
         raise AssertionError(f"Unsupported input dtype: {input.dtype}")
     if len(block_size) != input.dim():
         raise AssertionError(f"Got input dim:{input.dim()}, block_size: {block_size}")
+=======
+    3. reshape the quantized result to origianl shape
+    """
+    # TODO: validations
+    # TODO: validate scale/zero_point dimensions are compatible with block_size
+    assert input.dtype in [
+        torch.float32,
+        torch.float16,
+        torch.bfloat16,
+    ], f"Unsupported input dtype: {input.dtype}"
+    assert len(block_size) == input.dim(), (
+        f"Got input dim:{input.dim()}, block_size: {block_size}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shape_for_reduction, reduction_dims = _get_reduction_params(
         block_size, input.size()
     )
@@ -515,6 +607,7 @@ def _quantize_affine_no_dtype_cast(
             torch.round(input * (1.0 / scale)) + zero_point, quant_min, quant_max
         )
     elif zero_point_domain == ZeroPointDomain.NONE.name:
+<<<<<<< HEAD
         if zero_point is not None:
             raise AssertionError(
                 "zero_point should be None when zero_point_domain is NONE"
@@ -530,6 +623,20 @@ def _quantize_affine_no_dtype_cast(
     else:
         if zero_point_domain != ZeroPointDomain.FLOAT.name:
             raise AssertionError(f"Unexpected zero_point_domain: {zero_point_domain}")
+=======
+        assert zero_point is None, (
+            "zero_point should be None when zero_point_domain is NONE"
+        )
+        quant = torch.clamp(torch.round(input * (1.0 / scale)), quant_min, quant_max)
+    elif zero_point_domain is None:
+        # This case handles quantization for float8 we expect no zero point and no zero point domain
+        assert zero_point is None, (
+            "zero_point should be None when zero_point_domain is None"
+        )
+        quant = torch.clamp(input * scale.reciprocal(), quant_min, quant_max)
+    else:
+        assert zero_point_domain == ZeroPointDomain.FLOAT.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mid_point = (quant_max + quant_min + 1) / 2
         min_val = zero_point - scale * mid_point
         quant = torch.clamp(
@@ -602,10 +709,21 @@ def _dequantize_affine(
     """op definition that has compatible signatures with custom op library"""
     # TODO: validate scale/zero_point dimensions are compatible with block_size
     if input_dtype not in _SUB_BYTE_UINT_BOUNDS:
+<<<<<<< HEAD
         if input.dtype != input_dtype:
             raise AssertionError(f"Expected: {input_dtype}, got: {input.dtype}")
     if output_dtype not in [torch.float32, torch.float16, torch.bfloat16]:
         raise AssertionError(f"Unsupported output dtype: {output_dtype}")
+=======
+        assert input.dtype == input_dtype, (
+            f"Expected: {input_dtype}, got: {input.dtype}"
+        )
+    assert output_dtype in [
+        torch.float32,
+        torch.float16,
+        torch.bfloat16,
+    ], f"Unsupported output dtype: {output_dtype}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     quant_min, quant_max = _get_and_check_qmin_qmax(input_dtype, quant_min, quant_max)
     return _dequantize_affine_no_dtype_check(
         input,
@@ -635,10 +753,18 @@ def _dequantize_affine_no_dtype_check(
     1. figure out the dimension for reduction based on block_size, also reshape the input to align with
        the shape after reduction
     2. dequantize the input based on the quantization parameters scale and zero_point and args like zero_point_domain
+<<<<<<< HEAD
     3. reshape the quantized result to original shape and change dtype to the output_dtype
     """
     if len(block_size) != input.dim():
         raise AssertionError(f"Got input dim:{input.dim()}, block_size: {block_size}")
+=======
+    3. reshape the quantized result to origianl shape and change dtype to the output_dtype
+    """
+    assert len(block_size) == input.dim(), (
+        f"Got input dim:{input.dim()}, block_size: {block_size}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shape_for_reduction, reduction_dims = _get_reduction_params(
         block_size, input.size()
     )
@@ -661,14 +787,21 @@ def _dequantize_affine_no_dtype_check(
         dequant = dequant.to(output_dtype)
         dequant = dequant * scale
     elif zero_point_domain == ZeroPointDomain.NONE.name:
+<<<<<<< HEAD
         if zero_point is not None:
             raise AssertionError(
                 "zero_point should be None when zero_point_domain is NONE"
             )
+=======
+        assert zero_point is None, (
+            "zero_point should be None when zero_point_domain is NONE"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dequant = input.to(output_dtype)
         dequant = dequant * scale
     elif zero_point_domain is None:
         # This case handles dequantization for float8 we expect no zero point and no zero point domain
+<<<<<<< HEAD
         if zero_point is not None:
             raise AssertionError(
                 "zero_point should be None when zero_point_domain is None"
@@ -682,6 +815,20 @@ def _dequantize_affine_no_dtype_check(
     else:
         if zero_point_domain != ZeroPointDomain.FLOAT.name:
             raise AssertionError(f"Unexpected zero point domain: {zero_point_domain}")
+=======
+        assert zero_point is None, (
+            "zero_point should be None when zero_point_domain is None"
+        )
+        assert _is_float8_type(input.dtype), (
+            f"dequantiztion with no zero point domain is only supported with FP8 types, got {input.dtype}"
+        )
+        dequant = input.to(output_dtype)
+        dequant = dequant * scale
+    else:
+        assert zero_point_domain == ZeroPointDomain.FLOAT.name, (
+            f"Unexpected zero point domain: {zero_point_domain}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: this seems to be a detail for tinygemm (converting from uint to int, probably need to refactor this)
         mid_point = (quant_max + quant_min + 1) / 2
         # This should allocate new memory and avoid input modification
@@ -701,8 +848,12 @@ class AffineQuantizedMinMaxObserver(AffineQuantizedObserverBase):
 
         input_detached = input.detach()
         self.original_dtype = input_detached.dtype
+<<<<<<< HEAD
         if self.granularity is None:
             raise AssertionError("granularity is None")
+=======
+        assert self.granularity is not None, "granularity is None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.block_size = get_block_size(input_detached.shape, self.granularity)
 
         shape_for_reduction, reduction_dims = _get_reduction_params(
@@ -715,6 +866,7 @@ class AffineQuantizedMinMaxObserver(AffineQuantizedObserverBase):
             self.min_val = min_val
             self.max_val = max_val
         else:
+<<<<<<< HEAD
             if self.min_val.shape != min_val.shape:
                 raise AssertionError(
                     f"Can't update existing min_val - shape mismatch, self.min_val:{self.min_val.shape} != min_val:{min_val.shape}"
@@ -723,6 +875,14 @@ class AffineQuantizedMinMaxObserver(AffineQuantizedObserverBase):
                 raise AssertionError(
                     f"Can't update existing max_val - shape mismatch, self.max_val {self.max_val.shape} != max_val:{max_val.shape}"
                 )
+=======
+            assert self.min_val.shape == min_val.shape, (
+                f"Can't update existing min_val - shape mismatch, self.min_val:{self.min_val.shape} != min_val:{min_val.shape}"
+            )
+            assert self.max_val.shape == max_val.shape, (
+                f"Can't update existing max_val - shape mismatch, self.max_val {self.max_val.shape} != max_val:{max_val.shape}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             min_val = torch.min(self.min_val, min_val)
             max_val = torch.max(self.max_val, max_val)
             self.min_val.copy_(min_val)
@@ -731,10 +891,16 @@ class AffineQuantizedMinMaxObserver(AffineQuantizedObserverBase):
         return input
 
     def calculate_qparams(self) -> tuple[torch.Tensor, torch.Tensor]:
+<<<<<<< HEAD
         if not (hasattr(self, "min_val") and hasattr(self, "max_val")):
             raise AssertionError(
                 "Expecting the observer has min_val and max_val, please run the observer before calling calculate_qparams"
             )
+=======
+        assert hasattr(self, "min_val") and hasattr(self, "max_val"), (
+            "Expecting the observer has min_val and max_val, please run the observer before calling calculate_qparams"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return choose_qparams_affine_with_min_max(
             self.min_val,
             self.max_val,
@@ -796,8 +962,12 @@ class AffineQuantizedMovingAverageMinMaxObserver(AffineQuantizedObserverBase):
 
         input_detached = input.detach()
         self.original_dtype = input_detached.dtype
+<<<<<<< HEAD
         if self.granularity is None:
             raise AssertionError("granularity is None")
+=======
+        assert self.granularity is not None, "granularity is None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.block_size = get_block_size(input_detached.shape, self.granularity)
 
         shape_for_reduction, reduction_dims = _get_reduction_params(
@@ -810,6 +980,7 @@ class AffineQuantizedMovingAverageMinMaxObserver(AffineQuantizedObserverBase):
             self.min_val = min_val
             self.max_val = max_val
         else:
+<<<<<<< HEAD
             if self.min_val.shape != min_val.shape:
                 raise AssertionError(
                     f"Can't update existing min_val - shape mismatch, self.min_val:{self.min_val.shape} != min_val:{min_val.shape}"
@@ -818,6 +989,14 @@ class AffineQuantizedMovingAverageMinMaxObserver(AffineQuantizedObserverBase):
                 raise AssertionError(
                     f"Can't update existing max_val - shape mismatch, self.max_val {self.max_val.shape} != max_val:{max_val.shape}"
                 )
+=======
+            assert self.min_val.shape == min_val.shape, (
+                f"Can't update existing min_val - shape mismatch, self.min_val:{self.min_val.shape} != min_val:{min_val.shape}"
+            )
+            assert self.max_val.shape == max_val.shape, (
+                f"Can't update existing max_val - shape mismatch, self.max_val {self.max_val.shape} != max_val:{max_val.shape}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             min_val = self.min_val + self.averaging_constant * (min_val - self.min_val)
             max_val = self.max_val + self.averaging_constant * (max_val - self.max_val)
             self.min_val.copy_(min_val)
@@ -827,10 +1006,16 @@ class AffineQuantizedMovingAverageMinMaxObserver(AffineQuantizedObserverBase):
         return input
 
     def calculate_qparams(self) -> tuple[torch.Tensor, torch.Tensor]:
+<<<<<<< HEAD
         if not (hasattr(self, "min_val") and hasattr(self, "max_val")):
             raise AssertionError(
                 "Expecting the observer has min_val and max_val, please run the observer before calling calculate_qparams"
             )
+=======
+        assert hasattr(self, "min_val") and hasattr(self, "max_val"), (
+            "Expecting the observer has min_val and max_val, please run the observer before calling calculate_qparams"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return choose_qparams_affine_with_min_max(
             self.min_val,

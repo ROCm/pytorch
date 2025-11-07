@@ -1,6 +1,9 @@
 # Owner(s): ["module: c10d"]
 import gc
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import threading
 import unittest
 from datetime import timedelta
@@ -10,7 +13,11 @@ import torch
 import torch.distributed as dist
 import torch.distributed._functional_collectives as funcol
 from torch._C import FileCheck
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_cache, run_and_get_code, run_and_get_triton_code
+=======
+from torch._inductor.utils import fresh_cache, run_and_get_triton_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed._functional_collectives import (
     all_gather_into_tensor_coalesced,
     all_gather_tensor,
@@ -21,15 +28,26 @@ from torch.distributed._functional_collectives import (
     reduce_scatter_tensor,
     reduce_scatter_tensor_coalesced,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8
 from torch.testing._internal.common_device_type import e4m3_type
 from torch.testing._internal.common_distributed import (
     MultiProcessTestCase,
     requires_accelerator_dist_backend,
+=======
+from torch.testing._internal.common_cuda import SM90OrLater
+from torch.testing._internal.common_distributed import (
+    MultiProcessTestCase,
+    requires_nccl,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_if_lt_x_gpu,
 )
 from torch.testing._internal.common_utils import (  # type: ignore[attr-defined]
     run_tests,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 from torch.testing._internal.distributed.fake_pg import FakeStore
@@ -59,7 +77,11 @@ if not dist.is_available():
     sys.exit(0)
 
 
+<<<<<<< HEAD
 @requires_accelerator_dist_backend(["nccl", "xccl"])
+=======
+@requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestWithNCCL(MultiProcessTestCase):
     def setUp(self) -> None:
         super().setUp()
@@ -75,6 +97,7 @@ class TestWithNCCL(MultiProcessTestCase):
 
     @property
     def device(self) -> torch.device:
+<<<<<<< HEAD
         return torch.device(self.rank)
 
     def _init_process_group(self) -> None:
@@ -84,6 +107,19 @@ class TestWithNCCL(MultiProcessTestCase):
 
         dist.init_process_group(
             backend=backend,
+=======
+        return torch.device(f"cuda:{self.rank}")
+
+    def _init_process_group(self) -> None:
+        # Allow testing aoti after torch.compile
+        torch._inductor.config.triton.store_cubin = True
+        torch._inductor.config.debug = True
+
+        torch.cuda.set_device(self.device)
+        store = dist.FileStore(self.file_name, self.world_size)
+        dist.init_process_group(
+            backend="nccl",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             world_size=self.world_size,
             rank=self.rank,
             store=store,
@@ -275,7 +311,11 @@ class TestWithNCCL(MultiProcessTestCase):
         )
         # check memory leak
         for i in range(1, 10):
+<<<<<<< HEAD
             mem_usage[i] = torch.accelerator.max_memory_allocated()
+=======
+            mem_usage[i] = torch.cuda.max_memory_allocated()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compiled(arg)
 
         assert mem_usage[9] == mem_usage[8]
@@ -372,16 +412,24 @@ class TestWithNCCL(MultiProcessTestCase):
     @skip_if_lt_x_gpu(2)
     def test_all_to_all_single(self) -> None:
         self._init_process_group()
+<<<<<<< HEAD
         torch.accelerator.set_device_index(self.rank)
+=======
+        torch.cuda.set_device(self.device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         torch.manual_seed(42)
         send_sz_matrix = torch.randint(0, 20, (self.world_size, self.world_size))
 
         input_split_sizes = send_sz_matrix[self.rank].tolist()
         output_split_sizes = send_sz_matrix[:, self.rank].tolist()
+<<<<<<< HEAD
         input = torch.full((sum(input_split_sizes),), float(self.rank)).to(
             self.device.type
         )
+=======
+        input = torch.full((sum(input_split_sizes),), float(self.rank)).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         output = torch.ops._c10d_functional.all_to_all_single(
             input,
@@ -392,7 +440,11 @@ class TestWithNCCL(MultiProcessTestCase):
         output = torch.ops._c10d_functional.wait_tensor(output)
         expect = torch.cat(
             [
+<<<<<<< HEAD
                 torch.full((sz,), float(rank)).to(self.device.type)
+=======
+                torch.full((sz,), float(rank)).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for rank, sz in enumerate(output_split_sizes)
             ]
         )
@@ -468,7 +520,11 @@ class TestWithNCCL(MultiProcessTestCase):
     @fresh_cache()
     def test_threading(self):
         self._init_process_group()
+<<<<<<< HEAD
         device = self.device
+=======
+        device = torch.device(f"cuda:{self.rank}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def func(arg: torch.Tensor) -> torch.Tensor:
             buf0 = arg + 42
@@ -493,7 +549,11 @@ class TestWithNCCL(MultiProcessTestCase):
                 try:
                     func(arg)
                     compiled(arg)
+<<<<<<< HEAD
                 except BaseException as exc:  # noqa: B036
+=======
+                except BaseException as exc:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.exc = exc
 
             def join(self):
@@ -505,9 +565,16 @@ class TestWithNCCL(MultiProcessTestCase):
         t.start()
         t.join()
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FP8,
         "_scaled_mm currently only supports sm>=90 on cuda and gfx94/95 on ROCm",
+=======
+    @skipIfRocm
+    @unittest.skipIf(
+        not SM90OrLater,
+        "_scaled_mm currently only supports sm>=90",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     @skip_if_lt_x_gpu(2)
     @fresh_cache()
@@ -516,9 +583,16 @@ class TestWithNCCL(MultiProcessTestCase):
 
         def scale(t):
             scale = (
+<<<<<<< HEAD
                 torch.finfo(e4m3_type).max / t.abs().amax(dim=-1, keepdim=True).float()
             )
             t = t.mul(scale).to(e4m3_type)
+=======
+                torch.finfo(torch.float8_e4m3fn).max
+                / t.abs().amax(dim=-1, keepdim=True).float()
+            )
+            t = t.mul(scale).to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return t, scale
 
         def fp8_rowwise_backward(in_, w, out_grad):
@@ -548,9 +622,15 @@ class TestWithNCCL(MultiProcessTestCase):
             return in_grad, w_grad
 
         m, n, k = 128, 256, 64
+<<<<<<< HEAD
         in_ = torch.randn((m, k), device=self.device.type, dtype=torch.bfloat16)
         w = torch.randn((n, k), device=self.device.type, dtype=torch.bfloat16)
         out_grad = torch.randn((m, n), device=self.device.type, dtype=torch.bfloat16)
+=======
+        in_ = torch.randn((m, k), device="cuda", dtype=torch.bfloat16)
+        w = torch.randn((n, k), device="cuda", dtype=torch.bfloat16)
+        out_grad = torch.randn((m, n), device="cuda", dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         eager_in_grad, eager_w_grad = fp8_rowwise_backward(in_, w, out_grad)
         compile_in_grad, compile_w_grad = torch.compile(fp8_rowwise_backward)(
@@ -712,6 +792,7 @@ class PyWorkTest(TestCase):
         self.assertEqual(pg.dels, 4)
 
 
+<<<<<<< HEAD
 def find_buffer_assignments(code):
     pattern = r"buf(\d+) = empty_strided_"
     matches = re.finditer(pattern, code)
@@ -781,6 +862,18 @@ class CompileTest(TestCase):
         self.world_size = 2
         torch.accelerator.set_device_index(0)
         self.device = torch.accelerator.current_accelerator()
+=======
+class CompileTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        # Allow testing aoti after torch.compile
+        torch._inductor.config.triton.store_cubin = True
+        torch._inductor.config.debug = True
+
+        self.rank = 0
+        self.world_size = 2
+        torch.cuda.set_device("cuda:0")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         store = FakeStore()
         dist.init_process_group(
@@ -806,6 +899,7 @@ class CompileTest(TestCase):
             ar1 = funcol.wait_tensor(ar1)
             return ar0, ar1
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device)
         compiled = torch.compile(func)
 
@@ -840,6 +934,31 @@ class CompileTest(TestCase):
         # Test aoti
         AOTIRunnerUtil.run(func, (arg,))
         torch.accelerator.synchronize()
+=======
+        arg = torch.rand(4, 4, device="cuda")
+        compiled = torch.compile(func)
+
+        code = run_and_get_triton_code(compiled, arg)
+        (
+            FileCheck()
+            .check("buf0 = empty")
+            .check("buf7 = empty")
+            # Expect in-place with inductor allocated buf
+            .check("torch.ops._c10d_functional.all_reduce_.default(buf0")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf0")
+            # Expect no in-place with graph input (buf5 is a clone)
+            .check("torch.ops._c10d_functional.all_reduce_.default(buf7")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf7")
+            # Expect no extra copy on return
+            .check("return (buf0, buf7, )")
+            .run(code)
+        )
+        assert "= torch.ops._c10d_functional.wait_tensor.default" not in code
+
+        # Test aoti
+        AOTIRunnerUtil.run(func, (arg,))
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -854,6 +973,7 @@ class CompileTest(TestCase):
             ar1 = [funcol.wait_tensor(out) for out in ar1]
             return ar0, ar1
 
+<<<<<<< HEAD
         args = [torch.rand(4, 4, device=self.device.type) for _ in range(2)]
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, args)
@@ -878,13 +998,42 @@ class CompileTest(TestCase):
             .check(f"torch.ops._c10d_functional.wait_tensor.default({buf3}")
             # Expect no extra copy on return
             .check(f"return ({buf0}, {buf2}, {buf1}, {buf3}, )")
+=======
+        args = [torch.rand(4, 4, device="cuda") for _ in range(2)]
+        compiled = torch.compile(func)
+        code = run_and_get_triton_code(compiled, args)
+        (
+            FileCheck()
+            .check("buf0 = empty")
+            .check("buf5 = empty")
+            .check("buf1 = empty")
+            .check("buf6 = empty")
+            # Expect in-place with inductor allocated buf
+            .check(
+                "torch.ops._c10d_functional.all_reduce_coalesced_.default([buf0, buf1]"
+            )
+            # Expect no in-place with graph input (buf5, buf6 are clones)
+            .check(
+                "torch.ops._c10d_functional.all_reduce_coalesced_.default([buf5, buf6]"
+            )
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf0")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf1")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf5")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf6")
+            # Expect no extra copy on return
+            .check("return (buf0, buf1, buf5, buf6, )")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .run(code)
         )
         assert "= torch.ops._c10d_functional.wait_tensor.default" not in code
 
         # Test aoti
         out = AOTIRunnerUtil.run(func, (args,))  # noqa: F841
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -895,6 +1044,7 @@ class CompileTest(TestCase):
             ar0 = funcol.wait_tensor(ar0)
             return ar0
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
         compiled = torch.compile(func)
 
@@ -908,6 +1058,20 @@ class CompileTest(TestCase):
             .check(f"torch.ops._c10d_functional.all_reduce_.default({buf0}")
             .check(f"torch.ops._c10d_functional.wait_tensor.default({buf0}")
             .check(f"return ({buf0}")
+=======
+        arg = torch.rand(4, 4, device="cuda")
+        compiled = torch.compile(func)
+
+        code = run_and_get_triton_code(compiled, arg)
+        (
+            FileCheck()
+            .check("buf0 = empty")
+            # We always call .contiguous() on the input to all_reduce_,
+            # so input will not be a view anymore.
+            .check("torch.ops._c10d_functional.all_reduce_.default(buf0")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf0")
+            .check("return (buf0")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .run(code)
         )
 
@@ -920,7 +1084,11 @@ class CompileTest(TestCase):
             # Expect allocation
             return ar0
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type).T
+=======
+        arg = torch.rand(4, 4, device="cuda").T
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
 
         code = run_and_get_triton_code(compiled, arg)
@@ -938,9 +1106,12 @@ class CompileTest(TestCase):
         assert "torch.ops._c10d_functional.wait_tensor.default" in code
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+<<<<<<< HEAD
     @unittest.skipIf(
         torch._inductor.config.triton.native_matmul, "no extern_kernels.mm"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @fresh_cache()
     def test_inductor_reuse_buffer_after_inplace_collective(self):
         def func(arg: torch.Tensor) -> torch.Tensor:
@@ -954,6 +1125,7 @@ class CompileTest(TestCase):
             buf2 = torch.mm(arg, buf1)
             return buf1, buf2
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, arg)
@@ -972,6 +1144,25 @@ class CompileTest(TestCase):
             .check(f"extern_kernels.mm(arg0_1, {buf1}, out=buf8")
             # Expect no extra copy on return
             .check(f"return ({buf1}, buf8, )")
+=======
+        arg = torch.rand(4, 4, device="cuda")
+        compiled = torch.compile(func)
+        code = run_and_get_triton_code(compiled, arg)
+        (
+            FileCheck()
+            # Expect allocation
+            .check("buf0 = empty")
+            .check("torch.ops._c10d_functional.all_reduce_.default(buf0")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf0")
+            # Expect allocation
+            .check("buf7 = empty")
+            .check("extern_kernels.mm(arg0_1, buf0, out=buf7")
+            # Expect buf0 to be reused
+            .check("buf8 = buf0; del buf0  # reuse")
+            .check("extern_kernels.mm(arg0_1, buf7, out=buf8")
+            # Expect no extra copy on return
+            .check("return (buf7, buf8, )")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .run(code)
         )
         assert "= torch.ops._c10d_functional.wait_tensor.default" not in code
@@ -984,7 +1175,11 @@ class CompileTest(TestCase):
             ag0 = funcol.wait_tensor(ag0)
             return ag0
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
+=======
+        arg = torch.rand(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, arg)
         (
@@ -1001,7 +1196,11 @@ class CompileTest(TestCase):
 
         # Test aoti
         AOTIRunnerUtil.run(func, (arg,))
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -1011,7 +1210,11 @@ class CompileTest(TestCase):
             ag0 = [funcol.wait_tensor(out) for out in ag0]
             return ag0
 
+<<<<<<< HEAD
         args = [torch.rand(4, 4, device=self.device.type) for _ in range(4)]
+=======
+        args = [torch.rand(4, 4, device="cuda") for _ in range(4)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, args)
         (
@@ -1035,7 +1238,11 @@ class CompileTest(TestCase):
 
         # Test aoti
         out = AOTIRunnerUtil.run(func, (args,))  # noqa: F841
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "This is a GPU test!")
     @fresh_cache()
@@ -1045,7 +1252,11 @@ class CompileTest(TestCase):
             return funcol.wait_tensor(t)
 
         # Test aoti
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
+=======
+        arg = torch.rand(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, arg)
         (
@@ -1057,7 +1268,11 @@ class CompileTest(TestCase):
 
         # Test aoti
         AOTIRunnerUtil.run(func, (arg,))
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -1067,7 +1282,11 @@ class CompileTest(TestCase):
             rs0 = funcol.wait_tensor(rs0)
             return rs0
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
+=======
+        arg = torch.rand(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, arg)
         (
@@ -1083,7 +1302,11 @@ class CompileTest(TestCase):
 
         # Test aoti
         AOTIRunnerUtil.run(func, (arg,))
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -1095,7 +1318,11 @@ class CompileTest(TestCase):
             rs0 = [funcol.wait_tensor(out) for out in rs0]
             return rs0
 
+<<<<<<< HEAD
         args = [torch.rand(4, 4, device=self.device.type) for _ in range(4)]
+=======
+        args = [torch.rand(4, 4, device="cuda") for _ in range(4)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, args)
         (
@@ -1119,11 +1346,24 @@ class CompileTest(TestCase):
 
         # Test aoti
         AOTIRunnerUtil.run(func, (args,))
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
     def test_inductor_all_to_all_single(self):
+<<<<<<< HEAD
+=======
+        def _tolist_with_constrain_as_size(tensor):
+            lst = tensor.tolist()
+            for elem in lst:
+                torch._check_is_size(elem)
+            return lst
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def func(
             input: torch.Tensor,
             output_split_sizes: torch.Tensor,
@@ -1131,8 +1371,13 @@ class CompileTest(TestCase):
         ) -> torch.Tensor:
             output = funcol.all_to_all_single(
                 input,
+<<<<<<< HEAD
                 output_split_sizes.tolist(),
                 input_split_sizes.tolist(),
+=======
+                _tolist_with_constrain_as_size(output_split_sizes),
+                _tolist_with_constrain_as_size(input_split_sizes),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "0",
             )
             return funcol.wait_tensor(output)
@@ -1142,9 +1387,13 @@ class CompileTest(TestCase):
 
         input_split_sizes = send_sz_matrix[self.rank]
         output_split_sizes = send_sz_matrix[:, self.rank].contiguous()
+<<<<<<< HEAD
         input = torch.full((input_split_sizes.sum().item(),), float(self.rank)).to(
             self.device.type
         )
+=======
+        input = torch.full((input_split_sizes.sum().item(),), float(self.rank)).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with torch._dynamo.config.patch(
             dynamic_shapes=True,
@@ -1178,6 +1427,7 @@ class CompileTest(TestCase):
             br1 = funcol.wait_tensor(br1)
             return br0, br1
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
         compiled = torch.compile(func)
 
@@ -1188,20 +1438,42 @@ class CompileTest(TestCase):
             .check(f"{buf0} = empty")
             .check(f"buf1 = {buf0}")
             .check(f"{buf1} = empty")
+=======
+        arg = torch.rand(4, 4, device="cuda")
+        compiled = torch.compile(func)
+
+        code = run_and_get_triton_code(compiled, arg)
+        (
+            FileCheck()
+            .check("buf0 = empty")
+            .check("buf1 = buf0")
+            .check("buf8 = empty")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Expect in-place with inductor allocated buf
             .check("torch.ops._c10d_functional.broadcast_.default(buf1")
             .check("torch.ops._c10d_functional.wait_tensor.default(buf1")
             # Expect no in-place with graph input (buf5 is a clone)
+<<<<<<< HEAD
             .check(f"torch.ops._c10d_functional.broadcast_.default({buf1}")
             .check(f"torch.ops._c10d_functional.wait_tensor.default({buf1}")
             # Expect no extra copy on return
             .check(f"return (buf1, {buf1}, )")
+=======
+            .check("torch.ops._c10d_functional.broadcast_.default(buf8")
+            .check("torch.ops._c10d_functional.wait_tensor.default(buf8")
+            # Expect no extra copy on return
+            .check("return (buf1, buf8, )")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .run(code)
         )
 
         # Test aoti
         AOTIRunnerUtil.run(func, (arg,))
+<<<<<<< HEAD
         torch.accelerator.synchronize()
+=======
+        torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @fresh_cache()
@@ -1216,7 +1488,11 @@ class CompileTest(TestCase):
             ar1 = funcol.wait_tensor(ar1)
             return ar0, ar1
 
+<<<<<<< HEAD
         arg = torch.rand(4, 4, device=self.device.type)
+=======
+        arg = torch.rand(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(func, fullgraph=True)
 
         code = run_and_get_triton_code(compiled, arg)

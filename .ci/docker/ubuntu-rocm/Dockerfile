@@ -52,6 +52,7 @@ ENV INSTALLED_VISION ${VISION}
 
 # Install rocm
 ARG ROCM_VERSION
+<<<<<<< HEAD
 RUN mkdir ci_commit_pins
 COPY ./common/common_utils.sh common_utils.sh
 COPY ./ci_commit_pins/rocm-composable-kernel.txt ci_commit_pins/rocm-composable-kernel.txt
@@ -59,6 +60,11 @@ COPY ./common/install_rocm.sh install_rocm.sh
 RUN bash ./install_rocm.sh
 RUN rm install_rocm.sh common_utils.sh
 RUN rm -r ci_commit_pins
+=======
+COPY ./common/install_rocm.sh install_rocm.sh
+RUN bash ./install_rocm.sh
+RUN rm install_rocm.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 COPY ./common/install_rocm_magma.sh install_rocm_magma.sh
 RUN bash ./install_rocm_magma.sh ${ROCM_VERSION}
 RUN rm install_rocm_magma.sh
@@ -100,11 +106,18 @@ ARG ANACONDA_PYTHON_VERSION
 ENV ANACONDA_PYTHON_VERSION=$ANACONDA_PYTHON_VERSION
 COPY ./common/install_inductor_benchmark_deps.sh install_inductor_benchmark_deps.sh
 COPY ./common/common_utils.sh common_utils.sh
+<<<<<<< HEAD
 COPY ci_commit_pins/huggingface-requirements.txt huggingface-requirements.txt
 COPY ci_commit_pins/timm.txt timm.txt
 COPY ci_commit_pins/torchbench.txt torchbench.txt
 RUN if [ -n "${INDUCTOR_BENCHMARKS}" ]; then bash ./install_inductor_benchmark_deps.sh; fi
 RUN rm install_inductor_benchmark_deps.sh common_utils.sh timm.txt huggingface-requirements.txt torchbench.txt
+=======
+COPY ci_commit_pins/huggingface.txt huggingface.txt
+COPY ci_commit_pins/timm.txt timm.txt
+RUN if [ -n "${INDUCTOR_BENCHMARKS}" ]; then bash ./install_inductor_benchmark_deps.sh; fi
+RUN rm install_inductor_benchmark_deps.sh common_utils.sh timm.txt huggingface.txt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # (optional) Install non-default Ninja version
 ARG NINJA_VERSION

@@ -104,11 +104,14 @@ single_dim_common = merge_dicts(
 """
     },
     {
+<<<<<<< HEAD
         "opt_dim_without_none": """
     dim (int, optional): the dimension to reduce. If omitted, all dimensions are reduced. Explicit ``None`` is not supported.
 """
     },
     {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "keepdim_details": """If :attr:`keepdim` is ``True``, the output tensor is of the same size
 as :attr:`input` except in the dimension :attr:`dim` where it is of size 1.
 Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
@@ -253,7 +256,11 @@ add_docstr(
     r"""
 acos(input: Tensor, *, out: Optional[Tensor]) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the arccosine (in radians) of each element in :attr:`input`.
+=======
+Computes the inverse cosine of each element in :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \cos^{-1}(\text{input}_{i})
@@ -1006,8 +1013,12 @@ If :attr:`data` is a NumPy array (an ndarray) with the same dtype and device the
 tensor is constructed using :func:`torch.from_numpy`.
 
 If :attr:`data` is a CuPy array, the returned tensor will be located on the same device as the CuPy array unless
+<<<<<<< HEAD
 specifically overwritten by :attr:`device` or a default device. The device of the CuPy array is inferred from the
 pointer of the array using `cudaPointerGetAttributes` unless :attr:`device` is provided with an explicit device index.
+=======
+specifically overwritten by :attr:`device` or a default device.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. seealso::
 
@@ -1047,7 +1058,11 @@ add_docstr(
     r"""
 asin(input: Tensor, *, out: Optional[Tensor]) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the arcsine of the elements (in radians) in the :attr:`input` tensor.
+=======
+Returns a new tensor with the arcsine of the elements of :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \sin^{-1}(\text{input}_{i})
@@ -1119,7 +1134,11 @@ add_docstr(
     r"""
 atan(input: Tensor, *, out: Optional[Tensor]) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the arctangent of the elements (in radians) in the :attr:`input` tensor.
+=======
+Returns a new tensor with the arctangent of the elements of :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \tan^{-1}(\text{input}_{i})
@@ -2783,12 +2802,15 @@ Returns a copy of :attr:`input`.
     result of this operation to :attr:`input`. To create a tensor without an
     autograd relationship to :attr:`input` see :meth:`~Tensor.detach`.
 
+<<<<<<< HEAD
     In addition, when ``torch.preserve_format`` is used:
     If the input tensor is dense (i.e., non-overlapping strided),
     its memory format (including strides) is retained.
     Otherwise (e.g., a non-dense view like a stepped slice),
     the output is converted to the dense (contiguous) format.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Args:
     {input}
 
@@ -3135,7 +3157,11 @@ add_docstr(
     r"""
 cos(input, *, out=None) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the cosine of the elements of :attr:`input` given in radians.
+=======
+Returns a new tensor with the cosine  of the elements of :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \cos(\text{input}_{i})
@@ -4587,8 +4613,11 @@ For a 3-D tensor the output is specified by::
 It is also required that ``index.size(d) <= input.size(d)`` for all
 dimensions ``d != dim``.  :attr:`out` will have the same shape as :attr:`index`.
 Note that ``input`` and ``index`` do not broadcast against each other.
+<<<<<<< HEAD
 When :attr:`index` is empty, we always return an empty output with the same shape
 without further error checking.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Args:
     input (Tensor): the source tensor
@@ -4742,8 +4771,12 @@ Keyword args:
     edge_order (``int``, optional): 1 or 2, for `first-order
         <https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf>`_ or
         `second-order <https://www.ams.org/journals/mcom/1988-51-184/S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf>`_
+<<<<<<< HEAD
         estimation of the boundary ("edge") values, respectively. Note that when :attr:`edge_order` is specified, each
         dimension size of :attr:`input` should be at least edge_order+1
+=======
+        estimation of the boundary ("edge") values, respectively.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Examples::
 
@@ -5021,6 +5054,7 @@ Alias for :func:`torch.gt`.
 )
 
 add_docstr(
+<<<<<<< HEAD
     torch.hash_tensor,
     r"""
 hash_tensor(input, *, mode=0) -> Tensor
@@ -5075,6 +5109,8 @@ Example::
 )
 
 add_docstr(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.histc,
     r"""
 histc(input, bins=100, min=0, max=0, *, out=None) -> Tensor
@@ -5184,7 +5220,11 @@ For each N-dimensional point in input:
 If :attr:`bins` is a sequence of N 1D tensors, it explicitly specifies the N sequences
 of bin edges. Each 1D tensor should contain a strictly increasing sequence with at
 least one element. A sequence of K bin edges defines K-1 bins, explicitly specifying
+<<<<<<< HEAD
 the left and right edges of all bins. Every bin is inclusive of its left edge. Only
+=======
+the left and right edges of all bins. Every bin is exclusive of its left edge. Only
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 the rightmost bin is inclusive of its right edge.
 
 If :attr:`bins` is a sequence of N ints, it specifies the number of equal-width bins
@@ -5308,7 +5348,11 @@ add_docstr(
 index_select(input, dim, index, *, out=None) -> Tensor
 
 Returns a new tensor which indexes the :attr:`input` tensor along dimension
+<<<<<<< HEAD
 :attr:`dim` using the entries in :attr:`index`.
+=======
+:attr:`dim` using the entries in :attr:`index` which is a `LongTensor`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 The returned tensor has the same number of dimensions as the original tensor
 (:attr:`input`).  The :attr:`dim`\ th dimension has the same size as the length
@@ -5555,13 +5599,18 @@ Example::
 add_docstr(
     torch.is_floating_point,
     r"""
+<<<<<<< HEAD
 is_floating_point(input: Tensor) -> bool
+=======
+is_floating_point(input) -> (bool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Returns True if the data type of :attr:`input` is a floating point data type i.e.,
 one of ``torch.float64``, ``torch.float32``, ``torch.float16``, and ``torch.bfloat16``.
 
 Args:
     {input}
+<<<<<<< HEAD
 
 Example::
 
@@ -5573,19 +5622,26 @@ Example::
     True
     >>> torch.is_floating_point(torch.tensor([1, 2, 3], dtype=torch.complex64))
     False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """.format(**common_args),
 )
 
 add_docstr(
     torch.is_complex,
     r"""
+<<<<<<< HEAD
 is_complex(input: Tensor) -> bool
+=======
+is_complex(input) -> (bool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Returns True if the data type of :attr:`input` is a complex data type i.e.,
 one of ``torch.complex64``, and ``torch.complex128``.
 
 Args:
     {input}
+<<<<<<< HEAD
 
 Example::
 
@@ -5597,6 +5653,8 @@ Example::
     False
     >>> torch.is_complex(torch.tensor([1.0, 2.0, 3.0], dtype=torch.float16))
     False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """.format(**common_args),
 )
 
@@ -5677,11 +5735,19 @@ Examples::
     >>> torch.is_nonzero(torch.tensor([1, 3, 5]))
     Traceback (most recent call last):
     ...
+<<<<<<< HEAD
     RuntimeError: Boolean value of Tensor with more than one value is ambiguous
     >>> torch.is_nonzero(torch.tensor([]))
     Traceback (most recent call last):
     ...
     RuntimeError: Boolean value of Tensor with no values is ambiguous
+=======
+    RuntimeError: bool value of Tensor with more than one value is ambiguous
+    >>> torch.is_nonzero(torch.tensor([]))
+    Traceback (most recent call last):
+    ...
+    RuntimeError: bool value of Tensor with no values is ambiguous
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """.format(**common_args),
 )
 
@@ -6602,6 +6668,7 @@ max(input, *, out=None) -> Tensor
 
 Returns the maximum value of all elements in the ``input`` tensor.
 
+<<<<<<< HEAD
 .. note::
     The difference between ``max``/``min`` and ``amax``/``amin`` is:
         - ``amax``/``amin`` supports reducing on multiple dimensions,
@@ -6614,6 +6681,8 @@ Returns the maximum value of all elements in the ``input`` tensor.
         - If reduce over all dimensions(no dim specified), gradients evenly distribute between equally ``max``/``min`` values.
         - If reduce over one specified axis, only propagate to the indexed element.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Args:
     {input}
 
@@ -6646,7 +6715,11 @@ in the output tensors having 1 fewer dimension than ``input``.
 
 Args:
     {input}
+<<<<<<< HEAD
     {opt_dim_without_none}
+=======
+    {opt_dim_all_reduce}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {opt_keepdim}
 
 Keyword args:
@@ -6677,7 +6750,11 @@ Example::
 
 See :func:`torch.maximum`.
 
+<<<<<<< HEAD
 """.format(**single_dim_common),
+=======
+""".format(**multi_dim_common),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 add_docstr(
@@ -6752,6 +6829,7 @@ dimension(s) :attr:`dim`.
         - ``amax``/``amin`` supports reducing on multiple dimensions,
         - ``amax``/``amin`` does not return indices.
 
+<<<<<<< HEAD
     Both ``amax``/``amin`` evenly distribute gradients between equal values
     when there are multiple input elements with the same minimum or maximum value.
 
@@ -6759,6 +6837,11 @@ dimension(s) :attr:`dim`.
         - If reduce over all dimensions(no dim specified), gradients evenly distribute between equally ``max``/``min`` values.
         - If reduce over one specified axis, only propagate to the indexed element.
 
+=======
+    Both ``max``/``min`` and ``amax``/``amin`` evenly distribute gradients between equal values
+    when there are multiple input elements with the same minimum or maximum value.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 {keepdim_details}
 
 Args:
@@ -7132,7 +7215,11 @@ indices ``i`` and ``j`` in the sorted order, result is computed according to the
 - ``linear``: ``a + (b - a) * fraction``, where ``fraction`` is the fractional part of the computed quantile index.
 - ``lower``: ``a``.
 - ``higher``: ``b``.
+<<<<<<< HEAD
 - ``nearest``: ``a`` or ``b``, whichever's index is closer to the computed quantile index (follows :func:`torch.round`).
+=======
+- ``nearest``: ``a`` or ``b``, whichever's index is closer to the computed quantile index (rounding down for .5 fractions).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ``midpoint``: ``(a + b) / 2``.
 
 If :attr:`q` is a 1D tensor, the first dimension of the output represents the quantiles and has size
@@ -7148,7 +7235,11 @@ Args:
     {opt_keepdim}
 
 Keyword arguments:
+<<<<<<< HEAD
     interpolation (str, optional): interpolation method to use when the desired quantile lies between two data points.
+=======
+    interpolation (str): interpolation method to use when the desired quantile lies between two data points.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             Can be ``linear``, ``lower``, ``higher``, ``midpoint`` and ``nearest``.
                             Default is ``linear``.
     {out}
@@ -7236,6 +7327,7 @@ min(input, *, out=None) -> Tensor
 
 Returns the minimum value of all elements in the :attr:`input` tensor.
 
+<<<<<<< HEAD
 .. note::
     The difference between ``max``/``min`` and ``amax``/``amin`` is:
         - ``amax``/``amin`` supports reducing on multiple dimensions,
@@ -7248,6 +7340,8 @@ Returns the minimum value of all elements in the :attr:`input` tensor.
         - If reduce over all dimensions(no dim specified), gradients evenly distribute between equally ``max``/``min`` values.
         - If reduce over one specified axis, only propagate to the indexed element.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Args:
     {input}
 
@@ -7280,7 +7374,11 @@ the output tensors having 1 fewer dimension than :attr:`input`.
 
 Args:
     {input}
+<<<<<<< HEAD
     {opt_dim_without_none}
+=======
+    {opt_dim_all_reduce}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {opt_keepdim}
 
 Keyword args:
@@ -7376,6 +7474,7 @@ dimension(s) :attr:`dim`.
         - ``amax``/``amin`` supports reducing on multiple dimensions,
         - ``amax``/``amin`` does not return indices.
 
+<<<<<<< HEAD
     Both ``amax``/``amin`` evenly distribute gradients between equal values
     when there are multiple input elements with the same minimum or maximum value.
 
@@ -7383,6 +7482,11 @@ dimension(s) :attr:`dim`.
         - If reduce over all dimensions(no dim specified), gradients evenly distribute between equally ``max``/``min`` values.
         - If reduce over one specified axis, only propagate to the indexed element.
 
+=======
+    Both ``max``/``min`` and ``amax``/``amin`` evenly distribute gradients between equal values
+    when there are multiple input elements with the same minimum or maximum value.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 {keepdim_details}
 
 Args:
@@ -7592,6 +7696,7 @@ The behavior depends on the dimensionality of the tensors as follows:
   N-dimensional (where N > 2), then a batched matrix multiply is returned.  If the first
   argument is 1-dimensional, a 1 is prepended to its dimension for the purpose of the
   batched matrix multiply and removed after.  If the second argument is 1-dimensional, a
+<<<<<<< HEAD
   1 is appended to its dimension for the purpose of the batched matrix multiply and removed after.
 
   The first N-2 dimensions of each argument, the batch dimensions, are
@@ -7603,6 +7708,19 @@ The behavior depends on the dimensionality of the tensors as follows:
   tensor, the batch dimensions are :math:`(j \times 1)` and :math:`(k)`,
   and the matrix dimensions are :math:`(n \times m)` and :math:`(m \times p)`.
   :attr:`out` will be a :math:`(j \times k \times n \times p)` tensor.
+=======
+  1 is appended to its dimension for the purpose of the batched matrix multiple and removed after.
+  The non-matrix (i.e. batch) dimensions are :ref:`broadcasted <broadcasting-semantics>` (and thus
+  must be broadcastable).  For example, if :attr:`input` is a
+  :math:`(j \times 1 \times n \times n)` tensor and :attr:`other` is a :math:`(k \times n \times n)`
+  tensor, :attr:`out` will be a :math:`(j \times k \times n \times n)` tensor.
+
+  Note that the broadcasting logic only looks at the batch dimensions when determining if the inputs
+  are broadcastable, and not the matrix dimensions. For example, if :attr:`input` is a
+  :math:`(j \times 1 \times n \times m)` tensor and :attr:`other` is a :math:`(k \times m \times p)`
+  tensor, these inputs are valid for broadcasting even though the final two dimensions (i.e. the
+  matrix dimensions) are different. :attr:`out` will be a :math:`(j \times k \times n \times p)` tensor.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`. In particular the
 matrix-matrix (both arguments 2-dimensional) supports sparse arguments with the same restrictions
@@ -7673,6 +7791,11 @@ If :attr:`keepdim` is ``True``, the output tensors are of the same size as
 Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting
 in the output tensors having 1 fewer dimension than :attr:`input`.
 
+<<<<<<< HEAD
+=======
+.. note:: This function is not defined for ``torch.cuda.Tensor`` yet.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Args:
     {input}
     {opt_dim}
@@ -7713,7 +7836,11 @@ Supports :ref:`broadcasting to a common shape <broadcasting-semantics>`,
 
 Args:
     {input}
+<<<<<<< HEAD
     other (Tensor or Number): the tensor or number to multiply input by.
+=======
+    other (Tensor or Number) - the tensor or number to multiply input by.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Keyword args:
     {out}
@@ -9056,7 +9183,11 @@ Args:
 Keyword args:
     {generator}
     {out}
+<<<<<<< HEAD
     dtype (torch.dtype, optional): the desired data type of returned tensor. Default: if ``None``,
+=======
+    dtype (`torch.dtype`, optional) - the desired data type of returned tensor. Default: if ``None``,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         this function returns a tensor with dtype ``torch.int64``.
     {layout}
     {device}
@@ -9645,6 +9776,7 @@ Out-of-place version of :meth:`torch.Tensor.scatter_reduce_`
 )
 
 add_docstr(
+<<<<<<< HEAD
     torch.segment_reduce,
     r"""
 segment_reduce(data: Tensor, reduce: str, *, lengths: Tensor | None = None, indices: Tensor | None = None, offsets: Tensor | None = None, axis: _int = 0, unsafe: _bool = False, initial: Number | _complex | None = None) -> Tensor # noqa: B950
@@ -9673,6 +9805,8 @@ Example::
 )
 
 add_docstr(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.select,
     r"""
 select(input, dim, index) -> Tensor
@@ -9940,8 +10074,12 @@ add_docstr(
     r"""
 sin(input, *, out=None) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the sine of the elements in the :attr:`input` tensor,
 where each value in this input tensor is in radians.
+=======
+Returns a new tensor with the sine of the elements of :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \sin(\text{input}_{i})
@@ -10008,7 +10146,11 @@ Example::
 add_docstr(
     torch.sort,
     r"""
+<<<<<<< HEAD
 sort(input, dim=-1, descending=False, *, stable=False, out=None) -> (Tensor, LongTensor)
+=======
+sort(input, dim=-1, descending=False, stable=False, *, out=None) -> (Tensor, LongTensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Sorts the elements of the :attr:`input` tensor along a given dimension
 in ascending order by value.
@@ -10029,10 +10171,17 @@ Args:
     {input}
     dim (int, optional): the dimension to sort along
     descending (bool, optional): controls the sorting order (ascending or descending)
+<<<<<<< HEAD
 
 Keyword args:
     stable (bool, optional): makes the sorting routine stable, which guarantees that the order
         of equivalent elements is preserved.
+=======
+    stable (bool, optional): makes the sorting routine stable, which guarantees that the order
+       of equivalent elements is preserved.
+
+Keyword args:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     out (tuple, optional): the output tuple of (`Tensor`, `LongTensor`) that can
         be optionally given to be used as output buffers
 
@@ -10073,7 +10222,11 @@ Example::
 add_docstr(
     torch.argsort,
     r"""
+<<<<<<< HEAD
 argsort(input, dim=-1, descending=False, *, stable=False) -> Tensor
+=======
+argsort(input, dim=-1, descending=False, stable=False) -> Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Returns the indices that sort a tensor along a given dimension in ascending
 order by value.
@@ -10089,8 +10242,11 @@ Args:
     {input}
     dim (int, optional): the dimension to sort along
     descending (bool, optional): controls the sorting order (ascending or descending)
+<<<<<<< HEAD
 
 Keyword args:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stable (bool, optional): controls the relative order of equivalent elements
 
 Example::
@@ -10167,7 +10323,11 @@ Args:
         subtracted by the number before it denotes the number of
         elements or blocks in a given compressed dimension.
     plain_indices (array_like): Plain dimension (column or row)
+<<<<<<< HEAD
         coordinates of each element or block in values. (B+1)-dimensional
+=======
+        co-ordinates of each element or block in values. (B+1)-dimensional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor with the same length as values.
 
     values (array_list): Initial values for the tensor. Can be a list,
@@ -10235,7 +10395,11 @@ Args:
         starts. Each successive number in the tensor subtracted by the
         number before it denotes the number of elements in a given
         row.
+<<<<<<< HEAD
     col_indices (array_like): Column coordinates of each element in
+=======
+    col_indices (array_like): Column co-ordinates of each element in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         values. (B+1)-dimensional tensor with the same length
         as values.
     values (array_list): Initial values for the tensor. Can be a list,
@@ -10298,7 +10462,11 @@ Args:
         starts. Each successive number in the tensor subtracted by the
         number before it denotes the number of elements in a given
         column.
+<<<<<<< HEAD
     row_indices (array_like): Row coordinates of each element in
+=======
+    row_indices (array_like): Row co-ordinates of each element in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         values. (B+1)-dimensional tensor with the same length as
         values.
     values (array_list): Initial values for the tensor. Can be a list,
@@ -10361,7 +10529,11 @@ Args:
         given row block starts. Each successive number in the tensor
         subtracted by the number before it denotes the number of
         blocks in a given row.
+<<<<<<< HEAD
     col_indices (array_like): Column block coordinates of each block
+=======
+    col_indices (array_like): Column block co-ordinates of each block
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         in values. (B+1)-dimensional tensor with the same length as
         values.
     values (array_list): Initial values for the tensor. Can be a list,
@@ -10429,7 +10601,11 @@ Args:
         column starts. Each successive number in the tensor subtracted
         by the number before it denotes the number of elements in a
         given column.
+<<<<<<< HEAD
     row_indices (array_like): Row block coordinates of each block in
+=======
+    row_indices (array_like): Row block co-ordinates of each block in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         values. (B+1)-dimensional tensor with the same length
         as values.
     values (array_list): Initial blocks for the tensor. Can be a list,
@@ -11358,8 +11534,12 @@ add_docstr(
     r"""
 tan(input, *, out=None) -> Tensor
 
+<<<<<<< HEAD
 Returns a new tensor with the tangent of the elements in the :attr:`input` tensor,
 where each value in this input tensor is in radians.
+=======
+Returns a new tensor with the tangent of the elements of :attr:`input`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. math::
     \text{out}_{i} = \tan(\text{input}_{i})
@@ -12250,12 +12430,15 @@ Returns an uninitialized tensor with the same size as :attr:`input`.
     Floating point and complex tensors are filled with NaN, and integer tensors
     are filled with the maximum value.
 
+<<<<<<< HEAD
     When ``torch.preserve_format`` is used:
     If the input tensor is dense (i.e., non-overlapping strided),
     its memory format (including strides) is retained.
     Otherwise (e.g., a non-dense view like a stepped slice),
     the output is converted to the dense format.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Args:
     {input}
 
@@ -12419,6 +12602,7 @@ Keyword args:
     {device}
     {requires_grad}
     {memory_format}
+<<<<<<< HEAD
 
 Example::
 
@@ -12437,6 +12621,8 @@ Example::
     tensor([[-1., -1., -1., -1.],
             [-1., -1., -1., -1.],
             [-1., -1., -1., -1.]], dtype=torch.float64)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """.format(**factory_like_common_args),
 )
 
@@ -12632,8 +12818,13 @@ Returns:
 add_docstr(
     torch.hamming_window,
     """
+<<<<<<< HEAD
 hamming_window(window_length, *, dtype=None, layout=None, device=None, pin_memory=False, \
 requires_grad=False) -> Tensor
+=======
+hamming_window(window_length, periodic=True, alpha=0.54, beta=0.46, *, dtype=None, \
+layout=torch.strided, device=None, requires_grad=False) -> Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
     + r"""
 Hamming window function.
@@ -12661,6 +12852,7 @@ above formula is in fact :math:`\text{window\_length} + 1`. Also, we always have
     + r"""
 Arguments:
     window_length (int): the size of returned window
+<<<<<<< HEAD
 
 Keyword args:
     {dtype} Only floating point types are supported.
@@ -12683,12 +12875,19 @@ Arguments:
     window_length (int): the size of returned window
     periodic (bool): If True, returns a window to be used as periodic
         function. If False, return a symmetric window.
+=======
+    periodic (bool, optional): If True, returns a window to be used as periodic
+        function. If False, return a symmetric window.
+    alpha (float, optional): The coefficient :math:`\alpha` in the equation above
+    beta (float, optional): The coefficient :math:`\beta` in the equation above
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Keyword args:
     {dtype} Only floating point types are supported.
     layout (:class:`torch.layout`, optional): the desired layout of returned window tensor. Only
           ``torch.strided`` (dense layout) is supported.
     {device}
+<<<<<<< HEAD
     {pin_memory}
     {requires_grad}
 
@@ -12737,6 +12936,8 @@ Keyword args:
           ``torch.strided`` (dense layout) is supported.
     {device}
     {pin_memory}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {requires_grad}
 
 Returns:

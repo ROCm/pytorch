@@ -1,6 +1,11 @@
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import Any, NamedTuple, Optional, overload, TypeVar, Union
+=======
+from collections.abc import Iterable
+from typing import Any, Callable, NamedTuple, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import torch
@@ -255,6 +260,7 @@ def _packed_sequence_init(
 
 
 def invert_permutation(permutation: Optional[Tensor]) -> Optional[Tensor]:
+<<<<<<< HEAD
     """Returns the inverse of ``permutation``.
 
     This is useful for converting between sorted and unsorted indices in
@@ -263,6 +269,8 @@ def invert_permutation(permutation: Optional[Tensor]) -> Optional[Tensor]:
     Args:
         permutation (Tensor, optional): a 1-D tensor of indices to invert
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if permutation is None:
         return None
     output = torch.empty_like(permutation, memory_format=torch.legacy_contiguous_format)

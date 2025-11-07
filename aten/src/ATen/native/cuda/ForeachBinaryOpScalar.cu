@@ -45,7 +45,11 @@ std::vector<Tensor> foreach_binary_op(
           /* res_arg_index */ 1>(),
       Op<opmath_t>(),
       scalar.to<opmath_t>());
+<<<<<<< HEAD
   return std::move(tensor_lists[1]);
+=======
+  return tensor_lists[1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename T, template <class> class Op>

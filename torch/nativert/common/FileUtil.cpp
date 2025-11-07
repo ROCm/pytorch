@@ -12,7 +12,10 @@
 #endif
 #include <cerrno>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <fmt/core.h>
 
 namespace torch::nativert {
@@ -27,7 +30,11 @@ int unistd_close(int fh) {
 #endif
 }
 
+<<<<<<< HEAD
 inline void incr(ssize_t /*unused*/) {}
+=======
+inline void incr(ssize_t) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename Offset>
 inline void incr(ssize_t n, Offset& offset) {
   offset += static_cast<Offset>(n);
@@ -77,7 +84,11 @@ int filterCloseReturn(int r) {
   return r;
 }
 
+<<<<<<< HEAD
 //  The following wrapX() functions are private functions for wrapping file-io
+=======
+//  The following wrapX() funcions are private functions for wrapping file-io
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //  against interrupt and partial op completions.
 
 // Wrap call to f(args) in loop to retry on EINTR
@@ -131,6 +142,7 @@ File::File(int fd, bool ownsFd) noexcept : fd_(fd), ownsFd_(ownsFd) {
 
 File::File(std::string_view name, int flags, mode_t mode)
     : fd_(::open(std::string(name).c_str(), flags, mode)), ownsFd_(false) {
+<<<<<<< HEAD
   TORCH_CHECK(
       fd_ != 1,
       "open(\"",
@@ -140,6 +152,16 @@ File::File(std::string_view name, int flags, mode_t mode)
       ", 0",
       mode,
       ") returned stdout.")
+=======
+  if (fd_ == -1) {
+    throw std::runtime_error(fmt::format(
+        "open(\"{}\", {}, 0{}) failed with errno {}.",
+        name,
+        flags,
+        mode,
+        errno));
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ownsFd_ = true;
 }
 
@@ -168,11 +190,23 @@ File::~File() {
 /* static */ File File::temporary() {
   // make a temp file with tmpfile(), dup the fd, then return it in a File.
   FILE* tmpFile = tmpfile();
+<<<<<<< HEAD
   TORCH_CHECK(tmpFile != nullptr, "tmpfile() failed");
   auto guard = c10::make_scope_exit([&]() { fclose(tmpFile); });
 
   int fd = ::dup(fileno(tmpFile));
   TORCH_CHECK(fd != -1, "dup() failed");
+=======
+  if (!tmpFile) {
+    throw std::runtime_error("tmpfile() failed");
+  }
+  auto guard = c10::make_scope_exit([&]() { fclose(tmpFile); });
+
+  int fd = ::dup(fileno(tmpFile));
+  if (fd == -1) {
+    throw std::runtime_error("dup() failed");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return File(fd, true);
 }
@@ -191,7 +225,13 @@ void File::swap(File& other) noexcept {
 }
 
 void File::close() {
+<<<<<<< HEAD
   TORCH_CHECK(closeNoThrow(), "close() failed");
+=======
+  if (!closeNoThrow()) {
+    throw std::runtime_error("close() failed");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 [[nodiscard]] bool File::closeNoThrow() {

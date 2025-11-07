@@ -54,7 +54,11 @@ bool ceil_mode) {
     TORCH_CHECK((input.ndimension() == 3 || input.ndimension() == 4),
       "non-empty 3D or 4D (batch mode) tensor expected for input");
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Unsupported memory format. Supports only ChannelsLast, Contiguous");
+=======
+    TORCH_CHECK(false, "Unsupport memory format. Supports only ChannelsLast, Contiguous");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   /* sizes */
@@ -130,7 +134,11 @@ const Tensor& indices) {
     TORCH_CHECK((input.ndimension() == 3 || input.ndimension() == 4),
       "non-empty 3D or 4D (batch mode) tensor expected for input");
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Unsupported memory format. Supports only ChannelsLast, Contiguous");
+=======
+    TORCH_CHECK(false, "Unsupport memory format. Supports only ChannelsLast, Contiguous");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   /* sizes */

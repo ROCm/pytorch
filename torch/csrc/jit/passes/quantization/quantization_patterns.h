@@ -16,7 +16,11 @@ struct QuantFusionInfo {
   std::string quantized_op_name;
   std::string pattern;
   std::string replacement;
+<<<<<<< HEAD
   std::vector<MatchFilter> filters;
+=======
+  std::vector<MatchFilter> filters = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 namespace {
@@ -206,7 +210,11 @@ QuantFusionInfo getFixedQParamOpFusionInfo(
           %r = )";
   op_pattern += op_name + "(" + "%a_dequant" + extra_op_arg_list + ")";
   // IR pattern common to all ops with fixed quantization parameters for
+<<<<<<< HEAD
   // asymmetric quantization
+=======
+  // asymetric quantization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string asym_fixed_qparam_op_suffix = R"(
           %r_scale : float = prim::Constant[value=0.00390625]()
           %r_zero_point : int = prim::Constant[value=0]()

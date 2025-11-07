@@ -196,7 +196,11 @@ class Embedding(torch.nn.Module):
                           utilities or provided by user
         """
         if hasattr(mod, "weight_fake_quant"):
+<<<<<<< HEAD
             assert type(mod) is torch.ao.nn.qat.Embedding, (
+=======
+            assert type(mod) == torch.ao.nn.qat.Embedding, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "nnq."
                 + cls.__name__
                 + ".from_float "
@@ -205,7 +209,11 @@ class Embedding(torch.nn.Module):
             )
             weight_observer = mod.weight_fake_quant
         else:
+<<<<<<< HEAD
             assert type(mod) is nn.Embedding, (
+=======
+            assert type(mod) == nn.Embedding, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "nnq."
                 + cls.__name__
                 + ".from_float only works for "
@@ -349,7 +357,11 @@ class EmbeddingBag(Embedding):
         if hasattr(mod, "weight_fake_quant"):
             weight_observer = mod.weight_fake_quant
         else:
+<<<<<<< HEAD
             assert type(mod) is nn.EmbeddingBag, (
+=======
+            assert type(mod) == nn.EmbeddingBag, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "nnq."
                 + cls.__name__
                 + ".from_float only works for "

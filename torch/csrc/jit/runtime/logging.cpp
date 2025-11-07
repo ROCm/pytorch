@@ -1,6 +1,9 @@
 #include <torch/csrc/jit/runtime/logging.h>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <atomic>
 #include <chrono>
 #include <mutex>
@@ -34,7 +37,11 @@ int64_t LockingLogger::getCounterValue(const std::string& name) const {
       return raw_counter.sum / raw_counter.count;
     } break;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "Unknown aggregation type!");
+=======
+  throw std::runtime_error("Unknown aggregation type!");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void LockingLogger::setAggregationType(

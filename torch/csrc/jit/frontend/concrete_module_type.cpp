@@ -204,8 +204,12 @@ std::shared_ptr<ConcreteModuleType> ConcreteModuleType::
       [&](const ConcreteModuleTypeBuilder::ModuleInfo& info) {
         return info.name_ == name;
       });
+<<<<<<< HEAD
   TORCH_INTERNAL_ASSERT(
       it != data_.modules_.end(), "Cannot find submodule with name/key ", name);
+=======
+  TORCH_INTERNAL_ASSERT(it != data_.modules_.end());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return it->meta_;
 }
 

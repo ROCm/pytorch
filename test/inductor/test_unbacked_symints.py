@@ -236,6 +236,10 @@ class TestUnbackedSymints(InductorTestCase):
 
         def fn(x, w, repeats, is_bmm):
             u0 = repeats.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             x_unbacked = x.expand(u0, 32)
             w_unbacked = w.expand(32, u0)
@@ -267,6 +271,10 @@ class TestUnbackedSymints(InductorTestCase):
     def test_unbacked_range_tree_divisor(self, device):
         def fn(x, num):
             u0 = num.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             zeros = torch.zeros(u0, device=device, dtype=torch.int)
             return (torch.ops.aten.index(x, [None, zeros]),)
 
@@ -300,6 +308,11 @@ class TestUnbackedSymints(InductorTestCase):
     def test_unbacked_repeat(self, device):
         def fn(x, a, b):
             u0, u1 = a.item(), b.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return x.repeat(u0, 2).repeat(2, u1)
 
@@ -357,11 +370,19 @@ class TestUnbackedSymints(InductorTestCase):
                     inp = args[0]
 
                     start = inp.slice_bounds[0].item()
+<<<<<<< HEAD
                     torch._check(start >= 0)
                     torch._check(start <= inp.size(0))
 
                     length = (args[0].slice_bounds[1] - args[0].slice_bounds[0]).item()
                     torch._check(length >= 0)
+=======
+                    torch._check_is_size(start)
+                    torch._check(start <= inp.size(0))
+
+                    length = (args[0].slice_bounds[1] - args[0].slice_bounds[0]).item()
+                    torch._check_is_size(length)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch._check(start + length <= inp.size(0))
 
                     return CustomSliceSubclass(
@@ -485,6 +506,7 @@ class TestUnbackedSymints(InductorTestCase):
         expected = fn(*example_inputs)
         torch.testing.assert_close(actual, expected)
 
+<<<<<<< HEAD
     @skipGPUIf(not HAS_GPU, "requires gpu and triton")
     @dynamo_config.patch({"capture_dynamic_output_shape_ops": True})
     def test_softmax(self, device):
@@ -675,6 +697,8 @@ class TestUnbackedSymints(InductorTestCase):
         expected = fn(*example_inputs)
         torch.testing.assert_close(actual, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(TestUnbackedSymints, globals(), allow_xpu=True)
 

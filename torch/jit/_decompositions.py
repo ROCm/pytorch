@@ -6,8 +6,12 @@ from torch import Tensor
 aten = torch.ops.aten
 import inspect
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, TypeVar
+=======
+from typing import Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 from torch.types import Number
@@ -41,16 +45,24 @@ def signatures_match(decomposition_sig, torch_op_sig):
         return False
 
     for decomp_param, op_param in zip(decomp_params.values(), op_params.values()):
+<<<<<<< HEAD
         # can't check full equality yet because not all fields are correctly deduced
+=======
+        # can't check full equality yet because not all fields are correcly deduced
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # in the torch_op_sig - like default value
         # can't check 'kind' bc
         # kwarg-only values with defaults not yet supported in TS
         inspect_empty = inspect._empty  # type: ignore[attr-defined]
         for field in ["name", "annotation"]:
             if field == "name" and decomp_param.name == "self":
+<<<<<<< HEAD
                 warnings.warn(
                     "PyTorch uses 'input' instead of 'self' on public api", stacklevel=2
                 )
+=======
+                warnings.warn("PyTorch uses 'input' instead of 'self' on public api")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if getattr(decomp_param, field) != getattr(op_param, field):
                 return False
@@ -132,7 +144,10 @@ def var_decomposition(
         else:
             raise RuntimeError("correction must be int or float")
 
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return sum / max(0, denom)
 
 

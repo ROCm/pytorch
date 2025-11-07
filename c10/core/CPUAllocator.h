@@ -17,7 +17,11 @@ namespace c10 {
 using MemoryDeleter = void (*)(void*);
 
 // A helper function that is basically doing nothing.
+<<<<<<< HEAD
 C10_API void NoDelete(void* /*unused*/);
+=======
+C10_API void NoDelete(void*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // A simple struct that is used to report C10's memory allocation,
 // deallocation status and out-of-memory events to the profiler

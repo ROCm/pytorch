@@ -12,6 +12,11 @@ cusparseStatus_t destroyConstDnMat(const cusparseDnMatDescr* dnMatDescr) {
   return cusparseDestroyDnMat(const_cast<cusparseDnMatDescr*>(dnMatDescr));
 }
 
+<<<<<<< HEAD
+=======
+#if AT_USE_CUSPARSE_GENERIC_API() || AT_USE_HIPSPARSE_GENERIC_API()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 
 // If a specific GPU model does not provide native support for a given data
@@ -208,4 +213,9 @@ CuSparseSpMatCsrDescriptor::CuSparseSpMatCsrDescriptor(const Tensor& input, int6
   descriptor_.reset(raw_descriptor);
 }
 
+<<<<<<< HEAD
+=======
+#endif // AT_USE_CUSPARSE_GENERIC_API() || AT_USE_HIPSPARSE_GENERIC_API()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::cuda::sparse

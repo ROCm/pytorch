@@ -202,6 +202,7 @@ def simple_while_loop(iter_t, x):
 
     return torch._higher_order_ops.while_loop(cond_fn, body_fn, (iter_t, x))
 
+<<<<<<< HEAD
 def simple_while_loop_stack_output(iter_t, x):
     def cond_fn(iter_t, x):
         return iter_t > 0
@@ -237,6 +238,8 @@ def simple_local_map_hop(inp1, inp2):
 
     # TODO: Dynamo would rewrite this op differently
     return torch._higher_order_ops.local_map_hop(gm, inp1, inp2)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def sample_inputs_scan(opinfo, device, dtype, requires_grad, **kwargs):
     make_arg = functools.partial(
@@ -410,6 +413,7 @@ hop_db = [
         supports_autograd=False,
     ),
     OpInfo(
+<<<<<<< HEAD
         name="while_loop_stack_output",
         variant_test_name="simple",
         op=simple_while_loop_stack_output,
@@ -423,6 +427,8 @@ hop_db = [
         supports_autograd=False,
     ),
     OpInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name="auto_functionalize",
         variant_test_name="simple",
         op=simple_auto_functionalize,
@@ -477,6 +483,7 @@ hop_db = [
         ),
         decorators=[onlyCUDA],
     ),
+<<<<<<< HEAD
     OpInfo(
         name="local_map_hop",
         variant_test_name="simple",
@@ -498,4 +505,6 @@ hop_db = [
         ),
         decorators=[onlyCUDA, unittest.skipIf(not torch.distributed.is_available(), "requires distributed build")],
     ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

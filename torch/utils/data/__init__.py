@@ -74,5 +74,9 @@ __all__ = [
 ]
 
 # Please keep this list sorted
+<<<<<<< HEAD
 if __all__ != sorted(__all__):
     raise AssertionError("__all__ is not sorted")
+=======
+assert __all__ == sorted(__all__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

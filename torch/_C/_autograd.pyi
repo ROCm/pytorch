@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from typing import Any
+=======
+from enum import Enum
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._C._profiler import (
@@ -78,8 +83,11 @@ class _KinetoEvent:
     def cuda_elapsed_us(self) -> int: ...
     def privateuse1_elapsed_us(self) -> int: ...
     def is_user_annotation(self) -> bool: ...
+<<<<<<< HEAD
     def is_hidden_event(self) -> bool: ...
     def metadata_json(self) -> str: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _ProfilerResult:
     def events(self) -> list[_KinetoEvent]: ...

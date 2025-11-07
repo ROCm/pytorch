@@ -579,9 +579,15 @@ class FullyConnectedSparseOperatorTester {
 
           for (size_t i = 0; i < batchSize(); i++) {
             for (size_t c = 0; c < outputChannels(); c++) {
+<<<<<<< HEAD
               ASSERT_NEAR(
                   output_dynamic[i * outputChannels() + c],
                   accumulators_float[i * outputChannels() + c], 1e-3)
+=======
+              ASSERT_FLOAT_EQ(
+                  output_dynamic[i * outputChannels() + c],
+                  accumulators_float[i * outputChannels() + c])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   << "at " << i << ", " << c
                   << ": reference = " <<
                   accumulators_float[i * outputChannels() + c]

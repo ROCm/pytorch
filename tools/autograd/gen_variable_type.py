@@ -29,7 +29,11 @@
 from __future__ import annotations
 
 import re
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torchgen.api import cpp
 from torchgen.api.autograd import (
@@ -106,7 +110,11 @@ from .gen_trace_type import (
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
+=======
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # We don't set or modify grad_fn on these methods. Generally, they return
@@ -1495,7 +1503,10 @@ def emit_body(
                 else:
                     expr = f"SavedVariable({var}, {str(is_output).lower()})"
                     if foreacharg is not None and "original_selfs" not in expr:
+<<<<<<< HEAD
                         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         expr = expr.replace(src_name, name_in_expr)
             elif (
                 type == BaseCType(tensorListT)
@@ -1845,14 +1856,20 @@ def emit_body(
                                 )
                             )
                         cur_derivative_conditions.append(
+<<<<<<< HEAD
                             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             FW_DERIVATIVE_CHECK_TEMPLATE.substitute(
                                 req_inp=inp_name + "[i]"
                             )
                         )
                     else:
                         cur_derivative_conditions.append(
+<<<<<<< HEAD
                             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             FW_DERIVATIVE_CHECK_TEMPLATE.substitute(req_inp=inp_name)
                         )
 
@@ -1923,7 +1940,10 @@ def emit_body(
                 unpacked_arguments += FW_DERIVATIVE_DEFINED_GRAD_TEMPLATE.substitute(
                     inp_name="original_self",
                     inp="original_self" + input_suffix,
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     zeros_fn=zeros_fn,
                 )
                 unpacked_arguments += FW_DERIVATIVE_DEFINED_PRIMAL_TEMPLATE.substitute(

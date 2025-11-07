@@ -10,7 +10,11 @@ namespace c10 {
 // be handled specially.  Its semantics is that it redispatches to the
 // *next* dispatch key that would have been processed, skipping the current
 // one.
+<<<<<<< HEAD
 void fallthrough_kernel(OperatorKernel* /*unused*/, const OperatorHandle& /*unused*/, DispatchKeySet /*unused*/, Stack* /*unused*/) {
+=======
+void fallthrough_kernel(OperatorKernel*, const OperatorHandle&, DispatchKeySet, Stack*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT(0,
     "fallthrough_kernel was executed but it should have been short-circuited by the dispatcher. "
     "This could occur if you registered a fallthrough kernel as a override for a specific operator "
@@ -19,7 +23,11 @@ void fallthrough_kernel(OperatorKernel* /*unused*/, const OperatorHandle& /*unus
     "let us know in the bug tracker.");
 }
 
+<<<<<<< HEAD
 void ambiguous_autogradother_kernel(OperatorKernel* /*unused*/, const OperatorHandle& op, DispatchKeySet /*unused*/, Stack* /*unused*/) {
+=======
+void ambiguous_autogradother_kernel(OperatorKernel*, const OperatorHandle& op, DispatchKeySet, Stack*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT(0,
     op.operator_name(), " has kernels registered to both CompositeImplicitAutograd and a backend mapped to AutogradOther. "
     "This makes the backend kernel unreachable; the dispatcher will always prefer the CompositeImplicitAutograd lowering "
@@ -32,7 +40,11 @@ void ambiguous_autogradother_kernel(OperatorKernel* /*unused*/, const OperatorHa
     "\nCanonical state\n~~~~~~~~~~~\n", op.dumpState(), "\n\n");
 }
 
+<<<<<<< HEAD
 void named_not_supported_kernel(OperatorKernel* /*unused*/, const OperatorHandle& op, DispatchKeySet /*unused*/, Stack* /*unused*/) {
+=======
+void named_not_supported_kernel(OperatorKernel*, const OperatorHandle& op, DispatchKeySet, Stack*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // DO NOT LOOK AT STACK, YOU HAVE SHORT CIRCUITED BOXING
   // See Note [named_not_supported_kernel]
   TORCH_CHECK(0,

@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: ignore-errors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module provides the TorchInductor backend integration for TorchDynamo.
 
@@ -10,13 +15,17 @@ The inductor backend can be used with torch.compile():
     model = torch.compile(model, backend="inductor")
 """
 
+<<<<<<< HEAD
 from typing import Any
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo import register_backend
 from torch._dynamo.utils import dynamo_timed
 
 
 @register_backend
+<<<<<<< HEAD
 def inductor(*args: Any, **kwargs: Any) -> Any:
     with dynamo_timed("inductor_import", log_pt2_compile_event=True):
         # do import here to avoid loading inductor into memory when it is not used
@@ -26,6 +35,11 @@ def inductor(*args: Any, **kwargs: Any) -> Any:
 
         maybe_warm_pool()
 
+=======
+def inductor(*args, **kwargs):
+    with dynamo_timed("inductor_import", log_pt2_compile_event=True):
+        # do import here to avoid loading inductor into memory when it is not used
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._inductor.compile_fx import compile_fx
 
     return compile_fx(*args, **kwargs)

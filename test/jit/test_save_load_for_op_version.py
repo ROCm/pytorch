@@ -4,7 +4,11 @@
 import io
 import os
 import sys
+<<<<<<< HEAD
 from itertools import product
+=======
+from itertools import product as product
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Union
 
 import hypothesis.strategies as st

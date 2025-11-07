@@ -28,7 +28,11 @@ namespace at::native { namespace {
 using namespace vec;
 
 template <typename scalar_t, typename func_t>
+<<<<<<< HEAD
 inline void cpu_cum_base_kernel(const Tensor& result,
+=======
+static inline void cpu_cum_base_kernel(const Tensor& result,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t dim,
     const func_t& f,
@@ -76,7 +80,11 @@ inline void cpu_cum_base_kernel(const Tensor& result,
   iter.for_each(loop, grain_size);
 }
 
+<<<<<<< HEAD
 void cumsum_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
+=======
+static void cumsum_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto wrap_dim = maybe_wrap_dim(dim, self.dim());
   int64_t self_dim_size = ensure_nonempty_size(self, wrap_dim);
 
@@ -95,7 +103,11 @@ void cumsum_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
   });
 }
 
+<<<<<<< HEAD
 void cumprod_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
+=======
+static void cumprod_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto wrap_dim = maybe_wrap_dim(dim, self.dim());
   int64_t self_dim_size = ensure_nonempty_size(self, wrap_dim);
 
@@ -114,7 +126,11 @@ void cumprod_cpu_kernel(const Tensor& result, const Tensor& self, int64_t dim) {
   });
 }
 
+<<<<<<< HEAD
 void logcumsumexp_cpu_kernel(Tensor& result, const Tensor& self, int64_t dim) {
+=======
+static void logcumsumexp_cpu_kernel(Tensor& result, const Tensor& self, int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto wrap_dim = maybe_wrap_dim(dim, self.dim());
   int64_t self_dim_size = ensure_nonempty_size(self, wrap_dim);
 
@@ -135,7 +151,11 @@ void logcumsumexp_cpu_kernel(Tensor& result, const Tensor& self, int64_t dim) {
   });
 }
 
+<<<<<<< HEAD
 void std_var_kernel_impl(TensorIterator& iter, double correction, bool take_sqrt) {
+=======
+static void std_var_kernel_impl(TensorIterator& iter, double correction, bool take_sqrt) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES_AND2(kHalf, kBFloat16, iter.dtype(), "std_cpu", [&] {
     binary_kernel_reduce(
         iter,
@@ -148,7 +168,11 @@ void std_var_kernel_impl(TensorIterator& iter, double correction, bool take_sqrt
   });
 }
 
+<<<<<<< HEAD
 void prod_kernel_impl(TensorIterator& iter) {
+=======
+static void prod_kernel_impl(TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Workaround for the error: '*' in boolean context, suggest '&&' instead
   if (iter.dtype() == ScalarType::Bool) {
     using scalar_t = bool;
@@ -203,7 +227,11 @@ void norm_kernel_cpu_impl(TensorIterator& iter, const double& val) {
   }
 }
 
+<<<<<<< HEAD
 void norm_kernel_tensor_iterator_impl(
+=======
+static void norm_kernel_tensor_iterator_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorIterator& iter,
     const Scalar& p) {
   double val = 0;
@@ -256,10 +284,17 @@ void norm_kernel_tensor_iterator_impl(
   } else {
     if (iter.input_dtype() == kHalf && iter.dtype(0) == kFloat) {
       // type promotion that does cast and reduction in a single kernel
+<<<<<<< HEAD
       norm_kernel_cpu_impl<at::Half, float>(iter, val); return;
     } else if (iter.input_dtype() == kBFloat16 && iter.dtype(0) == kFloat) {
       // type promotion that does cast and reduction in a single kernel
       norm_kernel_cpu_impl<at::BFloat16, float>(iter, val); return;
+=======
+      return norm_kernel_cpu_impl<at::Half, float>(iter, val);
+    } else if (iter.input_dtype() == kBFloat16 && iter.dtype(0) == kFloat) {
+      // type promotion that does cast and reduction in a single kernel
+      return norm_kernel_cpu_impl<at::BFloat16, float>(iter, val);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND3(kHalf, kBFloat16, kComplexHalf, iter.input_dtype(), "norm_cpu", [&] {
@@ -274,7 +309,11 @@ void norm_kernel_tensor_iterator_impl(
   }
 }
 
+<<<<<<< HEAD
 void and_kernel_impl(TensorIterator& iter) {
+=======
+static void and_kernel_impl(TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (iter.dtype() == ScalarType::Byte) {
     // Refer [all, any : uint8 compatibility]
     binary_kernel_reduce_vec(
@@ -312,7 +351,11 @@ void and_kernel_impl(TensorIterator& iter) {
   }
 }
 
+<<<<<<< HEAD
 void or_kernel_impl(TensorIterator& iter) {
+=======
+static void or_kernel_impl(TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (iter.dtype() == ScalarType::Byte) {
     // Refer [all, any : uint8 compatibility]
     binary_kernel_reduce_vec(
@@ -346,7 +389,11 @@ struct MinValuesOps: public at::native::MinOps<scalar_t> {
   }
 };
 
+<<<<<<< HEAD
 void min_values_kernel_impl(TensorIterator& iter) {
+=======
+static void min_values_kernel_impl(TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (iter.dtype() == kLong) {
     // This case is special because of Vectorized<int64_t> does not
     // handle upper_bound<int64_t>().
@@ -367,7 +414,11 @@ void min_values_kernel_impl(TensorIterator& iter) {
   });
 }
 
+<<<<<<< HEAD
 void max_values_kernel_impl(TensorIterator& iter) {
+=======
+static void max_values_kernel_impl(TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND3(kBFloat16, kHalf, kBool, iter.dtype(), "max_values_cpu", [&iter] {
     binary_kernel_reduce_vec(
       iter,
@@ -377,7 +428,11 @@ void max_values_kernel_impl(TensorIterator& iter) {
   });
 }
 
+<<<<<<< HEAD
 void argmax_kernel_impl(TensorIterator &iter) {
+=======
+static void argmax_kernel_impl(TensorIterator &iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kHalf, kBFloat16, iter.dtype(1), "argmax_cpu", [&] {
     if (is_reduce_lastdim(iter)) {
       using arg_t = std::pair<scalar_t, int64_t>;
@@ -401,7 +456,11 @@ void argmax_kernel_impl(TensorIterator &iter) {
   });
 }
 
+<<<<<<< HEAD
 void argmin_kernel_impl(TensorIterator &iter) {
+=======
+static void argmin_kernel_impl(TensorIterator &iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kHalf, kBFloat16, iter.dtype(1), "argmin_cpu", [&] {
     if (is_reduce_lastdim(iter)) {
       using arg_t = std::pair<scalar_t, int64_t>;
@@ -425,6 +484,7 @@ void argmin_kernel_impl(TensorIterator &iter) {
   });
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename acc_t = uint64_t, typename out_t = acc_t>
 struct XorSumOps {
   inline C10_DEVICE acc_t reduce(acc_t acc, scalar_t data, int64_t /*idx*/) const {
@@ -468,6 +528,8 @@ void xor_sum_kernel_impl(TensorIterator& iter) {
       });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }  // anonymous namespace
 
 REGISTER_DISPATCH(std_var_stub, &std_var_kernel_impl)
@@ -482,7 +544,10 @@ REGISTER_DISPATCH(min_values_stub, &min_values_kernel_impl)
 REGISTER_DISPATCH(max_values_stub, &max_values_kernel_impl)
 REGISTER_DISPATCH(argmax_stub, &argmax_kernel_impl)
 REGISTER_DISPATCH(argmin_stub, &argmin_kernel_impl)
+<<<<<<< HEAD
 REGISTER_DISPATCH(xor_sum_stub, &xor_sum_kernel_impl)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 REGISTER_DISPATCH(cumprod_stub, &cumprod_cpu_kernel)
 REGISTER_DISPATCH(cumsum_stub, &cumsum_cpu_kernel)

@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 r"""

@@ -37,6 +37,7 @@ public:
     allocator_->copy_data(dest, src, count);
   }
 
+<<<<<<< HEAD
   // From DeviceAllocator
 
   bool initialized() override {
@@ -64,6 +65,8 @@ public:
     allocator_->resetPeakStats(device);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // From CUDAAllocator
 
   void* raw_alloc(size_t nbytes) override {
@@ -82,6 +85,13 @@ public:
     allocator_->init(device_count);
   }
 
+<<<<<<< HEAD
+=======
+  bool initialized() override {
+    return allocator_->initialized();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   double getMemoryFraction(c10::DeviceIndex device) override {
     return allocator_->getMemoryFraction(device);
   }
@@ -90,8 +100,13 @@ public:
     allocator_->setMemoryFraction(fraction, device);
   }
 
+<<<<<<< HEAD
   std::vector<HIPCachingAllocator::StreamSegmentSize> getExpandableSegmentSizes(c10::DeviceIndex device) override {
     return allocator_->getExpandableSegmentSizes(device);
+=======
+  void emptyCache(MempoolId_t mempool_id = {0, 0}) override {
+    allocator_->emptyCache(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void enable(bool value) override {
@@ -114,6 +129,21 @@ public:
     allocator_->recordStream(ptr, stream);
   }
 
+<<<<<<< HEAD
+=======
+  CachingDeviceAllocator::DeviceStats getDeviceStats(c10::DeviceIndex device) override {
+    return allocator_->getDeviceStats(device);
+  }
+
+  void resetAccumulatedStats(c10::DeviceIndex device) override {
+    allocator_->resetAccumulatedStats(device);
+  }
+
+  void resetPeakStats(c10::DeviceIndex device) override {
+    allocator_->resetPeakStats(device);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) override {
     return allocator_->snapshot(mempool_id);
   }

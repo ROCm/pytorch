@@ -14,7 +14,10 @@ import time
 import torch.distributed.elastic.timer as timer
 import torch.multiprocessing as torch_mp
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     IS_ARM64,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_MACOS,
     IS_WINDOWS,
     run_tests,
@@ -41,8 +44,13 @@ def _stuck_function(rank, mp_queue):
         time.sleep(5)
 
 
+<<<<<<< HEAD
 # timer is not supported on these platforms
 if not (IS_WINDOWS or IS_MACOS or IS_ARM64):
+=======
+# timer is not supported on macos or windows
+if not (IS_WINDOWS or IS_MACOS):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class LocalTimerExample(TestCase):
         """
@@ -102,7 +110,11 @@ if not (IS_WINDOWS or IS_MACOS or IS_ARM64):
 
             world_size = 8
             processes = []
+<<<<<<< HEAD
             for i in range(world_size):
+=======
+            for i in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if i % 2 == 0:
                     p = spawn_ctx.Process(target=_stuck_function, args=(i, mp_queue))
                 else:
@@ -110,7 +122,11 @@ if not (IS_WINDOWS or IS_MACOS or IS_ARM64):
                 p.start()
                 processes.append(p)
 
+<<<<<<< HEAD
             for i in range(world_size):
+=======
+            for i in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 p = processes[i]
                 p.join()
                 if i % 2 == 0:

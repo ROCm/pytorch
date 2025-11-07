@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 import warnings
 import weakref
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.autograd.graph import register_multi_grad_hook
@@ -178,12 +182,19 @@ class ModTracker:
                 def custom_formatwarning(msg, category, filename, lineno, line=None):
                     return f"{filename}:{lineno}: {category.__name__}: {msg} \n"
 
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 warnings.formatwarning = custom_formatwarning
                 warnings.warn(
                     "The module hierarchy tracking maybe be messed up."
                     " Please file a bug to PyTorch, if it is the case.",
                     stacklevel=2,
+=======
+                warnings.formatwarning = custom_formatwarning
+                warnings.warn(
+                    "The module hierarchy tracking maybe be messed up."
+                    " Please file a bug to PyTorch, if it is the case."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             if name not in self.parents:
                 self._active_module_cnt[name] = 1

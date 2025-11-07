@@ -23,4 +23,10 @@ kernel void renorm(
 
 REGISTER_RENORM_OP(float);
 REGISTER_RENORM_OP(half);
+<<<<<<< HEAD
 REGISTER_RENORM_OP(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_RENORM_OP(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

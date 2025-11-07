@@ -206,8 +206,12 @@ class CapturedTraceback:
         import torch._C._profiler
 
         if script or cpp:
+<<<<<<< HEAD
             if skip != 0:
                 raise AssertionError("skip with script/cpp NYI")
+=======
+            assert skip == 0, "skip with script/cpp NYI"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return CapturedTraceback(
             torch._C._profiler.gather_traceback(python=True, script=script, cpp=cpp),

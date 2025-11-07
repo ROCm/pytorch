@@ -22,6 +22,7 @@ class AllocatorMap {
     map_[device_type] = std::move(allocator);
   }
 
+<<<<<<< HEAD
   void register_availability(
       const std::string& name,
       c10::intrusive_ptr<SymmetricMemoryAllocator> allocator) {
@@ -55,6 +56,8 @@ class AllocatorMap {
     return it->second->name();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::intrusive_ptr<SymmetricMemoryAllocator> get_allocator(
       c10::DeviceType device_type) {
     auto it = map_.find(device_type);
@@ -62,7 +65,10 @@ class AllocatorMap {
         it != map_.end(),
         "SymmetricMemory does not support device type ",
         device_type);
+<<<<<<< HEAD
     in_use_ = true;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return it->second;
   }
 
@@ -72,6 +78,10 @@ class AllocatorMap {
   }
 
   ~AllocatorMap() {
+<<<<<<< HEAD
+=======
+    LOG(INFO) << "Destroying Symmetric Memory Allocators";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_finalizing_ = true;
   }
 
@@ -82,6 +92,7 @@ class AllocatorMap {
       c10::DeviceType,
       c10::intrusive_ptr<SymmetricMemoryAllocator>>
       map_;
+<<<<<<< HEAD
 
   // For backends to register availability.
   // This registration is at static time. Therefore, it is expected that the
@@ -93,6 +104,8 @@ class AllocatorMap {
       avail_map_;
 
   bool in_use_ = false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 static std::unordered_map<std::string, GroupInfo> group_info_map{};
@@ -125,7 +138,11 @@ static at::Tensor empty_strided_p2p_persistent(
   const size_t numel = std::accumulate(
       size.begin(),
       size.end(),
+<<<<<<< HEAD
       static_cast<size_t>(1),
+=======
+      size_t(1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // NOLINTNEXTLINE(modernize-use-transparent-functors)
       std::multiplies<size_t>());
   const size_t element_size = c10::elementSize(dtype);
@@ -152,7 +169,12 @@ static at::Tensor empty_strided_p2p_persistent(
   auto allocated = at::from_blob(dev_ptr, size, stride, options);
 
   // Track the allocation's activeness
+<<<<<<< HEAD
   alloc_id_to_storage.insert_or_assign(
+=======
+  alloc_id_to_storage.erase(alloc_id);
+  alloc_id_to_storage.emplace(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       alloc_id, allocated.storage().getWeakStorageImpl());
   return allocated;
 }
@@ -172,6 +194,7 @@ void register_allocator(
       device_type, std::move(allocator));
 }
 
+<<<<<<< HEAD
 void register_availability(
     const std::string& name,
     c10::intrusive_ptr<SymmetricMemoryAllocator> allocator) {
@@ -186,6 +209,8 @@ std::optional<std::string> get_backend(c10::Device device) {
   return AllocatorMap::get().get_backend(device.type());
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool has_allocator(c10::DeviceType device_type) {
   return AllocatorMap::get().has_allocator(device_type);
 }
@@ -230,7 +255,11 @@ at::Tensor empty_strided_p2p(
   const size_t numel = std::accumulate(
       size.begin(),
       size.end(),
+<<<<<<< HEAD
       static_cast<size_t>(1),
+=======
+      size_t(1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // NOLINTNEXTLINE(modernize-use-transparent-functors)
       std::multiplies<size_t>());
   const size_t element_size = c10::elementSize(dtype);
@@ -265,6 +294,7 @@ TORCH_API bool has_multicast_support(
     return allocator->has_multicast_support(device_idx);
   }
 }
+<<<<<<< HEAD
 
 // MemPool Support
 
@@ -426,6 +456,8 @@ at::Tensor SymmetricMemory::get_signal_pad(
       .make_tensor();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10d::symmetric_memory
 
 namespace {
@@ -457,8 +489,11 @@ TORCH_LIBRARY_FRAGMENT(symm_mem, m) {
   m.def(
       "multimem_one_shot_all_reduce_out(Tensor input, str reduce_op, str group_name, Tensor(a!) out) -> Tensor(a!)");
   m.def(
+<<<<<<< HEAD
       "multimem_one_shot_reduce_out(Tensor input, str reduce_op, int root, str group_name, Tensor(a!) out) -> Tensor(a!)");
   m.def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "multimem_all_gather_out(Tensor input, str group_name, Tensor(a!) out) -> Tensor(a!)");
   m.def(
       "one_shot_all_reduce(Tensor input, str reduce_op, str group_name) -> Tensor");
@@ -497,6 +532,7 @@ TORCH_LIBRARY_FRAGMENT(symm_mem, m) {
       "memset32_(Tensor(a!) input, int offset, int val, int count) -> Tensor(a!)");
 
   m.def("nvshmem_put(Tensor(a!) tensor, int peer) -> ()");
+<<<<<<< HEAD
   m.def("nvshmem_get(Tensor(a!) tensor, int peer) -> ()");
   m.def(
       "nvshmem_broadcast(Tensor(a!) input, int root, str group_name) -> Tensor(a!)");
@@ -515,6 +551,15 @@ TORCH_LIBRARY_FRAGMENT(symm_mem, m) {
       "tile_reduce(Tensor in_tile, Tensor(a!) out_tile, int root, str group_name, str reduce_op='sum') -> ()");
   m.def(
       "multi_root_tile_reduce(Tensor[] in_tiles, Tensor(a!) out_tile, int[] roots, str group_name, str reduce_op='sum') -> ()");
+=======
+  m.def("nvshmem_broadcast(Tensor(a!) input, str group_name) -> Tensor(a!)");
+  m.def(
+      "nvshmem_all_to_all(Tensor input, Tensor(a!) out, str group_name) -> Tensor(a!)");
+  m.def(
+      "all_to_all_vdev(Tensor input, Tensor(a!) out, Tensor(a!) in_out_splits, str group_name) -> Tensor(a!)");
+  m.def(
+      "all_to_all_vdev_2d(Tensor input, Tensor(a!) out, Tensor(a!) in_out_splits, str group_name, int? major_align=None) -> Tensor(a!)");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_LIBRARY_IMPL(symm_mem, Meta, m) {

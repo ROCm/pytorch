@@ -152,7 +152,11 @@ class TestPeephole(JitTestCase):
         self.run_pass("peephole", test.graph)
         FileCheck().check_not("prim::unchecked_cast").run(test.graph)
 
+<<<<<<< HEAD
         # refinement not optimized out
+=======
+        # refinement not optimzied out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def is_int_tensor(x):
             scalar = x.item()
             if isinstance(scalar, int):

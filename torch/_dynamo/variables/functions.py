@@ -31,10 +31,18 @@ import logging
 import sys
 import traceback
 import types
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from types import FunctionType
 from typing import Any, Optional, TYPE_CHECKING, TypeVar
 from typing_extensions import Never
+=======
+from collections.abc import Sequence
+from types import FunctionType
+from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar
+from typing_extensions import Never
+from unittest.mock import patch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from weakref import WeakKeyDictionary
 
 import torch
@@ -51,11 +59,15 @@ from ..exc import (
     ObservedUserStopIteration,
     raise_observed_exception,
     SkipFrame,
+<<<<<<< HEAD
     StepUnsupported,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unimplemented_v2,
     Unsupported,
 )
 from ..guards import GuardBuilder, install_guard
+<<<<<<< HEAD
 from ..source import (
     AttrSource,
     ClosureSource,
@@ -64,10 +76,17 @@ from ..source import (
     GetItemSource,
     SkipGuardSource,
 )
+=======
+from ..source import AttrSource, ConstantSource, DefaultsSource, GetItemSource
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..utils import (
     check_constant_args,
     check_unspec_or_constant_args,
     cmp_name_to_op_mapping,
+<<<<<<< HEAD
+=======
+    counters,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     identity,
     is_function,
     is_wrapper_or_member_descriptor,
@@ -77,7 +96,10 @@ from ..utils import (
 from .base import (
     AsPythonConstantNotImplementedError,
     AttributeMutationNew,
+<<<<<<< HEAD
     raise_type_error_exc,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ValueMutationNew,
     VariableTracker,
 )
@@ -104,7 +126,11 @@ CO_VARARGS = 0x04
 CO_VARKEYWORDS = 0x08
 
 
+<<<<<<< HEAD
 # Module-level cache keyed by the function object
+=======
+# Module‐level cache keyed by the function object
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _spec_cache = WeakKeyDictionary()
 
 
@@ -133,7 +159,11 @@ class FunctionSpec:
         self.defaults = func.__defaults__ or ()
         self.kwdefaults = func.__kwdefaults__ or {}
 
+<<<<<<< HEAD
         # Map positional-default names → their index in self.defaults
+=======
+        # Map positional‐default names → their index in self.defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.pos_default_map = dict(
             zip(self.all_pos_names[-len(self.defaults) :], range(len(self.defaults)))
         )
@@ -159,15 +189,20 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
             ba[name] = wrap_bound_arg(tx, args[i])
         elif name in rem_kw:
             if name in spec.posonly_names:
+<<<<<<< HEAD
                 raise_observed_exception(
                     TypeError,
                     tx,
                     args=[ConstantVariable.create(f"{name} is positional-only")],
                 )
+=======
+                raise TypeError(f"{name} is positional-only")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ba[name] = wrap_bound_arg(tx, rem_kw.pop(name))
         elif name in spec.pos_default_map:
             idx = spec.pos_default_map[name]
             default_source = None
+<<<<<<< HEAD
             if fn_source and not (
                 ConstantVariable.is_literal(spec.defaults[idx])
                 and config.skip_guards_on_constant_func_defaults
@@ -184,12 +219,20 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
                     )
                 ],
             )
+=======
+            if fn_source:
+                default_source = DefaultsSource(fn_source, idx)
+            ba[name] = wrap_bound_arg(tx, spec.defaults[idx], default_source)
+        else:
+            raise TypeError(f"Missing required positional argument: {name}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # 2) *args
     extra = args[len(spec.all_pos_names) :]
     if spec.varargs_name:
         ba[spec.varargs_name] = wrap_bound_arg(tx, tuple(extra))
     elif extra:
+<<<<<<< HEAD
         raise_observed_exception(
             TypeError,
             tx,
@@ -198,6 +241,10 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
                     f"Too many positional arguments: got {len(args)}, expected {len(spec.all_pos_names)}"
                 )
             ],
+=======
+        raise TypeError(
+            f"Too many positional arguments: got {len(args)}, expected {len(spec.all_pos_names)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     # 3) Keyword-only
@@ -210,6 +257,7 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
                 kwdefault_source = DefaultsSource(fn_source, name, is_kw=True)
             ba[name] = wrap_bound_arg(tx, spec.kwdefaults[name], kwdefault_source)
         else:
+<<<<<<< HEAD
             raise_observed_exception(
                 TypeError,
                 tx,
@@ -219,11 +267,15 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
                     )
                 ],
             )
+=======
+            raise TypeError(f"Missing required keyword-only argument: {name}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # 4) **kwargs
     if spec.varkw_name:
         ba[spec.varkw_name] = wrap_bound_arg(tx, rem_kw)
     elif rem_kw:
+<<<<<<< HEAD
         raise_observed_exception(
             TypeError,
             tx,
@@ -231,6 +283,9 @@ def bind_args_cached(func, tx, fn_source, args, kwargs):
                 ConstantVariable.create(f"Unexpected keyword arguments: {list(rem_kw)}")
             ],
         )
+=======
+        raise TypeError(f"Unexpected keyword arguments: {list(rem_kw)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return ba
 
@@ -304,6 +359,7 @@ fn_known_dunder_attrs = {
 
 def fn_var_getattr(tx, fn, source, name):
     source = source and AttrSource(source, name)
+<<<<<<< HEAD
 
     if source and name == "__annotations__":
         # We get a large number of silly guards from annotations from inspect
@@ -311,6 +367,8 @@ def fn_var_getattr(tx, fn, source, name):
         # graph is even rarer. So skip guards.
         source = SkipGuardSource(source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         subobj = inspect.getattr_static(fn, name)
     except AttributeError:
@@ -424,6 +482,7 @@ class UserFunctionVariable(BaseUserFunctionVariable):
     def get_globals(self):
         return self.fn.__globals__
 
+<<<<<<< HEAD
     def get_source(self):
         source = self.source
 
@@ -431,6 +490,8 @@ class UserFunctionVariable(BaseUserFunctionVariable):
             source = self.source_fn
         return source
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def bind_args(self, parent, args, kwargs) -> dict[str, VariableTracker]:
         """
         Assume `args` and `kwargs` are VariableTracker arguments for a call to
@@ -443,9 +504,13 @@ class UserFunctionVariable(BaseUserFunctionVariable):
         if not isinstance(fn, FunctionType):
             raise TypeError("Only supports regular Python functions.")
         root_tx = parent.output.root_tx
+<<<<<<< HEAD
 
         source = self.get_source()
         result = bind_args_cached(fn, root_tx, source, args, kwargs)
+=======
+        result = bind_args_cached(fn, root_tx, self.source, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         init_cellvars(parent, result, fn.__code__)
         closure = self.fn.__closure__ or ()
@@ -458,8 +523,15 @@ class UserFunctionVariable(BaseUserFunctionVariable):
             if cell in side_effects:
                 cell_var = side_effects[cell]
 
+<<<<<<< HEAD
             elif source:
                 closure_cell = GetItemSource(ClosureSource(source), idx)
+=======
+            elif self.source:
+                closure_cell = GetItemSource(
+                    AttrSource(self.source, "__closure__"), idx
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 closure_cell_contents = AttrSource(closure_cell, "cell_contents")
                 try:
                     contents_var = VariableTracker.build(
@@ -489,8 +561,12 @@ class UserFunctionVariable(BaseUserFunctionVariable):
     def var_getattr(self, tx: "InstructionTranslator", name: str):
         if name in cmp_name_to_op_mapping:
             return variables.GetAttrVariable(self, name)
+<<<<<<< HEAD
         source = self.get_source()
         return fn_var_getattr(tx, self.fn, source, name)
+=======
+        return fn_var_getattr(tx, self.fn, self.source, name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_obj_hasattr(
         self, tx: "InstructionTranslator", name: str
@@ -505,6 +581,10 @@ class UserFunctionVariable(BaseUserFunctionVariable):
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
         # Handle patch_dynamo_config call
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.fn is torch._dynamo.patch_dynamo_config:
             try:
                 args_const = [arg.as_python_constant() for arg in args]
@@ -521,6 +601,7 @@ class UserFunctionVariable(BaseUserFunctionVariable):
                     "Please fix your call to patch_dynamo_config by using simpler inputs. "
                     f"args: {args}, kwargs: {kwargs}"
                 ) from e
+<<<<<<< HEAD
         elif self.fn is torch._dynamo.error_on_graph_break:
             try:
                 bound = inspect.signature(self.fn).bind(*args, **kwargs)
@@ -536,6 +617,10 @@ class UserFunctionVariable(BaseUserFunctionVariable):
                 ) from e
         # Handle a `nonstrict_trace(fn)` call
         elif self.fn is torch._dynamo.nonstrict_trace:
+=======
+        # Handle a `nonstrict_trace(fn)` call
+        if self.fn is torch._dynamo.nonstrict_trace:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             bound = inspect.signature(self.fn).bind(*args, **kwargs)
             fn_var = bound.args[0]
             if not isinstance(fn_var, BaseUserFunctionVariable):
@@ -711,7 +796,12 @@ class LocalGeneratorObjectVariable(VariableTracker):
             # Hierarchically, tx can be seen as the parent of the inline tracer
             # created on call_function. Any exception needs to be propagated to tx
             # for Dynamo to behave correctly
+<<<<<<< HEAD
             return tracer.inline_call_()
+=======
+            with patch.dict(counters, {"unimplemented": counters["inline_call"]}):
+                return tracer.inline_call_()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except ObservedException as e:
             tracer.generator_exhausted = True
             raise e
@@ -721,11 +811,16 @@ class LocalGeneratorObjectVariable(VariableTracker):
         except Unsupported as e:
             torch._dynamo.eval_frame.skip_code(self.get_code())
             raise SkipFrame from e
+<<<<<<< HEAD
 
     def call_obj_hasattr(self, tx, name):
         if name in self.python_type().__dict__:
             return ConstantVariable.create(True)
         return ConstantVariable.create(False)
+=======
+        finally:
+            counters["unimplemented"] |= counters["inline_call"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def has_unpack_var_sequence(self, tx):
         return False
@@ -876,7 +971,11 @@ class LocalGeneratorObjectVariable(VariableTracker):
             retval = self.next_variable(tx)
 
             # The exception raised before is still active. We need to check the exception
+<<<<<<< HEAD
             # table one more time to find the next target. But why? Let's walk
+=======
+            # table one more time to find the next target. But why? Let’s walk
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # through an example and its generated bytecode: https://godbolt.org/z/ebdTbMv8M
             #
             #     z = 0
@@ -1003,6 +1102,7 @@ class LocalGeneratorFunctionVariable(BaseUserFunctionVariable):
         args: "list[VariableTracker]",
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
+<<<<<<< HEAD
         if not is_generator(self.vt.get_code()):
             unimplemented_v2(
                 gb_type="non-generator contextlib.contextmanager",
@@ -1014,6 +1114,9 @@ class LocalGeneratorFunctionVariable(BaseUserFunctionVariable):
                     "Remove the `@contextlib.contextmanager` decorator.",
                 ],
             )
+=======
+        assert is_generator(self.vt.get_code())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         inline_tracer = self._build_inline_tracer(tx, args, kwargs)
         code = self.vt.get_code()
@@ -1061,6 +1164,7 @@ class FunctionDecoratedByContextlibContextManagerVariable(
 class UserMethodVariable(UserFunctionVariable):
     """Some unsupported user-defined method"""
 
+<<<<<<< HEAD
     def __init__(self, fn, obj, source_fn=None, **kwargs) -> None:
         super().__init__(fn=fn, **kwargs)
         self.obj = obj
@@ -1079,6 +1183,11 @@ class UserMethodVariable(UserFunctionVariable):
         # `source_fn` rather than the original `source`.
         if source_fn is None and kwargs.get("source") is not None:
             self.source_fn = AttrSource(kwargs.get("source"), "__func__")
+=======
+    def __init__(self, fn, obj, **kwargs) -> None:
+        super().__init__(fn=fn, **kwargs)
+        self.obj = obj
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.fn}, {self.obj})"
@@ -1154,6 +1263,7 @@ class UserMethodVariable(UserFunctionVariable):
         return super().inspect_parameter_names()[1:]
 
     def var_getattr(self, tx: "InstructionTranslator", name: str):
+<<<<<<< HEAD
         if name == "__self__":
             return self.obj
         if name == "__func__":
@@ -1161,6 +1271,13 @@ class UserMethodVariable(UserFunctionVariable):
             # information is stored in self.source_fn, use that to construct the
             # variable tracker.
             return VariableTracker.build(tx, self.fn, self.source_fn)
+=======
+        source = self.source and AttrSource(self.source, name)
+        if name == "__self__":
+            return self.obj
+        if name == "__func__":
+            return VariableTracker.build(tx, self.fn, source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().var_getattr(tx, name)
 
 
@@ -1316,6 +1433,7 @@ class NestedUserFunctionVariable(BaseUserFunctionVariable):
 
     def const_getattr(self, tx, name):
         if name == "__name__":
+<<<<<<< HEAD
             return self.get_name()
         if name == "__code__":
             return self.get_code()
@@ -1331,6 +1449,11 @@ class NestedUserFunctionVariable(BaseUserFunctionVariable):
             return variables.ConstantVariable.create(hasattr(self, "defaults"))
         return super().call_obj_hasattr(tx, name)
 
+=======
+            return self.fn_name.as_python_constant()
+        return super().const_getattr(tx, name)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def has_self(self):
         return False
 
@@ -1477,6 +1600,7 @@ class SkipFunctionVariable(VariableTracker):
 
     @classmethod
     def create_with_source(cls, value, source):
+<<<<<<< HEAD
         # Use closure match guard (i.e. guard on __code__ object instead of
         # function id) to avoid guarding on nested functions.
         if inspect.getattr_static(value, "_torchdynamo_disable", False):
@@ -1500,6 +1624,13 @@ class SkipFunctionVariable(VariableTracker):
             # attribute lookup. They are unlikely to be changed, so we can skip
             # guarding them.
             install_guard(source.make_guard(GuardBuilder.CLOSURE_MATCH))
+=======
+        if not is_wrapper_or_member_descriptor(value):
+            # These descriptors are not guaranteed to return the same object on
+            # attribute lookup. They are unlikely to be changed, so we can skip
+            # guarding them.
+            install_guard(source.make_guard(GuardBuilder.FUNCTION_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls(value, source=source)
 
     def call_function(
@@ -1538,8 +1669,11 @@ class SkipFunctionVariable(VariableTracker):
             raise SkipFrame(
                 f"Skip frame due to `torch._dynamo.skip_frame()`. Message: {skip_frame_msg}"
             )
+<<<<<<< HEAD
         elif self.value is torch._dynamo.step_unsupported:
             raise StepUnsupported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             if config.dont_skip_tracing:
                 from .builder import SourcelessBuilder
@@ -1881,6 +2015,7 @@ class CollectionsNamedTupleFunction(UserFunctionVariable):
     ) -> "VariableTracker":
         constant_args = check_constant_args(args, kwargs)
         if constant_args:
+<<<<<<< HEAD
             try:
                 value = self.fn(
                     *[x.as_python_constant() for x in args],
@@ -1892,6 +2027,12 @@ class CollectionsNamedTupleFunction(UserFunctionVariable):
                     tx,
                     args=list(map(ConstantVariable.create, exc.args)),
                 )
+=======
+            value = self.fn(
+                *[x.as_python_constant() for x in args],
+                **{k: v.as_python_constant() for k, v in kwargs.items()},
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.UserDefinedClassVariable(
                 value, mutation_type=ValueMutationNew()
             )
@@ -2001,7 +2142,11 @@ class PolyfilledFunctionVariable(VariableTracker):
 
     @classmethod
     def create_with_source(cls, value, source):
+<<<<<<< HEAD
         install_guard(source.make_guard(GuardBuilder.CLOSURE_MATCH))
+=======
+        install_guard(source.make_guard(GuardBuilder.FUNCTION_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return cls(value, source=source)
 
@@ -2103,8 +2248,13 @@ class PolyfilledFunctionVariable(VariableTracker):
             return self.call_function(tx, args, kwargs)
 
         method = getattr(self.fn, name, None)
+<<<<<<< HEAD
         if not (method or is_function(method)):
             raise_type_error_exc(tx, f"Cannot find callable {name} in {self.fn}")
+=======
+        assert method is not None, f"Member {name} not found in {self.fn}"
+        assert is_function(method), f"Member {name} is not callable in {self.fn}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         options = {}
         if self.source:
             options["source"] = AttrSource(self.source, name)
@@ -2463,11 +2613,15 @@ class CreateTMADescriptorExperimentalVariable(VariableTracker):
             )
 
         if self.rank == 1:
+<<<<<<< HEAD
             if len(args) + len(kwargs) != 4:
                 raise_type_error_exc(
                     tx,
                     f"TMA metadata rank=1 requires exactly 4 arguments, got {len(args) + len(kwargs)}",
                 )
+=======
+            assert len(args) + len(kwargs) == 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dims = [
                 kwargs["dim"] if "dim" in kwargs else args[1],
             ]
@@ -2475,11 +2629,15 @@ class CreateTMADescriptorExperimentalVariable(VariableTracker):
                 kwargs["block_dim"] if "block_dim" in kwargs else args[2],
             ]
         else:
+<<<<<<< HEAD
             if len(args) + len(kwargs) != 6:
                 raise_type_error_exc(
                     tx,
                     f"TMA metadata rank=2 requires exactly 6 arguments, got {len(args) + len(kwargs)}",
                 )
+=======
+            assert len(args) + len(kwargs) == 6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dims = [
                 kwargs["dim1"] if "dim1" in kwargs else args[1],
                 kwargs["dim0"] if "dim0" in kwargs else args[2],

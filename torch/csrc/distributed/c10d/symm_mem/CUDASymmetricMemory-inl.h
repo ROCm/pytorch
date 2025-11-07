@@ -115,20 +115,29 @@ __device__ __forceinline__ void wait_signal(uint32_t* addr) {
 // Pattern 0: Ensures that all writes to symm_mem buffers from previous
 // kernels across all devices are visible to the current kernel:
 //
+<<<<<<< HEAD
 //   sync_remote_blocks<false, true>(...);
+=======
+//   sync_remote_blocks<std::memory_order_relaxed>(...);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   __syncthreads();
 //
 // Pattern 1: Ensures that all writes to symm_mem buffers from the current
 // block are visible to all remote blocks with matching blockIdx:
 //
 //   __syncthreads();
+<<<<<<< HEAD
 //   sync_remote_blocks<true, true>(...);
+=======
+//   sync_remote_blocks<std::memory_order_acq_rel>(...);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   __syncthreads();
 //
 // Pattern 2: Ensures that symm_mem buffers read by the current kernel are safe
 // for writing by subsequent kernels across all devices.
 //
 //   __syncthreads();
+<<<<<<< HEAD
 //   sync_remote_blocks<true, false>(...);
 template <bool hasPrevMemAccess, bool hasSubsequentMemAccess>
 __device__ __forceinline__ void sync_remote_blocks(
@@ -153,6 +162,42 @@ __device__ __forceinline__ void sync_remote_blocks(
     }
   }
 };
+=======
+//   sync_remote_blocks<std::memory_order_relaxed>(...);
+template <std::memory_order Sem>
+__device__ __forceinline__ void sync_remote_blocks(
+    uint32_t** signal_pads,
+    size_t rank,
+    size_t world_size);
+
+template <>
+__device__ __forceinline__ void sync_remote_blocks<std::memory_order_relaxed>(
+    uint32_t** signal_pads,
+    size_t rank,
+    size_t world_size) {
+  if (threadIdx.x < world_size) {
+    auto target_rank = threadIdx.x;
+    put_signal<std::memory_order_relaxed>(
+        signal_pads[target_rank] + blockIdx.x * world_size + rank);
+    wait_signal<std::memory_order_relaxed>(
+        signal_pads[rank] + blockIdx.x * world_size + target_rank);
+  }
+}
+
+template <>
+__device__ __forceinline__ void sync_remote_blocks<std::memory_order_acq_rel>(
+    uint32_t** signal_pads,
+    size_t rank,
+    size_t world_size) {
+  if (threadIdx.x < world_size) {
+    auto target_rank = threadIdx.x;
+    put_signal<std::memory_order_release>(
+        signal_pads[target_rank] + blockIdx.x * world_size + rank);
+    wait_signal<std::memory_order_acquire>(
+        signal_pads[rank] + blockIdx.x * world_size + target_rank);
+  }
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <typename T>
 struct MultimemLdReduce {
@@ -256,7 +301,11 @@ __device__ __inline__ T add_bf16x2(T a, T b) {
     __hip_bfloat16 bf[2];
   } _bf2f_a = {.f = 0}, _bf2f_b = {.f = 0};
 
+<<<<<<< HEAD
   //__hip_bfloat162 is a struct with two __hip_bfloat16 elements called x and y
+=======
+  //__hip_bfloat162 is a struct wtih two __hip_bfloat16 elements called x and y
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // This typecasts input a and b as bfloat16 and maps to low bits of a float
   // and does the addition in float
   _bf2f_a.bf[1] = reinterpret_cast<__hip_bfloat162*>(&a)->x;

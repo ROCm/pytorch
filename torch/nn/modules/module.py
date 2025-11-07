@@ -6,8 +6,13 @@ import itertools
 import warnings
 import weakref
 from collections import namedtuple, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator, Mapping
 from typing import Any, Optional, overload, TypeVar, Union
+=======
+from collections.abc import Iterator, Mapping
+from typing import Any, Callable, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import torch
@@ -38,13 +43,20 @@ T = TypeVar("T", bound="Module")
 
 
 class _IncompatibleKeys(
+<<<<<<< HEAD
     # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     namedtuple("IncompatibleKeys", ["missing_keys", "unexpected_keys"]),
 ):
     __slots__ = ()
 
+<<<<<<< HEAD
     def __repr__(self) -> str:
         # pyrefly: ignore [missing-attribute]
+=======
+    def __repr__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.missing_keys and not self.unexpected_keys:
             return "<All keys matched successfully>"
         return super().__repr__()
@@ -72,7 +84,11 @@ _global_parameter_registration_hooks: dict[int, Callable] = OrderedDict()
 
 
 class _WrappedHook:
+<<<<<<< HEAD
     def __init__(self, hook: Callable, module: Optional["Module"] = None) -> None:
+=======
+    def __init__(self, hook: Callable, module: Optional["Module"] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.hook: Callable = hook
         functools.update_wrapper(self, hook)
 
@@ -93,7 +109,10 @@ class _WrappedHook:
     def __getstate__(self) -> dict:
         result = {"hook": self.hook, "with_module": self.with_module}
         if self.with_module:
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result["module"] = self.module()
 
         return result
@@ -479,7 +498,11 @@ class Module:
     call_super_init: bool = False
     _compiled_call_impl: Optional[Callable] = None
 
+<<<<<<< HEAD
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+=======
+    def __init__(self, *args, **kwargs) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Initialize internal Module state, shared by both nn.Module and ScriptModule."""
         torch._C._log_api_usage_once("python.nn_module")
 
@@ -571,9 +594,13 @@ class Module:
             raise KeyError('buffer name can\'t be empty string ""')
         elif hasattr(self, name) and name not in self._buffers:
             raise KeyError(f"attribute '{name}' already exists")
+<<<<<<< HEAD
         elif tensor is not None and not (
             isinstance(tensor, torch.Tensor) or hasattr(tensor, "__torch_function__")
         ):
+=======
+        elif tensor is not None and not isinstance(tensor, torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise TypeError(
                 f"cannot assign '{torch.typename(tensor)}' object to buffer '{name}' "
                 "(torch Tensor or None required)"
@@ -932,12 +959,17 @@ class Module:
             for module in self.children():
                 module._apply(fn)
 
+<<<<<<< HEAD
         from torch._subclasses.fake_tensor import FakeTensor
 
         def compute_should_use_set_data(tensor, tensor_applied) -> bool:
             if torch._has_compatible_shallow_copy_type(
                 tensor, tensor_applied
             ) and not isinstance(tensor_applied, FakeTensor):
+=======
+        def compute_should_use_set_data(tensor, tensor_applied):
+            if torch._has_compatible_shallow_copy_type(tensor, tensor_applied):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # If the new tensor has compatible tensor type as the existing tensor,
                 # the current behavior is to change the tensor in-place using `.data =`,
                 # and the future behavior is to overwrite the existing tensor. However,
@@ -964,6 +996,11 @@ class Module:
                 param_applied = fn(param)
             p_should_use_set_data = compute_should_use_set_data(param, param_applied)
 
+<<<<<<< HEAD
+=======
+            from torch._subclasses.fake_tensor import FakeTensor
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # subclasses may have multiple child tensors so we need to use swap_tensors
             p_should_use_swap_tensors = (
                 should_use_swap_tensors
@@ -979,9 +1016,13 @@ class Module:
                         # Decrement use count of the gradient by setting to None
                         param.grad = None
                     param_applied = torch.nn.Parameter(
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
                         param_applied,
                         requires_grad=param.requires_grad,
+=======
+                        param_applied, requires_grad=param.requires_grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     torch.utils.swap_tensors(param, param_applied)
                 except Exception as e:
@@ -992,13 +1033,19 @@ class Module:
                     ) from e
                 out_param = param
             elif p_should_use_set_data:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 param.data = param_applied
                 out_param = param
             else:
                 assert isinstance(param, Parameter)
                 assert param.is_leaf
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out_param = Parameter(param_applied, param.requires_grad)
                 self._parameters[key] = out_param
 
@@ -1049,7 +1096,11 @@ class Module:
             >>> @torch.no_grad()
             >>> def init_weights(m):
             >>>     print(m)
+<<<<<<< HEAD
             >>>     if type(m) is nn.Linear:
+=======
+            >>>     if type(m) == nn.Linear:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>>         m.weight.fill_(1.0)
             >>>         print(m.weight)
             >>> net = nn.Sequential(nn.Linear(2, 2), nn.Linear(2, 2))
@@ -1337,9 +1388,13 @@ class Module:
 
         """
         device, dtype, non_blocking, convert_to_format = torch._C._nn._parse_to(
+<<<<<<< HEAD
             # pyrefly: ignore [not-iterable]
             *args,
             **kwargs,
+=======
+            *args, **kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if dtype is not None:
@@ -1353,8 +1408,12 @@ class Module:
                     "Complex modules are a new feature under active development whose design may change, "
                     "and some modules might not work as expected when using complex tensors as parameters or buffers. "
                     "Please file an issue at https://github.com/pytorch/pytorch/issues/new?template=bug-report.yml "
+<<<<<<< HEAD
                     "if a complex module does not work as expected.",
                     stacklevel=2,
+=======
+                    "if a complex module does not work as expected."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         def convert(t):
@@ -1550,7 +1609,11 @@ class Module:
 
         return backward_pre_hooks
 
+<<<<<<< HEAD
     def _maybe_warn_non_full_backward_hook(self, inputs, result, grad_fn) -> None:
+=======
+    def _maybe_warn_non_full_backward_hook(self, inputs, result, grad_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(result, torch.Tensor):
             if not (
                 isinstance(result, tuple)
@@ -1764,7 +1827,15 @@ class Module:
         if recording_scopes:
             # type ignore was added because at this point one knows that
             # torch.jit._trace._trace_module_map is not Optional and has type Dict[Any, Any]
+<<<<<<< HEAD
             name = torch.jit._trace._trace_module_map.get(self, None)  # type: ignore[operator, union-attr]
+=======
+            name = (
+                torch.jit._trace._trace_module_map[self]  # type: ignore[index]
+                if self in torch.jit._trace._trace_module_map  # type: ignore[operator]
+                else None
+            )  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if name:
                 tracing_state.push_scope(name)
             else:
@@ -1856,7 +1927,11 @@ class Module:
                 if not isinstance(result, (torch.Tensor, tuple)):
                     warnings.warn("For backward hooks to be called,"
                                   " module output should be a Tensor or a tuple of Tensors"
+<<<<<<< HEAD
                                   f" but received {type(result)}", stacklevel=2)
+=======
+                                  f" but received {type(result)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result = bw_hook.setup_output_hook(result)
 
             # Handle the non-full backward hooks
@@ -1899,7 +1974,11 @@ class Module:
                             result = hook_result
                     except Exception as e:
                         warnings.warn("global module forward hook with ``always_call=True`` raised an exception "
+<<<<<<< HEAD
                                       f"that was silenced as another error was raised in forward: {str(e)}", stacklevel=2)
+=======
+                                      f"that was silenced as another error was raised in forward: {str(e)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         continue
 
             for hook_id, hook in self._forward_hooks.items():
@@ -1913,7 +1992,11 @@ class Module:
                             result = hook_result
                     except Exception as e:
                         warnings.warn("module forward hook with ``always_call=True`` raised an exception "
+<<<<<<< HEAD
                                       f"that was silenced as another error was raised in forward: {str(e)}", stacklevel=2)
+=======
+                                      f"that was silenced as another error was raised in forward: {str(e)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         continue
             # raise exception raised in try block
             raise
@@ -1974,7 +2057,11 @@ class Module:
         )
 
     def __setattr__(self, name: str, value: Union[Tensor, "Module"]) -> None:
+<<<<<<< HEAD
         def remove_from(*dicts_or_sets) -> None:
+=======
+        def remove_from(*dicts_or_sets):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for d in dicts_or_sets:
                 if name in d:
                     if isinstance(d, dict):
@@ -2034,10 +2121,14 @@ class Module:
             else:
                 buffers = self.__dict__.get("_buffers")
                 if isinstance(value, Buffer) or buffers is not None and name in buffers:
+<<<<<<< HEAD
                     if value is not None and not (
                         isinstance(value, torch.Tensor)
                         or hasattr(value, "__torch_function__")
                     ):
+=======
+                    if value is not None and not isinstance(value, torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         raise TypeError(
                             f"cannot assign '{torch.typename(value)}' as buffer '{name}' "
                             "(torch.nn.Buffer, torch.Tensor or None expected)"
@@ -2078,7 +2169,11 @@ class Module:
                 else:
                     super().__setattr__(name, value)
 
+<<<<<<< HEAD
     def __delattr__(self, name) -> None:
+=======
+    def __delattr__(self, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in self._parameters:
             del self._parameters[name]
         elif name in self._buffers:
@@ -2145,7 +2240,11 @@ class Module:
         self._state_dict_pre_hooks[handle.id] = hook
         return handle
 
+<<<<<<< HEAD
     def _save_to_state_dict(self, destination, prefix, keep_vars) -> None:
+=======
+    def _save_to_state_dict(self, destination, prefix, keep_vars):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Save module state to the `destination` dictionary.
 
         The `destination` dictionary will contain the state
@@ -2259,7 +2358,10 @@ class Module:
 
         if destination is None:
             destination = OrderedDict()
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             destination._metadata = OrderedDict()
 
         local_metadata = dict(version=self._version)
@@ -2356,7 +2458,11 @@ class Module:
         missing_keys,
         unexpected_keys,
         error_msgs,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Copy parameters and buffers from :attr:`state_dict` into only this module, but not its descendants.
 
         This is called on every submodule
@@ -2409,9 +2515,13 @@ class Module:
             if k not in self._non_persistent_buffers_set
         }
         local_name_params = itertools.chain(
+<<<<<<< HEAD
             self._parameters.items(),
             # pyrefly: ignore [bad-argument-type]
             persistent_buffers.items(),
+=======
+            self._parameters.items(), persistent_buffers.items()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         local_state = {k: v for k, v in local_name_params if v is not None}
         assign_to_params_buffers = local_metadata.get("assign_to_params_buffers", False)
@@ -2458,8 +2568,12 @@ class Module:
                         f"for {key}: copying from a non-meta parameter in the checkpoint to a meta "
                         "parameter in the current model, which is a no-op. (Did you mean to "
                         "pass `assign=True` to assign items in the state dictionary to their "
+<<<<<<< HEAD
                         "corresponding key in the module instead of copying them in place?)",
                         stacklevel=2,
+=======
+                        "corresponding key in the module instead of copying them in place?)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
                 try:
@@ -2585,7 +2699,11 @@ class Module:
             # mypy isn't aware that "_metadata" exists in state_dict
             state_dict._metadata = metadata  # type: ignore[attr-defined]
 
+<<<<<<< HEAD
         def load(module, local_state_dict, prefix="") -> None:
+=======
+        def load(module, local_state_dict, prefix=""):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
             if assign:
                 local_metadata["assign_to_params_buffers"] = assign
@@ -2958,8 +3076,12 @@ class Module:
                 "Calling .zero_grad() from a module created with nn.DataParallel() has no effect. "
                 "The parameters are copied (in a differentiable manner) from the original module. "
                 "This means they are not leaf nodes in autograd and so don't accumulate gradients. "
+<<<<<<< HEAD
                 "If you need gradients in your forward method, consider using autograd.grad instead.",
                 stacklevel=2,
+=======
+                "If you need gradients in your forward method, consider using autograd.grad instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         for p in self.parameters():
@@ -2989,7 +3111,11 @@ class Module:
         """
         return ""
 
+<<<<<<< HEAD
     def __repr__(self) -> str:
+=======
+    def __repr__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We treat the extra repr like the sub-module, one item per line
         extra_lines = []
         extra_repr = self.extra_repr()

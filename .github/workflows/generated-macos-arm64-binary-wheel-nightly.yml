@@ -30,6 +30,132 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+<<<<<<< HEAD
+=======
+  wheel-py3_9-cpu-build:
+    if: ${{ github.repository_owner == 'pytorch' }}
+    runs-on: macos-14-xlarge
+    timeout-minutes: 240
+    env:
+      PYTORCH_ROOT: ${{ github.workspace }}/pytorch
+      PACKAGE_TYPE: wheel
+      # TODO: This is a legacy variable that we eventually want to get rid of in
+      #       favor of GPU_ARCH_VERSION
+      DESIRED_CUDA: cpu
+      GPU_ARCH_TYPE: cpu
+      SKIP_ALL_TESTS: 1
+      DESIRED_PYTHON: "3.9"
+    steps:
+      # NOTE: These environment variables are put here so that they can be applied on every job equally
+      #       They are also here because setting them at a workflow level doesn't give us access to the
+      #       runner.temp variable, which we need.
+      - name: Populate binary env
+        shell: bash
+        run: |
+          # shellcheck disable=SC2129
+          echo "BINARY_ENV_FILE=${RUNNER_TEMP}/env" >> "${GITHUB_ENV}"
+          # shellcheck disable=SC2129
+          echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
+          # shellcheck disable=SC2129
+          echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: pytorch
+          show-progress: false
+      - name: Clean PyTorch checkout
+        run: |
+          # Remove any artifacts from the previous checkouts
+          git clean -fxd
+        working-directory: pytorch
+      - name: Populate binary env
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          set -eux -o pipefail
+          # shellcheck disable=SC1090
+          source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
+          mkdir -p "$PYTORCH_FINAL_PACKAGE_DIR"
+
+          # Build
+          USE_PYTORCH_METAL_EXPORT=1
+          USE_COREML_DELEGATE=1
+          TORCH_PACKAGE_NAME="${TORCH_PACKAGE_NAME//-/_}"
+          export USE_PYTORCH_METAL_EXPORT
+          export USE_COREML_DELEGATE
+          export TORCH_PACKAGE_NAME
+          "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
+      - name: Test PyTorch wheel
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          set -eux -o pipefail
+          # shellcheck disable=SC1090
+          source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
+          pip uninstall -y "$TORCH_PACKAGE_NAME" || true
+          pip uninstall -y "$TORCH_PACKAGE_NAME" || true
+
+          # Create new "clean" conda environment for testing
+
+          SMOKE_TEST_PARAMS=""
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+          pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
+
+          # shellcheck disable=SC2086
+          python "${PYTORCH_ROOT}/.ci/pytorch/smoke_test/smoke_test.py" --package torchonly ${SMOKE_TEST_PARAMS}
+      - uses: actions/upload-artifact@v4.4.0
+        if: always()
+        with:
+          name: wheel-py3_9-cpu
+          retention-days: 14
+          if-no-files-found: error
+          path: "${{ env.PYTORCH_FINAL_PACKAGE_DIR }}"
+  wheel-py3_9-cpu-upload:  # Uploading
+    if: ${{ github.repository_owner == 'pytorch' }}
+    permissions:
+      id-token: write
+      contents: read
+    needs: wheel-py3_9-cpu-build
+    with:
+      PYTORCH_ROOT: /pytorch
+      PACKAGE_TYPE: wheel
+      # TODO: This is a legacy variable that we eventually want to get rid of in
+      #       favor of GPU_ARCH_VERSION
+      DESIRED_CUDA: cpu
+      GPU_ARCH_TYPE: cpu
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+      DESIRED_PYTHON: "3.9"
+      build_name: wheel-py3_9-cpu
+      use_s3: False
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/_binary-upload.yml
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   wheel-py3_10-cpu-build:
     if: ${{ github.repository_owner == 'pytorch' }}
     runs-on: macos-14-xlarge
@@ -56,6 +182,7 @@ jobs:
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           # shellcheck disable=SC2129
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -66,6 +193,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+=======
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
           path: pytorch
           show-progress: false
@@ -76,9 +220,19 @@ jobs:
         working-directory: pytorch
       - name: Populate binary env
         run: |
+<<<<<<< HEAD
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -94,6 +248,11 @@ jobs:
           "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
       - name: Test PyTorch wheel
         run: |
+<<<<<<< HEAD
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -103,10 +262,20 @@ jobs:
           # Create new "clean" conda environment for testing
 
           SMOKE_TEST_PARAMS=""
+<<<<<<< HEAD
 
           # shellcheck disable=SC2086
           python -mvenv test_venv
           source test_venv/bin/activate
+=======
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086
@@ -165,6 +334,7 @@ jobs:
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           # shellcheck disable=SC2129
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -175,6 +345,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+=======
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
           path: pytorch
           show-progress: false
@@ -185,9 +372,19 @@ jobs:
         working-directory: pytorch
       - name: Populate binary env
         run: |
+<<<<<<< HEAD
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -203,6 +400,11 @@ jobs:
           "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
       - name: Test PyTorch wheel
         run: |
+<<<<<<< HEAD
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -212,10 +414,20 @@ jobs:
           # Create new "clean" conda environment for testing
 
           SMOKE_TEST_PARAMS=""
+<<<<<<< HEAD
 
           # shellcheck disable=SC2086
           python -mvenv test_venv
           source test_venv/bin/activate
+=======
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086
@@ -274,6 +486,7 @@ jobs:
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           # shellcheck disable=SC2129
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -284,6 +497,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+=======
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
           path: pytorch
           show-progress: false
@@ -294,9 +524,19 @@ jobs:
         working-directory: pytorch
       - name: Populate binary env
         run: |
+<<<<<<< HEAD
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -312,6 +552,11 @@ jobs:
           "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
       - name: Test PyTorch wheel
         run: |
+<<<<<<< HEAD
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -321,10 +566,20 @@ jobs:
           # Create new "clean" conda environment for testing
 
           SMOKE_TEST_PARAMS=""
+<<<<<<< HEAD
 
           # shellcheck disable=SC2086
           python -mvenv test_venv
           source test_venv/bin/activate
+=======
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086
@@ -383,6 +638,7 @@ jobs:
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           # shellcheck disable=SC2129
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -393,6 +649,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+=======
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
           path: pytorch
           show-progress: false
@@ -403,9 +676,19 @@ jobs:
         working-directory: pytorch
       - name: Populate binary env
         run: |
+<<<<<<< HEAD
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -421,6 +704,11 @@ jobs:
           "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
       - name: Test PyTorch wheel
         run: |
+<<<<<<< HEAD
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -430,10 +718,20 @@ jobs:
           # Create new "clean" conda environment for testing
 
           SMOKE_TEST_PARAMS=""
+<<<<<<< HEAD
 
           # shellcheck disable=SC2086
           python -mvenv test_venv
           source test_venv/bin/activate
+=======
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086
@@ -492,6 +790,7 @@ jobs:
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           # shellcheck disable=SC2129
           echo "MAC_PACKAGE_WORK_DIR=${RUNNER_TEMP}" >> "${GITHUB_ENV}"
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -502,6 +801,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+=======
+      - name: Install conda and dependencies
+        run: |
+          # Install conda, setup-miniconda messes with the path that messes with the ruby stuff we do later on
+          curl --retry 3 --retry-all-errors -o "${RUNNER_TEMP}/conda.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-MacOSX-$(uname -m).sh"
+          chmod +x "${RUNNER_TEMP}/conda.sh"
+          /bin/bash "${RUNNER_TEMP}/conda.sh" -b -p "${RUNNER_TEMP}/anaconda"
+          echo "${RUNNER_TEMP}/anaconda/bin" >> "${GITHUB_PATH}"
+          if [ -d "/Applications/Xcode_14.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_14.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          elif [ -d "/Applications/Xcode_13.3.1.app" ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_13.3.1.app/Contents/Developer" >> "${GITHUB_ENV}"
+          fi
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
           path: pytorch
           show-progress: false
@@ -512,9 +828,19 @@ jobs:
         working-directory: pytorch
       - name: Populate binary env
         run: |
+<<<<<<< HEAD
           "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         run: |
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -530,6 +856,11 @@ jobs:
           "${PYTORCH_ROOT}/.ci/wheel/build_wheel.sh"
       - name: Test PyTorch wheel
         run: |
+<<<<<<< HEAD
+=======
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/anaconda/bin/activate"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set -eux -o pipefail
           # shellcheck disable=SC1090
           source "${BINARY_ENV_FILE:-/Users/distiller/project/env}"
@@ -539,10 +870,20 @@ jobs:
           # Create new "clean" conda environment for testing
 
           SMOKE_TEST_PARAMS=""
+<<<<<<< HEAD
 
           # shellcheck disable=SC2086
           python -mvenv test_venv
           source test_venv/bin/activate
+=======
+          if [[ $DESIRED_PYTHON == "3.13t" ]]; then
+            conda create -yn "test_conda_env" python="3.13" python-freethreading -c conda-forge
+            SMOKE_TEST_PARAMS="--torch-compile-check disabled"
+          else
+            conda create -yn "test_conda_env" python="$DESIRED_PYTHON"
+          fi
+          conda activate test_conda_env
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           pip install "$PYTORCH_FINAL_PACKAGE_DIR"/*.whl numpy -v
 
           # shellcheck disable=SC2086
@@ -575,6 +916,7 @@ jobs:
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     uses: ./.github/workflows/_binary-upload.yml
+<<<<<<< HEAD
   wheel-py3_14-cpu-build:
     if: ${{ github.repository_owner == 'pytorch' }}
     runs-on: macos-14-xlarge
@@ -793,3 +1135,5 @@ jobs:
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     uses: ./.github/workflows/_binary-upload.yml
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

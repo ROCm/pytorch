@@ -474,8 +474,13 @@ def load_torch_function_handler(cls, func, types, args=(), kwargs=None):
                 f"Expected isinstance(src, {cls}) but got {type(src)}"
             )
             assert (
+<<<<<<< HEAD
                 type(dest) is torch.Tensor
                 or type(dest) is torch.nn.Parameter
+=======
+                type(dest) == torch.Tensor
+                or type(dest) == torch.nn.Parameter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 or issubclass(cls, type(dest))
             )
             if assign:

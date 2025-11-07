@@ -160,7 +160,11 @@ struct C10_API Device final {
   /// Return true if the device supports arbitrary strides.
   bool supports_as_strided() const noexcept {
     return type_ != DeviceType::IPU && type_ != DeviceType::XLA &&
+<<<<<<< HEAD
         type_ != DeviceType::Lazy;
+=======
+        type_ != DeviceType::Lazy && type_ != DeviceType::MTIA;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   /// Same string as returned from operator<<.

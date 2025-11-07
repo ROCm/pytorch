@@ -88,7 +88,11 @@ class PerfProfiler {
 
   /* Disable counting and fill in the caller supplied container with delta
    * calculated from the start count values since last Enable() */
+<<<<<<< HEAD
   void Disable(perf_counters_t& /*vals*/);
+=======
+  void Disable(perf_counters_t&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   uint64_t CalcDelta(uint64_t start, uint64_t end) const;

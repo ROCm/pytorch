@@ -52,6 +52,7 @@ class AOTIRunnerUtil:
             )
             gm = ep.module()
         else:
+<<<<<<< HEAD
             with torch._export.config.patch(use_new_tracer_experimental=True):
                 gm = torch.export._trace._export_to_torch_ir(
                     model,
@@ -62,6 +63,17 @@ class AOTIRunnerUtil:
                     # dynamo_flat_name_to_original_fqn which is coming from Dynamo.
                     restore_fqn=False,
                 )
+=======
+            gm = torch.export._trace._export_to_torch_ir(
+                model,
+                example_inputs,
+                dynamic_shapes=dynamic_shapes,
+                disable_constraint_solver=disable_constraint_solver,
+                # Disabling this flag, because instead we can rely on the mapping
+                # dynamo_flat_name_to_original_fqn which is coming from Dynamo.
+                restore_fqn=False,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if IS_FBCODE:
             from deeplearning.aot_inductor.extern_node_thrift_serializer import (
@@ -103,8 +115,11 @@ class AOTIRunnerUtil:
                 return torch._C._aoti.AOTIModelContainerRunnerCpu(so_path, 1)
             elif device == "xpu":
                 return torch._C._aoti.AOTIModelContainerRunnerXpu(so_path, 1, device)
+<<<<<<< HEAD
             elif device == "mps":
                 return torch._C._aoti.AOTIModelContainerRunnerMps(so_path, 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 return torch._C._aoti.AOTIModelContainerRunnerCuda(so_path, 1, device)
 
@@ -149,7 +164,11 @@ class AOTIRunnerUtil:
     @staticmethod
     def compile(
         model: Union[torch.nn.Module, types.FunctionType],
+<<<<<<< HEAD
         example_inputs: tuple[torch.Tensor, ...],
+=======
+        example_inputs: list[torch.Tensor],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inductor_configs: Optional[dict[str, Any]] = None,
         dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
     ):
@@ -157,6 +176,7 @@ class AOTIRunnerUtil:
             # This should really be the default behavior of torch.export.export
             model = WrapperModule(model)
 
+<<<<<<< HEAD
         with (
             torch.no_grad(),
             torch._export.config.patch(use_new_tracer_experimental=True),
@@ -168,6 +188,12 @@ class AOTIRunnerUtil:
                 dynamic_shapes=dynamic_shapes,
                 strict=True,
                 prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        with torch.no_grad():
+            # strict=False needs extra migration work
+            ep = torch.export.export(
+                model, example_inputs, dynamic_shapes=dynamic_shapes, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             package_path = torch._inductor.aoti_compile_and_package(
                 ep, inductor_configs=inductor_configs
@@ -177,7 +203,11 @@ class AOTIRunnerUtil:
     @staticmethod
     def run(
         model: Union[torch.nn.Module, types.FunctionType],
+<<<<<<< HEAD
         example_inputs: tuple[torch.Tensor, ...],
+=======
+        example_inputs: list[torch.Tensor],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inductor_configs: Optional[dict[str, Any]] = None,
         dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
     ):
@@ -193,7 +223,11 @@ class AOTIRunnerUtil:
     @staticmethod
     def run_multiple(
         model: Union[torch.nn.Module, types.FunctionType],
+<<<<<<< HEAD
         list_example_inputs: list[tuple[torch.Tensor, ...]],
+=======
+        list_example_inputs: list[list[torch.Tensor]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inductor_configs: Optional[dict[str, Any]] = None,
         dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
     ):
@@ -232,7 +266,11 @@ def check_model(
         if not isinstance(model, types.FunctionType):
             model = model.to(self.device)
 
+<<<<<<< HEAD
         # For non mixed device inputs with default "cpu",set the device manually.
+=======
+        # For non mixed device inputs with default "cpu",set the device manully.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if all(
             t.device.type == "cpu"
             for t in example_inputs

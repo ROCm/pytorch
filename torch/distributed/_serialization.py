@@ -57,6 +57,7 @@ class _PseudoZipFile:
         for entry in entries:
             data = f.read(entry.length)
             if entry.is_storage:
+<<<<<<< HEAD
                 if entry.length == 0:
                     storage = torch.UntypedStorage(0)
                 else:
@@ -64,6 +65,12 @@ class _PseudoZipFile:
                         data,
                         dtype=torch.uint8,
                     ).untyped_storage()
+=======
+                storage = torch.frombuffer(
+                    data,
+                    dtype=torch.uint8,
+                ).untyped_storage()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 self.records[entry.key] = (
                     storage,

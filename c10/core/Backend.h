@@ -38,8 +38,11 @@ enum class Backend {
   SparseCUDA,
   SparseCsrCPU,
   SparseCsrCUDA,
+<<<<<<< HEAD
   SparseCsrMPS,
   SparseMPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SparseHIP,
   SparseVE,
   SparseXPU,
@@ -96,10 +99,13 @@ inline Backend dispatchKeyToBackend(DispatchKey t) {
     return Backend::SparseCPU;
   } else if (t == DispatchKey::SparseCUDA) {
     return Backend::SparseCUDA;
+<<<<<<< HEAD
   } else if (t == DispatchKey::SparseMPS) {
     return Backend::SparseMPS;
   } else if (t == DispatchKey::SparseCsrMPS) {
     return Backend::SparseCsrMPS;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (t == DispatchKey::SparseHIP) {
     return Backend::SparseHIP;
   } else if (t == DispatchKey::SparseVE) {
@@ -178,10 +184,13 @@ inline DispatchKey backendToDispatchKey(Backend b) {
       return DispatchKey::SparseCPU;
     case Backend::SparseCUDA:
       return DispatchKey::SparseCUDA;
+<<<<<<< HEAD
     case Backend::SparseMPS:
       return DispatchKey::SparseMPS;
     case Backend::SparseCsrMPS:
       return DispatchKey::SparseCsrMPS;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Backend::SparseHIP:
       return DispatchKey::SparseHIP;
     case Backend::SparseVE:
@@ -223,7 +232,11 @@ inline DispatchKey backendToDispatchKey(Backend b) {
     case Backend::PrivateUse1:
       return DispatchKey::PrivateUse1;
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unknown backend");
+=======
+      throw std::runtime_error("Unknown backend");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -274,8 +287,11 @@ inline DeviceType backendToDeviceType(Backend b) {
     case Backend::Meta:
       return DeviceType::Meta;
     case Backend::MPS:
+<<<<<<< HEAD
     case Backend::SparseMPS:
     case Backend::SparseCsrMPS:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return DeviceType::MPS;
     case Backend::HPU:
       return DeviceType::HPU;
@@ -321,10 +337,13 @@ inline const char* toString(Backend b) {
       return "SparseCPU";
     case Backend::SparseCUDA:
       return "SparseCUDA";
+<<<<<<< HEAD
     case Backend::SparseMPS:
       return "SparseMPS";
     case Backend::SparseCsrMPS:
       return "SparseCsrMPS";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Backend::SparseHIP:
       return "SparseHIP";
     case Backend::SparseVE:
@@ -377,7 +396,10 @@ inline bool isSparse(Backend b) {
     case Backend::SparseXPU:
     case Backend::SparseCPU:
     case Backend::SparseCUDA:
+<<<<<<< HEAD
     case Backend::SparseMPS:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Backend::SparseHIP:
     case Backend::SparseVE:
     case Backend::SparsePrivateUse1:

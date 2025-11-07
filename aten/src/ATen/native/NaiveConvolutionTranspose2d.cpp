@@ -24,7 +24,11 @@
 
 namespace at {
 namespace {
+<<<<<<< HEAD
 inline void slow_conv_transpose2d_shape_check(
+=======
+static inline void slow_conv_transpose2d_shape_check(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     const Tensor& grad_output,
     const Tensor& weight,
@@ -386,7 +390,11 @@ void slow_conv_transpose2d_out_cpu_template(
   }
 }
 
+<<<<<<< HEAD
 void slow_conv_transpose2d_backward_out_cpu_template(
+=======
+static void slow_conv_transpose2d_backward_out_cpu_template(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input_,
     const Tensor& grad_output_,
     Tensor& grad_input,

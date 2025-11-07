@@ -112,7 +112,11 @@ using make_offset_index_sequence =
  * 2>());
  */
 template <class Tuple, size_t... Is>
+<<<<<<< HEAD
 constexpr auto tuple_elements(Tuple t, std::index_sequence<Is...> /*unused*/) {
+=======
+constexpr auto tuple_elements(Tuple t, std::index_sequence<Is...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::tuple<std::tuple_element_t<Is, Tuple>...>(std::get<Is>(t)...);
 }
 
@@ -209,7 +213,11 @@ auto tuple_map(
     // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
     std::tuple<Args...>&& tuple,
     const Mapper& mapper,
+<<<<<<< HEAD
     std::index_sequence<Indices...> /*unused*/) {
+=======
+    std::index_sequence<Indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::tuple<decltype(mapper(std::forward<Args>(std::get<Indices>(
       tuple))))...>(mapper(std::forward<Args>(std::get<Indices>(tuple)))...);
 }

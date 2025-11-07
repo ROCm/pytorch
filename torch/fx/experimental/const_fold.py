@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import re
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, Union
+=======
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.fx
 from torch.fx.node import map_arg
@@ -165,9 +169,12 @@ def split_const_subgraphs(
     attributes on the module prior to running the non-constant portion of the
     graph.
     """
+<<<<<<< HEAD
 
     import sympy
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not isinstance(module, torch.fx.GraphModule):
         mod_traced = torch.fx.symbolic_trace(module)
     else:
@@ -198,10 +205,13 @@ def split_const_subgraphs(
         if node.is_impure():
             continue
 
+<<<<<<< HEAD
         # Skip folding nodes that have symbolic fill_value
         if isinstance(node.kwargs.get("fill_value", None), sympy.Expr):
             continue
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Must be a constant foldable node at this point.
         const_nodes.add(node)
         if node.op != "get_attr":

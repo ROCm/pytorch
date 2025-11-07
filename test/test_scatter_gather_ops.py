@@ -380,6 +380,7 @@ class TestScatterGather(TestCase):
         helper([50, 8, 7], 100)
         helper([50, 3, 4, 5], 100)
 
+<<<<<<< HEAD
     @dtypes(torch.float32)
     def test_scatter_add_broadcasted_index_deterministic(self, device, dtype):
         for d in (0, 1):
@@ -397,6 +398,8 @@ class TestScatterGather(TestCase):
             self.assertEqual(res, ref)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCPU
     @dtypes(torch.float32, torch.float64, torch.bfloat16)
     def test_gather_expanded_index(self, device, dtype):
@@ -456,7 +459,11 @@ class TestScatterGather(TestCase):
         helper([50, 8, 7], 100)
         helper([50, 3, 4, 5], 100)
 
+<<<<<<< HEAD
 # Generic Device Test Framework instantiation, see
+=======
+# Generic Device Test Framework instantation, see
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   https://github.com/pytorch/pytorch/wiki/Running-and-writing-tests
 #   for details.
 instantiate_device_type_tests(TestScatterGather, globals())

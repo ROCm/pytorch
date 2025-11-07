@@ -210,7 +210,11 @@ multinomial_with_replacement_apply(
   }
 }
 
+<<<<<<< HEAD
 void multinomial_with_replacement_kernel_impl(
+=======
+static void multinomial_with_replacement_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& result,
     const Tensor& self,
     const int64_t n_sample,

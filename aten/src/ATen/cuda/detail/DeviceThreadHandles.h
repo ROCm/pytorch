@@ -122,7 +122,11 @@ struct DeviceThreadHandlePool : public std::enable_shared_from_this<DeviceThread
 
     // Called by the destructor.  Releases this thread's handles back into the pool.
     void release() {
+<<<<<<< HEAD
         if(!my_handles.empty()) {
+=======
+        if(my_handles.size() > 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             auto parent = weak_parent.lock();
             if (!parent) {
                 // If this thread exits after atexit handlers have completed, the

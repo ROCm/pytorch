@@ -915,6 +915,19 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt, Tensor, Ten
     // TODO(eqy): support debug_attn_mask
     return std::make_tuple(std::move(attention), std::move(log_sumexp), Tensor(), Tensor(), max_seqlen_batch_q, max_seqlen_batch_kv, std::move(cudnn_seed), std::move(cudnn_offset), Tensor());
   } else {
+<<<<<<< HEAD
+=======
+    //auto [
+    //    query_buffer_reshaped,
+    //    key_buffer_reshaped,
+    //    value_buffer_reshaped,
+    //    cumulative_sequence_length_q,
+    //    cumulative_sequence_length_kv,
+    //    max_seqlen_batch_q,
+    //    max_seqlen_batch_kv,
+    //    output_shape] = preprocessing::sdpa_nested_preprocessing(query, key, value);
+    // C10_LOG_API_USAGE_ONCE("torch.sdpa.flash_attention_cudnn");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // TODO(eqy): debug mask support
     // BHSD ...
     const int64_t batch_size = cumulative_sequence_length_q.value().size(0) - 1;
@@ -1402,7 +1415,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
   if(at::globalContext().getROCmFAPreferredBackend() ==
     at::ROCmFABackend::Ck) {
 
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::optional<Tensor> out(res);
     std::optional<Tensor> seqused_k = std::nullopt;
     std::optional<Tensor> alibi_slopes = std::nullopt;

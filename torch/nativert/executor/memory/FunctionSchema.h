@@ -17,7 +17,12 @@ class FunctionSchema {
   explicit FunctionSchema(
       const c10::FunctionSchema& schema,
       AliasingSpec&& aliasing_spec = {},
+<<<<<<< HEAD
       OpKernelKind kernel_kind = OpKernelKind::kInterpreterFallbackKernel)
+=======
+      torch::nativert::OpKernelKind kernel_kind =
+          torch::nativert::OpKernelKind::kInterpreterFallbackKernel)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : aliasing_spec_(std::move(aliasing_spec)),
         kernel_kind_(kernel_kind),
         c10_fn_schema_(schema) {}
@@ -32,13 +37,21 @@ class FunctionSchema {
 
   bool alias(size_t input_idx, size_t output_idx) const;
 
+<<<<<<< HEAD
   C10_ALWAYS_INLINE OpKernelKind kernel_kind() const {
+=======
+  C10_ALWAYS_INLINE torch::nativert::OpKernelKind kernel_kind() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return kernel_kind_;
   }
 
  private:
   AliasingSpec aliasing_spec_;
+<<<<<<< HEAD
   OpKernelKind kernel_kind_;
+=======
+  torch::nativert::OpKernelKind kernel_kind_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::FunctionSchema c10_fn_schema_;
 };
 

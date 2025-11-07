@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import io
 import os
 import tempfile
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import ml_dtypes
 import numpy as np
 
@@ -86,6 +89,7 @@ class TorchTensorTest(common_utils.TestCase):
         self.assertEqual(tensor.tobytes(), b"\x01")
 
 
+<<<<<<< HEAD
 class TorchTensorToFileTest(common_utils.TestCase):
     def _roundtrip_file(self, tensor: _core.TorchTensor) -> bytes:
         expected = tensor.tobytes()
@@ -156,5 +160,7 @@ class TorchTensorToFileTest(common_utils.TestCase):
         self.assertEqual(tensor.tobytes(), expected_manual)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     common_utils.run_tests()

@@ -6,7 +6,10 @@
 #include <c10/util/Exception.h>
 
 // Just for C10_ANONYMOUS_VARIABLE
+<<<<<<< HEAD
 #include <c10/core/impl/TorchDispatchModeTLS.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/Registry.h>
 
 #include <array>
@@ -111,16 +114,25 @@ struct C10_API DeviceGuardImplInterface {
   /**
    * Get the default stream for a given device.
    */
+<<<<<<< HEAD
   virtual Stream getDefaultStream(Device /*unused*/) const {
+=======
+  virtual Stream getDefaultStream(Device) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Backend doesn't support acquiring a default stream.")
   }
 
   /**
    * Get a stream from the global pool for a given device.
    */
+<<<<<<< HEAD
   virtual Stream getStreamFromGlobalPool(
       Device /*unused*/,
       bool isHighPriority = false) const {
+=======
+  virtual Stream getStreamFromGlobalPool(Device, bool isHighPriority = false)
+      const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     (void)isHighPriority; // Suppress unused variable warning
     TORCH_CHECK(false, "Backend doesn't support acquiring a stream from pool.")
   }
@@ -130,7 +142,11 @@ struct C10_API DeviceGuardImplInterface {
    * copied and shared around, device backend should be able to correctly handle
    * the lifetime of the stream.
    */
+<<<<<<< HEAD
   virtual Stream getNewStream(Device /*unused*/, int priority = 0) const {
+=======
+  virtual Stream getNewStream(Device, int priority = 0) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     (void)priority;
     TORCH_CHECK(false, "Backend doesn't support create a new Stream.")
   }
@@ -229,9 +245,14 @@ struct C10_API DeviceGuardImplInterface {
    * being used on the given stream, and that it should thus avoid recycling the
    * DataPtr until all work on that stream is done.
    */
+<<<<<<< HEAD
   virtual void recordDataPtrOnStream(
       const c10::DataPtr& /*unused*/,
       const Stream& /*unused*/) const {}
+=======
+  virtual void recordDataPtrOnStream(const c10::DataPtr&, const Stream&) const {
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /**
    * Fetch the elapsed time between two recorded events.
@@ -254,17 +275,26 @@ struct C10_API DeviceGuardImplInterface {
 // for devices that don't actually have a concept of device index.  Prominent
 // examples are CPU and Meta.
 template <DeviceType D>
+<<<<<<< HEAD
 struct NoOpDeviceGuardImpl : public DeviceGuardImplInterface {
+=======
+struct NoOpDeviceGuardImpl final : public DeviceGuardImplInterface {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   NoOpDeviceGuardImpl() = default;
   DeviceType type() const override {
     return D;
   }
+<<<<<<< HEAD
   Device exchangeDevice(Device /*unused*/) const override {
+=======
+  Device exchangeDevice(Device) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Device(D, -1); // no-op
   }
   Device getDevice() const override {
     return Device(D, -1);
   }
+<<<<<<< HEAD
   void setDevice(Device /*unused*/) const override {
     // no-op
   }
@@ -272,18 +302,35 @@ struct NoOpDeviceGuardImpl : public DeviceGuardImplInterface {
     // no-op
   }
   Stream getStream(Device /*unused*/) const noexcept override {
+=======
+  void setDevice(Device) const override {
+    // no-op
+  }
+  void uncheckedSetDevice(Device) const noexcept override {
+    // no-op
+  }
+  Stream getStream(Device) const noexcept override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // no-op
     return Stream(Stream::DEFAULT, Device(D, -1));
   }
 
+<<<<<<< HEAD
   Stream getNewStream(Device /*unused*/, int priority = 0) const override {
+=======
+  Stream getNewStream(Device, int priority = 0) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // no-op
     (void)priority;
     return Stream(Stream::DEFAULT, Device(D, -1));
   }
 
   // NB: These do NOT set the current device
+<<<<<<< HEAD
   Stream exchangeStream(Stream /*unused*/) const noexcept override {
+=======
+  Stream exchangeStream(Stream) const noexcept override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // no-op
     return Stream(Stream::DEFAULT, Device(D, -1));
   }
@@ -346,9 +393,13 @@ extern C10_API std::array<
 
 class C10_API DeviceGuardImplRegistrar {
  public:
+<<<<<<< HEAD
   DeviceGuardImplRegistrar(
       DeviceType /*type*/,
       const DeviceGuardImplInterface* /*impl*/);
+=======
+  DeviceGuardImplRegistrar(DeviceType, const DeviceGuardImplInterface*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 #define C10_REGISTER_GUARD_IMPL(DevType, DeviceGuardImpl)              \
@@ -372,14 +423,20 @@ inline const DeviceGuardImplInterface* getDeviceGuardImpl(DeviceType type) {
   return p;
 }
 
+<<<<<<< HEAD
 void C10_API
 registerDeviceGuard(DeviceType type, const DeviceGuardImplInterface* impl);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline bool hasDeviceGuardImpl(DeviceType type) {
   return device_guard_impl_registry[static_cast<size_t>(type)].load();
 }
 
+<<<<<<< HEAD
 void C10_API ensureCUDADeviceGuardSet();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace impl
 } // namespace c10

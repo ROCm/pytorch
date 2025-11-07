@@ -7,4 +7,8 @@
 
 set(UPSTREAM_FIND_CUDA_DIR "${CMAKE_CURRENT_LIST_DIR}/upstream/")
 
+<<<<<<< HEAD
+=======
+include("${UPSTREAM_FIND_CUDA_DIR}/CMakeInitializeConfigs.cmake")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 include("${UPSTREAM_FIND_CUDA_DIR}/FindCUDA.cmake")

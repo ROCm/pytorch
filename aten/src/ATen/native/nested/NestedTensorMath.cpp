@@ -316,7 +316,11 @@ Tensor NestedTensor_to_padded_tensor_generic(
     TORCH_CHECK(
         (int64_t)output_size_.size() == ret_val.dim(),
         "Length of output_size does not match NestedTensor dims. Broadcasting is not supported.");
+<<<<<<< HEAD
     for (int64_t i = 0; i < ret_val.dim(); i++) {
+=======
+    for (int64_t i = 0; i < (int64_t)ret_val.dim(); i++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK(
           output_size_[i] >= ret_val.size(i),
           "Value in output_size is less than NestedTensor padded size. Truncation is not supported.");

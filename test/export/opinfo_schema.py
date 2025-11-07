@@ -38,7 +38,11 @@ class PreDispatchSchemaCheckMode(SchemaCheckMode):
 
     def _may_alias_or_mutate(self, func, types, args, kwargs):
         def unwrap(e):
+<<<<<<< HEAD
             if isinstance(e, torch.Tensor) and type(e) is not torch.Tensor:
+=======
+            if isinstance(e, torch.Tensor) and not type(e) == torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 try:
                     return e.elem
                 except AttributeError:

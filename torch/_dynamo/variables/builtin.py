@@ -28,24 +28,39 @@ import itertools
 import logging
 import math
 import operator
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import types
 import typing
 import unittest
 from collections import defaultdict, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, KeysView, Sequence
 from typing import Any, TYPE_CHECKING, Union
+=======
+from collections.abc import KeysView, Sequence
+from typing import Callable, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import sym_float, sym_int
 from torch._subclasses.meta_utils import is_sparse_any
+<<<<<<< HEAD
 from torch.overrides import BaseTorchFunctionMode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
 from .. import config, graph_break_hints, polyfills, variables
 from ..exc import (
     AttributeMutationError,
     ObservedAttributeError,
+<<<<<<< HEAD
     ObservedUserStopIteration,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     raise_observed_exception,
     unimplemented_v2,
     Unsupported,
@@ -69,7 +84,10 @@ from ..utils import (
     cmp_name_to_op_mapping,
     dict_methods,
     extract_fake_example_value,
+<<<<<<< HEAD
     frozenset_methods,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_fake_value,
     guard_if_dyn,
     is_tensor_getset_descriptor,
@@ -77,17 +95,27 @@ from ..utils import (
     istype,
     numpy_operator_wrapper,
     proxy_args_kwargs,
+<<<<<<< HEAD
     raise_args_mismatch,
     set_methods,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     str_methods,
     tensortype_to_dtype,
 )
 from .base import AsPythonConstantNotImplementedError, ValueMutationNew, VariableTracker
 from .constant import ConstantVariable
+<<<<<<< HEAD
 from .dicts import (
     ConstDictVariable,
     DefaultDictVariable,
     DictKeysVariable,
+=======
+from .ctx_manager import EventVariable, StreamVariable
+from .dicts import (
+    ConstDictVariable,
+    DefaultDictVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DictViewVariable,
     FrozensetVariable,
     is_hashable,
@@ -101,7 +129,10 @@ from .lists import (
     TupleIteratorVariable,
     TupleVariable,
 )
+<<<<<<< HEAD
 from .streams import EventVariable, StreamVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .tensor import (
     FakeItemVariable,
     supported_comparison_ops,
@@ -109,12 +140,16 @@ from .tensor import (
     TensorVariable,
     UnspecializedPythonVariable,
 )
+<<<<<<< HEAD
 from .user_defined import (
     MutableMappingVariable,
     UserDefinedDictVariable,
     UserDefinedObjectVariable,
     UserDefinedVariable,
 )
+=======
+from .user_defined import UserDefinedObjectVariable, UserDefinedVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -155,6 +190,7 @@ polyfill_fn_mapping = {
     operator.ge: polyfills.cmp_ge,
 }
 
+<<<<<<< HEAD
 bin_ops = (
     operator.pow,
     operator.mul,
@@ -275,6 +311,8 @@ def populate_builtin_to_tensor_fn_map():
                 if most_recent_func != BUILTIN_TO_TENSOR_FN_MAP[op]:
                     BUILTIN_TO_TENSOR_RFN_MAP[op] = most_recent_func
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class BuiltinVariable(VariableTracker):
     """
@@ -308,7 +346,10 @@ class BuiltinVariable(VariableTracker):
             bool,
             callable,
             chr,
+<<<<<<< HEAD
             complex,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             divmod,
             float,
             getattr,
@@ -673,6 +714,7 @@ class BuiltinVariable(VariableTracker):
         def expand_list_like(tx: "InstructionTranslator", lst, const):
             if isinstance(lst, ConstantVariable):
                 lst, const = const, lst
+<<<<<<< HEAD
             try:
                 return lst.__class__(
                     items=lst.items * const.as_python_constant(),
@@ -684,6 +726,12 @@ class BuiltinVariable(VariableTracker):
                     tx,
                     args=list(map(ConstantVariable.create, exc.args)),
                 )
+=======
+            return lst.__class__(
+                items=lst.items * const.as_python_constant(),
+                mutation_type=ValueMutationNew(),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         list_like_expansion_handlers: list[
             tuple[
@@ -700,6 +748,7 @@ class BuiltinVariable(VariableTracker):
 
         def create_cmp_op_handlers(op):
             def compare_by_value(tx: "InstructionTranslator", a, b):
+<<<<<<< HEAD
                 try:
                     return ConstantVariable(op(a.value, b.value))
                 except TypeError as exc:
@@ -708,6 +757,9 @@ class BuiltinVariable(VariableTracker):
                         tx,
                         args=list(map(ConstantVariable.create, exc.args)),
                     )
+=======
+                return ConstantVariable(op(a.value, b.value))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             result: list[
                 tuple[
@@ -990,7 +1042,11 @@ class BuiltinVariable(VariableTracker):
                         hints=[*graph_break_hints.SUPPORTABLE],
                     )
 
+<<<<<<< HEAD
                 return variables.ExceptionVariable(fn, args, kwargs)
+=======
+                return variables.ExceptionVariable(fn, args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return create_exception_class_object
 
@@ -1029,7 +1085,10 @@ class BuiltinVariable(VariableTracker):
 
             def call_self_handler(tx: "InstructionTranslator", args, kwargs):
                 try:
+<<<<<<< HEAD
                     # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result = self_handler(tx, *args, **kwargs)
                     if result is not None:
                         return result
@@ -1037,12 +1096,19 @@ class BuiltinVariable(VariableTracker):
                     # Check if binding is bad. inspect signature bind is expensive.
                     # So check only when handler call fails.
                     try:
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         inspect.signature(self_handler).bind(tx, *args, **kwargs)
                     except TypeError as e:
                         has_constant_handler = obj.has_constant_handler(args, kwargs)
                         if not has_constant_handler:
+<<<<<<< HEAD
                             log.warning(  # noqa: G200
+=======
+                            log.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 "incorrect arg count %s %s and no constant handler",
                                 self_handler,
                                 e,
@@ -1090,7 +1156,10 @@ class BuiltinVariable(VariableTracker):
                             hints=[*graph_break_hints.DYNAMO_BUG],
                             from_exc=exc,
                         )
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return VariableTracker.build(tx, res)
 
             else:
@@ -1119,7 +1188,10 @@ class BuiltinVariable(VariableTracker):
                                 tx,
                                 args=list(map(ConstantVariable.create, exc.args)),
                             )
+<<<<<<< HEAD
                         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         return VariableTracker.build(tx, res)
 
             handlers.append(constant_fold_handler)
@@ -1162,6 +1234,7 @@ class BuiltinVariable(VariableTracker):
 
         return builtin_dispatch
 
+<<<<<<< HEAD
     def call_vars(self, tx: "InstructionTranslator", *args):
         if len(args) == 0:
             unimplemented_v2(
@@ -1177,6 +1250,8 @@ class BuiltinVariable(VariableTracker):
         except ObservedAttributeError:
             raise_observed_exception(TypeError, tx)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _handle_insert_op_in_graph(self, tx: "InstructionTranslator", args, kwargs):
         from .builder import wrap_fx_proxy, wrap_fx_proxy_cls
 
@@ -1185,15 +1260,28 @@ class BuiltinVariable(VariableTracker):
 
         # insert handling for torch function here
         from .builder import SourcelessBuilder
+<<<<<<< HEAD
         from .torch_function import can_dispatch_torch_function, dispatch_torch_function
 
         global BUILTIN_TO_TENSOR_RFN_MAP, BUILTIN_TO_TENSOR_FN_MAP
+=======
+        from .torch_function import (
+            BUILTIN_TO_TENSOR_FN_MAP,
+            BUILTIN_TO_TENSOR_RFN_MAP,
+            can_dispatch_torch_function,
+            dispatch_torch_function,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if can_dispatch_torch_function(tx, args, kwargs):
             # Only remap the fn to tensor methods if we aren't exporting
             # export serde does not handle method descriptors today
             if not tx.export:
+<<<<<<< HEAD
                 # Ensure the builtin maps are populated before accessing them
                 populate_builtin_to_tensor_fn_map()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Use sourceless builder, we built the map ourselves
                 if not isinstance(args[0], TensorVariable):
                     if self.fn in BUILTIN_TO_TENSOR_RFN_MAP:
@@ -1252,7 +1340,11 @@ class BuiltinVariable(VariableTracker):
             # Interaction between ndarray and tensors:
             #   We prefer the tensor op whenever there are tensors involved
             if check_numpy_ndarray_args(args, kwargs) and not any(
+<<<<<<< HEAD
                 type(arg) is variables.TensorVariable for arg in args
+=======
+                type(arg) == variables.TensorVariable for arg in args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 proxy = tx.output.create_proxy(
                     "call_function",
@@ -1393,11 +1485,19 @@ class BuiltinVariable(VariableTracker):
             if (
                 self.fn is tuple
                 and len(args) == 2
+<<<<<<< HEAD
                 and args[1].has_force_unpack_var_sequence(tx)
                 and not kwargs
             ):
                 if isinstance(args[0], BuiltinVariable) and args[0].fn is tuple:
                     init_args = args[1].force_unpack_var_sequence(tx)
+=======
+                and args[1].has_unpack_var_sequence(tx)
+                and not kwargs
+            ):
+                if isinstance(args[0], BuiltinVariable) and args[0].fn is tuple:
+                    init_args = args[1].unpack_var_sequence(tx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return variables.TupleVariable(
                         init_args, mutation_type=ValueMutationNew()
                     )
@@ -1418,6 +1518,7 @@ class BuiltinVariable(VariableTracker):
                     args[1:],
                 )
 
+<<<<<<< HEAD
         if self.fn is float and len(args) == 1 and name in ("fromhex", "hex"):
             if isinstance(args[0], ConstantVariable):
                 try:
@@ -1431,6 +1532,8 @@ class BuiltinVariable(VariableTracker):
                         args=list(map(ConstantVariable.create, e.args)),
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.fn is object and name == "__init__":
             # object.__init__ is a no-op
             return variables.ConstantVariable(None)
@@ -1442,11 +1545,15 @@ class BuiltinVariable(VariableTracker):
             resolved_fn = getattr(self.fn, name)
             if resolved_fn in dict_methods:
                 if isinstance(args[0], variables.UserDefinedDictVariable):
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return args[0]._dict_vt.call_method(tx, name, args[1:], kwargs)
                 elif isinstance(args[0], variables.ConstDictVariable):
                     return args[0].call_method(tx, name, args[1:], kwargs)
 
+<<<<<<< HEAD
         if self.fn is set:
             resolved_fn = getattr(self.fn, name)
             if resolved_fn in set_methods:
@@ -1462,18 +1569,23 @@ class BuiltinVariable(VariableTracker):
                 if isinstance(args[0], variables.FrozensetVariable):
                     return args[0].call_method(tx, name, args[1:], kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.fn is str and len(args) >= 1:
             resolved_fn = getattr(self.fn, name)
             if resolved_fn in str_methods:
                 if isinstance(args[0], ConstantVariable):
                     return args[0].call_method(tx, name, args[1:], kwargs)
 
+<<<<<<< HEAD
         if self.fn is float and len(args) >= 1:
             if isinstance(args[0], ConstantVariable):
                 return ConstantVariable.create(
                     getattr(float, name)(args[0].as_python_constant())
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def _call_int_float(self, tx: "InstructionTranslator", arg):
@@ -1540,12 +1652,18 @@ class BuiltinVariable(VariableTracker):
             if type(arg.value).__str__ is object.__str__:
                 # Rely on the object str method
                 try:
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return variables.ConstantVariable.create(value=str_method())
                 except AttributeError:
                     # Graph break
                     return
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif is_wrapper_or_member_descriptor(str_method):
                 unimplemented_v2(
                     gb_type="Attempted to a str() method implemented in C/C++",
@@ -1560,6 +1678,7 @@ class BuiltinVariable(VariableTracker):
 
                 try:
                     # Only supports certain function types
+<<<<<<< HEAD
                     user_func_variable = VariableTracker.build(tx, bound_method)
                 except AssertionError:
                     # Won't be able to do inline the str method, return to avoid graph break
@@ -1568,6 +1687,16 @@ class BuiltinVariable(VariableTracker):
 
                 # Inline the user function
                 return user_func_variable.call_function(tx, [arg], {})
+=======
+                    user_func_variable = variables.UserFunctionVariable(bound_method)
+                except AssertionError as e:
+                    # Won't be able to do inline the str method, return to avoid graph break
+                    log.warning("Failed to create UserFunctionVariable: %s", e)
+                    return
+
+                # Inline the user function
+                return tx.inline_user_function_return(user_func_variable, [arg], {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(arg, (variables.ExceptionVariable,)):
             if len(arg.args) == 0:
                 value = f"{arg.exc_type}"
@@ -1662,10 +1791,15 @@ class BuiltinVariable(VariableTracker):
                 else:
                     raw_b = b.raw_value
                 if self.fn is max:
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
                     raw_res = max(a.raw_value, raw_b)
                 else:
                     # pyrefly: ignore [missing-attribute]
+=======
+                    raw_res = max(a.raw_value, raw_b)
+                else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raw_res = min(a.raw_value, raw_b)
 
                 need_unwrap = any(
@@ -1746,7 +1880,11 @@ class BuiltinVariable(VariableTracker):
         )
 
     def call_slice(self, tx: "InstructionTranslator", *args):
+<<<<<<< HEAD
         return variables.SliceVariable(args, tx)
+=======
+        return variables.SliceVariable(args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _dyn_proxy(self, tx: "InstructionTranslator", *args, **kwargs):
         from .builder import wrap_fx_proxy
@@ -1783,7 +1921,11 @@ class BuiltinVariable(VariableTracker):
                     if (
                         getattr(obj, "source", False)
                         and isinstance(obj, ConstDictVariable)
+<<<<<<< HEAD
                         and not istype(obj, (SetVariable, FrozensetVariable))
+=======
+                        and not istype(obj, SetVariable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         tx.output.guard_on_key_order.add(obj.source)
 
@@ -1819,10 +1961,14 @@ class BuiltinVariable(VariableTracker):
                 list(obj.force_unpack_var_sequence(tx)),
                 mutation_type=ValueMutationNew(),
             )
+<<<<<<< HEAD
         elif isinstance(obj, variables.LocalGeneratorObjectVariable) or (
             isinstance(obj, UserDefinedObjectVariable)
             and obj.has_force_unpack_var_sequence(tx)
         ):
+=======
+        elif isinstance(obj, variables.LocalGeneratorObjectVariable):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self._call_iter_tuple_generator(tx, obj, *args, **kwargs)
         else:
             return self._call_iter_tuple_list(tx, obj, *args, **kwargs)
@@ -1830,10 +1976,13 @@ class BuiltinVariable(VariableTracker):
     def call_iter(self, tx: "InstructionTranslator", obj, *args, **kwargs):
         if isinstance(obj, variables.IteratorVariable):
             ret = obj
+<<<<<<< HEAD
         elif isinstance(obj, variables.RangeVariable):
             ret = obj.call_method(tx, "__iter__", [], {})
         elif isinstance(obj, variables.LocalGeneratorObjectVariable):
             ret = obj  # type: ignore[assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # Handle the case where we are iterating over a tuple, list or iterator
             ret = self._call_iter_tuple_list(tx, obj, *args, **kwargs)
@@ -1842,6 +1991,7 @@ class BuiltinVariable(VariableTracker):
             # If the object doesn't implement a __iter__ method, it will be an error in eager mode when calling iter on it anyway.
             # If the object implements a __iter__ method, inlining effectively forwards the call to another iter call
             # (e.g. when __iter__ just returns iter(self.list)) or return a user-defined iterator.
+<<<<<<< HEAD
             # If the object implements a __getitem__ method, iter(...) will call obj.__getitem__()
             # with an integer argument starting at 0, until __getitem__ raises IndexError
             ret = variables.UserFunctionVariable(
@@ -1854,6 +2004,9 @@ class BuiltinVariable(VariableTracker):
                 # Wrap the return value in a IteratorVariable subclass (LazyObjectIteratorVariable)
                 # that forwards the next_variable call to the object.
                 ret = variables.ObjectIteratorVariable(ret)
+=======
+            return obj.call_method(tx, "__iter__", args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ret
 
     call_tuple = _call_tuple_list
@@ -1899,17 +2052,21 @@ class BuiltinVariable(VariableTracker):
             hints=["Ensure your call to cast() has exactly 2 arguments."],
         )
 
+<<<<<<< HEAD
     def call_dir(self, tx: "InstructionTranslator", arg):
         if isinstance(arg, variables.UserDefinedClassVariable):
             return VariableTracker.build(tx, dir(arg.value))
         if isinstance(arg, BuiltinVariable):
             return VariableTracker.build(tx, dir(arg.fn))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_dict(self, tx: "InstructionTranslator", *args, **kwargs):
         return BuiltinVariable.call_custom_dict(tx, dict, *args, **kwargs)
 
     @staticmethod
     def call_custom_dict(tx: "InstructionTranslator", user_cls, *args, **kwargs):
+<<<<<<< HEAD
         args = list(args)
         if (
             len(args) == 1
@@ -1921,6 +2078,8 @@ class BuiltinVariable(VariableTracker):
             # VT(foo.__dict__). This simplifies the construction of the new
             # dict.
             args[0] = args[0].get_forwarded_dict(tx)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tx.inline_user_function_return(
             VariableTracker.build(tx, polyfills.construct_dict),
             [VariableTracker.build(tx, user_cls), *args],
@@ -1931,6 +2090,7 @@ class BuiltinVariable(VariableTracker):
     def call_custom_dict_fromkeys(
         tx: "InstructionTranslator", user_cls, *args, **kwargs
     ):
+<<<<<<< HEAD
         if user_cls not in {dict, OrderedDict, defaultdict}:
             unimplemented_v2(
                 gb_type="Unsupported dict type for fromkeys()",
@@ -1972,6 +2132,19 @@ class BuiltinVariable(VariableTracker):
                 "2 args",
                 f"{len(args)} args",
             )
+=======
+        assert user_cls in {dict, OrderedDict, defaultdict}
+        if kwargs:
+            # Only `OrderedDict.fromkeys` accepts `value` passed by keyword
+            assert user_cls is OrderedDict
+            assert len(args) == 1 and len(kwargs) == 1 and "value" in kwargs
+            args = (*args, kwargs.pop("value"))
+        if len(args) == 0:
+            raise UserError(TypeError, "fromkeys expected at least 1 argument, got 0")  # type: ignore[arg-type]
+        if len(args) == 1:
+            args = (*args, ConstantVariable.create(None))
+        assert len(args) == 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         arg, value = args
         DictVariableType = (
             ConstDictVariable if user_cls is not defaultdict else DefaultDictVariable
@@ -1980,16 +2153,23 @@ class BuiltinVariable(VariableTracker):
         if isinstance(arg, dict):
             arg = [ConstantVariable.create(k) for k in arg.keys()]
             return DictVariableType(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 dict.fromkeys(arg, value),
                 user_cls,
                 mutation_type=ValueMutationNew(),
+=======
+                dict.fromkeys(arg, value), user_cls, mutation_type=ValueMutationNew()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         elif arg.has_force_unpack_var_sequence(tx):
             keys = arg.force_unpack_var_sequence(tx)
             if all(is_hashable(v) for v in keys):
                 return DictVariableType(
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dict.fromkeys(keys, value),
                     user_cls,
                     mutation_type=ValueMutationNew(),
@@ -2023,7 +2203,11 @@ class BuiltinVariable(VariableTracker):
                 ],
             )
         arg = args[0]
+<<<<<<< HEAD
         if istype(arg, variables.SetVariable):
+=======
+        if isinstance(arg, variables.SetVariable):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return arg.clone(mutation_type=ValueMutationNew())
         elif arg.has_force_unpack_var_sequence(tx):
             items = arg.force_unpack_var_sequence(tx)
@@ -2058,10 +2242,17 @@ class BuiltinVariable(VariableTracker):
                 ],
             )
         arg = args[0]
+<<<<<<< HEAD
         if istype(arg, variables.FrozensetVariable):
             return FrozensetVariable([x.vt for x in arg.set_items])
         elif arg.has_force_unpack_var_sequence(tx):
             items = arg.force_unpack_var_sequence(tx)
+=======
+        if isinstance(arg, variables.FrozensetVariable):
+            return FrozensetVariable([x.vt for x in arg.set_items])
+        elif arg.has_unpack_var_sequence(tx):
+            items = arg.unpack_var_sequence(tx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return FrozensetVariable(items)
         raise_observed_exception(
             TypeError,
@@ -2071,6 +2262,7 @@ class BuiltinVariable(VariableTracker):
 
     def call_zip(self, tx: "InstructionTranslator", *args, **kwargs):
         if kwargs:
+<<<<<<< HEAD
             if not (len(kwargs) == 1 and "strict" in kwargs):
                 raise_args_mismatch(
                     tx,
@@ -2080,6 +2272,14 @@ class BuiltinVariable(VariableTracker):
                 )
         strict = kwargs.pop("strict", False)
         args = [BuiltinVariable(iter).call_function(tx, [arg], {}) for arg in args]
+=======
+            assert len(kwargs) == 1 and "strict" in kwargs
+        strict = kwargs.pop("strict", False)
+        args = [
+            arg.unpack_var_sequence(tx) if arg.has_unpack_var_sequence(tx) else arg
+            for arg in args
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return variables.ZipVariable(
             args, strict=strict, mutation_type=ValueMutationNew()
         )
@@ -2156,7 +2356,10 @@ class BuiltinVariable(VariableTracker):
             )
 
         if isinstance(arg, variables.UserDefinedExceptionClassVariable):
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ConstantVariable.create(isinstance(arg_type, isinstance_type))
 
         isinstance_type_tuple: tuple[type, ...]
@@ -2165,7 +2368,13 @@ class BuiltinVariable(VariableTracker):
             getattr(isinstance_type, "__instancecheck__", None)
         ):
             isinstance_type_tuple = (isinstance_type,)
+<<<<<<< HEAD
         elif isinstance(isinstance_type, types.UnionType):
+=======
+        elif sys.version_info >= (3, 10) and isinstance(
+            isinstance_type, types.UnionType
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             isinstance_type_tuple = isinstance_type.__args__
         elif isinstance(isinstance_type, tuple) and all(
             isinstance(tp, type) or callable(getattr(tp, "__instancecheck__", None))
@@ -2189,10 +2398,15 @@ class BuiltinVariable(VariableTracker):
             # through it. This is a limitation of the current implementation.
             # Usually `__subclasscheck__` and `__instancecheck__` can be constant fold through, it
             # might not be a big issue and we trade off it for performance.
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
             val = issubclass(arg_type, isinstance_type_tuple)
         except TypeError:
             # pyrefly: ignore [unbound-name]
+=======
+            val = issubclass(arg_type, isinstance_type_tuple)
+        except TypeError:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             val = arg_type in isinstance_type_tuple
         return variables.ConstantVariable.create(val)
 
@@ -2214,12 +2428,16 @@ class BuiltinVariable(VariableTracker):
 
         # WARNING: This might run arbitrary user code `__subclasscheck__`.
         # See the comment in call_isinstance above.
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return variables.ConstantVariable(issubclass(left_ty_py, right_ty_py))
 
     def call_super(self, tx: "InstructionTranslator", a, b):
         return variables.SuperVariable(a, b)
 
+<<<<<<< HEAD
     def call_next(self, tx: "InstructionTranslator", *args):
         arg = args[0]
         try:
@@ -2228,6 +2446,11 @@ class BuiltinVariable(VariableTracker):
             if len(args) == 2:
                 return args[1]
             raise
+=======
+    def call_next(self, tx: "InstructionTranslator", arg: VariableTracker):
+        try:
+            return arg.next_variable(tx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except Unsupported as ex:
             if isinstance(arg, variables.BaseListVariable):
                 ex.remove_from_stats()
@@ -2252,6 +2475,7 @@ class BuiltinVariable(VariableTracker):
         seq = seq.unpack_var_sequence(tx) if seq.has_unpack_var_sequence(tx) else seq
         return variables.FilterVariable(fn, seq, mutation_type=ValueMutationNew())
 
+<<<<<<< HEAD
     def var_getattr(self, tx: "InstructionTranslator", name):
         source = self.source and AttrSource(self.source, name)
         if self.fn is object:
@@ -2266,6 +2490,8 @@ class BuiltinVariable(VariableTracker):
                 return VariableTracker.build(tx, value, source)
         return variables.GetAttrVariable(self, name, source=source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_getattr(
         self,
         tx: "InstructionTranslator",
@@ -2361,6 +2587,11 @@ class BuiltinVariable(VariableTracker):
                     "assertRaisesRegex",
                     "assertNotWarns",
                     "assertWarnsRegex",
+<<<<<<< HEAD
+=======
+                    "assertDictEqual",
+                    "assertSequenceEqual",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "assertWarns",
                 )
             ):
@@ -2473,6 +2704,7 @@ class BuiltinVariable(VariableTracker):
                                 "the mutation out of `torch.compile` region",
                             ],
                         )
+<<<<<<< HEAD
                     elif obj.dtype != val.dtype:  # type: ignore[attr-defined]
                         unimplemented_v2(
                             gb_type="Failed to mutate tensor data attribute to different dtype",
@@ -2484,6 +2716,8 @@ class BuiltinVariable(VariableTracker):
                                 "the mutation out of `torch.compile` region",
                             ],
                         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                     # Remove the old reference in tracked fakes - if we don't do this
                     # new .data value size and shape differences will cause
@@ -2642,6 +2876,7 @@ class BuiltinVariable(VariableTracker):
                 (operator.neg)(a.as_proxy()),
                 sym_num=None,
             )
+<<<<<<< HEAD
 
         if (
             isinstance(a, UserDefinedObjectVariable)
@@ -2649,6 +2884,8 @@ class BuiltinVariable(VariableTracker):
         ):
             return a.call_method(tx, "__neg__", [], {})
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # None no-ops this handler and lets the driving function proceed
         return None
 
@@ -2667,10 +2904,14 @@ class BuiltinVariable(VariableTracker):
             (variables.UserDefinedClassVariable, variables.UserDefinedObjectVariable),
         ):
             if args[0].source:
+<<<<<<< HEAD
                 if isinstance(args[0], variables.UserDefinedClassVariable):
                     install_guard(args[0].source.make_guard(GuardBuilder.CLASS_MATCH))
                 else:
                     install_guard(args[0].source.make_guard(GuardBuilder.ID_MATCH))
+=======
+                install_guard(args[0].source.make_guard(GuardBuilder.ID_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             constant_result = id(args[0].value)
             return variables.ConstantVariable.create(constant_result)
         elif len(args) == 1 and isinstance(args[0], TensorVariable):
@@ -2785,6 +3026,7 @@ class BuiltinVariable(VariableTracker):
             sym_num=None,
         )
 
+<<<<<<< HEAD
     def call_xor(self, tx: "InstructionTranslator", a, b):
         if isinstance(a, (DictKeysVariable, SetVariable, UserDefinedObjectVariable)):
             return a.call_method(tx, "__xor__", [b], {})
@@ -2801,6 +3043,8 @@ class BuiltinVariable(VariableTracker):
         if isinstance(a, (DictKeysVariable, SetVariable, UserDefinedObjectVariable)):
             return a.call_method(tx, "__isub__", [b], {})
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_and_(self, tx: "InstructionTranslator", a, b):
         # Rely on constant_handler
         if isinstance(a, ConstantVariable) and isinstance(b, ConstantVariable):
@@ -2815,6 +3059,7 @@ class BuiltinVariable(VariableTracker):
                 ),
                 sym_num=None,
             )
+<<<<<<< HEAD
         if isinstance(a, (DictKeysVariable, SetVariable, UserDefinedObjectVariable)):
             return a.call_method(tx, "__and__", [b], {})
         # None no-ops this handler and lets the driving function proceed
@@ -2835,6 +3080,13 @@ class BuiltinVariable(VariableTracker):
             )
         if isinstance(a, (DictKeysVariable, SetVariable, UserDefinedObjectVariable)):
             return a.call_method(tx, "__iand__", [b], {})
+=======
+        if hasattr(a, "set_items") and hasattr(b, "set_items"):
+            return SetVariable(list(a.set_items & b.set_items))
+        # None no-ops this handler and lets the driving function proceed
+
+    call_iand = call_and_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_or_(self, tx: "InstructionTranslator", a, b):
         # Rely on constant_handler
@@ -2850,6 +3102,7 @@ class BuiltinVariable(VariableTracker):
                 ),
                 sym_num=None,
             )
+<<<<<<< HEAD
 
         # This call looks like `{"one": torch.ones(1)} | {"two": torch.ones(2)}`.
         if isinstance(
@@ -2900,6 +3153,17 @@ class BuiltinVariable(VariableTracker):
 
         # None no-ops this handler and lets the driving function proceed
         return None
+=======
+        if hasattr(a, "set_items") and hasattr(b, "set_items"):
+            return SetVariable(list(a.set_items | b.set_items))
+        # This call looks like `{"one": torch.ones(1)} | {"two": torch.ones(2)}`.
+        if isinstance(a, ConstDictVariable):
+            return a.call_method(tx, "__or__", args=[b], kwargs={})
+        # None no-ops this handler and lets the driving function proceed
+        return None
+
+    call_ior = call_or_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_not_(self, tx: "InstructionTranslator", a):
         if isinstance(a, SymNodeVariable):

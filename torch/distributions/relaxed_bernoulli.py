@@ -40,7 +40,10 @@ class LogitRelaxedBernoulli(Distribution):
     (Jang et al., 2017)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
     support = constraints.real
 
@@ -58,12 +61,18 @@ class LogitRelaxedBernoulli(Distribution):
             )
         if probs is not None:
             is_scalar = isinstance(probs, _Number)
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.probs,) = broadcast_all(probs)
         else:
             assert logits is not None  # helps mypy
             is_scalar = isinstance(logits, _Number)
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.logits,) = broadcast_all(logits)
         self._param = self.probs if probs is not None else self.logits
         if is_scalar:
@@ -141,10 +150,15 @@ class RelaxedBernoulli(TransformedDistribution):
     """
 
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     support = constraints.unit_interval
     has_rsample = True
     # pyrefly: ignore [bad-override]
+=======
+    support = constraints.unit_interval
+    has_rsample = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     base_dist: LogitRelaxedBernoulli
 
     def __init__(

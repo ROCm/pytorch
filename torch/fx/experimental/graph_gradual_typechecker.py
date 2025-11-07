@@ -1,9 +1,14 @@
 # mypy: allow-untyped-defs
 import itertools
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import reduce
 from typing import TypeVar
+=======
+from functools import reduce
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import sympy
@@ -83,7 +88,11 @@ def expand_to_tensor_dim(t, n):
 def broadcast_types(t1, t2):
     """
     Applies broadcasting to both given types such that they
+<<<<<<< HEAD
     become consistent with each other and returns two new
+=======
+    become consistent with eachother and returns two new
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     resulting types
     """
 
@@ -181,12 +190,20 @@ def add_inference_rule(n: Node):
     t2 = n.args[1].type
 
     # handle scalar addition
+<<<<<<< HEAD
     if t1 is int and isinstance(t2, TensorType):
+=======
+    if t1 == int and isinstance(t2, TensorType):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         n.type = t2
         return n.type
 
     # handle scalar addition
+<<<<<<< HEAD
     elif t2 is int and isinstance(t1, TensorType):
+=======
+    elif t2 == int and isinstance(t1, TensorType):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         n.type = t1
         return n.type
 
@@ -847,7 +864,11 @@ def flatten_refinement_rule(n: Node):
 @register_algebraic_expressions_inference_rule(Conv2d)
 def conv_rule(n: Node, module_instance):
     """
+<<<<<<< HEAD
     Represents the output in terms of an algrbraic expression w.r.t
+=======
+    Represents the outout in terms of an algrbraic expression w.r.t
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     the input when possible
     """
     assert isinstance(n.args[0], Node)
@@ -943,11 +964,21 @@ class Refine:
         if n.op == "call_function":
             if n.target in _REFINEMENT_RULES:
                 self.constraints += _REFINEMENT_RULES[n.target](n)
+<<<<<<< HEAD
+=======
+            else:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if n.op == "call_module":
             module_instance = self.traced.get_submodule(n.target)
             if type(module_instance) in _REFINEMENT_RULES:
                 self.constraints += _REFINEMENT_RULES[type(module_instance)](n)
+<<<<<<< HEAD
+=======
+            else:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if n.op == "output":
 
@@ -957,16 +988,32 @@ class Refine:
             n.type = torch.fx.node.map_arg(n.args[0], get_node_type)
             return n.type
 
+<<<<<<< HEAD
+=======
+        else:
+            pass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def infer_symbolic_relations(self, n: Node):
         n.type = self.convert_to_sympy_symbols(n.type)
         if n.op == "call_function":
             if n.target in _RULES:
                 return _RULES[n.target](n)
+<<<<<<< HEAD
+=======
+            else:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if n.op == "call_module":
             module_instance = self.traced.get_submodule(n.target)
             if type(module_instance) in _RULES:
                 return _RULES[type(module_instance)](n, module_instance)
+<<<<<<< HEAD
+=======
+            else:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if n.op == "output":
 
@@ -976,6 +1023,12 @@ class Refine:
             n.type = torch.fx.node.map_arg(n.args[0], get_node_type)
             return n.type
 
+<<<<<<< HEAD
+=======
+        else:
+            pass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def get_parameter(traced, target: str):
     """

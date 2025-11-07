@@ -14,6 +14,21 @@ using namespace c10::CachingDeviceAllocator;
 
 // newly allocated memory with 512-byte alignment.
 constexpr size_t kDeviceAlignment = 512;
+<<<<<<< HEAD
+=======
+// all sizes are rounded to at least 512 bytes
+constexpr size_t kMinBlockSize = 512;
+// largest "small" allocation is 1 MiB
+constexpr size_t kSmallSize = 1048576;
+// "small" allocations are packed in 2 MiB blocks
+constexpr size_t kSmallBuffer = 2097152;
+// "large" allocations may be packed in 20 MiB blocks
+constexpr size_t kLargeBuffer = 20971520;
+// allocations between 1 and 10 MiB may use kLargeBuffer
+constexpr size_t kMinLargeAlloc = 10485760;
+// round up large allocations to 2 MiB
+constexpr size_t kRoundLarge = 2097152;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace {
 using stream_set = ska::flat_hash_set<xpu::XPUStream>;
@@ -123,8 +138,11 @@ class DeviceCachingAllocator {
   ska::flat_hash_map<xpu::XPUStream, std::deque<std::pair<sycl::event, Block*>>>
       xpu_events;
   DeviceIndex device_index;
+<<<<<<< HEAD
   size_t allowed_memory_maximum = 0;
   bool set_fraction = false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   size_t try_merge_blocks(Block* dst, Block* src, BlockPool& pool) {
     if (!src || src->allocated || src->event_count > 0 ||
@@ -247,12 +265,15 @@ class DeviceCachingAllocator {
     if (isRetry) {
       stats.num_alloc_retries += 1;
     }
+<<<<<<< HEAD
     if (set_fraction &&
         stats.reserved_bytes[static_cast<size_t>(StatType::AGGREGATE)].current +
                 size >
             allowed_memory_maximum) {
       return false;
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void* ptr = sycl::aligned_alloc_device(
         kDeviceAlignment,
         size,
@@ -431,6 +452,7 @@ class DeviceCachingAllocator {
       c10::xpu::DeviceProp device_prop;
       c10::xpu::get_device_properties(&device_prop, device);
       auto device_total = device_prop.global_mem_size;
+<<<<<<< HEAD
       // Estimate the available device memory when the SYCL runtime does not
       // support the corresponding aspect (ext_intel_free_memory).
       size_t device_free = device_prop.global_mem_size -
@@ -448,6 +470,8 @@ class DeviceCachingAllocator {
         allowed_info = format_size(allowed_memory_maximum) + " allowed; ";
       }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto allocated_bytes =
           stats.allocated_bytes[static_cast<size_t>(StatType::AGGREGATE)]
               .current;
@@ -470,11 +494,15 @@ class DeviceCachingAllocator {
           static_cast<int>(device),
           " has a total capacity of ",
           format_size(device_total),
+<<<<<<< HEAD
           " of which ",
           format_size(device_free),
           " is free. ",
           allowed_info,
           "Of the allocated memory ",
+=======
+          ". Of the allocated memory ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           format_size(allocated_bytes),
           " is allocated by PyTorch, and ",
           format_size(reserved_bytes - allocated_bytes),
@@ -553,6 +581,7 @@ class DeviceCachingAllocator {
       stats.requested_bytes[statType].reset_peak();
     }
   }
+<<<<<<< HEAD
 
   void setMemoryFraction(double fraction) {
     c10::xpu::DeviceProp device_prop;
@@ -561,13 +590,21 @@ class DeviceCachingAllocator {
     allowed_memory_maximum = static_cast<size_t>(fraction * device_total);
     set_fraction = true;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 static void local_raw_delete(void* ptr);
 
+<<<<<<< HEAD
 class XPUAllocator : public DeviceAllocator {
  private:
   alignas(hardware_destructive_interference_size) std::mutex mutex;
+=======
+class XPUAllocator : public Allocator {
+ private:
+  std::mutex mutex;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ska::flat_hash_map<void*, Block*> allocated_blocks;
 
   void add_allocated_block(Block* block) {
@@ -601,10 +638,13 @@ class XPUAllocator : public DeviceAllocator {
     }
   }
 
+<<<<<<< HEAD
   bool initialized() override {
     return !device_allocators.empty();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void malloc(
       void** devPtr,
       DeviceIndex device,
@@ -639,13 +679,21 @@ class XPUAllocator : public DeviceAllocator {
     }
   }
 
+<<<<<<< HEAD
   void emptyCache(MempoolId_t mempool_id [[maybe_unused]] = {0, 0}) override {
+=======
+  void emptyCache() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto& da : device_allocators) {
       da->emptyCache();
     }
   }
 
+<<<<<<< HEAD
   void recordStream(const DataPtr& ptr, c10::Stream stream) override {
+=======
+  void recordStream(const DataPtr& ptr, XPUStream stream) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!ptr.get()) {
       return;
     }
@@ -655,8 +703,12 @@ class XPUAllocator : public DeviceAllocator {
 
     Block* block = get_allocated_block(ptr.get());
     TORCH_CHECK(block, "No allocated block can be found.");
+<<<<<<< HEAD
     c10::xpu::XPUStream xpu_stream{stream};
     device_allocators[block->device]->recordStream(block, xpu_stream);
+=======
+    device_allocators[block->device]->recordStream(block, stream);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   DataPtr allocate(size_t size) override {
@@ -709,16 +761,25 @@ class XPUAllocator : public DeviceAllocator {
         ": did you call init?");
   }
 
+<<<<<<< HEAD
   DeviceStats getDeviceStats(DeviceIndex device) override {
+=======
+  DeviceStats getDeviceStats(DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertValidDevice(device);
     return device_allocators[device]->getStats();
   }
 
+<<<<<<< HEAD
   void resetPeakStats(DeviceIndex device) override {
+=======
+  void resetPeakStats(DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertValidDevice(device);
     device_allocators[device]->resetPeakStats();
   }
 
+<<<<<<< HEAD
   void resetAccumulatedStats(DeviceIndex device) override {
     assertValidDevice(device);
     device_allocators[device]->resetAccumulatedStats();
@@ -733,6 +794,12 @@ class XPUAllocator : public DeviceAllocator {
         ". Please set within (0, 1].");
     device_allocators[device]->setMemoryFraction(fraction);
   }
+=======
+  void resetAccumulatedStats(DeviceIndex device) {
+    assertValidDevice(device);
+    device_allocators[device]->resetAccumulatedStats();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 static XPUAllocator allocator;
@@ -777,10 +844,13 @@ void recordStream(const DataPtr& dataPtr, XPUStream stream) {
   return allocator.recordStream(dataPtr, stream);
 }
 
+<<<<<<< HEAD
 void setMemoryFraction(double fraction, DeviceIndex device) {
   return allocator.setMemoryFraction(fraction, device);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_ALLOCATOR(kXPU, &allocator)
 
 } // namespace c10::xpu::XPUCachingAllocator

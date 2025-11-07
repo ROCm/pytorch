@@ -13,6 +13,7 @@ aten = torch.ops.aten
 
 def _requires_data_exchange(padding):
     # TODO: whether there requires data exchange is currently determined by padding
+<<<<<<< HEAD
     return padding[-1] != 0
 
 
@@ -32,6 +33,27 @@ def _is_supported(input_size, kernel_size, stride, padding, dilation):
         if not (input_size[-1] % stride[-1] == 0 and stride[-1] == kernel_size[-1]):
             raise RuntimeError(
                 "It requires that input_size[-1] is divisible by stride[-1] and stride[-1] equals kernel_size[-1] "
+=======
+    return padding[1] != 0
+
+
+def _is_supported(input_size, kernel_size, stride, padding, dilation):
+    if dilation[1] != 1:
+        raise RuntimeError("Dilation must be 1 for tensor parallel convolution.")
+    if padding[1] != 0:
+        if stride[1] != 1:
+            raise RuntimeError(
+                "Stride must be 1 when there is padding for tensor parallel convolution."
+            )
+        if kernel_size[3] // 2 > input_size[3]:
+            raise RuntimeError(
+                "kernel_size[3] // 2 should be less than or equal to input_size[3] for tensor parallel convolution."
+            )
+    else:
+        if not (input_size[3] % stride[1] == 0 and stride[1] == kernel_size[3]):
+            raise RuntimeError(
+                "It requires that input_size[3] is divisible by stride[1] and stride[1] equals kernel_size[3] "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "when there is padding for tensor parallel convolution."
             )
     return True
@@ -39,8 +61,13 @@ def _is_supported(input_size, kernel_size, stride, padding, dilation):
 
 def _ring_send_recv_construct(in_tensor, d1, d2, left, right, rank, size):
     # dist comms and reconstruct local input tensor
+<<<<<<< HEAD
     send_to_right = in_tensor[..., -d1:].contiguous()
     send_to_left = in_tensor[..., :d2].contiguous()
+=======
+    send_to_right = in_tensor[:, :, :, -d1:].contiguous()
+    send_to_left = in_tensor[:, :, :, :d2].contiguous()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     recv_from_right = torch.zeros_like(send_to_left)
     recv_from_left = torch.zeros_like(send_to_right)
 
@@ -125,7 +152,11 @@ def tp_convolution(
         return local_results
     else:
         # step 0 compute the overlap pixels of the input tensor
+<<<<<<< HEAD
         d = weight.shape[-1] - 1
+=======
+        d = weight.shape[3] - 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d1 = d // 2
         d2 = d - d1
         assert d1 + d2 == d
@@ -144,6 +175,7 @@ def tp_convolution(
         local_results = op_call(*local_tensor_args, **local_tensor_kwargs)
 
         # step3 remove extra outputs from the results
+<<<<<<< HEAD
         padding_w = padding[-1]
         w = local_results.size(-1)
         if rank == 0:
@@ -152,6 +184,16 @@ def tp_convolution(
             local_results = local_results[..., padding_w:]
         else:
             local_results = local_results[..., padding_w : w - padding_w]
+=======
+        padding_w = padding[1]
+        w = local_results.size(3)
+        if rank == 0:
+            local_results = local_results[:, :, :, : w - padding_w]
+        elif rank == size - 1:
+            local_results = local_results[:, :, :, padding_w:]
+        else:
+            local_results = local_results[:, :, :, padding_w : w - padding_w]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return local_results
 
@@ -256,10 +298,15 @@ def convolution_backward_handler(
     kwargs: dict[str, object],
 ) -> object:
     # Redistribute grad_output tensor to the same placement as input tensor
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
     args = list(args)
     assert isinstance(args[0], dtensor.DTensor) and isinstance(args[1], dtensor.DTensor)
     # pyrefly: ignore [unsupported-operation]
+=======
+    args = list(args)
+    assert isinstance(args[0], dtensor.DTensor) and isinstance(args[1], dtensor.DTensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     args[0] = args[0].redistribute(args[1].device_mesh, args[1].placements)
     args = tuple(args)
 

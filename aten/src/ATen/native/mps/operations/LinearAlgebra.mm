@@ -6,11 +6,18 @@
 #include <ATen/native/LinearAlgebra.h>
 #include <ATen/native/LinearAlgebraUtils.h>
 #include <ATen/native/Resize.h>
+<<<<<<< HEAD
 #include <ATen/native/mps/MPSGraphSequoiaOps.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/native/mps/kernels/LinearAlgebra.h>
 
 #include <fmt/format.h>
+=======
+// For MTLLanguageVersion_3_1
+#include <ATen/native/mps/MPSGraphSequoiaOps.h>
+#include <ATen/native/mps/MPSGraphSonomaOps.h>
+#include <ATen/native/mps/OperationUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -23,7 +30,10 @@
 #include <ATen/ops/baddbmm_native.h>
 #include <ATen/ops/bmm_native.h>
 #include <ATen/ops/cholesky_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/eye_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/linalg_cholesky_ex_native.h>
 #include <ATen/ops/linalg_inv_ex_native.h>
 #include <ATen/ops/linalg_lu_factor_ex_native.h>
@@ -31,7 +41,10 @@
 #include <ATen/ops/linalg_solve_triangular_native.h>
 #include <ATen/ops/lu_unpack_native.h>
 #include <ATen/ops/mm_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/orgqr_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/slice.h>
 #include <ATen/ops/stack.h>
 #include <ATen/ops/triangular_solve_native.h>
@@ -115,6 +128,7 @@ Tensor& do_metal_bmm(const Tensor& batch1, const Tensor& batch2, Tensor& output)
   return output;
 }
 
+<<<<<<< HEAD
 Tensor& do_metal_addmm(const Tensor& self,
                        const Tensor& other,
                        Tensor& output,
@@ -170,6 +184,8 @@ Tensor& do_metal_addmm(const Tensor& self,
   return output;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::tuple<MPSGraphTensor*, MPSGraphTensor*, MPSGraphTensor*> do_mm(MPSGraph* graph,
                                                                     const Tensor& self,
                                                                     const Tensor& other) {
@@ -200,6 +216,7 @@ bool use_metal_mm(const Tensor& self, const Tensor& other, const Tensor& output)
        other.size(0) > max_stride_size || other.size(1) > max_stride_size);
 }
 
+<<<<<<< HEAD
 void map_mps_decomposition_error_code_to_blas(const Tensor& status) {
   const auto& status_flat = status.view(-1);
 
@@ -222,6 +239,8 @@ void map_mps_decomposition_error_code_to_blas(const Tensor& status) {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // anonymous namespace
 
 static void linalg_lu_factor_ex_out_mps_impl(const Tensor& A,
@@ -342,8 +361,11 @@ static void linalg_lu_factor_ex_out_mps_impl(const Tensor& A,
           ". See https://developer.apple.com/documentation/metalperformanceshaders/mpsmatrixdecompositionstatus for details.");
     }
   }
+<<<<<<< HEAD
 
   map_mps_decomposition_error_code_to_blas(info);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static void linalg_solve_out_mps_impl(const Tensor& A,
@@ -515,9 +537,12 @@ static void linalg_solve_out_mps_impl(const Tensor& A,
                   "mpsmatrixdecompositionstatus for details.");
     }
   }
+<<<<<<< HEAD
 
   map_mps_decomposition_error_code_to_blas(info);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!left) {
     // If this was a right solve, transpose the result back
     result.copy_(result_t.transpose(-2, -1).contiguous());
@@ -528,12 +553,21 @@ static void linalg_inv_ex_out_mps_impl(const Tensor& A, bool check_errors, const
   using namespace mps;
   TORCH_CHECK(result.is_mps(), "Output tensor is not MPS");
   TORCH_CHECK(!A.is_complex(), "linalg_inv: not supported for complex types yet!");
+<<<<<<< HEAD
 
   info.zero_();
+=======
+  using CachedGraph = MPSUnaryCachedGraph;
+
+  MPSStream* stream = getCurrentMPSStream();
+  info.zero_();
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (A.numel() == 0) {
     return;
   }
 
+<<<<<<< HEAD
   auto A_sizes = A.sizes();
   int ndim = A.dim();
 
@@ -546,6 +580,19 @@ static void linalg_inv_ex_out_mps_impl(const Tensor& A, bool check_errors, const
   Tensor tmp = empty_like(A, MemoryFormat::Contiguous);
   linalg_solve_out_mps_impl(A, identity, true, check_errors, tmp, LU, pivots, info);
   result.copy_(tmp);
+=======
+  if (!result.is_contiguous()) {
+    result.unsafeGetTensorImpl()->empty_tensor_restride(MemoryFormat::Contiguous);
+  }
+  auto A_sizes = A.sizes();
+  int ndim = A.dim();
+
+  Tensor LU = empty_like(A);
+  Tensor identity = zeros_like(A);
+  Tensor pivots = empty({A_sizes.begin(), A_sizes.end() - 1}, A.options().dtype(kInt));
+  (ndim == 2 ? identity.diagonal() : identity.diagonal(0, -2, -1)).fill_(1);
+  linalg_solve_out_mps_impl(A, identity, true, check_errors, result, LU, pivots, info);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static Tensor& mm_out_mps_impl(const Tensor& self, const Tensor& other, Tensor& output) {
@@ -727,6 +774,10 @@ static Tensor& addmm_out_mps_impl(const Tensor& bias,
 
   TORCH_CHECK(output.is_mps());
   TORCH_CHECK(self.dim() == 2 && other.dim() == 2, "tensors must be 2-D");
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(supportedFloatingOrComplexType(self), "MPS device does not support addmm for non-float input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TensorArg args[]{{output, "out", 0}, {bias, "self", 1}, {self, "mat1", 2}, {other, "mat2", 3}};
   checkAllSameGPU(__func__, args);
@@ -753,10 +804,13 @@ static Tensor& addmm_out_mps_impl(const Tensor& bias,
     return output;
   }
 
+<<<<<<< HEAD
   if (use_metal_mm(self, other, output)) {
     return do_metal_addmm(self, other, output, alpha, beta, *bias_);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_beta_non_zero = beta.toDouble() != 0.0;
 
   struct CachedGraph : public mps::MPSCachedGraph {
@@ -1239,6 +1293,7 @@ static void cholesky_stub_impl(const Tensor& out, const Tensor& info, bool upper
   }
 }
 
+<<<<<<< HEAD
 static Tensor& orgqr_stub_impl(Tensor& self, const Tensor& tau) {
   if (self.numel() == 0) {
     return self;
@@ -1302,6 +1357,8 @@ static Tensor& orgqr_stub_impl(Tensor& self, const Tensor& tau) {
   return self;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace mps
 
 Tensor addr_mps(const Tensor& self, const Tensor& vec1, const Tensor& vec2, const Scalar& beta, const Scalar& alpha) {
@@ -1517,6 +1574,23 @@ TORCH_IMPL_FUNC(_linalg_solve_ex_out_mps)
   mps::linalg_solve_out_mps_impl(A, B, left, check_errors, result, LU, pivots, info);
 }
 
+<<<<<<< HEAD
+=======
+std::tuple<Tensor&, Tensor&> linalg_lu_factor_out_mps(const Tensor& A, bool pivot, Tensor& LU, Tensor& pivots) {
+  Tensor info = at::empty({}, A.options().dtype(kInt));
+  mps::linalg_lu_factor_ex_out_mps_impl(A, pivot, LU, pivots, info, false);
+  return std::tie(LU, pivots);
+}
+
+std::tuple<Tensor, Tensor> linalg_lu_factor_mps(const Tensor& A, bool pivot) {
+  Tensor LU = at::empty({0}, A.options());
+  Tensor pivots = at::empty({0}, A.options().dtype(kInt));
+  Tensor info = at::empty({}, A.options().dtype(kInt));
+  mps::linalg_lu_factor_ex_out_mps_impl(A, pivot, LU, pivots, info, false);
+  return std::make_tuple(std::move(LU), std::move(pivots));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_IMPL_FUNC(lu_unpack_out_mps)
 (const Tensor& LU_data,
  const Tensor& LU_pivots,
@@ -1538,6 +1612,9 @@ TORCH_IMPL_FUNC(linalg_inv_ex_out_mps)(const Tensor& A, bool check_errors, const
 }
 
 REGISTER_DISPATCH(cholesky_stub, mps::cholesky_stub_impl)
+<<<<<<< HEAD
 REGISTER_DISPATCH(orgqr_stub, mps::orgqr_stub_impl);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

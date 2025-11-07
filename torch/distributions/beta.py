@@ -31,7 +31,10 @@ class Beta(ExponentialFamily):
             (often referred to as beta)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "concentration1": constraints.positive,
         "concentration0": constraints.positive,
@@ -114,6 +117,9 @@ class Beta(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor, Tensor]:
         return (self.concentration1, self.concentration0)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x, y):
         return torch.lgamma(x) + torch.lgamma(y) - torch.lgamma(x + y)

@@ -1,6 +1,14 @@
 import dataclasses
+<<<<<<< HEAD
 import itertools
 from collections import Counter, defaultdict
+=======
+import functools
+import itertools
+import sys
+from collections import Counter, defaultdict
+from collections.abc import Iterable, Iterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Callable, Literal, Optional, overload, TYPE_CHECKING, TypeVar, Union
 
 import sympy
@@ -126,14 +134,21 @@ def solve_for_tiling(expr: sympy.Expr) -> Optional[sympy.Expr]:
 
     # For the purposes of tiling/coalesced access, approximate ModularIndexing and FloorDiv
     # then check later
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     eq_1_expr_simplified = eq_1_expr.replace(ModularIndexing, indexing_div_rep).replace(
         FloorDiv, indexing_div_rep
     )
 
     out = _solve_simple_expr(eq_1_expr_simplified)
     # since we approximated FloorDiv/ModularIndexing, double check here
+<<<<<<< HEAD
     if not out or sympy_subs(eq_1_expr, {free_symbol: out}) != 1:
+=======
+    if not out or not (sympy_subs(eq_1_expr, {free_symbol: out})) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
     required_values.append(out)
@@ -371,6 +386,23 @@ class NodeSplitGetter:
         return pw, red
 
 
+<<<<<<< HEAD
+=======
+if sys.version_info >= (3, 10):
+    # On Python 3.10+ we can use zip(strict=True)
+    zip_equal = functools.partial(zip, strict=True)
+else:
+    # Fallback for older versions
+    def zip_equal(it1: Iterable[T], it2: Iterable[U]) -> Iterator[tuple[T, U]]:
+        """
+        Zip two iterables, raising ValueError if their lengths differ.
+        """
+        if len(it1) != len(it2):
+            raise ValueError(f"Lengths differ: {len(it1)} != {len(it2)}")
+        return zip(it1, it2)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def apply_var_mapping(
     iter_vars: list[sympy.Symbol],
     red_vars: list[sympy.Symbol],
@@ -408,7 +440,11 @@ def apply_var_mapping(
 
     iter_vars_to_flat_vars = {}
     for i, (group, var_group) in enumerate(
+<<<<<<< HEAD
         zip(apply_groups, (iter_vars, red_vars), strict=True)
+=======
+        zip_equal(apply_groups, ((iter_vars, red_vars)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # if the node has sizes (p0, 1) and the fused node is (p0, r0)
         # the reduction var gets filled in for split_iteration_range
@@ -421,9 +457,13 @@ def apply_var_mapping(
 
     count = 0
     flat_vars_to_new_vars = {}
+<<<<<<< HEAD
     for new_range, new_var in zip(
         new_ranges, norm_pw_vars + norm_red_vars, strict=True
     ):
+=======
+    for new_range, new_var in zip_equal(new_ranges, norm_pw_vars + norm_red_vars):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         range_vars = []
         for i in range(len(new_range)):
             range_vars.append(flat_vars[count])
@@ -477,6 +517,10 @@ def extract_normalized_read_writes(
     (norm_pw_vars, norm_red_vars), ranges = index_vars_no_squeeze(
         pw_splits, red_splits, prefix="n"
     )
+<<<<<<< HEAD
+=======
+    node = node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for n in list(node.get_nodes()):
         if not isinstance(n, torch._inductor.scheduler.SchedulerNode):
@@ -575,7 +619,11 @@ def get_score(addr: sympy.Expr, var_ranges: dict[sympy.Symbol, int]) -> int:
     # TODO - deduplicate with candidate_tilings
     var_sizes = []
     for v in addr.free_symbols:
+<<<<<<< HEAD
         v_size = var_ranges.get(v)
+=======
+        v_size = var_ranges.get(v, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO - reason about indirect vars
         if not symbol_is_type(v, SymT.INDIRECT) and v_size is not None:
             var_sizes.append(v_size)

@@ -60,6 +60,7 @@ def create_activation_checkpointing_logging_structure_payload(
     expected_runtime: float,
     saved_node_idxs: list[int],
     recomputable_node_idxs: list[int],
+<<<<<<< HEAD
     memories_banned_nodes: list[int],
     normalized_memories_banned_nodes: list[float],
     runtimes_banned_nodes: list[float],
@@ -86,6 +87,12 @@ def create_activation_checkpointing_logging_structure_payload(
     Returns:
         A dictionary containing structured logging information for activation checkpointing.
     """
+=======
+    memories_banned_nodes: list[float],
+    runtimes_banned_nodes: list[float],
+    min_cut_saved_values: list[Node],
+) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     activation_checkpointing_logging_structure_payload: dict[str, Any] = {
         "Joint Graph Size": len(joint_graph.nodes),
         "Joint Graph Edges": {
@@ -99,8 +106,12 @@ def create_activation_checkpointing_logging_structure_payload(
         "Expected Runtime": expected_runtime,
         "Knapsack Saved Nodes": saved_node_idxs,
         "Knapsack Recomputed Nodes": recomputable_node_idxs,
+<<<<<<< HEAD
         "Absolute Memories": memories_banned_nodes,
         "Knapsack Input Memories": normalized_memories_banned_nodes,
+=======
+        "Knapsack Input Memories": memories_banned_nodes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Knapsack Input Runtimes": runtimes_banned_nodes,
         "Min Cut Solution Saved Values": [node.name for node in min_cut_saved_values],
     }
@@ -113,6 +124,7 @@ def create_structured_trace_for_min_cut_info(
     saved_node_idxs: list[int],
     recomputable_node_idxs: list[int],
     expected_runtime: float,
+<<<<<<< HEAD
     memories_banned_nodes: list[int],
     normalized_memories_banned_nodes: list[float],
     runtimes_banned_nodes: list[float],
@@ -139,11 +151,23 @@ def create_structured_trace_for_min_cut_info(
     }
 
     # Create joint graph node information
+=======
+    memories_banned_nodes: list[float],
+    runtimes_banned_nodes: list[float],
+    min_cut_saved_values: list[Node],
+) -> None:
+    recomputable_node_info: dict[str, int] = {
+        node.name: idx for idx, node in enumerate(all_recomputable_banned_nodes)
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     joint_graph_node_information = create_joint_graph_node_information(
         joint_graph, recomputable_node_info
     )
 
+<<<<<<< HEAD
     # Update node information with recomputable candidate details
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node_name, node_info in joint_graph_node_information.items():
         if node_info["is_recomputable_candidate"]:
             idx = recomputable_node_info[node_name]
@@ -160,6 +184,7 @@ def create_structured_trace_for_min_cut_info(
                 idx in recomputable_node_idxs
             )
 
+<<<<<<< HEAD
     # Create joint graph edges
     joint_graph_edges = create_joint_graph_edges(joint_graph)
 
@@ -184,6 +209,30 @@ def create_structured_trace_for_min_cut_info(
     trace_structured(
         "artifact",
         metadata_fn=lambda: {"name": "min_cut_information", "encoding": "json"},
+=======
+    joint_graph_edges = create_joint_graph_edges(joint_graph)
+    activation_checkpointing_logging_structure_payload = (
+        create_activation_checkpointing_logging_structure_payload(
+            joint_graph,
+            joint_graph_node_information,
+            joint_graph_edges,
+            all_recomputable_banned_nodes,
+            expected_runtime,
+            saved_node_idxs,
+            recomputable_node_idxs,
+            memories_banned_nodes,
+            runtimes_banned_nodes,
+            min_cut_saved_values,
+        )
+    )
+
+    trace_structured(
+        "artifact",
+        metadata_fn=lambda: {
+            "name": "min_cut_information",
+            "encoding": "json",
+        },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         payload_fn=lambda: json.dumps(
             activation_checkpointing_logging_structure_payload
         ),

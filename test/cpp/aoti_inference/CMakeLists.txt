@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 set(AOT_INDUCTOR_TEST_ROOT ${TORCH_ROOT}/test/cpp/aoti_inference)
 
 # Build custom TorchScript op for AOTInductor
@@ -7,12 +11,35 @@ set_target_properties(aoti_custom_class PROPERTIES
 if(USE_CUDA)
   target_compile_definitions(aoti_custom_class PRIVATE USE_CUDA)
 elseif(USE_ROCM)
+<<<<<<< HEAD
   target_compile_definitions(aoti_custom_class PRIVATE USE_ROCM)
 endif()
 
 # Link against LibTorch
 target_link_libraries(aoti_custom_class torch)
 
+=======
+    target_compile_definitions(aoti_custom_class PRIVATE USE_ROCM)
+endif()
+# Link against LibTorch
+target_link_libraries(aoti_custom_class torch)
+
+# the custom command that generates the TorchScript module
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/script_data.pt
+           ${CMAKE_CURRENT_BINARY_DIR}/script_model_cpu.pt
+           ${CMAKE_CURRENT_BINARY_DIR}/script_model_cuda.pt
+    COMMAND python ${AOT_INDUCTOR_TEST_ROOT}/compile_model.py
+    DEPENDS compile_model.py
+)
+add_custom_target(aoti_script_model ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/script_data.pt
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/script_model_cpu.pt
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/script_model_cuda.pt
+)
+add_dependencies(aoti_script_model aoti_custom_class)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Build the cpp gtest binary containing the cpp-only tests.
 set(INDUCTOR_TEST_SRCS
   ${AOT_INDUCTOR_TEST_ROOT}/test.cpp
@@ -21,12 +48,31 @@ set(INDUCTOR_TEST_SRCS
 add_executable(test_aoti_inference
   ${TORCH_ROOT}/test/cpp/common/main.cpp
   ${INDUCTOR_TEST_SRCS}
+<<<<<<< HEAD
 )
 add_dependencies(test_aoti_inference aoti_custom_class)
+=======
+  data.pt
+  script_data.pt
+  script_model_cpu.pt
+  script_model_cuda.pt
+)
+add_dependencies(test_aoti_inference aoti_custom_class aoti_script_model)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO temporary until we can delete the old gtest polyfills.
 target_compile_definitions(test_aoti_inference PRIVATE USE_GTEST)
 
+<<<<<<< HEAD
+=======
+# Define a custom command to generate the library
+add_custom_command(
+        OUTPUT data.pt
+        COMMAND python ${AOT_INDUCTOR_TEST_ROOT}/test.py
+        DEPENDS ${AOT_INDUCTOR_TEST_ROOT}/test.py
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 target_link_libraries(test_aoti_inference PRIVATE
   torch
   gtest_main
@@ -44,10 +90,13 @@ target_compile_definitions(test_aoti_inference PRIVATE
     CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
 )
 
+<<<<<<< HEAD
 target_compile_options_if_supported(test_aoti_inference -Wno-unused-variable)
 target_compile_options_if_supported(test_aoti_inference -Wno-unused-but-set-variable)
 target_compile_options_if_supported(test_aoti_inference -Wno-unused-function)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(INSTALL_TEST)
   install(TARGETS test_aoti_inference DESTINATION bin)
   # Install PDB files for MSVC builds

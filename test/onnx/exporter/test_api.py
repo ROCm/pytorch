@@ -4,12 +4,22 @@
 from __future__ import annotations
 
 import io
+<<<<<<< HEAD
 import logging
 import os
 
 from onnxscript import BOOL, FLOAT, opset18 as op
 
 import torch
+=======
+import os
+
+import numpy as np
+from onnxscript import BOOL, FLOAT, ir, opset18 as op
+
+import torch
+import torch.onnx._flags
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.onnx._internal.exporter import _testing as onnx_testing
 from torch.testing._internal import common_utils
 
@@ -28,11 +38,14 @@ class SampleModelTwoInputs(torch.nn.Module):
         return (y, z)
 
 
+<<<<<<< HEAD
 class SampleModelReduction(torch.nn.Module):
     def forward(self, x):
         return x.sum()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SampleModelForDynamicShapes(torch.nn.Module):
     def forward(self, x, b):
         return x.relu(), b.sigmoid()
@@ -70,7 +83,10 @@ class TestExportAPIDynamo(common_utils.TestCase):
         )
         assert onnx_program is not None
         onnx_testing.assert_onnx_program(onnx_program, strategy=strategy)
+<<<<<<< HEAD
         return onnx_program
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_args_normalization_with_no_kwargs(self):
         self.assert_export(
@@ -78,6 +94,7 @@ class TestExportAPIDynamo(common_utils.TestCase):
             (torch.randn(1, 1, 2), torch.randn(1, 1, 2)),
         )
 
+<<<<<<< HEAD
     def test_lower_opset_support(self):
         # First test that opset 18 (torchlib opset works)
         onnx_program = self.assert_export(
@@ -152,6 +169,8 @@ class TestExportAPIDynamo(common_utils.TestCase):
 
         self.assertEqual(len(onnx_program.model.graph.inputs), 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_axes_enable_dynamic_shapes_with_fully_specified_axes(self):
         self.assert_export(
             SampleModelForDynamicShapes(),
@@ -202,6 +221,7 @@ class TestExportAPIDynamo(common_utils.TestCase):
             dynamic_axes={"b": [0, 1, 2], "b_out": [0, 1, 2]},
         )
 
+<<<<<<< HEAD
     def test_from_dynamic_axes_to_dynamic_shapes_deprecation_warning(self):
         with self.assertWarnsRegex(
             DeprecationWarning,
@@ -247,6 +267,8 @@ class TestExportAPIDynamo(common_utils.TestCase):
         self.assertIs(onnx_program.model.graph.inputs[1].shape[1].value, "customb_b_1")
         self.assertIs(onnx_program.model.graph.inputs[1].shape[2].value, "customb_b_2")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_saved_f_exists_after_export(self):
         with common_utils.TemporaryFileName(suffix=".onnx") as path:
             _ = torch.onnx.export(
@@ -295,6 +317,38 @@ class TestExportAPIDynamo(common_utils.TestCase):
             },
         )
 
+<<<<<<< HEAD
+=======
+    def test_auto_convert_all_axes_to_dynamic_shapes_with_dynamo_export(self):
+        torch.onnx._flags.USE_EXPERIMENTAL_LOGIC = True
+
+        class Nested(torch.nn.Module):
+            def forward(self, x):
+                (a0, a1), (b0, b1), (c0, c1, c2) = x
+                return a0 + a1 + b0 + b1 + c0 + c1 + c2
+
+        inputs = (
+            (1, 2),
+            (
+                torch.randn(4, 4),
+                torch.randn(4, 4),
+            ),
+            (
+                torch.randn(4, 4),
+                torch.randn(4, 4),
+                torch.randn(4, 4),
+            ),
+        )
+
+        onnx_program = torch.onnx.dynamo_export(
+            Nested(),
+            inputs,
+            export_options=torch.onnx.ExportOptions(dynamic_shapes=True),
+        )
+        assert onnx_program is not None
+        onnx_testing.assert_onnx_program(onnx_program)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_shapes_supports_nested_input_model_with_input_names_assigned(self):
         # kwargs can still be renamed as long as it's in order
         input_names = ["input_x", "input_y", "input_z", "d", "e", "f"]
@@ -342,11 +396,18 @@ class TestExportAPIDynamo(common_utils.TestCase):
                 # Use GELU activation function
                 return torch.nn.functional.gelu(input, approximate="tanh")
 
+<<<<<<< HEAD
         input = (torch.randn(1, 3, 4, 4),)
         onnx_program_op18 = torch.onnx.export(
             GeluModel(),
             input,
             opset_version=18,
+=======
+        input = torch.randn(1, 3, 4, 4)
+        onnx_program_op18 = torch.onnx.export(
+            GeluModel(),
+            input,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dynamo=True,
         )
         all_nodes_op18 = [n.op_type for n in onnx_program_op18.model.graph]
@@ -400,6 +461,7 @@ class TestExportAPIDynamo(common_utils.TestCase):
             ),
         )
 
+<<<<<<< HEAD
     def test_is_in_onnx_export(self):
         class Mod(torch.nn.Module):
             def forward(self, x):
@@ -441,6 +503,8 @@ class TestExportAPIDynamo(common_utils.TestCase):
         )
         onnx_testing.assert_onnx_program(onnx_program)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestCustomTranslationTable(common_utils.TestCase):
     def test_custom_translation_table_overrides_ops(self):
@@ -572,6 +636,7 @@ class TestCustomTranslationTable(common_utils.TestCase):
             self.assertIn("Add", all_nodes_decomp)
             self.assertNotIn("Sub", all_nodes_decomp)
 
+<<<<<<< HEAD
     def test_01_specialization_with_run_decomp_is_supported(self):
         # Phi3RMSNorm changes and redo shape inference after `run_decompositions` call
         # We need this test to make sure everything we do on fx graph is covered by
@@ -608,6 +673,137 @@ class TestCustomTranslationTable(common_utils.TestCase):
         )
         # batch size is not fixed to 1
         self.assertNotEqual(op.model.graph.outputs[0].shape[0], 1)
+=======
+
+class TestFakeTensorExport(common_utils.TestCase):
+    """Test exporting in fake mode."""
+
+    def test_onnx_program_raises_when_model_defined_in_fake_mode(self):
+        with torch.onnx.enable_fake_mode():
+
+            class Model(torch.nn.Module):
+                def __init__(self):
+                    super().__init__()
+                    self.weight = torch.nn.Parameter(torch.tensor(42.0))
+
+                def forward(self, x):
+                    return self.weight + x
+
+            onnx_program = torch.onnx.export(
+                Model(), (torch.tensor(1.0),), dynamo=True, optimize=False
+            )
+            assert onnx_program is not None
+            # Convert to model proto and back to trigger to_bytes method which serializes the tensor
+            with self.assertRaises(Exception):
+                # The tensors need to be replaced with real tensors
+                _ = onnx_program.model_proto
+
+        # Convert to model proto and back to trigger to_bytes method which serializes the tensor
+        with self.assertRaises(Exception):
+            # It doesn't matter if it is called inside or outside of the enable_fake_mode() context
+            _ = onnx_program.model_proto
+
+        # If we replace with concrete tensors, the serialization will succeed.
+        # This needs to happen outside of the fake context
+        onnx_program.apply_weights({"weight": torch.tensor(42.0)})
+        onnx_model = ir.serde.deserialize_model(onnx_program.model_proto)
+        np.testing.assert_allclose(
+            onnx_model.graph.initializers["weight"].const_value.numpy(), 42.0
+        )
+
+    def test_onnx_program_save_raises_when_model_initialized_in_fake_mode(self):
+        class Model(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.weight = torch.nn.Parameter(torch.tensor(42.0))
+
+            def forward(self, x):
+                return self.weight + x
+
+        with torch.onnx.enable_fake_mode():
+            onnx_program = torch.onnx.export(
+                Model(), (torch.tensor(1.0),), dynamo=True, optimize=False
+            )
+            assert onnx_program is not None
+            # Convert to model proto and back to trigger to_bytes method which serializes the tensor
+            with self.assertRaises(Exception):
+                # The tensors need to be replaced with real tensors
+                _ = onnx_program.model_proto
+
+        with self.assertRaises(Exception):
+            # It doesn't matter if it is called inside or outside of the enable_fake_mode() context
+            _ = onnx_program.model_proto
+
+        # If we replace with concrete tensors, the serialization will succeed
+        # This needs to happen outside of the fake context
+        onnx_program.apply_weights({"weight": torch.tensor(42.0)})
+        onnx_model = ir.serde.deserialize_model(onnx_program.model_proto)
+        np.testing.assert_allclose(
+            onnx_model.graph.initializers["weight"].const_value.numpy(), 42.0
+        )
+
+    def test_onnx_program_save_succeeds_when_export_and_save_in_fake_mode(self):
+        class Model(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.weight = torch.nn.Parameter(torch.tensor(42.0))
+
+            def forward(self, x):
+                return self.weight + x
+
+        real_model = Model()
+
+        with torch.onnx.enable_fake_mode():
+            onnx_program = torch.onnx.export(
+                real_model, (torch.tensor(1.0),), dynamo=True, optimize=False
+            )
+
+            assert onnx_program is not None
+            # Convert to model proto and back to trigger to_bytes method which serializes the tensor
+            # Note that even though we are calling .model_proto (equivalently .save()) in fake mode,
+            # the concrete tensors are maintained.
+            # This is due to the usage of torch._subclasses.fake_tensor.unset_fake_temporarily() in
+            # TorchTensor.tobytes()
+            onnx_model = ir.serde.deserialize_model(onnx_program.model_proto)
+            np.testing.assert_allclose(
+                onnx_model.graph.initializers["weight"].const_value.numpy(), 42.0
+            )
+
+        # This works inside or outside the fake mode
+        onnx_model = ir.serde.deserialize_model(onnx_program.model_proto)
+        np.testing.assert_allclose(
+            onnx_model.graph.initializers["weight"].const_value.numpy(), 42.0
+        )
+
+    def test_is_in_onnx_export(self):
+        class Mod(torch.nn.Module):
+            def forward(self, x):
+                def f(x):
+                    return x.sin() if torch.onnx.is_in_onnx_export() else x.cos()
+
+                return f(x)
+
+        self.assertFalse(torch.onnx.is_in_onnx_export())
+        onnx_program = torch.onnx.export(
+            Mod(),
+            (torch.randn(3, 4),),
+            dynamo=True,
+            fallback=False,
+        )
+        self.assertFalse(torch.onnx.is_in_onnx_export())
+
+        node_names = [n.op_type for n in onnx_program.model.graph]
+        self.assertIn("Sin", node_names)
+
+    def test_torchscript_exporter_raises_deprecation_warning(self):
+        # Test that the deprecation warning is raised when using torchscript exporter
+        with self.assertWarnsRegex(
+            DeprecationWarning, "You are using the legacy TorchScript-based ONNX export"
+        ):
+            torch.onnx.export(
+                SampleModel(), (torch.randn(1, 1, 2),), io.BytesIO(), dynamo=False
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

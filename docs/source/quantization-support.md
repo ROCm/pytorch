@@ -52,6 +52,7 @@ This module contains Eager mode quantization APIs.
     default_eval_fn
 ```
 
+<<<<<<< HEAD
 ## torch.ao.quantization.utils
 
 ```{eval-rst}
@@ -72,6 +73,8 @@ This module contains Eager mode quantization APIs.
     validate_qmin_qmax
 ```
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## torch.ao.quantization.quantize_fx
 
 This module contains FX graph mode quantization APIs (prototype).
@@ -170,7 +173,11 @@ This module contains a few CustomConfig classes that's used in both eager mode a
 ## torch.ao.quantization.pt2e.export_utils
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. automodule:: torch.ao.quantization.pt2e.export_utils
+=======
+.. currentmodule:: torch.ao.quantization.pt2e.export_utils
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}

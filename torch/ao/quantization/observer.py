@@ -245,8 +245,12 @@ class UniformQuantizationObserverBase(ObserverBase):
         if reduce_range:
             warnings.warn(
                 "Please use quant_min and quant_max to specify the range for observers. \
+<<<<<<< HEAD
                     reduce_range will be deprecated in a future release of PyTorch.",
                 stacklevel=2,
+=======
+                    reduce_range will be deprecated in a future release of PyTorch."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         self.reduce_range = reduce_range
         self.register_buffer("eps", torch.tensor([eps], **factory_kwargs))
@@ -281,12 +285,18 @@ class UniformQuantizationObserverBase(ObserverBase):
         )
         self.has_customized_qrange = (quant_min is not None) and (quant_max is not None)
         if self.has_customized_qrange:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             validate_qmin_qmax(quant_min, quant_max)
         self.quant_min, self.quant_max = calculate_qmin_qmax(
             # pyrefly: ignore [bad-argument-type]
             quant_min,
             # pyrefly: ignore [bad-argument-type]
+=======
+            validate_qmin_qmax(quant_min, quant_max)
+        self.quant_min, self.quant_max = calculate_qmin_qmax(
+            quant_min,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             quant_max,
             self.has_customized_qrange,
             self.dtype,
@@ -362,7 +372,11 @@ class UniformQuantizationObserverBase(ObserverBase):
         # Functionally equivalent to 'determine_qparams' in utils.py. Observers must be torchscriptable however and qscheme
         # as far as I can tell is not allowed to passed as a parameter in torchscript functions. This makes refactoring observer
         # to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code
+<<<<<<< HEAD
         # seems unlikely to change (last update over 1 year ago) and when torchscript is fully deprecated we can refactor.
+=======
+        # seems unlikey to change (last update over 1 year ago) and when torchscript is fully deprecated we can refactor.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO(jakeszwe, jerryzh168)
         if not check_min_max_valid(min_val, max_val):
             return torch.tensor([1.0], device=min_val.device.type), torch.tensor(
@@ -392,7 +406,11 @@ class UniformQuantizationObserverBase(ObserverBase):
                     )
                 else:
                     zero_point = zero_point.new_full(zero_point.size(), 128)
+<<<<<<< HEAD
             elif self.dtype == torch.uint16:
+=======
+            elif self.dtype in [torch.uint16]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 zero_point = zero_point.new_full(zero_point.size(), 2**15)
         elif self.qscheme == torch.per_channel_affine_float_qparams:
             scale = (max_val - min_val) / float(quant_max - quant_min)
@@ -807,7 +825,11 @@ class PerChannelMinMaxObserver(UniformQuantizationObserverBase):
         unexpected_keys: list[str],
         error_msgs: list[str],
     ):
+<<<<<<< HEAD
         version = local_metadata.get("version")
+=======
+        version = local_metadata.get("version", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if version is not None and version < 3:
             local_state = ["min_vals", "max_vals"]
             expected_min_name = "min_vals"
@@ -830,8 +852,12 @@ class PerChannelMinMaxObserver(UniformQuantizationObserverBase):
                     self.max_val.resize_(val.shape)
                 else:
                     warnings.warn(
+<<<<<<< HEAD
                         f"Observer load_from_state_dict got unexpected name {name}",
                         stacklevel=2,
+=======
+                        f"Observer load_from_state_dict got unexpected name {name}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 # For torchscript module we need to update the attributes here since we do not
                 # call the `_load_from_state_dict` function defined module.py
@@ -842,8 +868,12 @@ class PerChannelMinMaxObserver(UniformQuantizationObserverBase):
                         self.max_val.copy_(val)
                     else:
                         warnings.warn(
+<<<<<<< HEAD
                             f"Observer load_from_state_dict got unexpected name {name}",
                             stacklevel=2,
+=======
+                            f"Observer load_from_state_dict got unexpected name {name}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
             elif strict:
                 missing_keys.append(key)
@@ -1247,7 +1277,11 @@ class HistogramObserver(UniformQuantizationObserverBase):
         # If the orig hist only has one value (i.e., the min and max are the same)
         # we can just add it into new histogram
         if orig_min == orig_max:
+<<<<<<< HEAD
             bin_value = torch.sum(orig_hist)
+=======
+            bin_value = torch.sum(update_hist)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             transformed_orig_hist = (
                 torch.histc(orig_min, bins=self.bins, min=update_min, max=update_max)  # type: ignore[arg-type]
                 * bin_value
@@ -1292,9 +1326,13 @@ class HistogramObserver(UniformQuantizationObserverBase):
         # want to make our quantization range infinite
         # and in practice those values will be clamped
         if x_min == -torch.inf or x_max == torch.inf:
+<<<<<<< HEAD
             warnings.warn(
                 "torch.inf detected in input tensor, ignoring input", stacklevel=2
             )
+=======
+            warnings.warn("torch.inf detected in input tensor, ignoring input")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x = x[x.abs() != torch.inf]
             if x.numel() == 0:
                 return x_orig
@@ -1350,8 +1388,12 @@ class HistogramObserver(UniformQuantizationObserverBase):
         if is_uninitialized:
             warnings.warn(
                 "must run observer before calling calculate_qparams.\
+<<<<<<< HEAD
                                     Returning default scale and zero point ",
                 stacklevel=2,
+=======
+                                    Returning default scale and zero point "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return torch.tensor([1.0], device=self.min_val.device.type), torch.tensor(
                 [0], device=self.min_val.device.type
@@ -1515,8 +1557,12 @@ class PlaceholderObserver(ObserverBase):
             warnings.warn(
                 "Please use `is_dynamic` instead of `compute_dtype`. \
                     `compute_dtype` will be deprecated in a future release \
+<<<<<<< HEAD
                     of PyTorch.",
                 stacklevel=2,
+=======
+                    of PyTorch."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def forward(self, x):
@@ -1876,7 +1922,11 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
         Converts the observer node in the graph into its quantized representation
 
         Args:
+<<<<<<< HEAD
             model: graph module to convert the observer node in
+=======
+            model: graph module to conver the observer node in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             observer_node: the observer node to convert
         """
         from torch.ao.quantization.fx.utils import create_getattr_from_value
@@ -1912,6 +1962,7 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
             else:
                 scale, zero_point = self.calculate_qparams()
                 scale_node = create_getattr_from_value(
+<<<<<<< HEAD
                     model,
                     model.graph,
                     "_scale",
@@ -1924,6 +1975,12 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
                     "_zero_point",
                     zero_point,
                     zero_point.device if isinstance(zero_point, torch.Tensor) else None,
+=======
+                    model, model.graph, "_scale", scale
+                )
+                zero_point_node = create_getattr_from_value(
+                    model, model.graph, "_zero_point", zero_point
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             q_node = model.graph.call_function(

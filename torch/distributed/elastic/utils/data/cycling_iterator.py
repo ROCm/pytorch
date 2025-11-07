@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from typing import TypeVar
+=======
+from collections.abc import Iterator
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 

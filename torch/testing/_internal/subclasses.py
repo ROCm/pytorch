@@ -70,7 +70,11 @@ class WrapperSubclass(torch.Tensor):
     def __coerce_same_metadata_as_tangent__(
         self, expected_metadata: Any, expected_type: Optional[type] = None
     ):
+<<<<<<< HEAD
         if expected_type is type(self.a):
+=======
+        if expected_type == type(self.a):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.a
         elif expected_type is TwoTensor:
             return TwoTensor(self.a, self.a.clone())

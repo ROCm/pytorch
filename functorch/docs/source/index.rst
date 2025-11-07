@@ -55,7 +55,11 @@ Check out our `whirlwind tour <whirlwind_tour>`_ or some of our tutorials mentio
    :caption: functorch: Getting Started
 
    install
+<<<<<<< HEAD
    tutorials/whirlwind_tour.ipynb
+=======
+   notebooks/whirlwind_tour.ipynb
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    ux_limitations
 
 .. toctree::
@@ -70,9 +74,18 @@ Check out our `whirlwind tour <whirlwind_tour>`_ or some of our tutorials mentio
    :maxdepth: 1
    :caption: functorch Tutorials
 
+<<<<<<< HEAD
    tutorials/jacobians_hessians.ipynb
    tutorials/ensembling.ipynb
    tutorials/per_sample_grads.ipynb
    tutorials/neural_tangent_kernels.ipynb
    tutorials/aot_autograd_optimizations.ipynb
    tutorials/minifier.ipynb
+=======
+   notebooks/jacobians_hessians.ipynb
+   notebooks/ensembling.ipynb
+   notebooks/per_sample_grads.ipynb
+   notebooks/neural_tangent_kernels.ipynb
+   notebooks/aot_autograd_optimizations.ipynb
+   notebooks/minifier.ipynb
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

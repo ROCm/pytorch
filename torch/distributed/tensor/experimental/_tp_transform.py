@@ -237,11 +237,16 @@ def _mark_sharding(
                         op_schema,
                     )
                 placement_strategies[node] = OpSpec(
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
                     output_specs=_get_output_spec_from_output_sharding(output_sharding),
                     # pyrefly: ignore [missing-attribute]
                     input_specs=output_sharding.redistribute_schema.args_spec
                     # pyrefly: ignore [missing-attribute]
+=======
+                    output_specs=_get_output_spec_from_output_sharding(output_sharding),
+                    input_specs=output_sharding.redistribute_schema.args_spec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if output_sharding.redistribute_schema is not None
                     else _get_input_node_specs(node, placement_strategies),
                 )
@@ -467,7 +472,11 @@ def _insert_reshard_gm(
             if reshard_node.op not in ["placeholder", "output"]:
                 reshard_node.meta["nn_module_stack"] = (
                     copy.copy(input_arg.meta["nn_module_stack"])
+<<<<<<< HEAD
                     if input_arg.op != "placeholder"
+=======
+                    if not input_arg.op == "placeholder"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     else copy.copy(node.meta["nn_module_stack"])
                 )
         output_node = gm.graph.graph_copy(

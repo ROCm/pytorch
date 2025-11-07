@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import typing
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.runtime.runtime_utils import next_power_of_2
 from torch._inductor.scheduler import MixOrderReduction
 from torch.utils._sympy.value_ranges import bound_sympy
@@ -28,6 +33,21 @@ from .template_heuristics.triton import (
     XPUConfigHeuristic,
 )
 from .utils import _use_autotune_backend
+=======
+
+from . import config
+from .codecache import write_text
+from .metrics import get_metric_table, is_metric_table_enabled
+from .runtime.hints import DeviceProperties, ReductionHint
+from .scheduler import BaseSchedulerNode, Scheduler, WhyNoFuse
+from .template_heuristics import (
+    BaseConfigHeuristic,
+    CPUConfigHeuristic,
+    CUDAConfigHeuristic,
+    ROCmConfigHeuristic,
+    XPUConfigHeuristic,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .virtualized import V
 
 
@@ -37,6 +57,7 @@ if TYPE_CHECKING:
 
     from triton import Config as TritonConfig
 
+<<<<<<< HEAD
     from .codegen.common import KernelTemplate
     from .codegen.simd_kernel_features import SIMDKernelFeatures
     from .codegen.triton import TritonKernel
@@ -44,6 +65,12 @@ if TYPE_CHECKING:
     from .kernel_template_choice import KernelTemplateChoice
 
     from torch.utils._ordered_set import OrderedSet  # isort: skip
+=======
+    from torch.utils._ordered_set import OrderedSet
+
+    from .codegen.simd_kernel_features import SIMDKernelFeatures
+    from .codegen.triton import TritonKernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Sortable(typing.Protocol):
@@ -77,11 +104,69 @@ class InductorChoices:
             return XPUConfigHeuristic()
         elif device_type == "cpu":
             return CPUConfigHeuristic()
+<<<<<<< HEAD
         elif device_type == "mtia":
             return MTIAConfigHeuristic()
         else:
             return BaseConfigHeuristic()
 
+=======
+        else:
+            return BaseConfigHeuristic()
+
+    # GEMM configs
+    def get_base_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        if config.max_autotune_gemm_search_space != "EXHAUSTIVE":
+            return mm_heuristics.get_mm_configs()
+        else:
+            return mm_heuristics.get_exhaustive_mm_configs()
+
+    def get_extra_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_extra_mm_configs()
+
+    def get_int8_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_int8_mm_configs()
+
+    def get_mixed_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_mixed_mm_configs()
+
+    def get_persistent_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_persistent_mm_configs()
+
+    def get_scaled_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_scaled_mm_configs()
+
+    def get_scaled_persistent_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_scaled_persistent_mm_configs()
+
+    def get_mm_plus_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_mm_plus_mm_configs()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Conv configs
     def get_conv_configs(
         self, device_type: Optional[str] = "cuda"
@@ -90,7 +175,10 @@ class InductorChoices:
         return conv_heuristics.get_conv_configs()
 
     # Flex attention configs
+<<<<<<< HEAD
     # TODO(coconutruben): break out flexattention/decode configs into the new retrieval mechanism
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_flex_attention_fwd_configs(
         self, head_dim: int, dtype: torch.dtype, device_type: Optional[str] = "cuda"
     ) -> list[Any]:
@@ -109,6 +197,7 @@ class InductorChoices:
         flex_heuristics = self.get_config_heuristics(device_type)
         return flex_heuristics.get_flex_decode_configs(head_dim, dtype)
 
+<<<<<<< HEAD
     def _finalize_template_configs(
         self,
         template_choices: dict[str, Generator[KernelTemplateChoice, None, None]],
@@ -292,6 +381,8 @@ class InductorChoices:
         # Third pass: Convert to ChoiceCaller objects
         return [ktc.choice for ktc in adjusted_choices if ktc.choice is not None]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def triton_kernel_kwargs(
         self,
         kernel_cls: type[TritonKernel],
@@ -338,6 +429,7 @@ class InductorChoices:
             ReductionHint.INNER: 1024,
         }.get(features.get_reduction_hint(), 64)
 
+<<<<<<< HEAD
         if features.get_reduction_hint() not in (
             ReductionHint.INNER,
             ReductionHint.OUTER_TINY,
@@ -372,6 +464,12 @@ class InductorChoices:
                 threshold *= 32 // min(
                     V.graph.sizevars.size_hint_or_throw(features.numel), 32
                 )
+=======
+        if cooperative_reduction:
+            # The RSPLIT of cooperative reductions means each thread block is operating on fewer elements
+            try:
+                threshold *= 32 // min(V.graph.sizevars.size_hint(features.numel), 32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except ValueError:
                 pass  # unbacked symint
 
@@ -381,12 +479,30 @@ class InductorChoices:
         # to pick the faster one.
         if config.triton.multi_kernel:
             threshold *= 16
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return V.graph.sizevars.statically_known_leq(
             features.reduction_numel, threshold
         )  # type: ignore[arg-types]
 
     @staticmethod
+<<<<<<< HEAD
+=======
+    def want_no_x_dim(features: SIMDKernelFeatures) -> bool:
+        """
+        Heuristic to decide if we should drop the X dimension from a persistent reduction kernel.
+        So the [XBLOCK, RBLOCK] block becomes a [RBLOCK] block and XBLOCK is forced to be always 1.
+        Strangely this is faster than a [1, RBLOCK] block in some cases.
+
+        ROCm branch change: Remove want_no_x_dim for persistent reduction.
+        Inductor benchmarks show no perf advantage and simplifies autotune flow.
+        """
+        return False
+
+    @staticmethod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reduction_split_factor(
         device: torch.device,
         reduction_numel_hint: int,
@@ -488,9 +604,13 @@ class InductorChoices:
             - config.triton.tiling_prevents_reduction_fusion
             - config.aggressive_fusion (will cause this function to be called more times)
         """
+<<<<<<< HEAD
         if (
             shared_data_score == 0 and not MixOrderReduction.can_fuse(node1, node2)
         ) and (
+=======
+        if shared_data_score == 0 and (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             not config.aggressive_fusion or node1.is_reduction() or node2.is_reduction()
         ):
             if is_metric_table_enabled("fusion_failure_due_to_indexing_mismatch"):
@@ -530,6 +650,7 @@ class InductorChoices:
             WhyNoFuse(node1, node2)("Fusion will increase peak memory")
             return False
 
+<<<<<<< HEAD
         if (
             config.max_fusion_unique_io_buffers is not None
             and scheduler.fusion_prevent_too_many_reads_and_writes(
@@ -541,6 +662,8 @@ class InductorChoices:
             WhyNoFuse(node1, node2)("fusion_prevent_too_many_reads_and_writes")
             return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     @staticmethod
@@ -561,9 +684,13 @@ class InductorChoices:
         shared_data_score: int,
     ) -> bool:
         """Hook for heuristics to prevent horizontal (consumer/consumer) fusions"""
+<<<<<<< HEAD
         if (
             shared_data_score < config.score_fusion_memory_threshold
         ) and not MixOrderReduction.can_fuse(node1, node2):
+=======
+        if shared_data_score < config.score_fusion_memory_threshold:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             WhyNoFuse(node1, node2)("score_fusion_memory_threshold")
             return False
         if scheduler.are_long_distant_nodes(node1, node2):
@@ -604,7 +731,10 @@ class InductorChoices:
                 and memory_score > 0
             )
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             template_score,
             node1.is_reduction() == node2.is_reduction() and memory_score > 0,

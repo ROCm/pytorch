@@ -279,23 +279,41 @@ class TestModuleContainers(JitTestCase):
                 self.moduledict = CustomModuleDict({"submod": self.submod})
 
             def forward(self, inputs):
+<<<<<<< HEAD
                 assert self.modulelist[0] is self.submod, (
                     "__getitem__ failing for ModuleList"
                 )
+=======
+                assert (
+                    self.modulelist[0] is self.submod
+                ), "__getitem__ failing for ModuleList"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(self.modulelist) == 1, "__len__ failing for ModuleList"
                 for module in self.modulelist:
                     assert module is self.submod, "__iter__ failing for ModuleList"
 
+<<<<<<< HEAD
                 assert self.sequential[0] is self.submod, (
                     "__getitem__ failing for Sequential"
                 )
+=======
+                assert (
+                    self.sequential[0] is self.submod
+                ), "__getitem__ failing for Sequential"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(self.sequential) == 1, "__len__ failing for Sequential"
                 for module in self.sequential:
                     assert module is self.submod, "__iter__ failing for Sequential"
 
+<<<<<<< HEAD
                 assert self.moduledict["submod"] is self.submod, (
                     "__getitem__ failing for ModuleDict"
                 )
+=======
+                assert (
+                    self.moduledict["submod"] is self.submod
+                ), "__getitem__ failing for ModuleDict"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(self.moduledict) == 1, "__len__ failing for ModuleDict"
 
                 # note: unable to index moduledict with a string variable currently
@@ -439,9 +457,15 @@ class TestModuleContainers(JitTestCase):
                 self.moduledict = CustomModuleDict()
 
             def forward(self, inputs):
+<<<<<<< HEAD
                 assert "submod" not in self.moduledict, (
                     "__contains__ fails for ModuleDict"
                 )
+=======
+                assert (
+                    "submod" not in self.moduledict
+                ), "__contains__ fails for ModuleDict"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return inputs
 
         m = MyModule()

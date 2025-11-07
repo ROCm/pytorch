@@ -201,7 +201,11 @@ function(CUDA_SELECT_NVCC_ARCH_FLAGS out_variable)
       set(add_ptx TRUE)
       set(arch_name ${CMAKE_MATCH_1})
     endif()
+<<<<<<< HEAD
     if(arch_name MATCHES "^([0-9]+\\.[0-9][af]?(\\([0-9]+\\.[0-9]\\))?)$")
+=======
+    if(arch_name MATCHES "^([0-9]+\\.[0-9]a?(\\([0-9]+\\.[0-9]\\))?)$")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       set(arch_bin ${CMAKE_MATCH_1})
       set(arch_ptx ${arch_bin})
     else()
@@ -262,8 +266,13 @@ function(CUDA_SELECT_NVCC_ARCH_FLAGS out_variable)
   # remove dots and convert to lists
   string(REGEX REPLACE "\\." "" cuda_arch_bin "${cuda_arch_bin}")
   string(REGEX REPLACE "\\." "" cuda_arch_ptx "${cuda_arch_ptx}")
+<<<<<<< HEAD
   string(REGEX MATCHALL "[0-9()]+[af]?" cuda_arch_bin "${cuda_arch_bin}")
   string(REGEX MATCHALL "[0-9]+[af]?"   cuda_arch_ptx "${cuda_arch_ptx}")
+=======
+  string(REGEX MATCHALL "[0-9()]+a?" cuda_arch_bin "${cuda_arch_bin}")
+  string(REGEX MATCHALL "[0-9]+a?"   cuda_arch_ptx "${cuda_arch_ptx}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if(cuda_arch_bin)
     list(REMOVE_DUPLICATES cuda_arch_bin)

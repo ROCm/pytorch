@@ -55,6 +55,7 @@ class MPMCQueue {
     return true;
   }
 
+<<<<<<< HEAD
   /**
    * Get the current size of the queue.
    * @return The number of elements in the queue.
@@ -64,6 +65,8 @@ class MPMCQueue {
     return storage_.size();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   std::mutex mutex_;
   std::deque<T> storage_;

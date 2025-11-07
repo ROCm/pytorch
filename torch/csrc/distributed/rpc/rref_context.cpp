@@ -348,7 +348,11 @@ c10::intrusive_ptr<OwnerRRef> RRefContext::getOrCreateOwnerRRef(
     // here is a plain TensorType, they are not equal relationship:
     // specialized TensorType <: plain TensorType
     //
+<<<<<<< HEAD
     // In RPC we don't care the difference as we Ser/De with just the
+=======
+    // In RPC we don't care the difference as we ser'de with just the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // plain TensorType. This is not a issue for UserRRef creation either,
     // since Tensor can only get specialized with a previous run of local
     // JIT function, and we shouldn't preserve the specialized SubTensorType

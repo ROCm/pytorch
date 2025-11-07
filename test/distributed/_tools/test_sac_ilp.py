@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["oncall: distributed"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 import unittest
 
@@ -19,8 +23,14 @@ from torch.distributed._tools.sac_ilp import (
 )
 from torch.testing._internal.common_cuda import TEST_CUDA
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     run_tests,
     skipIfRocm,
+=======
+    MI300_ARCH,
+    run_tests,
+    skipIfRocmArch,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     TestCase,
 )
@@ -135,7 +145,11 @@ class TestSACILP(TestCase):
 
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/115653")
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+<<<<<<< HEAD
     @skipIfRocm
+=======
+    @skipIfRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sac_ilp_case1(self):
         """
         This is a case where the memory budget is either binding or too tight,
@@ -210,7 +224,11 @@ class TestSACILP(TestCase):
 
 
 class TestOptimalCheckpointingPolicy(TestCase):
+<<<<<<< HEAD
     # tests are adapted from tests in xformers
+=======
+    # tests are adpated from tests in xformers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # https://github.com/facebookresearch/xformers/blob/c6c0ac31f1b08542a0bc27278c6ed10f825f6963/tests/test_checkpoint.py#L222
     def setUp(self):
         super().setUp()

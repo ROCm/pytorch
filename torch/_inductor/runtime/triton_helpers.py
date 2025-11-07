@@ -2,12 +2,19 @@
 # mypy: allow-untyped-defs
 import math as pymath
 import warnings
+<<<<<<< HEAD
+=======
+from functools import wraps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Callable, TypeVar
 
 from .triton_compat import (  # noqa: F401
     _log2,
     builtins_use_semantic_kwarg,
+<<<<<<< HEAD
     JITFunction,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     libdevice,
     math,
     tl,
@@ -60,10 +67,13 @@ def get_backend_options():
     return options.__dict__
 
 
+<<<<<<< HEAD
 def get_constexprs(kernel: JITFunction) -> list[int]:
     return [p.num for p in kernel.params if p.is_constexpr]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @triton.jit
 def promote_to_tensor(x):
     # Addition promotes to tensor for us
@@ -84,7 +94,11 @@ def div_floor_integer(a, b):
 def remainder_integer(a, b):
     # NOTE: a % b matches C division, not floor division
     remainder = a % b
+<<<<<<< HEAD
     return tl.where((remainder != 0) & ((a < 0) != (b < 0)), remainder + b, remainder)
+=======
+    return tl.where(remainder != 0 and ((a < 0) != (b < 0)), remainder + b, remainder)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @triton.jit
@@ -135,9 +149,15 @@ def minimum_with_index(a_value, a_index, b_value, b_index):
     if is_floating(a_value):
         a_isnan = a_value != a_value
         b_isnan = b_value != b_value
+<<<<<<< HEAD
         mask |= a_isnan & (not b_isnan)
         # Consider NaNs as equal
         equal |= a_isnan & b_isnan
+=======
+        mask |= a_isnan and not b_isnan
+        # Consider NaNs as equal
+        equal |= a_isnan and b_isnan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Prefer lowest index if values are equal
     mask |= equal & (a_index < b_index)
@@ -151,9 +171,15 @@ def maximum_with_index(a_value, a_index, b_value, b_index):
     if is_floating(a_value):
         a_isnan = a_value != a_value
         b_isnan = b_value != b_value
+<<<<<<< HEAD
         mask |= a_isnan & (not b_isnan)
         # Consider NaNs as equal
         equal |= a_isnan & b_isnan
+=======
+        mask |= a_isnan and not b_isnan
+        # Consider NaNs as equal
+        equal |= a_isnan and b_isnan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Prefer lowest index if values are equal
     mask |= equal & (a_index < b_index)
@@ -173,15 +199,25 @@ def max_with_index(value, index, dim):
 @triton.jit
 def exp(x, use_fast_math: tl.constexpr):
     if use_fast_math:
+<<<<<<< HEAD
         return math.exp(x)
     else:
         return libdevice.exp(x)
+=======
+        return libdevice.exp2(x * _LOG_2_E)
+    else:
+        return math.exp(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @triton.jit
 def online_softmax_reduce(lhs_max, lhs_sum, dim, use_fast_math: tl.constexpr):
     out_max = max2(lhs_max, dim)
+<<<<<<< HEAD
     out_max_keepdim = tl.expand_dims(out_max, dim)
+=======
+    out_max_keepdim = out_max[:, None]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     delta = tl.where(out_max_keepdim == float("-inf"), 0, lhs_max - out_max_keepdim)
     out_sum = tl.sum(lhs_sum * exp(delta, use_fast_math), dim)
     return out_max, out_sum
@@ -319,8 +355,13 @@ def bucketize_binary_search(
     while full_range > 1:
         mid = (high + low) // 2
         mask = (
+<<<<<<< HEAD
             (mid * BOUNDARIES_STRIDE + boundary_indices) < BOUNDARIES_UNDERLYING_NUMEL
         ).logical_and(mid < BOUNDARIES_SIZE)
+=======
+            mid * BOUNDARIES_STRIDE + boundary_indices
+        ) < BOUNDARIES_UNDERLYING_NUMEL and mid < BOUNDARIES_SIZE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mid_indices = (
             mid
             if sorter_ptr is None or SORTER_STRIDE is None
@@ -569,6 +610,7 @@ def _compare_and_swap_with_index(
     # actual compare-and-swap
     ix = x.to(idtype, bitcast=True)
 
+<<<<<<< HEAD
     # sort treats nan as having the higher value. comparisons with nan always return False.
     # to align with sort semantics, we need to update descending to check if right_isnan,
     # and ascending to check if left_isnan.
@@ -597,6 +639,16 @@ def _compare_and_swap_with_index(
         if is_floating(left):
             eq = eq | (left_isnan & right_isnan)
         cond = cond | (eq & (left_idx > right_idx))
+=======
+    if descending:
+        cond = left < right
+    else:
+        cond = left > right
+
+    if stable:
+        # When stable sorting, tie break by index
+        cond = cond | ((left == right) & (left_idx > right_idx))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     cond = (right_valid_mask > left_valid_mask) | (
         (right_valid_mask == left_valid_mask) & cond
@@ -727,9 +779,16 @@ def triton_builtin(f: Callable[..., _T]) -> Callable[..., _T]:
     """
     if builtins_use_semantic_kwarg:
         # support Triton before and after https://github.com/triton-lang/triton/pull/7054
+<<<<<<< HEAD
         # and after https://github.com/triton-lang/triton/pull/7239
         def wrapper(*args, _semantic, **kwargs):
             kwargs["_builder"] = _semantic
+=======
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            kwargs["_builder"] = kwargs["_semantic"]
+            del kwargs["_semantic"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return f(*args, **kwargs)
     else:
         wrapper = f  # type: ignore[assignment]

@@ -8,11 +8,19 @@ namespace torch::nn::functional {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace detail {
 
+<<<<<<< HEAD
 inline std::string padding_unwrap(enumtype::kValid /*unused*/) {
   return "valid";
 }
 
 inline std::string padding_unwrap(enumtype::kSame /*unused*/) {
+=======
+inline std::string padding_unwrap(enumtype::kValid) {
+  return "valid";
+}
+
+inline std::string padding_unwrap(enumtype::kSame) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return "same";
 }
 

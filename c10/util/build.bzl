@@ -58,9 +58,12 @@ def define_targets(rules):
         name = "bit_cast",
         hdrs = ["bit_cast.h"],
         visibility = ["//:__subpackages__"],
+<<<<<<< HEAD
         deps = [
             "//c10/macros",
         ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     rules.cc_library(

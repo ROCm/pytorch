@@ -593,6 +593,7 @@ class TestNNParametrization(NNTestCase):
             parametrize.register_parametrization(module, "weight", ChangeDtypeInverse())
         self.assertFalse(parametrize.is_parametrized(module))
 
+<<<<<<< HEAD
         class ChangeDeviceInverse(nn.Module):
             def forward(self, x):
                 return x.float()
@@ -609,6 +610,8 @@ class TestNNParametrization(NNTestCase):
             )
         self.assertFalse(parametrize.is_parametrized(module))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Doesn't return a tensor
         class NotTensor(nn.Module):
             def forward(self, x):
@@ -1395,7 +1398,11 @@ class TestNNParametrization(NNTestCase):
                     eval_out0 = wrapped_m(input)
                     # assert eval gives same result as last training iteration
                     self.assertEqual(eval_out0, last_train_out)
+<<<<<<< HEAD
                     # assert doing more iteration in eval don't change things
+=======
+                    # assert doing more iteartion in eval don't change things
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(eval_out0, wrapped_m(input))
                     self.assertEqual(last_train_u, spectral_norm_m._u)
                     self.assertEqual(last_train_v, spectral_norm_m._v)
@@ -1440,7 +1447,11 @@ class TestNNParametrization(NNTestCase):
 
         class SplitAndCat(nn.Module):
             def right_inverse(self, x):
+<<<<<<< HEAD
                 # split the tensor in two halves
+=======
+                # split the tensor in two halfs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.split(x, x.shape[1] // 2)
 
             def forward(self, x0, x1):
@@ -1668,7 +1679,11 @@ class TestNNParametrization(NNTestCase):
                 if can_initialize:
                     assert_weight_allclose_Q(m.weight, w_init)
 
+<<<<<<< HEAD
                 # Initializing with a given orthogonal matrix works
+=======
+                # Intializing with a given orthogonal matrix works
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 X = torch.randn_like(m.weight)
                 if wide_matrix:
                     X = X.mT
@@ -1685,7 +1700,11 @@ class TestNNParametrization(NNTestCase):
                     with self.assertRaisesRegex(NotImplementedError, msg):
                         m.weight = w_new
 
+<<<<<<< HEAD
                 # Initializing with a non-orthogonal matrix makes m.weight be the Q part of the given matrix
+=======
+                # Intializing with a non-orthogonal matrix makes m.weight be the Q part of the given matrix
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 w_new = torch.randn_like(m.weight)
                 if can_initialize:
                     m.weight = w_new

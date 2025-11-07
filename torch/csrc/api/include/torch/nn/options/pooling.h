@@ -456,7 +456,11 @@ struct FractionalMaxPoolOptions {
   using ExpandingArrayDouble = torch::ExpandingArray<D, double>;
   TORCH_ARG(std::optional<ExpandingArrayDouble>, output_ratio) = std::nullopt;
 
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, _random_samples);
+=======
+  TORCH_ARG(torch::Tensor, _random_samples) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 /// `FractionalMaxPoolOptions` specialized for the `FractionalMaxPool2d` module.

@@ -5,7 +5,10 @@
 #include <torch/csrc/profiler/orchestration/vulkan.h>
 #endif // USE_KINETO
 
+<<<<<<< HEAD
 #include <algorithm>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cmath>
 #include <iomanip>
 #include <iostream>

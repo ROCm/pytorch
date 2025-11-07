@@ -71,8 +71,12 @@ class Gather(Function):
             warnings.warn(
                 "Was asked to gather along dimension 0, but all "
                 "input tensors were scalars; will instead unsqueeze "
+<<<<<<< HEAD
                 "and return a vector.",
                 stacklevel=2,
+=======
+                "and return a vector."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             ctx.unsqueezed_scalar = True
         else:

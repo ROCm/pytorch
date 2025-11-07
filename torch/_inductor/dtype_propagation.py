@@ -58,7 +58,10 @@ def promote_types(
 ):
     dtype_prop_candidates = []
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in args:
         assert not isinstance(arg, str)
         if isinstance(arg, OpsValue):
@@ -69,7 +72,10 @@ def promote_types(
             dtype_prop_candidates.append((type_to_dtype(type(arg)), True))
             continue
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype_prop_candidates.append((arg.dtype, getattr(arg, "is_scalar", False)))
 
     dtype = get_promoted_dtype(
@@ -249,6 +255,7 @@ class DtypePropagationOpsHandler:
         return None
 
     @staticmethod
+<<<<<<< HEAD
     def partial_accumulate(
         name: str,
         reduction_type: str,
@@ -257,6 +264,8 @@ class DtypePropagationOpsHandler:
         return None
 
     @staticmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def load(name: str, index) -> torch.dtype:
         return upcast_compute_type(V.graph.get_dtype(name))
 
@@ -358,11 +367,14 @@ class DtypePropagationOpsHandler:
         return torch.int32
 
     @staticmethod
+<<<<<<< HEAD
     def dot(x: DTypeArg, y: DTypeArg) -> torch.dtype:
         # triton tl.dot out_dtype is tl.float32 by default.
         return torch.float32
 
     @staticmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def inline_asm_elementwise(
         *inputs, asm, constraints=None, dtype=torch.float32, is_pure=True, pack=1
     ):
@@ -388,10 +400,13 @@ class DtypePropagationOpsHandler:
             f"{type(self).__name__}: ops.placeholder should not appear here"
         )
 
+<<<<<<< HEAD
     @staticmethod
     def device_assert_async(cond, msg: str) -> None:
         return None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
 

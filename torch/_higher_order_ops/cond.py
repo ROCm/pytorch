@@ -1,6 +1,7 @@
 # mypy: allow-untyped-decorators
 # mypy: allow-untyped-defs
 import contextlib
+<<<<<<< HEAD
 import functools
 import logging
 import warnings
@@ -8,6 +9,14 @@ from collections.abc import Callable
 from typing import Any, Optional, Union
 
 import torch
+=======
+import logging
+import warnings
+from typing import Any, Callable, Optional, Union
+
+import torch
+import torch._subclasses.functional_tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.utils._pytree as pytree
 from torch._C import DispatchKey
 from torch._C._functorch import (
@@ -19,10 +28,14 @@ from torch._C._functorch import (
 from torch._functorch.utils import exposed_in
 from torch._higher_order_ops.utils import (
     _maybe_run_with_interpreter,
+<<<<<<< HEAD
     check_input_alias_and_mutation_return_outputs,
     create_bw_fn,
     fill_none_with_masks,
     filter_with_masks,
+=======
+    _set_compilation_env,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     materialize_as_graph,
     reenter_make_fx,
     save_tensors_and_symints_for_backward,
@@ -32,9 +45,22 @@ from torch._higher_order_ops.utils import (
 )
 from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensor, FakeTensorMode
+<<<<<<< HEAD
 from torch.fx.experimental.proxy_tensor import ProxyTorchDispatchMode, track_tensor_tree
 from torch.utils._python_dispatch import _get_current_dispatch_mode
 
+=======
+from torch.fx.experimental.proxy_tensor import (
+    _temp_remove_metadata_torch_function_mode,
+    _temp_remove_pre_dispatch_torch_function_mode,
+    ProxyTorchDispatchMode,
+    track_tensor_tree,
+)
+from torch.utils._python_dispatch import _get_current_dispatch_mode
+
+from .utils import clone_outputs_aliasing_inputs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +78,7 @@ class CondOp(HigherOrderOperator):
         validate_subgraph_args_types(operands)
         return super().__call__(pred, true_fn, false_fn, operands)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def gen_schema(self, pred, true_fn, false_fn, operands):
         from torch._higher_order_ops.schema import HopSchemaGenerator
@@ -87,6 +114,8 @@ class CondOp(HigherOrderOperator):
         schema_gen.add_schema_tree_spec(pred, true_fn, false_fn, operands)
         return schema_gen.gen_schema()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 cond_op = CondOp()
 
@@ -139,12 +168,17 @@ def cond(
 
         def true_fn(x: torch.Tensor):
             return x.cos()
+<<<<<<< HEAD
 
 
         def false_fn(x: torch.Tensor):
             return x.sin()
 
 
+=======
+        def false_fn(x: torch.Tensor):
+            return x.sin()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cond(x.shape[0] > 4, true_fn, false_fn, (x,))
 
     Restrictions:
@@ -169,6 +203,13 @@ def cond(
     if torch.compiler.is_dynamo_compiling():
         return cond_op(pred, true_fn, false_fn, operands)
 
+<<<<<<< HEAD
+=======
+    from torch._dynamo.backends.debugging import (
+        make_eager_backend_with_torch_function_mode,
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(pred, (bool, int, float)):
         # This is the non-strict export case. Strict export and torch.compile are
         # handled above in dynamo.
@@ -177,7 +218,10 @@ def cond(
                 "Pred is a Python constant. When used with torch.cond, it specializes on one of the branches."
                 " If you want torch.cond to preserve two branches, please make the predicate a boolean tensor or a SymBool.",
                 UserWarning,
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         # This is the eager case. We can just run the true or false branch.
         if pred:
@@ -215,6 +259,7 @@ def cond(
     def _cond_op_wrapper(*args, **kwargs):
         return cond_op(*args, **kwargs)
 
+<<<<<<< HEAD
     from torch._higher_order_ops.utils import setup_compilation_env
 
     with setup_compilation_env() as backend:
@@ -227,6 +272,77 @@ def trace_cond(proxy_mode, func_overload, pred, true_fn, false_fn, operands):
     assert isinstance(operands, (list, tuple)), (
         f"Cond operands must be a list or tuple of tensors and SymInts {operands}"
     )
+=======
+    with _set_compilation_env(), torch._dynamo.utils.disable_cache_limit(), _temp_remove_pre_dispatch_torch_function_mode():
+        with _temp_remove_metadata_torch_function_mode() as metadata_mode:
+            if metadata_mode:
+                backend = make_eager_backend_with_torch_function_mode(metadata_mode)
+            else:
+                backend = "eager"
+            return torch.compile(_cond_op_wrapper, backend=backend, fullgraph=True)(
+                pred, true_fn, false_fn, operands
+            )
+
+
+def create_bw_fn(fn: Callable, args: tuple[Any]) -> Callable:
+    """
+    For a fn that accepts flat inputs and returns flat outputs:
+        fw_out = fn(*args),
+    this function returns:
+        grad_args = bw_fn(*args_and_grad_output)
+    with the following invariants:
+      1. args + fw_out has an 1-1 correspondence to args_and_grad_output
+      2. grad_args has an 1-1 corresponsence to args
+      3. for tensor arg whose requires_grad is False, its corresponding grad in
+         grad_args will be a zero tensor with the same shape.
+    """
+
+    from torch._functorch.aot_autograd import AOTConfig, create_joint
+    from torch._higher_order_ops.utils import prepare_fw_with_masks_all_requires_grad
+
+    dummy_aot_config = AOTConfig(
+        fw_compiler=None,  # type: ignore[arg-type]
+        bw_compiler=None,  # type: ignore[arg-type]
+        partition_fn=None,  # type: ignore[arg-type]
+        decompositions={},
+        num_params_buffers=0,
+        aot_id=0,
+        keep_inference_input_mutations=False,
+    )
+    n_primals = len(args)
+
+    bw_fn = create_joint(
+        prepare_fw_with_masks_all_requires_grad(fn), aot_config=dummy_aot_config
+    )
+
+    def flat_fn(*args_and_grad_outs):
+        primals = args_and_grad_outs[:n_primals]
+        tangents = args_and_grad_outs[n_primals:]
+        grad_args = bw_fn(primals, tangents)[1]
+        assert len(args) == len(grad_args)
+        # In order to keep HOPs functional where the backward graph,
+        # would have outputs that are aliasing inputs.
+        # For example in cases where the backward of the function is simply
+        # passing the upstream gradients through.
+        maybe_clone = clone_outputs_aliasing_inputs(args_and_grad_outs)
+
+        return [
+            (
+                torch.zeros_like(arg)
+                if isinstance(arg, torch.Tensor) and grad is None
+                else maybe_clone(grad)
+            )
+            for grad, arg in zip(grad_args, primals)
+        ]
+
+    return flat_fn
+
+
+def trace_cond(proxy_mode, func_overload, pred, true_fn, false_fn, operands):
+    assert isinstance(
+        operands, (list, tuple)
+    ), f"Cond operands must be a list or tuple of tensors and SymInts {operands}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     true_graph = reenter_make_fx(true_fn)(*operands)
     false_graph = reenter_make_fx(false_fn)(*operands)
@@ -273,9 +389,15 @@ def trace_cond(proxy_mode, func_overload, pred, true_fn, false_fn, operands):
 
 @cond_op.py_impl(DispatchKey.CompositeExplicitAutograd)
 def cond_op_dense(pred, true_fn, false_fn, operands):
+<<<<<<< HEAD
     assert all(isinstance(o, (torch.Tensor, int)) for o in operands), (
         f"Dense implementation operands must be a list of tensors and ints {operands}"
     )
+=======
+    assert all(
+        isinstance(o, (torch.Tensor, int)) for o in operands
+    ), f"Dense implementation operands must be a list of tensors and ints {operands}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mode = _get_current_dispatch_mode()
     assert mode is None, "Mode should never be enabled for CPU/CUDA key"
     if pred:
@@ -286,7 +408,10 @@ def cond_op_dense(pred, true_fn, false_fn, operands):
 
 class CondAutogradOp(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(
         ctx,
         pred,
@@ -317,6 +442,7 @@ class CondAutogradOp(torch.autograd.Function):
         operands = saved_tensors_and_symints(ctx)
         args = operands + flat_grads
         # TODO: we need to materialize the bw graphs because dynamo is unable to
+<<<<<<< HEAD
         # trace through the joint function when torch.compile torch.autograd.grad.
 
         grads_tensor_masks = []
@@ -336,13 +462,22 @@ class CondAutogradOp(torch.autograd.Function):
 
         true_bw_gm = materialize_as_graph(
             create_fn_remove_none(ctx._true_bw_fn),
+=======
+        # trace through the joint funcion when torch.compile torch.autograd.grad.
+        true_bw_gm = materialize_as_graph(
+            ctx._true_bw_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             args,
             ctx._fw_include_key_set,
             ctx._fw_exclude_key_set,
             force_enable_grad=True,
         )
         false_bw_gm = materialize_as_graph(
+<<<<<<< HEAD
             create_fn_remove_none(ctx._false_bw_fn),
+=======
+            ctx._false_bw_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             args,
             ctx._fw_include_key_set,
             ctx._fw_exclude_key_set,
@@ -354,7 +489,11 @@ class CondAutogradOp(torch.autograd.Function):
             false_bw_gm,
             args,
         )
+<<<<<<< HEAD
         return None, None, None, *fill_none_with_masks(grads, grads_tensor_masks)
+=======
+        return None, None, None, *grads
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Note:
@@ -516,11 +655,19 @@ def _merge_output(
 
     """
     This follows the logic in symbolic_shapes._compute_symbolic_stride
+<<<<<<< HEAD
     Step 2: Since tensor stride is an accumulative multiplication of the sizes, which is a permutated
         (due to view ops) non-descending sequence.
 
         Case 1: No size is 1. In this case, strides have unique values.
             For example, suppose we have a tensor with:
+=======
+    Step 2: Since tensor stride is an accumulative muliplication of the sizes, which is a permutated
+        (due to view ops) non-decending sequence.
+
+        Case 1: No size is 1. In this case, strides have unique values.
+            For example, suppose we have a tenosr with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             size [3, 4, 3, 5, 4, 5],
             stride (1200, 300, 1, 12, 3, 60),
             merged_size [u0, u1, u2, u3, u4, u5].
@@ -537,7 +684,11 @@ def _merge_output(
                 ...
 
         Case 2: At least one dimension has size 1, which can produce duplicates in strides.
+<<<<<<< HEAD
             In this case, theoretically, we cannot uniquely determine the expr of strides because
+=======
+            In this case, theorectically, we cannot uniquely determine the expr of strides because
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             the accessing stride_expr with same key in different order causes the final stride expression
             to be different.
 
@@ -547,7 +698,11 @@ def _merge_output(
                 merged_size: (u0, u1)
 
             The stride expr could either be (u1, 1) or (1, u0) depending on whether we start with u1 or u0.
+<<<<<<< HEAD
             For this reason, we try to break tie by sorting via descending index so we always get (u1, 1).
+=======
+            For this reason, we try to break tie by sorting via decending index so we always get (u1, 1).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             Note that backend might optimize the strides anyway so this is usually not a problem as long
             as two branches matches. See relevant discussions in https://github.com/pytorch/pytorch/issues/142024.
@@ -620,9 +775,15 @@ def _merge_output(
 
             if _maybe_expr(a_val) in a_stride_expr:
                 a_expr = a_stride_expr[_maybe_expr(a_val)]
+<<<<<<< HEAD
                 assert b_stride_expr[_maybe_expr(b_val)] == a_expr, (
                     f"a_stride_expr:{a_stride_expr}, b_stride_expr:{b_stride_expr}"
                 )
+=======
+                assert (
+                    b_stride_expr[_maybe_expr(b_val)] == a_expr
+                ), f"a_stride_expr:{a_stride_expr}, b_stride_expr:{b_stride_expr}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 merged_strides[i] = a_expr
             else:
                 if a_val == 1:
@@ -679,12 +840,21 @@ def cond_func(ctx, pred, true_fn, false_fn, inputs):
 
 @cond_op.py_impl(torch._C._functorch.TransformType.Vmap)
 def cond_batch_rule(interpreter, pred, true_fn, false_fn, inputs):
+<<<<<<< HEAD
     assert isinstance(inputs, (list, tuple)), (
         "Cond inputs must be a list or tuple of tensors"
     )
     assert all(isinstance(i, torch.Tensor) for i in inputs), (
         "Cond inputs must be a list of tensors"
     )
+=======
+    assert isinstance(
+        inputs, (list, tuple)
+    ), "Cond inputs must be a list or tuple of tensors"
+    assert all(
+        isinstance(i, torch.Tensor) for i in inputs
+    ), "Cond inputs must be a list of tensors"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     pred_is_batched = isinstance(pred, torch.Tensor) and is_batchedtensor(pred)
     pred_ = get_unwrapped(pred) if pred_is_batched else pred
@@ -722,4 +892,8 @@ def cond_batch_rule(interpreter, pred, true_fn, false_fn, inputs):
     if not isinstance(result, tuple):
         result = (result,)
     lvl = interpreter.level()
+<<<<<<< HEAD
     return tuple(_add_batch_dim(r, 0, lvl) for r in result)
+=======
+    return tuple([_add_batch_dim(r, 0, lvl) for r in result])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

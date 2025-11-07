@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 import warnings
 from collections.abc import Callable
 from typing import Union
 
 from torch.ao.pruning.sparsifier.base_sparsifier import BaseSparsifier
+=======
+# mypy: allow-untyped-defs
+import warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .base_scheduler import BaseScheduler
 
@@ -33,6 +38,7 @@ class LambdaSL(BaseScheduler):
         >>>     scheduler.step()
     """
 
+<<<<<<< HEAD
     def __init__(
         self,
         sparsifier: BaseSparsifier,
@@ -40,6 +46,9 @@ class LambdaSL(BaseScheduler):
         last_epoch: int = -1,
         verbose: bool = False,
     ) -> None:
+=======
+    def __init__(self, sparsifier, sl_lambda, last_epoch=-1, verbose=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.sparsifier = sparsifier
 
         if not isinstance(sl_lambda, list) and not isinstance(sl_lambda, tuple):
@@ -50,6 +59,7 @@ class LambdaSL(BaseScheduler):
                     f"Expected {len(sparsifier.groups)} lr_lambdas, but got {len(sl_lambda)}"
                 )
             self.sl_lambdas = list(sl_lambda)
+<<<<<<< HEAD
         super().__init__(sparsifier, last_epoch, verbose)  # type: ignore[no-untyped-call]
 
     def get_sl(self) -> list[float]:
@@ -58,6 +68,15 @@ class LambdaSL(BaseScheduler):
                 "To get the last sparsity level computed by the scheduler, "
                 "please use `get_last_sl()`.",
                 stacklevel=2,
+=======
+        super().__init__(sparsifier, last_epoch, verbose)
+
+    def get_sl(self):
+        if not self._get_sl_called_within_step:
+            warnings.warn(
+                "To get the last sparsity level computed by the scheduler, "
+                "please use `get_last_sl()`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return [
             base_sl * lmbda(self.last_epoch)

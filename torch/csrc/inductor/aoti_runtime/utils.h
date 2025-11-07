@@ -12,7 +12,10 @@
 // C ABI defined in torch/csrc/inductor/aoti_torch/c/shim.h. The same rule
 // applies to other files under torch/csrc/inductor/aoti_runtime/.
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
+<<<<<<< HEAD
 #include <torch/headeronly/util/shim_utils.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(__GNUC__) || defined(__clang__)
 #define AOTI_NOINLINE __attribute__((noinline))
@@ -22,36 +25,62 @@
 #define AOTI_NOINLINE
 #endif
 
+<<<<<<< HEAD
 #define AOTI_TORCH_ERROR_CODE_CHECK(call)                                  \
   if ((call) != AOTI_TORCH_SUCCESS) {                                      \
     torch::headeronly::detail::throw_exception(#call, __FILE__, __LINE__); \
+=======
+AOTI_NOINLINE static void throw_exception(
+    const char* call,
+    const char* file,
+    int64_t line) {
+  std::stringstream ss;
+  ss << call << " API call failed at " << file << ", line " << line;
+  throw std::runtime_error(ss.str());
+}
+
+#define AOTI_TORCH_ERROR_CODE_CHECK(call)       \
+  if ((call) != AOTI_TORCH_SUCCESS) {           \
+    throw_exception(#call, __FILE__, __LINE__); \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 using AOTIRuntimeError = int32_t;
 #define AOTI_RUNTIME_SUCCESS 0
 #define AOTI_RUNTIME_FAILURE 1
 
+<<<<<<< HEAD
 #define AOTI_RUNTIME_ERROR_CODE_CHECK(call)                                \
   if ((call) != AOTI_RUNTIME_SUCCESS) {                                    \
     torch::headeronly::detail::throw_exception(#call, __FILE__, __LINE__); \
+=======
+#define AOTI_RUNTIME_ERROR_CODE_CHECK(call)     \
+  if ((call) != AOTI_RUNTIME_SUCCESS) {         \
+    throw_exception(#call, __FILE__, __LINE__); \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 namespace torch::aot_inductor {
 
 using DeleterFnPtr = void (*)(void*);
 
+<<<<<<< HEAD
 inline void noop_deleter(void* /*unused*/) {}
 
 inline void delete_record_function_object(void* ptr) {
   AOTI_TORCH_ERROR_CODE_CHECK(aoti_record_function_end(
       reinterpret_cast<AtenRecordFunctionHandle>(ptr)));
 }
+=======
+inline void noop_deleter(void*) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 inline void delete_tensor_object(void* ptr) {
   AOTI_TORCH_ERROR_CODE_CHECK(
       aoti_torch_delete_tensor_object(reinterpret_cast<AtenTensorHandle>(ptr)));
 }
 
+<<<<<<< HEAD
 inline void delete_c10_value_object(void* ptr) {
   AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_delete_c10_value_object(
       reinterpret_cast<C10IValueHandle>(ptr)));
@@ -121,6 +150,8 @@ class RAIIAtenRecordFunctionHandle {
   std::unique_ptr<AtenRecordFunctionOpaque, DeleterFnPtr> handle_;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // RAIIAtenTensorHandle steals the tensor objects created by the libtorch C ABI
 class RAIIAtenTensorHandle {
  public:
@@ -201,6 +232,7 @@ class RAIIAtenTensorHandle {
   std::unique_ptr<AtenTensorOpaque, DeleterFnPtr> handle_;
 };
 
+<<<<<<< HEAD
 // RAIIC10IValueHandle steals the IValue objects created by the libtorch C ABI
 class RAIIC10IValueHandle {
  public:
@@ -245,6 +277,11 @@ class RAIIC10IValueHandle {
 class MaybeOwningAtenTensorHandle {
  public:
   MaybeOwningAtenTensorHandle() : handle_(nullptr) {}
+=======
+class MaybeOwningAtenTensorHandle {
+ public:
+  MaybeOwningAtenTensorHandle() : handle_(nullptr), raii_handle_() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We skip copy constructor as MaybeOwningAtenTensorHandle might be RAII which
   // makes it undefined.
   MaybeOwningAtenTensorHandle(const MaybeOwningAtenTensorHandle& other) =

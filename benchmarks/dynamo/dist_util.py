@@ -21,6 +21,12 @@ try:
 except ImportError:
     from torchbench import setup_torchbench_cwd
 
+<<<<<<< HEAD
+=======
+from transformers.models.bert.modeling_bert import BertLayer, BertLMPredictionHead
+from transformers.models.t5.modeling_t5 import T5Block
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def setup(rank, world_size):
     os.environ["MASTER_ADDR"] = os.getenv("MASTER_ADDR", "localhost")
@@ -125,6 +131,11 @@ def fsdp_checkpointing_base(model, blocks):
 
 MODEL_FSDP_WRAP = {
     "toy_model": (MyModule,),
+<<<<<<< HEAD
+=======
+    "hf_Bert": (BertLayer, BertLMPredictionHead),
+    "hf_T5": (T5Block,),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 

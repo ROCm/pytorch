@@ -90,8 +90,12 @@ class CubicSL(BaseScheduler):
         if not self._get_sl_called_within_step:
             warnings.warn(
                 "To get the last sparsity level computed by the scheduler, "
+<<<<<<< HEAD
                 "please use `get_last_sl()`.",
                 stacklevel=2,
+=======
+                "please use `get_last_sl()`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return [
             self.sparsity_compute_fn(

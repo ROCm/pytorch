@@ -96,7 +96,11 @@ void main() {
   // During prepacking, the weight tensor was rearranged in order to optimize
   // for data access linearity in this shader. Therefore we need to adjust the
   // canonical coordinates to the corresponding index in the rearranged weight
+<<<<<<< HEAD
   // tensor. the x coordinate is multiplied by 4 since each group of 4 channels
+=======
+  // tensor. the x coordinate is multipled by 4 since each group of 4 channels
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // is folded into the X axis. The y coordinate is offset based on the z
   // coordinate because the 2D planes were stacked atop each other vertically.
   kstart.x *= 4;

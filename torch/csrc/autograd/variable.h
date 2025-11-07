@@ -108,27 +108,43 @@ namespace impl {
 
 // WARNING: This may return a nullptr.  If you require AutogradMeta to return
 // a materialized structure, use materialize_autograd_meta instead.
+<<<<<<< HEAD
 TORCH_API AutogradMeta* get_autograd_meta(const at::TensorBase& /*self*/);
 
 // WARNING: This will return a nullptr if the Tensor is not a view.
 TORCH_API DifferentiableViewMeta* get_view_autograd_meta(
     const at::TensorBase& /*self*/);
+=======
+TORCH_API AutogradMeta* get_autograd_meta(const at::TensorBase&);
+
+// WARNING: This will return a nullptr if the Tensor is not a view.
+TORCH_API DifferentiableViewMeta* get_view_autograd_meta(const at::TensorBase&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Returns the current autograd meta, materializing it if it was previously
 // none.  This counts as a *mutating* operation, so do not call it on
 // "read-only" operators; in particular, this is NOT thread safe
+<<<<<<< HEAD
 TORCH_API AutogradMeta* materialize_autograd_meta(
     const at::TensorBase& /*self*/);
+=======
+TORCH_API AutogradMeta* materialize_autograd_meta(const at::TensorBase&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /// Set the gradient accumulator of the `Variable`. This is only applicable to
 /// leaf variables. Interior variables should call `set_gradient_edge()`.
 TORCH_API void set_grad_accumulator(
+<<<<<<< HEAD
     const Variable& /*self*/,
+=======
+    const Variable&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::weak_ptr<Node> grad_accumulator);
 
 /// Attempts to get a pointer to the gradient accumulator of the `Variable`,
 /// if it still exists. If the gradient accumulator function has been
 /// destroyed, returns a `nullptr`.
+<<<<<<< HEAD
 TORCH_API std::shared_ptr<Node> try_get_grad_accumulator(
     const Variable& /*self*/);
 TORCH_API std::shared_ptr<Node> try_get_grad_accumulator(
@@ -137,6 +153,13 @@ TORCH_API std::shared_ptr<Node> try_get_grad_accumulator(
 /// Gets the gradient accumulator of the `Variable` if it has one, or else
 /// create one on the fly and return it.
 TORCH_API std::shared_ptr<Node> grad_accumulator(const Variable& /*self*/);
+=======
+TORCH_API std::shared_ptr<Node> try_get_grad_accumulator(const Variable&);
+
+/// Gets the gradient accumulator of the `Variable` if it has one, or else
+/// create one on the fly and return it.
+TORCH_API std::shared_ptr<Node> grad_accumulator(const Variable&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /// Returns the "canonical" gradient edge of this `Variable`, i.e. either the
 /// gradient function if this is an interior `Variable`, or the gradient
@@ -146,7 +169,11 @@ TORCH_API std::shared_ptr<Node> grad_accumulator(const Variable& /*self*/);
 /// zero. Note that `set_gradient_edge` and `gradient_edge` are not
 /// symmetric. You must use `set_gradient_edge` to set the `grad_fn` and
 /// `set_grad_accumulator` to set the accumulator.
+<<<<<<< HEAD
 TORCH_API Edge gradient_edge(const Variable& /*self*/);
+=======
+TORCH_API Edge gradient_edge(const Variable&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /// Set the gradient edge -- i.e. `grad_fn` and `input_nr` -- of the
 /// `Variable`.
@@ -154,7 +181,11 @@ TORCH_API Edge gradient_edge(const Variable& /*self*/);
 /// and never the `grad_accumulator`. For the latter, use
 /// `set_grad_accumulator`. This allows late construction of an interior
 /// `Variable`.
+<<<<<<< HEAD
 TORCH_API void set_gradient_edge(const Variable& /*self*/, Edge edge);
+=======
+TORCH_API void set_gradient_edge(const Variable&, Edge edge);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Autograd Graph Interaction
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,6 +196,7 @@ TORCH_API void set_gradient_edge(const Variable& /*self*/, Edge edge);
 /// For View Variables:
 /// Called after in-place modifications. Modifies the grad_fn of the base
 /// Variable.
+<<<<<<< HEAD
 TORCH_API void rebase_history(const Variable& /*self*/, Edge gradient_edge);
 
 /// Gets the raw gradient function pointer, whatever it currently is.
@@ -196,6 +228,38 @@ TORCH_API std::unique_ptr<PostAccumulateGradHook>& post_acc_grad_hooks(
 
 TORCH_API void create_cpp_hook(
     const at::TensorBase& /*self*/,
+=======
+TORCH_API void rebase_history(const Variable&, Edge gradient_edge);
+
+/// Gets the raw gradient function pointer, whatever it currently is.
+TORCH_API Node* grad_fn_unsafe(const Variable&);
+
+/// Increments the version count of this `Variable`.
+TORCH_API void bump_version(const Variable&);
+TORCH_API void set_version_counter(
+    const Variable&,
+    const c10::VariableVersion& version_counter);
+
+/// Retrieves this `Variable`s version counter.
+TORCH_API const c10::VariableVersion& version_counter(const Variable&);
+
+TORCH_API void set_name(const Variable&, const std::string& name);
+
+TORCH_API void add_hook(
+    const at::TensorBase&,
+    std::unique_ptr<FunctionPreHook> hook);
+TORCH_API std::vector<std::unique_ptr<FunctionPreHook>>& hooks(const Variable&);
+TORCH_API void clear_hooks(const at::TensorBase&);
+
+TORCH_API void set_post_acc_grad_hooks(
+    const at::TensorBase&,
+    std::unique_ptr<PostAccumulateGradHook> dict);
+TORCH_API std::unique_ptr<PostAccumulateGradHook>& post_acc_grad_hooks(
+    const Variable&);
+
+TORCH_API void create_cpp_hook(
+    const at::TensorBase&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool is_retains_grad_hooks = false);
 } // namespace impl
 
@@ -259,6 +323,7 @@ struct TORCH_API AutogradMeta : public c10::AutogradMetaInterface {
   // correctly when this variable is passed to another function.
   uint32_t output_nr_;
 
+<<<<<<< HEAD
   // The dtype of the grad field; when nullopt, defaults to tensor's dtype.
   std::optional<at::ScalarType> grad_dtype_;
 
@@ -266,6 +331,8 @@ struct TORCH_API AutogradMeta : public c10::AutogradMetaInterface {
   // bypassing dtype casting and validation in the autograd engine.
   bool allow_grad_dtype_mismatch_{false};
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Mutex to ensure that concurrent read operations that modify internal
   // state are still thread-safe. Used by grad_fn(), grad_accumulator(),
   // fw_grad() and set_fw_grad()
@@ -306,12 +373,15 @@ struct TORCH_API AutogradMeta : public c10::AutogradMetaInterface {
       uint64_t level,
       bool is_inplace_op) override;
 
+<<<<<<< HEAD
   std::optional<at::ScalarType> grad_dtype(const at::TensorBase& self) const;
 
   void set_grad_dtype(
       const std::optional<at::ScalarType>& grad_dtype,
       const at::TensorBase& self);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AutogradMeta(
       at::TensorImpl* self_impl = nullptr,
       bool requires_grad = false,
@@ -378,12 +448,20 @@ struct TORCH_API ViewFunc {
   /// must match the number of SymInts in the saved state (i.e. the size of the
   /// list returned by get_symints()).
   /// NOLINTNEXTLINE(performance-unnecessary-value-param)
+<<<<<<< HEAD
   virtual void set_symints(std::vector<c10::SymInt> /*unused*/) {}
+=======
+  virtual void set_symints(std::vector<c10::SymInt>) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Sets the values of any Tensors in the saved state. The input vector size
   /// must match the number of Tensors in the saved state (i.e. the size of the
   /// list returned by get_tensors()).
   /// NOLINTNEXTLINE(performance-unnecessary-value-param)
+<<<<<<< HEAD
   virtual void set_tensors(std::vector<at::Tensor> /*unused*/) {}
+=======
+  virtual void set_tensors(std::vector<at::Tensor>) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 /// ViewFunc that represents a chain of two ViewFuncs.
@@ -401,6 +479,7 @@ struct ChainedViewFunc : public ViewFunc {
   size_t num_tensors() const override {
     return first->num_tensors() + second->num_tensors();
   }
+<<<<<<< HEAD
   at::Tensor operator()(
       const at::Tensor& /*input_base*/ /*unused*/) const override;
   std::unique_ptr<ViewFunc> clone_and_set(
@@ -408,6 +487,12 @@ struct ChainedViewFunc : public ViewFunc {
           std::nullopt,
       std::optional<std::vector<at::Tensor>> /*tensors*/ /*unused*/ =
           std::nullopt) const override;
+=======
+  at::Tensor operator()(const at::Tensor&) const override;
+  std::unique_ptr<ViewFunc> clone_and_set(
+      std::optional<std::vector<c10::SymInt>> = std::nullopt,
+      std::optional<std::vector<at::Tensor>> = std::nullopt) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   std::unique_ptr<ViewFunc> first;
@@ -418,6 +503,7 @@ struct ChainedViewFunc : public ViewFunc {
 struct ErroringViewFunc : public ViewFunc {
   ErroringViewFunc(std::string error_msg) : error_msg(std::move(error_msg)) {}
   ~ErroringViewFunc() override = default;
+<<<<<<< HEAD
   at::Tensor operator()(const at::Tensor& /*unused*/) const override {
     TORCH_CHECK(false, error_msg);
   }
@@ -425,6 +511,14 @@ struct ErroringViewFunc : public ViewFunc {
       std::optional<std::vector<c10::SymInt>> /*unused*/ = std::nullopt,
       std::optional<std::vector<at::Tensor>> /*unused*/ =
           std::nullopt) const override {
+=======
+  at::Tensor operator()(const at::Tensor&) const override {
+    TORCH_CHECK(false, error_msg);
+  }
+  std::unique_ptr<ViewFunc> clone_and_set(
+      std::optional<std::vector<c10::SymInt>> = std::nullopt,
+      std::optional<std::vector<at::Tensor>> = std::nullopt) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::make_unique<ErroringViewFunc>(error_msg);
   }
 
@@ -858,6 +952,7 @@ inline Variable make_variable_differentiable_view(
 inline Variable make_variable_non_differentiable_view(
     const Variable& base,
     const at::Tensor& data,
+<<<<<<< HEAD
     bool allow_tensor_metadata_change = true,
     bool is_fresh_tensor = false) {
   if (data.defined()) {
@@ -872,11 +967,22 @@ inline Variable make_variable_non_differentiable_view(
       data_impl->set_autograd_meta(nullptr);
       return data;
     }
+=======
+    bool allow_tensor_metadata_change = true) {
+  if (data.defined()) {
+    // Currently all of non-differentiable view ops(detach/_indices/_values)
+    // share the same TensorImpl as their base Tensor. Thus a new TensorImpl
+    // allocation here is required.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto data_impl_copy = data.getIntrusivePtr()->shallow_copy_and_detach(
         /*version_counter=*/impl::version_counter(base),
         /*allow_tensor_metadata_change=*/allow_tensor_metadata_change);
     data_impl_copy->set_autograd_meta(nullptr);
+<<<<<<< HEAD
     return Variable(std::move(data_impl_copy));
+=======
+    return Variable(data_impl_copy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return Variable();
 }
@@ -935,12 +1041,17 @@ inline Variable make_variable(
         /*allow_tensor_metadata_change=*/allow_tensor_metadata_change);
     data_impl_copy->set_autograd_meta(std::make_unique<AutogradMeta>(
         data_impl_copy.get(), false, std::move(gradient_edge)));
+<<<<<<< HEAD
     return Variable(std::move(data_impl_copy));
+=======
+    return Variable(data_impl_copy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return Variable();
 }
 
 struct VariableHooks final : at::impl::VariableHooksInterface {
+<<<<<<< HEAD
   at::TensorBase tensor_data(
       const at::TensorBase& /*self*/ /*unused*/) const override;
   at::TensorBase variable_data(
@@ -959,6 +1070,21 @@ struct VariableHooks final : at::impl::VariableHooksInterface {
       const at::TensorBase& /*self*/ /*unused*/) const override;
   bool is_leaf(const at::TensorBase& /*self*/ /*unused*/) const override;
   int64_t output_nr(const at::TensorBase& /*self*/ /*unused*/) const override;
+=======
+  at::TensorBase tensor_data(const at::TensorBase&) const override;
+  at::TensorBase variable_data(const at::TensorBase&) const override;
+  const std::shared_ptr<torch::autograd::Node>& grad_fn(
+      const at::TensorBase&) const override;
+  unsigned _register_hook(
+      const at::TensorBase&,
+      std::function<at::TensorBase(const at::TensorBase&)> hook) const override;
+  void remove_hook(const at::TensorBase&, unsigned pos) const override;
+  bool is_view(const at::TensorBase&) const override;
+  const at::TensorBase& base(const at::TensorBase&) const override;
+  const std::string& name(const at::TensorBase&) const override;
+  bool is_leaf(const at::TensorBase&) const override;
+  int64_t output_nr(const at::TensorBase&) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_data(const at::TensorBase& self, const at::TensorBase& new_data)
       const override;
   at::TensorBase data(const at::TensorBase& self) const override;
@@ -977,12 +1103,15 @@ struct VariableHooks final : at::impl::VariableHooksInterface {
       const c10::OperatorHandle& op,
       c10::DispatchKeySet dispatch_keys,
       torch::jit::Stack* stack) const override;
+<<<<<<< HEAD
   std::optional<c10::ScalarType> grad_dtype(
       const at::TensorBase& /*self*/ /*unused*/) const override;
   void set_grad_dtype(
       const at::TensorBase& /*self*/ /*unused*/,
       const std::optional<c10::ScalarType>& /*grad_dtype*/ /*unused*/)
       const override;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 namespace utils {

@@ -5,7 +5,10 @@
 #include <array>
 #include <type_traits>
 #include <ATen/core/TensorBase.h>
+<<<<<<< HEAD
 #include <ATen/ceil_div.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/Dispatch.h>
 #include <ATen/Dispatch_v2.h>
 #include <ATen/cuda/CUDAContext.h>
@@ -84,6 +87,7 @@ void gpu_index_kernel(TensorIteratorBase& iter, const IntArrayRef index_size, co
         auto ind_dim_size = index_size[0];
         auto inp_stride_bytes = index_stride[0];
         auto out_stride_bytes = iter.strides(0)[1];
+<<<<<<< HEAD
         // avoid grid overflow in the fast kernel
         const int64_t vec_chunks = ceil_div(slice_size, alignment);
         const int64_t blocks_per_slice_upper = ceil_div(vec_chunks, (int64_t)launch_size_nd);
@@ -95,6 +99,13 @@ void gpu_index_kernel(TensorIteratorBase& iter, const IntArrayRef index_size, co
           return;
         }
     }
+=======
+        if (iter.numel() == 0) return;
+        at::native::vectorized_gather_kernel_launch<alignment, int64_t>(out_ptr, in_ptr, (int64_t*)iter.data_ptr(2), num_ind,
+        slice_size, ind_dim_size, inp_stride_bytes, out_stride_bytes, /*allow_neg_indices*/true);
+        return;
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   auto sizes = std::array<int64_t, MAX_DIMS>{};

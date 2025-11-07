@@ -4,16 +4,23 @@ from __future__ import annotations
 
 import json
 import os
+<<<<<<< HEAD
 from typing import Any, cast, TYPE_CHECKING
+=======
+from typing import Any, Callable, cast
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gh_fetch_url_and_headers(
     url: str,
     *,

@@ -39,9 +39,15 @@ struct TORCH_API LBFGSParamState
   TORCH_ARG(int64_t, n_iter) = 0;
   TORCH_ARG(double, t) = 0;
   TORCH_ARG(double, prev_loss) = 0;
+<<<<<<< HEAD
   TORCH_ARG(Tensor, d);
   TORCH_ARG(Tensor, H_diag);
   TORCH_ARG(Tensor, prev_flat_grad);
+=======
+  TORCH_ARG(Tensor, d) = {};
+  TORCH_ARG(Tensor, H_diag) = {};
+  TORCH_ARG(Tensor, prev_flat_grad) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_ARG(std::deque<Tensor>, old_dirs);
   TORCH_ARG(std::deque<Tensor>, old_stps);
   TORCH_ARG(std::deque<Tensor>, ro);

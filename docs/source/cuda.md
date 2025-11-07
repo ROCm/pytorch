@@ -15,7 +15,10 @@
 
     StreamContext
     can_device_access_peer
+<<<<<<< HEAD
     check_error
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     current_blas_handle
     current_device
     current_stream
@@ -35,7 +38,10 @@
     init
     ipc_collect
     is_available
+<<<<<<< HEAD
     is_bf16_supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_initialized
     is_tf32_supported
     memory_usage
@@ -176,6 +182,13 @@
 .. autoclass:: torch.cuda.use_mem_pool
 ```
 
+<<<<<<< HEAD
+=======
+% FIXME The following doesn't seem to exist. Is it supposed to?
+% https://github.com/pytorch/pytorch/issues/27785
+% .. autofunction:: reset_max_memory_reserved
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## NVIDIA Tools Extension (NVTX)
 
 ```{eval-rst}
@@ -258,6 +271,7 @@ See the docs for {class}`~torch.cuda.gds.GdsFile` for an example of how to use t
 
 ```
 
+<<<<<<< HEAD
 ## Green Contexts (experimental)
 
 `torch.cuda.green_contexts` provides thin wrappers around the CUDA Green Context APIs
@@ -280,6 +294,8 @@ See the docs for {class}`~torch.cuda.green_contexts.GreenContext` for an example
 ```
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 % This module needs to be documented. Adding here in the meantime
 
 % for tracking purposes
@@ -289,11 +305,22 @@ See the docs for {class}`~torch.cuda.green_contexts.GreenContext` for an example
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
+=======
+.. py:module:: torch.cuda.error
+```
+
+```{eval-rst}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.cuda.gds
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. py:module:: torch.cuda.green_contexts
+=======
+.. py:module:: torch.cuda.graphs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
@@ -313,12 +340,23 @@ See the docs for {class}`~torch.cuda.green_contexts.GreenContext` for an example
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
+=======
+.. py:module:: torch.cuda.random
+```
+
+```{eval-rst}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.cuda.sparse
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. toctree::
     :hidden:
 
     cuda.aliases.md
+=======
+.. py:module:: torch.cuda.streams
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```

@@ -13,11 +13,18 @@ import tarfile
 import tempfile
 import threading
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from contextlib import closing, contextmanager
 from enum import Enum
 from typing import Any, cast, Generic, IO, Optional, TypeAlias, TypeVar, Union
 from typing_extensions import TypeIs
+=======
+from contextlib import closing, contextmanager
+from enum import Enum
+from typing import Any, Callable, cast, Generic, IO, Optional, TypeVar, Union
+from typing_extensions import TypeAlias, TypeIs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._weights_only_unpickler as _weights_only_unpickler
@@ -190,7 +197,11 @@ def set_crc32_options(compute_crc32: bool):
         able to load the file.
 
     Args:
+<<<<<<< HEAD
         compute_crc32 (bool): set crc32 computation flag
+=======
+        compute_crc32 (bool): set crc32 compuation flag
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     from torch.utils.serialization import config
 
@@ -524,10 +535,14 @@ def check_module_version_greater_or_equal(
         if error_if_malformed:
             raise RuntimeError(message) from e
         else:
+<<<<<<< HEAD
             warnings.warn(
                 message + ", but continuing assuming that requirement is met",
                 stacklevel=2,
             )
+=======
+            warnings.warn(message + ", but continuing assuming that requirement is met")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requirement_is_met = True
 
     return requirement_is_met
@@ -664,11 +679,14 @@ register_package(
     functools.partial(_backend_tag, "xpu"),
     functools.partial(_deserialize, "xpu"),
 )
+<<<<<<< HEAD
 register_package(
     26,
     functools.partial(_backend_tag, "mtia"),
     functools.partial(_deserialize, "mtia"),
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def location_tag(
@@ -790,10 +808,16 @@ class _open_zipfile_writer_file(_opener[torch._C.PyTorchFileWriter]):
             # PyTorchFileWriter only supports ascii filename.
             # For filenames with non-ascii characters, we rely on Python
             # for writing out the file.
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
             self.file_stream = io.FileIO(self.name, mode="w")
             super().__init__(
                 torch._C.PyTorchFileWriter(  # pyrefly: ignore  # no-matching-overload
+=======
+            self.file_stream = io.FileIO(self.name, mode="w")
+            super().__init__(
+                torch._C.PyTorchFileWriter(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.file_stream, get_crc32_options(), _get_storage_alignment()
                 )
             )
@@ -1024,8 +1048,12 @@ def _legacy_save(obj, f, pickle_module, pickle_protocol) -> None:
                 warnings.warn(
                     "Couldn't retrieve source code for container of "
                     "type " + obj.__name__ + ". It won't be checked "
+<<<<<<< HEAD
                     "for correctness upon loading.",
                     stacklevel=2,
+=======
+                    "for correctness upon loading."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             return ("module", obj, source_file, source)
 
@@ -1077,7 +1105,11 @@ def _legacy_save(obj, f, pickle_module, pickle_protocol) -> None:
             # tensor]`, where `tensor.storage()` is the same as `storage`, and
             # `tensor.element_size() > 1`. Let's say that `tensor.dtype ==
             # torch.float`.  The storage will be serialized with element size
+<<<<<<< HEAD
             # of 1, since we're choosing to serialize the first occurrence of
+=======
+            # of 1, since we're choosing to serialize the first occurance of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # a duplicate storage. Since this legacy serialization format saves
             # the numel of the storage, rather than nbytes directly, we'll be
             # effectively saving nbytes in this case.  We'll be able to load it
@@ -1120,6 +1152,7 @@ def _legacy_save(obj, f, pickle_module, pickle_protocol) -> None:
             return res
         return None
 
+<<<<<<< HEAD
     sys_info = {
         "protocol_version": PROTOCOL_VERSION,
         "little_endian": sys.byteorder == "little",
@@ -1129,6 +1162,17 @@ def _legacy_save(obj, f, pickle_module, pickle_protocol) -> None:
             "long": LONG_SIZE,
         },
     }
+=======
+    sys_info = dict(
+        protocol_version=PROTOCOL_VERSION,
+        little_endian=sys.byteorder == "little",
+        type_sizes=dict(
+            short=SHORT_SIZE,
+            int=INT_SIZE,
+            long=LONG_SIZE,
+        ),
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     pickle_module.dump(MAGIC_NUMBER, f, protocol=pickle_protocol)
     pickle_module.dump(PROTOCOL_VERSION, f, protocol=pickle_protocol)
@@ -1136,14 +1180,21 @@ def _legacy_save(obj, f, pickle_module, pickle_protocol) -> None:
 
     class PyTorchLegacyPickler(pickle_module.Pickler):
         def persistent_id(self, obj):
+<<<<<<< HEAD
             return persistent_id(obj)  # noqa: F821
+=======
+            return persistent_id(obj)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     pickler = PyTorchLegacyPickler(f, protocol=pickle_protocol)
     pickler.dump(obj)
 
+<<<<<<< HEAD
     # The class def keeps the persistent_id closure alive, leaking memory.
     del persistent_id
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     serialized_storage_keys = sorted(serialized_storages.keys())
     pickle_module.dump(serialized_storage_keys, f, protocol=pickle_protocol)
     f.flush()
@@ -1161,7 +1212,11 @@ def _save(
     pickle_protocol,
     _disable_byteorder_record,
 ):
+<<<<<<< HEAD
     serialized_storages: dict[str, torch.storage.UntypedStorage] = {}
+=======
+    serialized_storages = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     id_map: dict[int, str] = {}
 
     # Since loading storages that view the same data with different dtypes is
@@ -1221,6 +1276,7 @@ def _save(
 
     class PyTorchPickler(pickle_module.Pickler):  # type: ignore[name-defined]
         def persistent_id(self, obj):
+<<<<<<< HEAD
             return persistent_id(obj)  # noqa: F821
 
     pickler = PyTorchPickler(data_buf, protocol=pickle_protocol)
@@ -1229,6 +1285,12 @@ def _save(
     # The class def keeps the persistent_id closure alive, leaking memory.
     del persistent_id
 
+=======
+            return persistent_id(obj)
+
+    pickler = PyTorchPickler(data_buf, protocol=pickle_protocol)
+    pickler.dump(obj)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     data_value = data_buf.getvalue()
     zip_file.write_record("data.pkl", data_value, len(data_value))
     # .format_version is used to track
@@ -1304,11 +1366,14 @@ def load(
 
     Loads an object saved with :func:`torch.save` from a file.
 
+<<<<<<< HEAD
     .. warning::
         :func:`torch.load()` uses an unpickler under the hood. **Never load data from an untrusted source.**
 
         See :ref:`weights-only-security` for more details.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     :func:`torch.load` uses Python's unpickling facilities but treats storages,
     which underlie tensors, specially. They are first deserialized on the
     CPU and are then moved to the device they were saved from. If this fails
@@ -1351,16 +1416,34 @@ def load(
             loading only tensors, primitive types, dictionaries
             and any types added via :func:`torch.serialization.add_safe_globals`.
             See :ref:`weights-only` for more details.
+<<<<<<< HEAD
         mmap: Indicates whether the file should be mapped rather than loading all the storages into memory.
             Typically, tensor storages in the file will first be moved from disk to CPU memory, after which they
             are moved to the location that they were tagged with when saving, or specified by ``map_location``. This
             second step is a no-op if the final location is CPU. When the ``mmap`` flag is set, instead of copying the
             tensor storages from disk to CPU memory in the first step, ``f`` is mapped, which means tensor storages
+=======
+        mmap: Indicates whether the file should be mmaped rather than loading all the storages into memory.
+            Typically, tensor storages in the file will first be moved from disk to CPU memory, after which they
+            are moved to the location that they were tagged with when saving, or specified by ``map_location``. This
+            second step is a no-op if the final location is CPU. When the ``mmap`` flag is set, instead of copying the
+            tensor storages from disk to CPU memory in the first step, ``f`` is mmaped, which means tensor storages
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             will be lazily loaded when their data is accessed.
         pickle_load_args: (Python 3 only) optional keyword arguments passed over to
             :func:`pickle_module.load` and :func:`pickle_module.Unpickler`, e.g.,
             :attr:`errors=...`.
 
+<<<<<<< HEAD
+=======
+    .. warning::
+        :func:`torch.load()` unless `weights_only` parameter is set to `True`,
+        uses ``pickle`` module implicitly, which is known to be insecure.
+        It is possible to construct malicious pickle data which will execute arbitrary code
+        during unpickling. Never load data that could have come from an untrusted
+        source in an unsafe mode, or that could have been tampered with. **Only load data you trust**.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     .. note::
         When you call :func:`torch.load()` on a file which contains GPU tensors, those tensors
         will be loaded to GPU by default. You can call ``torch.load(.., map_location='cpu')``
@@ -1442,7 +1525,11 @@ def load(
                         "Please file an issue with the following so that we can make "
                         "`weights_only=True` compatible with your use case: WeightsUnpickler error: "
                     )
+<<<<<<< HEAD
             updated_message += "\n\n" + message
+=======
+            updated_message += message
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return updated_message + DOCS_MESSAGE
 
     weights_only_not_set = weights_only is None
@@ -1511,7 +1598,10 @@ def load(
                         " dispatching to 'torch.jit.load' (call 'torch.jit.load' directly to"
                         " silence this warning)",
                         UserWarning,
+<<<<<<< HEAD
                         stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     if weights_only:
                         raise RuntimeError(
@@ -1531,9 +1621,13 @@ def load(
                     else:
                         shared = False
                     overall_storage = torch.UntypedStorage.from_file(
+<<<<<<< HEAD
                         os.fspath(f),
                         shared,
                         size,
+=======
+                        os.fspath(f), shared, size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 if weights_only:
                     try:
@@ -1613,8 +1707,12 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
             warnings.warn(
                 "Couldn't retrieve source code for container of "
                 "type " + container_type.__name__ + ". It won't be checked "
+<<<<<<< HEAD
                 "for correctness upon loading.",
                 stacklevel=2,
+=======
+                "for correctness upon loading."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return
         if original_source != current_source:
@@ -1656,7 +1754,11 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
                     "patch tool to revert the changes."
                 )
             msg = f"source code of class '{torch.typename(container_type)}' has changed. {msg}"
+<<<<<<< HEAD
             warnings.warn(msg, SourceChangeWarning, stacklevel=2)
+=======
+            warnings.warn(msg, SourceChangeWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def legacy_load(f):
         deserialized_objects: dict[int, Any] = {}
@@ -1960,7 +2062,10 @@ def _load(
             "torch.serialization.set_default_load_endianness to set "
             "the desired default load endianness",
             UserWarning,
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     from torch.utils.serialization import config
@@ -2009,7 +2114,11 @@ def _load(
         # for a given key.
         offsets[name] = storage_offset
 
+<<<<<<< HEAD
         # Increment current_offset to offset where next zipfile header starts
+=======
+        # Increment current_offset of offset where next zipfile header starts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         current_offset = storage_offset + numel
         # add size of data descriptor after payload
         if numel > 0:
@@ -2025,10 +2134,14 @@ def _load(
         if torch._guards.detect_fake_mode(None) is not None:
             nbytes = numel * torch._utils._element_size(dtype)
             storage = torch.UntypedStorage(nbytes, device="meta")
+<<<<<<< HEAD
             if can_calculate_storage_offsets:
                 storage._checkpoint_offset = _get_offset(key, name, numel)
             else:
                 storage._checkpoint_offset = zip_file.get_record_offset(name)
+=======
+            storage._checkpoint_offset = zip_file.get_record_offset(name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif _serialization_tls.skip_data:
             nbytes = numel * torch._utils._element_size(dtype)
             storage = torch.UntypedStorage(nbytes)

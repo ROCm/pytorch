@@ -1,5 +1,8 @@
 #include <c10/core/impl/DeviceGuardImplInterface.h>
+<<<<<<< HEAD
 #include <c10/core/impl/FakeGuardImpl.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <array>
 
 namespace c10::impl {
@@ -9,12 +12,17 @@ std::array<
     static_cast<size_t>(DeviceType::COMPILE_TIME_MAX_DEVICE_TYPES)>
     device_guard_impl_registry;
 
+<<<<<<< HEAD
 void registerDeviceGuard(
+=======
+DeviceGuardImplRegistrar::DeviceGuardImplRegistrar(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DeviceType type,
     const DeviceGuardImplInterface* impl) {
   device_guard_impl_registry[static_cast<size_t>(type)].store(impl);
 }
 
+<<<<<<< HEAD
 DeviceGuardImplRegistrar::DeviceGuardImplRegistrar(
     DeviceType type,
     const DeviceGuardImplInterface* impl) {
@@ -43,4 +51,6 @@ void ensureCUDADeviceGuardSet() {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::impl

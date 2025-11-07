@@ -376,7 +376,11 @@ struct ElementwiseInterpreter : torch::CustomClassHolder {
   // for more info.
 
   // This is the type we will use to marshall information on disk during
+<<<<<<< HEAD
   // Ser/De. It is a simple tuple composed of primitive types and simple
+=======
+  // ser/de. It is a simple tuple composed of primitive types and simple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // collection types like vector, optional, and dict.
   using SerializationType = std::tuple<
       std::vector<std::string> /*input_names_*/,
@@ -421,9 +425,13 @@ struct FlattenWithTensorOp : public torch::CustomClassHolder {
   explicit FlattenWithTensorOp(at::Tensor t) : t_(t) {}
 
   at::Tensor get() {
+<<<<<<< HEAD
     // Need to return a copy of the tensor, otherwise the tensor will be
     // aliased with a tensor that may be modified by the user or backend.
     return t_.clone();
+=======
+    return t_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::tuple<std::tuple<std::string, at::Tensor>> __obj_flatten__() {
@@ -439,9 +447,13 @@ struct ContainsTensor : public torch::CustomClassHolder {
   explicit ContainsTensor(at::Tensor t) : t_(t) {}
 
   at::Tensor get() {
+<<<<<<< HEAD
     // Need to return a copy of the tensor, otherwise the tensor will be
     // aliased with a tensor that may be modified by the user or backend.
     return t_.clone();
+=======
+    return t_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::tuple<std::tuple<std::string, at::Tensor>> __obj_flatten__() {
@@ -507,6 +519,7 @@ TORCH_LIBRARY(_TorchScriptTesting, m) {
   m.class_<FlattenWithTensorOp>("_FlattenWithTensorOp")
       .def(torch::init<at::Tensor>())
       .def("get", &FlattenWithTensorOp::get)
+<<<<<<< HEAD
       .def("__obj_flatten__", &FlattenWithTensorOp::__obj_flatten__)
       .def_pickle(
           // __getstate__
@@ -516,6 +529,9 @@ TORCH_LIBRARY(_TorchScriptTesting, m) {
           [](at::Tensor data) -> c10::intrusive_ptr<FlattenWithTensorOp> {
             return c10::make_intrusive<FlattenWithTensorOp>(std::move(data));
           });
+=======
+      .def("__obj_flatten__", &FlattenWithTensorOp::__obj_flatten__);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.class_<ConstantTensorContainer>("_ConstantTensorContainer")
       .def(torch::init<at::Tensor>())
@@ -720,8 +736,12 @@ at::Tensor takes_foo_tensor_return(c10::intrusive_ptr<Foo> foo, at::Tensor x) {
 }
 
 void queue_push(c10::intrusive_ptr<TensorQueue> tq, at::Tensor x) {
+<<<<<<< HEAD
   // clone the tensor to avoid aliasing
   tq->push(x.clone());
+=======
+  tq->push(x);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 at::Tensor queue_pop(c10::intrusive_ptr<TensorQueue> tq) {
@@ -754,11 +774,14 @@ TORCH_LIBRARY_IMPL(_TorchScriptTesting, CPU, m) {
   m.impl("takes_foo_tensor_return", takes_foo_tensor_return);
 }
 
+<<<<<<< HEAD
 TORCH_LIBRARY_IMPL(_TorchScriptTesting, CUDA, m) {
   m.impl("queue_push", queue_push);
   m.impl("queue_pop", queue_pop);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_LIBRARY_IMPL(_TorchScriptTesting, Meta, m) {
   m.impl("takes_foo", &takes_foo);
   m.impl("takes_foo_list_return", takes_foo_list_return);

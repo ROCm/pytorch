@@ -11,13 +11,21 @@ import threading
 import uuid
 import warnings
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable, Generator, Iterable, Iterator, Sequence
+=======
+from collections.abc import Generator, Iterable, Iterator, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from io import UnsupportedOperation
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, cast, Final, IO, Optional, Union
+=======
+from typing import Any, Callable, cast, IO, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # introduced as collections.abc.Buffer in Python 3.12
 from typing_extensions import Buffer
@@ -68,8 +76,11 @@ __all__ = [
 
 _metadata_fn: str = ".metadata"
 
+<<<<<<< HEAD
 CURRENT_DCP_VERSION: Final[str] = "1.0.0"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclass
 class _StorageInfo:
@@ -201,8 +212,12 @@ class _OverlappingCpuLoader(_TensorLoader):
                 self.in_flight_data += tensor.numel() * tensor.element_size()
 
     def _finish(self) -> Iterable[tuple[torch.Tensor, object]]:
+<<<<<<< HEAD
         if not self._done:
             raise AssertionError("_finish called before all items were processed")
+=======
+        assert self._done
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(self.current_items) > 0:
             self.stream.synchronize()
         return self.current_items
@@ -282,8 +297,12 @@ class _StorageWriterTransforms:
 
 def _item_size(item: WriteItem) -> int:
     size = 1
+<<<<<<< HEAD
     if item.tensor_data is None:
         raise AssertionError("WriteItem tensor_data must not be None")
+=======
+    assert item.tensor_data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # can't use math.prod as PT needs to support older python
     for s in item.tensor_data.size:
         size *= s
@@ -331,6 +350,7 @@ def _write_item(
     )
 
     if write_item.type == WriteItemType.BYTE_IO:
+<<<<<<< HEAD
         if not isinstance(data, io.BytesIO):
             raise AssertionError("Data must be io.BytesIO for BYTE_IO write items")
         transform_to.write(data.getbuffer())
@@ -341,6 +361,13 @@ def _write_item(
             )
         if data.device != torch.device("cpu"):
             raise AssertionError("Tensor must be on CPU device")
+=======
+        assert isinstance(data, io.BytesIO)
+        transform_to.write(data.getbuffer())
+    else:
+        assert isinstance(data, torch.Tensor)
+        assert data.device == torch.device("cpu")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if serialization_format == SerializationFormat.TORCH_SAVE:
             torch.save(data, transform_to)
 
@@ -435,8 +462,12 @@ def _write_files_from_queue(
                 tensor_dict = {}
                 metadata_dict = {}
                 for tensor, write_item in loader.values():
+<<<<<<< HEAD
                     if not tensor.is_cpu:
                         raise AssertionError("Tensor must be on CPU")
+=======
+                    assert tensor.is_cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     write_results.append(
                         _write_item(
                             transforms,
@@ -628,14 +659,18 @@ class _FileSystemWriter(StorageWriter):
         self.overwrite = overwrite
         self.transforms = _StorageWriterTransforms(_extensions)
         self.serialization_format = serialization_format
+<<<<<<< HEAD
         self.rank: Optional[int] = None
         self.use_collectives: bool = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def reset(self, checkpoint_id: Union[str, os.PathLike, None] = None) -> None:
         if checkpoint_id:
             self.path = self.fs.init_path(checkpoint_id)
         self.save_id = _generate_uuid()
 
+<<<<<<< HEAD
     def set_up_storage_writer(
         self, is_coordinator: bool, *args: Any, **kwargs: Any
     ) -> None:
@@ -662,22 +697,41 @@ class _FileSystemWriter(StorageWriter):
                     " Past version 2.5 of PyTorch, `overwrite` will default to False. Set this variable to True to"
                     " maintain this functionality or False to raise when an existing checkpoint is found.",
                     stacklevel=2,
+=======
+    def set_up_storage_writer(self, is_coordinator: bool) -> None:
+        pass
+
+    def prepare_local_plan(self, plan: SavePlan) -> SavePlan:
+        self.fs.mkdir(self.path)
+        if self.fs.exists(self.metadata_path):
+            if self.overwrite:
+                warnings.warn(
+                    f"Detected an existing checkpoint in {self.metadata_path}, overwriting since {self.overwrite=}."
+                    " Past version 2.5 of PyTorch, `overwrite` will default to False. Set this variable to True to"
+                    " maintain this functionality or False to raise when an existing checkpoint is found."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 raise RuntimeError(f"Checkpoint already exists and {self.overwrite=}.")
 
+<<<<<<< HEAD
         if self.rank is not None and not self.use_collectives:
             plan = dataclasses.replace(
                 plan, storage_data=_StoragePrefix(f"__{self.rank}_")
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return plan
 
     def prepare_global_plan(self, plans: list[SavePlan]) -> list[SavePlan]:
         new_plans = [
             dataclasses.replace(plan, storage_data=_StoragePrefix(f"__{i}_"))
+<<<<<<< HEAD
             if plan.storage_data is None
             else plan
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i, plan in enumerate(plans)
         ]
         return new_plans
@@ -761,20 +815,28 @@ class _FileSystemWriter(StorageWriter):
             return fut
 
     def finish(self, metadata: Metadata, results: list[list[WriteResult]]) -> None:
+<<<<<<< HEAD
         metadata = dataclasses.replace(metadata, version=CURRENT_DCP_VERSION)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         storage_md = {}
         for wr_list in results:
             storage_md.update({wr.index: wr.storage_data for wr in wr_list})
         metadata.storage_data = storage_md
 
         metadata.storage_meta = self.storage_meta()
+<<<<<<< HEAD
         tmp_filename = (
             f"__{self.rank}{_metadata_fn}.tmp"
             if not self.use_collectives and self.rank is not None
             else f"{_metadata_fn}.tmp"
         )
         tmp_path = cast(Path, self.fs.concat_path(self.path, tmp_filename))
+=======
+
+        tmp_path = cast(Path, self.fs.concat_path(self.path, f"{_metadata_fn}.tmp"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.fs.create_stream(tmp_path, "wb") as metadata_file:
             pickle.dump(metadata, metadata_file)
             if self.sync_files:
@@ -784,6 +846,7 @@ class _FileSystemWriter(StorageWriter):
                     os.sync()
 
         # delete in-case other checkpoints were present.
+<<<<<<< HEAD
         if not self.use_collectives and self.rank is not None:
             metadata_path = self._get_metadata_path(self.rank)
         else:
@@ -793,13 +856,25 @@ class _FileSystemWriter(StorageWriter):
             self.fs.rm_file(metadata_path)
 
         self.fs.rename(tmp_path, metadata_path)
+=======
+        if self.fs.exists(self.metadata_path):
+            self.fs.rm_file(self.metadata_path)
+
+        self.fs.rename(tmp_path, self.metadata_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def storage_meta(self) -> Optional[StorageMeta]:
         return StorageMeta(checkpoint_id=self.checkpoint_id, save_id=self.save_id)
 
+<<<<<<< HEAD
     def _get_metadata_path(self, rank: Optional[int] = None) -> os.PathLike:
         filename = f"{_metadata_fn}" if rank is None else f"__{rank}{_metadata_fn}"
         return cast(Path, self.fs.concat_path(self.path, filename))
+=======
+    @property
+    def metadata_path(self) -> Union[str, os.PathLike]:
+        return cast(Path, self.fs.concat_path(self.path, _metadata_fn))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def checkpoint_id(self) -> Union[str, os.PathLike]:
@@ -851,8 +926,11 @@ class FileSystemReader(StorageReader):
         self.storage_data: dict[Any, Any] = {}
         self.load_id = _generate_uuid()
         self.transforms = _StorageReaderTransforms(_extension_registry)
+<<<<<<< HEAD
         self.rank = None
         self.use_collectives = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _slice_file(self, file, sinfo: _StorageInfo) -> IO[bytes]:
         return cast(IO[bytes], _create_file_view(file, sinfo.offset, sinfo.length))
@@ -912,10 +990,16 @@ class FileSystemReader(StorageReader):
                         )
                         target_tensor = planner.resolve_tensor(req).detach()
 
+<<<<<<< HEAD
                         if target_tensor.size() != tensor.size():
                             raise AssertionError(
                                 f"req {req.storage_index} mismatch sizes {target_tensor.size()} vs {tensor.size()}"
                             )
+=======
+                        assert target_tensor.size() == tensor.size(), (
+                            f"req {req.storage_index} mismatch sizes {target_tensor.size()} vs {tensor.size()}"
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         target_tensor.copy_(tensor)
                         planner.commit_tensor(req, target_tensor)
 
@@ -923,6 +1007,7 @@ class FileSystemReader(StorageReader):
         fut.set_result(None)
         return fut
 
+<<<<<<< HEAD
     def _get_metadata_path(self, rank: Optional[int] = None) -> os.PathLike:
         filename = f"{_metadata_fn}" if rank is None else f"__{rank}{_metadata_fn}"
         return cast(Path, self.fs.concat_path(self.path, filename))
@@ -931,6 +1016,11 @@ class FileSystemReader(StorageReader):
     def read_metadata(self, *args: Any, **kwargs: Any) -> Metadata:
         rank = kwargs.get("rank")
         path = self._get_metadata_path(rank)
+=======
+    # Implementing the abstract function in StorageReader
+    def read_metadata(self) -> Metadata:
+        path = self.fs.concat_path(self.path, ".metadata")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.fs.create_stream(path, "rb") as metadata_file:
             metadata = pickle.load(metadata_file)
 
@@ -940,6 +1030,7 @@ class FileSystemReader(StorageReader):
 
         return metadata
 
+<<<<<<< HEAD
     def set_up_storage_reader(
         self, metadata: Metadata, is_coordinator: bool, *args: Any, **kwargs: Any
     ) -> None:
@@ -948,6 +1039,11 @@ class FileSystemReader(StorageReader):
         self.use_collectives = kwargs.get("use_collectives", True)
         if self.storage_data is None:
             raise AssertionError("storage_data must not be None in metadata")
+=======
+    def set_up_storage_reader(self, metadata: Metadata, is_coordinator: bool) -> None:
+        self.storage_data = metadata.storage_data
+        assert self.storage_data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def prepare_local_plan(self, plan: LoadPlan) -> LoadPlan:
         return plan
@@ -977,8 +1073,12 @@ class FileSystemWriter(_FileSystemWriter, BlockingAsyncStager):
     * File creation is atomic
 
     The checkpoint consist of one file per write request plus
+<<<<<<< HEAD
     a global `.metadata` file with the serialized metadata if rank coordination is enabled.
     a rank local `__{rank}.metadata` file with the serialized metadata if rank coordination is NOT enabled.
+=======
+    a `.metadata` file with the serialized metadata.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     """
 

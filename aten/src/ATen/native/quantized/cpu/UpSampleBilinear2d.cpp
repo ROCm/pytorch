@@ -35,7 +35,11 @@ struct UpsampleBilinearParamW {
 
 // at::native functions for the native_functions.yaml
 template <typename scalar_t>
+<<<<<<< HEAD
 void upsample_bilinear2d_out_frame(
+=======
+static void upsample_bilinear2d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& output,
     const Tensor& input,
     int64_t input_height,
@@ -73,7 +77,12 @@ void upsample_bilinear2d_out_frame(
   const auto rwidth = area_pixel_compute_scale<float>(
       input_width, output_width, align_corners, scales_w);
 
+<<<<<<< HEAD
   float output_scale = static_cast<float>(output.q_scale() / input.q_scale());
+=======
+  // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
+  float output_scale = output.q_scale() / input.q_scale();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const int64_t input_q_zero_point = input.q_zero_point();
   const int64_t output_q_zero_point = output.q_zero_point();

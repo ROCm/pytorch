@@ -1,7 +1,11 @@
 # mypy: allow-untyped-decorators
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._higher_order_ops.base_hop import BaseHOP, FunctionWithNoFreeVars
 

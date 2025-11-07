@@ -16,13 +16,21 @@ class TORCH_API BackendRuntimeException : public c10::Error {
   }
   // If rethrowing, can push another debug_handle
   // This is useful in couple of scenarios.
+<<<<<<< HEAD
   // 1. A submodule is lowered and lite interpreter has CallMethod
+=======
+  // 1. A submodule is lowered and lite interperter has CallMethod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //    to lowered module's method. In this case lowered module will throw with
   //    a handle, plus there will be another debug handle corresponding
   //    to the CallMethod node in lite interpreter. Both together give complete
   //    trace. This function allows lite interpreter to rethrow with debug
   //    handle it has for CallMethod.
+<<<<<<< HEAD
   // 2. Another scenarios is when lite interpreter can make function calls or
+=======
+  // 2. Another scenarios is when lite interperter can make function calls or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //    the lowered backend also has function call ability. Thus we have
   //    multiple function frames. Now we need a stack of handles to symbolicate
   //    entire stack trace.

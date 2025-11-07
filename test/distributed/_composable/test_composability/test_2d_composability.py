@@ -41,6 +41,7 @@ from torch.distributed.tensor.parallel.ddp import _pre_dp_module_transform
 from torch.distributed.tensor.parallel.fsdp import DTensorExtensions
 from torch.distributed.tensor.parallel.input_reshard import input_reshard
 from torch.nn.parallel import DistributedDataParallel as DDP
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     skip_if_lt_x_gpu,
     skip_if_rocm_arch_multiprocess,
@@ -53,6 +54,14 @@ from torch.testing._internal.common_utils import (
     run_tests,
     TEST_XPU,
     xfailIf,
+=======
+from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+from torch.testing._internal.common_fsdp import FSDPTest, MLP, MLPStack
+from torch.testing._internal.common_utils import (
+    instantiate_parametrized_tests,
+    parametrize,
+    run_tests,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
@@ -64,9 +73,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 from torch.testing._internal.distributed.checkpoint_utils import with_temp_dir
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SimpleModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -82,7 +94,11 @@ class SimpleModel(nn.Module):
         return x
 
     def get_input(self):
+<<<<<<< HEAD
         return torch.rand(4, 5, device=device_type)
+=======
+        return torch.rand(4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SimpleModelUneven(nn.Module):
@@ -103,7 +119,11 @@ class SimpleModelUneven(nn.Module):
         return x
 
     def get_input(self):
+<<<<<<< HEAD
         return torch.rand(4, 5, device=device_type)
+=======
+        return torch.rand(4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestFullyShard2DTraining(FSDPTest):
@@ -114,18 +134,28 @@ class TestFullyShard2DTraining(FSDPTest):
 
     @property
     def world_size(self) -> int:
+<<<<<<< HEAD
         return min(4, torch.accelerator.device_count())
+=======
+        return min(4, torch.cuda.device_count())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def init_global_mesh(self) -> DeviceMesh:
         # Prefer to test with >=4 GPUs, but for 2 GPUs, use 2-way TP
         dp_size = 2 if self.world_size > 2 else 1
         return init_device_mesh(
+<<<<<<< HEAD
             device_type,
             (dp_size, self.world_size // dp_size),
             mesh_dim_names=("dp", "tp"),
         )
 
     @skip_if_rocm_arch_multiprocess(MI200_ARCH)
+=======
+            "cuda", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_train_parity_2d_mlp(self):
         global_mesh = self.init_global_mesh()
@@ -150,7 +180,11 @@ class TestFullyShard2DTraining(FSDPTest):
 
         torch.manual_seed(42)
         model = MLPStack(mlp_dim)
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).to(device_type)
+=======
+        ref_model = copy.deepcopy(model).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replicate(ref_model, device_ids=[self.rank], process_group=dp_pg)
         ref_optim = torch.optim.Adam(ref_model.parameters(), lr=1e-2, foreach=False)
         model.parallelize(
@@ -162,8 +196,14 @@ class TestFullyShard2DTraining(FSDPTest):
         optim = torch.optim.Adam(model.parameters(), lr=1e-2, foreach=False)
 
         torch.manual_seed(42 + dp_pg.rank() + 1)
+<<<<<<< HEAD
         for iter_idx in range(10):
             inp = torch.randn((8, mlp_dim), device=device_type)
+=======
+        device = torch.device("cuda")
+        for iter_idx in range(10):
+            inp = torch.randn((8, mlp_dim), device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             losses: list[torch.Tensor] = []
             for _model, _optim in ((ref_model, ref_optim), (model, optim)):
                 _optim.zero_grad(set_to_none=(iter_idx % 2 == 0))
@@ -173,7 +213,10 @@ class TestFullyShard2DTraining(FSDPTest):
             self.assertEqual(losses[0], losses[1])
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/intel/torch-xpu-ops/issues/1881
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_train_parity_2d_transformer(self):
         self.run_subtests(
             {"use_shard_placement_fn": [False, True]},
@@ -184,12 +227,20 @@ class TestFullyShard2DTraining(FSDPTest):
         torch.manual_seed(42)
         model_args = ModelArgs(n_layers=3, dropout_p=0.0)
         model = Transformer(model_args)
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).to(device_type)
+=======
+        ref_model = copy.deepcopy(model).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref_optim = torch.optim.AdamW(ref_model.parameters(), lr=1e-2)
 
         dp_size, tp_size = self.world_size // 2, 2
         global_mesh = init_device_mesh(
+<<<<<<< HEAD
             device_type, (dp_size, tp_size), mesh_dim_names=("dp", "tp")
+=======
+            "cuda", (dp_size, tp_size), mesh_dim_names=("dp", "tp")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = Transformer.parallelize(model, global_mesh["tp"], use_seq_parallel=True)
 
@@ -217,8 +268,13 @@ class TestFullyShard2DTraining(FSDPTest):
             self.assertEqual(full_param, ref_param)
 
         torch.manual_seed(42 + global_mesh.get_local_rank("dp"))
+<<<<<<< HEAD
         inp = torch.randint(0, model_args.vocab_size, (2, 16), device=device_type)
         for _ in range(5):
+=======
+        inp = torch.randint(0, model_args.vocab_size, (2, 16), device="cuda")
+        for iter_idx in range(5):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ref_loss = ref_model(inp).sum()
             loss = model(inp).sum()
             self.assertEqual(ref_loss, loss)
@@ -238,7 +294,13 @@ class TestFullyShard2DTraining(FSDPTest):
             # runs its reduce-scatter
             self.assertIsInstance(model.pos_embeddings.weight.placements[1], Shard)
             self.assertIsInstance(model.pos_embeddings.weight.grad.placements[1], Shard)
+<<<<<<< HEAD
             for ref_param, param in zip(ref_model.parameters(), model.parameters()):
+=======
+            for ref_param, (param_name, param) in zip(
+                ref_model.parameters(), model.named_parameters()
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 full_grad = param.grad.full_tensor()
                 self.assertEqual(ref_param.grad, full_grad)
 
@@ -252,16 +314,26 @@ class TestFullyShard2DTraining(FSDPTest):
             self.assertEqual(full_param, ref_param)
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/pytorch/pytorch/issues/156782
     def test_tp_with_fsdp_offloading(self):
         global_mesh = init_device_mesh(
             device_type, (1, self.world_size), mesh_dim_names=("dp", "tp")
+=======
+    def test_tp_with_fsdp_offloading(self):
+        global_mesh = init_device_mesh(
+            "cuda", (1, self.world_size), mesh_dim_names=("dp", "tp")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         dp_mesh, tp_mesh = global_mesh["dp"], global_mesh["tp"]
         torch.manual_seed(42)
         mlp_dim = 16
         model = MLPStack(mlp_dim)
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).to(device_type)
+=======
+        ref_model = copy.deepcopy(model).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref_optim = torch.optim.Adam(ref_model.parameters(), lr=1e-2, foreach=False)
         # Parallelize with N-way TP and 1-way FSDP
         model.parallelize(
@@ -279,7 +351,11 @@ class TestFullyShard2DTraining(FSDPTest):
         # NOTE: We still see the FSDP all-gather/reduce-scatter c10d ops
         # called, but they will just be no-ops without issuing any kernels.
         # We prefer to keep the no-op check at the c10d level, not in FSDP.
+<<<<<<< HEAD
         inp = torch.randn((4, mlp_dim), device=device_type)  # same on all ranks
+=======
+        inp = torch.randn((4, mlp_dim), device="cuda")  # same on all ranks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(10):
             ref_optim.zero_grad()
             optim.zero_grad()
@@ -288,27 +364,44 @@ class TestFullyShard2DTraining(FSDPTest):
                 loss = model(inp).sum()
 
             fwd_comm_counts = fwd_comm_mode.get_comm_counts()
+<<<<<<< HEAD
             self.assertEqual(len(fwd_comm_counts), 1)
             self.assertEqual(fwd_comm_counts[funcol.all_reduce], num_mlps)
             self.assertEqual(fwd_comm_counts[c10d_ops._allgather_base_], 0)
+=======
+            self.assertEqual(len(fwd_comm_counts), 2)
+            self.assertEqual(fwd_comm_counts[funcol.all_reduce], num_mlps)
+            self.assertEqual(fwd_comm_counts[c10d_ops._allgather_base_], num_mlps)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ref_loss = ref_model(inp).sum()
             self.assertEqual(loss, ref_loss)
 
             with CommDebugMode() as bwd_comm_mode:
                 loss.backward()
             bwd_comm_counts = bwd_comm_mode.get_comm_counts()
+<<<<<<< HEAD
             self.assertEqual(len(bwd_comm_counts), 1)
             # First MLP's input gradient does not need to be all-reduced
             self.assertEqual(bwd_comm_counts[funcol.all_reduce], num_mlps - 1)
             self.assertEqual(bwd_comm_counts[c10d_ops._allgather_base_], 0)
             self.assertEqual(bwd_comm_counts[c10d_ops._reduce_scatter_base_], 0)
+=======
+            self.assertEqual(len(bwd_comm_counts), 3)
+            # First MLP's input gradient does not need to be all-reduced
+            self.assertEqual(bwd_comm_counts[funcol.all_reduce], num_mlps - 1)
+            self.assertEqual(bwd_comm_counts[c10d_ops._allgather_base_], num_mlps)
+            self.assertEqual(bwd_comm_counts[c10d_ops._reduce_scatter_base_], num_mlps)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ref_loss.backward()
 
             optim.step()
             ref_optim.step()
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/intel/torch-xpu-ops/issues/1881
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     def test_train_parity_2d_transformer_checkpoint_resume(self):
         """
@@ -364,7 +457,11 @@ class TestFullyShard2DTraining(FSDPTest):
         )
 
         torch.manual_seed(42 + global_mesh["dp"].get_local_rank() + 1)
+<<<<<<< HEAD
         inp = torch.randint(0, model_args.vocab_size, (3, 16), device=device_type)
+=======
+        inp = torch.randint(0, model_args.vocab_size, (3, 16), device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         loss_no_cp1 = train_step(model_no_cp, optim_no_cp, inp)
         loss_no_cp2 = train_step(model_no_cp, optim_no_cp, inp)
 
@@ -422,14 +519,24 @@ class TestFullyShard2DStateDict(DTensorTestBase):
     @property
     def backend(self):
         # need to specify gloo backend for testing cpu offload
+<<<<<<< HEAD
         return "cpu:gloo,xpu:xccl" if TEST_XPU else "cpu:gloo,cuda:nccl"
+=======
+        return "cpu:gloo,cuda:nccl"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_if_lt_x_gpu(4)
     def test_fully_shard_tp_2d_set_full_state_dict(self):
+<<<<<<< HEAD
         dummy_model = SimpleModel().to(device_type)
         mesh_2d = init_device_mesh(
             device_type,
+=======
+        dummy_model = SimpleModel().cuda()
+        mesh_2d = init_device_mesh(
+            "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (2, self.world_size // 2),
             mesh_dim_names=("dp", "tp"),
         )
@@ -568,12 +675,34 @@ class TestNew2dParallelTraining(DTensorTestBase):
 
     @with_comms
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
+=======
+    def test_raise_invalid_tp_composition(self):
+        with self.assertRaisesRegex(
+            RuntimeError, r"Found TP device_mesh on the \d dimension of its parent mesh"
+        ):
+            mesh_2d = init_device_mesh(
+                self.device_type, (2, self.world_size // 2), mesh_dim_names=("tp", "dp")
+            )
+            parallelize_plan = {
+                "net1": ColwiseParallel(),
+                "net2": RowwiseParallel(),
+            }
+            parallelize_module(SimpleModel().cuda(), mesh_2d["tp"], parallelize_plan)
+
+    @with_comms
+    @skip_if_lt_x_gpu(4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_2d_fsdp_state_enable_extension(self):
         mesh_2d = init_device_mesh(
             self.device_type, (2, self.world_size // 2), mesh_dim_names=("dp", "tp")
         )
         model = FSDP(
+<<<<<<< HEAD
             SimpleModel().to(device_type),
+=======
+            SimpleModel().cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_mesh=mesh_2d["dp"],
         )
         fsdp_state = _get_module_fsdp_state(model)
@@ -585,7 +714,11 @@ class TestNew2dParallelTraining(DTensorTestBase):
         recompute_activation=False,
     ) -> None:
         torch.manual_seed(0)
+<<<<<<< HEAD
         model = SimpleModel().to(f"{device_type}:{self.rank}")
+=======
+        model = SimpleModel().cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = FSDP(model, use_orig_params=use_orig_params)
         optim = torch.optim.Adam(model.parameters(), lr=0.01)
 
@@ -599,9 +732,13 @@ class TestNew2dParallelTraining(DTensorTestBase):
             "net1": ColwiseParallel(),
             "net2": RowwiseParallel(),
         }
+<<<<<<< HEAD
         model_2d = parallelize_module(
             SimpleModel().to(device_type), tp_mesh, parallelize_plan
         )
+=======
+        model_2d = parallelize_module(SimpleModel().cuda(), tp_mesh, parallelize_plan)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_2d = FSDP(
             model_2d,
             device_mesh=dp_mesh,
@@ -629,7 +766,11 @@ class TestNew2dParallelTraining(DTensorTestBase):
             # Ensure all input across TP ranks are same.
             # TODO: add a get_group_rank() to DeviceMesh.
             torch.manual_seed(i + dist.get_rank(dp_mesh.get_group(mesh_dim=0)))
+<<<<<<< HEAD
             input = torch.rand(4, 5).to(f"{device_type}:{self.rank}")
+=======
+            input = torch.rand(4, 5).cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output = model(input)
             output_2d = model_2d(input)
             self.assertEqual(output, output_2d)
@@ -666,7 +807,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
     @property
     def backend(self):
         # need to specify gloo backend for testing cpu offload
+<<<<<<< HEAD
         return "cpu:gloo,xpu:xccl" if TEST_XPU else "cpu:gloo,cuda:nccl"
+=======
+        return "cpu:gloo,cuda:nccl"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_if_lt_x_gpu(4)
@@ -683,7 +828,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             "net3": ColwiseParallel(),
         }
         model_2d = parallelize_module(
+<<<<<<< HEAD
             SimpleModel().to(device_type),
+=======
+            SimpleModel().cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mesh_2d["tp"],
             parallelize_plan=parallelize_plan,
         )
@@ -693,10 +842,15 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             isinstance(model_2d_fsdp_state._fsdp_extension, DTensorExtensions)
         )
 
+<<<<<<< HEAD
         mesh_1d = init_device_mesh(device_type, (self.world_size,))
         model_1d = FSDP(
             SimpleModel().to(device_type), device_mesh=mesh_1d, use_orig_params=True
         )
+=======
+        mesh_1d = init_device_mesh("cuda", (self.world_size,))
+        model_1d = FSDP(SimpleModel().cuda(), device_mesh=mesh_1d, use_orig_params=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_1d_fsdp_state = _get_module_fsdp_state(model_1d)
         self.assertEqual(model_1d_fsdp_state._fsdp_extension, None)
 
@@ -708,7 +862,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
 
         # Create a model without wrapper
         torch.manual_seed(0)
+<<<<<<< HEAD
         no_wrap_model = simple_model().to(f"{device_type}:{self.rank}")
+=======
+        no_wrap_model = simple_model().cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         no_wrap_state_dict = no_wrap_model.state_dict()
 
         # Create a model and sharded it with 2D FSDP + TP
@@ -722,9 +880,13 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             "net1": ColwiseParallel(),
             "net2": RowwiseParallel(),
         }
+<<<<<<< HEAD
         model_2d = parallelize_module(
             simple_model().to(device_type), tp_mesh, parallelize_plan
         )
+=======
+        model_2d = parallelize_module(simple_model().cuda(), tp_mesh, parallelize_plan)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_2d = FSDP(model_2d, device_mesh=dp_mesh, use_orig_params=True)
 
         FSDP.set_state_dict_type(
@@ -772,9 +934,13 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             "net1": ColwiseParallel(),
             "net2": RowwiseParallel(),
         }
+<<<<<<< HEAD
         model_2d = parallelize_module(
             simple_model().to(device_type), tp_mesh, parallelize_plan
         )
+=======
+        model_2d = parallelize_module(simple_model().cuda(), tp_mesh, parallelize_plan)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_2d = FSDP(model_2d, device_mesh=dp_mesh, use_orig_params=True)
         optim_2d = torch.optim.Adam(model_2d.parameters(), lr=0.01)
 
@@ -788,7 +954,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
         ref_state_dict = deepcopy(model_2d.state_dict())
 
         # Update the parameters so model.state_dict() will be different from ref_dtensor_sd.
+<<<<<<< HEAD
         model_2d(model_2d.get_input().to(f"{device_type}:{self.rank}")).sum().backward()
+=======
+        model_2d(model_2d.get_input().cuda(self.rank)).sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim_2d.step()
 
         # Load ref_state_dict back.
@@ -819,11 +989,17 @@ class TestNew2dParallelStateDict(DTensorTestBase):
 
         # Create a model without wrapper
         torch.manual_seed(0)
+<<<<<<< HEAD
         no_wrap_model = simple_model().to(f"{device_type}:{self.rank}")
         no_wrap_optim = torch.optim.Adam(no_wrap_model.parameters(), lr=0.01)
         no_wrap_model(
             no_wrap_model.get_input().to(f"{device_type}:{self.rank}")
         ).sum().backward()
+=======
+        no_wrap_model = simple_model().cuda(self.rank)
+        no_wrap_optim = torch.optim.Adam(no_wrap_model.parameters(), lr=0.01)
+        no_wrap_model(no_wrap_model.get_input().cuda(self.rank)).sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         no_wrap_optim.step()
         no_wrap_osd = get_optimizer_state_dict(no_wrap_model, optimizers=no_wrap_optim)
 
@@ -837,7 +1013,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             "net2": RowwiseParallel(),
         }
         model_2d = parallelize_module(
+<<<<<<< HEAD
             simple_model().to(device_type), mesh_2d["tp"], parallelize_plan
+=======
+            simple_model().cuda(), mesh_2d["tp"], parallelize_plan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model_2d = FSDP(model_2d, device_mesh=mesh_2d["dp"], use_orig_params=True)
         FSDP.set_state_dict_type(
@@ -845,7 +1025,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
             StateDictType.SHARDED_STATE_DICT,
         )
         optim_2d = torch.optim.Adam(model_2d.parameters(), lr=0.01)
+<<<<<<< HEAD
         model_2d(model_2d.get_input().to(f"{device_type}:{self.rank}")).sum().backward()
+=======
+        model_2d(model_2d.get_input().cuda(self.rank)).sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim_2d.step()
         optim_2d_osd = get_optimizer_state_dict(model_2d, optimizers=optim_2d)
         ref_optim_2d_osd = deepcopy(optim_2d_osd)
@@ -864,7 +1048,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
                 # compare with no_wrap state.
                 if isinstance(dist_state, DTensor):
                     dist_state = (
+<<<<<<< HEAD
                         dist_state.to(device_type)
+=======
+                        dist_state.cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         .redistribute(placements=(Replicate(), Replicate()))
                         .to_local()
                     )
@@ -872,7 +1060,11 @@ class TestNew2dParallelStateDict(DTensorTestBase):
                 self.assertTrue(torch.allclose(state, dist_state))
 
         # Update the parameters 2d optim states will be different from ref_optim_state_dict.
+<<<<<<< HEAD
         model_2d(model_2d.get_input().to(f"{device_type}:{self.rank}")).sum().backward()
+=======
+        model_2d(model_2d.get_input().cuda(self.rank)).sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim_2d.step()
 
         set_optimizer_state_dict(
@@ -914,8 +1106,13 @@ class TestNew2dParallelStateDict(DTensorTestBase):
         5) dcp.load the state dict from storage
         6) load the state dict into the 2D model
         """
+<<<<<<< HEAD
         dummy_model = SimpleModel().to(device_type)
         mesh_1d = init_device_mesh(device_type, (self.world_size,))
+=======
+        dummy_model = SimpleModel().cuda()
+        mesh_1d = init_device_mesh("cuda", (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = FSDP(dummy_model, device_mesh=mesh_1d)
         optim = torch.optim.Adam(model.parameters(), lr=0.01)
         model(model.get_input()).sum().backward()
@@ -933,9 +1130,15 @@ class TestNew2dParallelStateDict(DTensorTestBase):
         dcp.save(state_dict, checkpoint_id=self.temp_dir)
 
         # initialize 2d model
+<<<<<<< HEAD
         dummy_model = SimpleModel().to(device_type)
         mesh_2d = init_device_mesh(
             device_type,
+=======
+        dummy_model = SimpleModel().cuda()
+        mesh_2d = init_device_mesh(
+            "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (2, self.world_size // 2),
             mesh_dim_names=("dp", "tp"),
         )

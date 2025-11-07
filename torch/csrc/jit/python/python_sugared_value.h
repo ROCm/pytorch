@@ -68,7 +68,11 @@ struct VISIBILITY_HIDDEN PythonValue : public SugaredValue {
         ErrorReport(loc)
         << kind() << " cannot be used as a value. "
         << "Perhaps it is a closed over global variable? If so, please "
+<<<<<<< HEAD
         << "consider passing it in as an argument or use a local variable "
+=======
+        << "consider passing it in as an argument or use a local varible "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         << "instead.");
   }
 

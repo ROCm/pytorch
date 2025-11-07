@@ -47,7 +47,11 @@ int64_t compute_arange_size(const Scalar& start, const Scalar& end, const Scalar
     int64_t sgn = (xstep > 0) - (xstep < 0);
     size_d = std::ceil((xend - xstart + xstep - sgn) / xstep);
   } else {
+<<<<<<< HEAD
     size_d = std::ceil((end.to<double>() - start.to<double>())
+=======
+    size_d = std::ceil(static_cast<double>(end.to<double>() - start.to<double>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         / step.to<double>());
   }
 

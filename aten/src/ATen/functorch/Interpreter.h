@@ -3,7 +3,10 @@
 #include <ATen/functorch/Macros.h>
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <c10/core/impl/LocalDispatchKeySet.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 #include <bitset>
 #include <utility>
@@ -88,7 +91,11 @@ std::ostream& operator<<(std::ostream& os, const TransformType& t);
 // >>> VmapInterpreterPtr(&interpreter).batchSize()
 //
 // Finally, Interpreter::process switches on the type of the interpreter
+<<<<<<< HEAD
 // and calls one of {Transform}Interpreter::processImpl under the hood.
+=======
+// and calls one of {Transform}Intepreter::processImpl under the hood.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Same for Interpreter::sendToNextInterpreter :)
 
 struct VmapInterpreterMeta {
@@ -107,10 +114,16 @@ struct VmapInterpreterMeta {
 
   template <typename T>
   friend void to_json(T& json_j, const VmapInterpreterMeta& json_t) {
+<<<<<<< HEAD
     TORCH_CHECK(
       !json_t.batchSize_.is_heap_allocated(),
       "Serialization for heap-allocated SymInt is not implemented yet"
     );
+=======
+    if (json_t.batchSize_.is_heap_allocated()) {
+      throw std::runtime_error("Serialization for heap-allocated SymInt is not implemented yet");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     json_j["batchSize"] = json_t.batchSize_.as_int_unchecked();
     json_j["randomness"] = static_cast<int64_t>(json_t.randomness_);
   }
@@ -304,7 +317,11 @@ struct Interpreter {
     } else if (meta.contains("Functionalize")) {
       json_t.meta_.emplace<FunctionalizeInterpreterMeta>(meta["Functionalize"].template get<FunctionalizeInterpreterMeta>());
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "unknown interpreter metadata type");
+=======
+      throw std::runtime_error("unknown interpreter metadata type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 

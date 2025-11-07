@@ -7,7 +7,10 @@ import torch
 
 import hypothesis
 from functools import reduce
+<<<<<<< HEAD
 from importlib.metadata import version
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from hypothesis import assume
 from hypothesis import settings
 from hypothesis import strategies as st
@@ -347,6 +350,7 @@ def tensor_conv(
 
     return X, W, b, groups, tr
 
+<<<<<<< HEAD
 
 # We set the deadline in the currently loaded profile.
 # Creating (and loading) a separate profile overrides any settings the user
@@ -369,11 +373,28 @@ def assert_deadline_disabled():
     if hypothesis_version < (3, 27, 0):
         import warnings
 
+=======
+# We set the deadline in the currently loaded profile.
+# Creating (and loading) a separate profile overrides any settings the user
+# already specified.
+hypothesis_version = hypothesis.version.__version_info__
+current_settings = settings._profiles[settings._current_profile].__dict__
+current_settings['deadline'] = None
+if hypothesis_version >= (3, 16, 0) and hypothesis_version < (5, 0, 0):
+    current_settings['timeout'] = hypothesis.unlimited
+def assert_deadline_disabled():
+    if hypothesis_version < (3, 27, 0):
+        import warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warning_message = (
             "Your version of hypothesis is outdated. "
             "To avoid `DeadlineExceeded` errors, please update. "
             f"Current hypothesis version: {hypothesis.__version__}"
         )
+<<<<<<< HEAD
         warnings.warn(warning_message, stacklevel=2)
+=======
+        warnings.warn(warning_message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         assert settings().deadline is None

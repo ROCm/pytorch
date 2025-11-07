@@ -1,6 +1,10 @@
 # torch.mtia
 
+<<<<<<< HEAD
 The MTIA backend is implemented out of the tree, only interfaces are defined here.
+=======
+The MTIA backend is implemented out of the tree, only interfaces are be defined here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```{eval-rst}
 .. automodule:: torch.mtia
@@ -22,7 +26,10 @@ The MTIA backend is implemented out of the tree, only interfaces are defined her
     device_count
     init
     is_available
+<<<<<<< HEAD
     is_bf16_supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_initialized
     memory_stats
     get_device_capability

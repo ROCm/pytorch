@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: ignore-errors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module implements CUDA graphs support for TorchDynamo backends.
 
@@ -23,11 +28,17 @@ Key components:
 
 import functools
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional
 
 import torch
 import torch.fx
+=======
+from typing import Optional
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo import config
 from torch._dynamo.backends.common import aot_autograd
 from torch._dynamo.backends.debugging import boxed_nop
@@ -51,8 +62,13 @@ from torch.multiprocessing.reductions import StorageWeakRef
 from .registry import register_backend
 
 
+<<<<<<< HEAD
 def find_input_mutations(g: torch.fx.Graph) -> set[int]:
     def meta_fk(meta: dict[str, Any]) -> Any:
+=======
+def find_input_mutations(g):
+    def meta_fk(meta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return meta["val"] if "val" in meta else meta["fake_result"]
 
     inputs = defaultdict(set)
@@ -90,9 +106,13 @@ def find_input_mutations(g: torch.fx.Graph) -> set[int]:
     return mutated_inputs
 
 
+<<<<<<< HEAD
 def get_device_node_mapping(
     gm: torch.fx.GraphModule,
 ) -> dict[torch.device, torch.fx.Node]:
+=======
+def get_device_node_mapping(gm: torch.fx.GraphModule):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     device_node_mapping: dict[torch.device, torch.fx.Node] = {}
     for n in gm.graph.nodes:
         t = n.meta.get("val", None)
@@ -102,7 +122,11 @@ def get_device_node_mapping(
 
 
 def check_for_mutation_ignore_cuda_graph_managed_tensor(
+<<<<<<< HEAD
     aot_model: torch.fx.GraphModule, num_fixed: int
+=======
+    aot_model: torch.fx.GraphModule, num_fixed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[str]:
     mutation_indices = find_input_mutations(aot_model.graph) - set(range(num_fixed))
     if not mutation_indices:
@@ -112,7 +136,11 @@ def check_for_mutation_ignore_cuda_graph_managed_tensor(
     return get_mutation_stack_trace(placeholders, mutation_indices)
 
 
+<<<<<<< HEAD
 def check_for_skip(aot_model: torch.fx.GraphModule, num_fixed: int) -> Optional[str]:
+=======
+def check_for_skip(aot_model: torch.fx.GraphModule, num_fixed) -> Optional[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not config.cudagraph_backend_support_input_mutation:
         if mut_skip := check_for_mutation_ignore_cuda_graph_managed_tensor(
             aot_model, num_fixed
@@ -130,12 +158,17 @@ def check_for_skip(aot_model: torch.fx.GraphModule, num_fixed: int) -> Optional[
     return None
 
 
+<<<<<<< HEAD
 def get_device_index(gm: torch.fx.GraphModule) -> int:
+=======
+def get_device_index(gm) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     device = next(iter(get_device_node_mapping(gm)))
     assert device.type == "cuda"
     return device.index
 
 
+<<<<<<< HEAD
 def get_stack_traces(gm: torch.fx.GraphModule) -> list[Optional[str]]:
     output = output_node(gm)
     assert len(output.args) == 1
@@ -149,16 +182,32 @@ def get_stack_traces(gm: torch.fx.GraphModule) -> list[Optional[str]]:
 
 
 def cudagraphs(dynamo_model: torch.fx.GraphModule, dynamo_inputs: Sequence[Any]) -> Any:
+=======
+def get_stack_traces(gm) -> list[Optional[str]]:
+    output = output_node(gm)
+    assert len(output.args) == 1
+    return [
+        (arg.stack_trace if isinstance(arg, torch.fx.node.Node) else None)
+        for arg in output.args[0]
+    ]
+
+
+def cudagraphs(dynamo_model, dynamo_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.cudagraph_trees import cudagraphify_impl
 
     do_cudagraphs = BoxedBool(True)
     boxed_device_index = BoxedDeviceIndex(None)
 
+<<<<<<< HEAD
     def forward_cudagraphs(
         aot_model: torch.fx.GraphModule,
         aot_inputs: list[Any],
         is_inference: bool = False,
     ) -> Any:
+=======
+    def forward_cudagraphs(aot_model, aot_inputs, is_inference=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         interp = boxed_nop(aot_model, aot_inputs)
         fixed = num_fw_fixed_arguments(len(dynamo_inputs), len(aot_inputs))
         if skip_msg := check_for_skip(aot_model, fixed):
@@ -175,17 +224,28 @@ def cudagraphs(dynamo_model: torch.fx.GraphModule, dynamo_inputs: Sequence[Any])
             range(fixed),
             device_index=boxed_device_index.value,
             is_backward=False,
+<<<<<<< HEAD
             is_inference=False,  # Q: should forward is_inference here?
+=======
+            is_inference=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             stack_traces=get_stack_traces(aot_model),
             placeholders=get_placeholder_info(aot_model.graph),
             mutated_input_idxs=find_input_mutations(aot_model.graph),
         )
+<<<<<<< HEAD
         out._boxed_call = True  # type: ignore[attr-defined]
         return out
 
     def backward_cudagraphs(
         aot_model: torch.fx.GraphModule, aot_inputs: list[Any]
     ) -> Any:
+=======
+        out._boxed_call = True
+        return out
+
+    def backward_cudagraphs(aot_model, aot_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         interp = boxed_nop(aot_model, aot_inputs)
         if not do_cudagraphs:
             return aot_model
@@ -193,6 +253,7 @@ def cudagraphs(dynamo_model: torch.fx.GraphModule, dynamo_inputs: Sequence[Any])
         fixed = count_tangents(aot_model)
         if skip_msg := check_for_skip(aot_model, fixed):
             log_cudagraph_skip_and_bump_counter(
+<<<<<<< HEAD
                 f"skipping cudagraphs due to {skip_msg}"
             )
 
@@ -211,6 +272,22 @@ def cudagraphs(dynamo_model: torch.fx.GraphModule, dynamo_inputs: Sequence[Any])
                 return aot_model(inputs)
 
             fn._boxed_call = True  # type: ignore[attr-defined]
+=======
+                "skipping cudagraphs due to %s", skip_msg
+            )
+
+            # See [Backward Generation Handling]
+            manager = torch._inductor.cudagraph_trees.get_manager(
+                boxed_device_index.value, create_if_none_exists=False
+            )
+            assert manager is not None
+
+            def fn(inputs):
+                manager.set_to_running_backward()
+                return aot_model(inputs)
+
+            fn._boxed_call = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return fn
 
         out = cudagraphify_impl(
@@ -224,7 +301,11 @@ def cudagraphs(dynamo_model: torch.fx.GraphModule, dynamo_inputs: Sequence[Any])
             placeholders=get_placeholder_info(aot_model.graph),
             mutated_input_idxs=find_input_mutations(aot_model.graph),
         )
+<<<<<<< HEAD
         out._boxed_call = True  # type: ignore[attr-defined]
+=======
+        out._boxed_call = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return out
 
     aot_cudagraphs = aot_autograd(
@@ -240,13 +321,21 @@ class CudagraphsBackend:
     compiler_name = "cudagraphs"
 
     @staticmethod
+<<<<<<< HEAD
     def reset() -> None:
+=======
+    def reset():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._inductor.cudagraph_trees import reset_cudagraph_trees
 
         reset_cudagraph_trees()
 
     @staticmethod
+<<<<<<< HEAD
     def __call__(model: torch.fx.GraphModule, inputs: Sequence[Any]) -> Any:
+=======
+    def __call__(model, inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cudagraphs(model, inputs)
 
 
@@ -255,12 +344,16 @@ class CudagraphsBackend:
 register_backend(name="cudagraphs", compiler_fn=CudagraphsBackend())
 
 
+<<<<<<< HEAD
 def cudagraphs_inner(
     model: Callable[..., Any],
     inputs: Sequence[Any],
     copy_outputs: bool = True,
     copy_inputs: bool = True,
 ) -> Callable[..., Sequence[Any]]:
+=======
+def cudagraphs_inner(model, inputs, copy_outputs=True, copy_inputs=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """This isn't registered as a backend, but is used in some benchmarks"""
     assert isinstance(inputs, (list, tuple))
     if copy_inputs:
@@ -285,7 +378,11 @@ def cudagraphs_inner(
     if not isinstance(static_outputs, (list, tuple)):
         static_outputs = (static_outputs,)
 
+<<<<<<< HEAD
     def run(*new_inputs: Any) -> Sequence[Any]:
+=======
+    def run(*new_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(static_inputs) == len(new_inputs)
         if copy_inputs:
             for dst, src in zip(static_inputs, new_inputs):

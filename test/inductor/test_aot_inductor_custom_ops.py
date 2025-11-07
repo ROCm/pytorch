@@ -1,5 +1,9 @@
 # Owner(s): ["module: inductor"]
+<<<<<<< HEAD
 # This test requires libaoti_custom_ops.so to be built, which happens when BUILD_TEST = 1
+=======
+# This test requires libaoti_custom_ops.so to be built, which happnes when BUILD_TEST = 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import os
 import sys
@@ -20,10 +24,18 @@ from torch.testing._internal.common_utils import (
     IS_MACOS,
     IS_SANDCASTLE,
     IS_WINDOWS,
+<<<<<<< HEAD
     skipIfXpu,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU_AND_TRITON
 from torch.testing._internal.logging_utils import LoggingTestCase, make_logging_test
+=======
+    skipIfRocm,
+    skipIfXpu,
+)
+from torch.testing._internal.logging_utils import LoggingTestCase, make_logging_test
+from torch.testing._internal.triton_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import TorchDispatchMode
 
 
@@ -414,7 +426,11 @@ class AOTInductorTestsTemplate:
         self.assertTrue(sentinel_seen)
 
     @skipIfXpu
+<<<<<<< HEAD
     @unittest.skipIf(IS_FBCODE, "unable to find library -laoti_custom_ops")
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_custom_op_square(self) -> None:
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -492,9 +508,15 @@ def fail_cpu(is_skip=False):
     )
 
 
+<<<<<<< HEAD
 def fail_gpu(suffixes: tuple[str, ...], is_skip=False):
     return TestFailure(
         suffixes,
+=======
+def fail_cuda(is_skip=False):
+    return TestFailure(
+        ("cuda"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is_skip=is_skip,
     )
 
@@ -506,11 +528,18 @@ CPU_TEST_FAILURES = {
 }
 
 # test_failures, xfail by default, set is_skip=True to skip
+<<<<<<< HEAD
 GPU_TEST_FAILURES = {
     # quantized unsupported for GPU
     "test_quantized_linear": fail_gpu(("cuda", "xpu")),
     "test_quanatized_int8_linear": fail_gpu(("cuda", "xpu")),
     "test_quantized_linear_bias_none": fail_gpu(("cuda", "xpu")),
+=======
+CUDA_TEST_FAILURES = {
+    # quantized unsupported for GPU
+    "test_quantized_linear": fail_cuda(),
+    "test_quanatized_int8_linear": fail_cuda(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -533,9 +562,15 @@ copy_tests(
 
 
 @unittest.skipIf(sys.platform == "darwin", "No CUDA on MacOS")
+<<<<<<< HEAD
 class AOTInductorTestABICompatibleGpu(AOTICustomOpTestCase):
     device = GPU_TYPE
     device_type = GPU_TYPE
+=======
+class AOTInductorTestABICompatibleCuda(AOTICustomOpTestCase):
+    device = "cuda"
+    device_type = "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     check_model = check_model
     check_model_with_multiple_inputs = check_model_with_multiple_inputs
     code_check_count = code_check_count
@@ -545,14 +580,24 @@ class AOTInductorTestABICompatibleGpu(AOTICustomOpTestCase):
 
 copy_tests(
     AOTInductorTestsTemplate,
+<<<<<<< HEAD
     AOTInductorTestABICompatibleGpu,
     GPU_TYPE,
     GPU_TEST_FAILURES,
+=======
+    AOTInductorTestABICompatibleCuda,
+    "cuda",
+    CUDA_TEST_FAILURES,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 
     # cpp_extension N/A in fbcode
+<<<<<<< HEAD
     if HAS_GPU_AND_TRITON or sys.platform == "darwin":
+=======
+    if HAS_CUDA or sys.platform == "darwin":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

@@ -11,7 +11,11 @@ torch.package.package_exporter._gate_torchscript_serialization = False
 
 
 def generate_bc_packages():
+<<<<<<< HEAD
     """Function to create packages for testing backwards compatibility"""
+=======
+    """Function to create packages for testing backwards compatiblity"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not IS_FBCODE or IS_SANDCASTLE:
         from package_a.test_nn_module import TestNnModule
 

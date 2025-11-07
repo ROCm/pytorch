@@ -33,7 +33,11 @@ std::vector<Tensor> foreach_binary_op(
   }
 
   tensor_lists.emplace_back(tensors.vec());
+<<<<<<< HEAD
   tensor_lists.emplace_back(std::move(vec_res));
+=======
+  tensor_lists.emplace_back(vec_res);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   using opmath_t = at::opmath_type<T>;
   multi_tensor_apply<2, opmath_t>(
@@ -46,7 +50,11 @@ std::vector<Tensor> foreach_binary_op(
           /* res_arg_index */ 1>(),
 
       Op<opmath_t>());
+<<<<<<< HEAD
   return std::move(tensor_lists[1]);
+=======
+  return tensor_lists[1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename T, template <class> class Op>

@@ -114,7 +114,10 @@ class ProcessContext:
         """Attempt to join all processes with a shared timeout."""
         end = time.monotonic() + timeout
         for process in self.processes:
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             time_to_wait = max(0, end - time.monotonic())
             process.join(time_to_wait)
 
@@ -218,9 +221,13 @@ class ProcessContext:
 
 class SpawnContext(ProcessContext):
     def __init__(self, processes, error_files):
+<<<<<<< HEAD
         warnings.warn(
             "SpawnContext is renamed to ProcessContext since 1.4 release.", stacklevel=2
         )
+=======
+        warnings.warn("SpawnContext is renamed to ProcessContext since 1.4 release.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(processes, error_files)
 
 
@@ -270,13 +277,20 @@ def start_processes(
         )
         tf.close()
         os.unlink(tf.name)
+<<<<<<< HEAD
 
         process = mp.Process(  # pyrefly: ignore  # missing-attribute
+=======
+        process = mp.Process(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             target=_wrap,
             args=(fn, i, args, tf.name),
             daemon=daemon,
         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         process.start()
         return i, process, tf.name
 

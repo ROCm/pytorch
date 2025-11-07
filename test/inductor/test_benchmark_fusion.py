@@ -12,9 +12,14 @@ from torch.testing import FileCheck
 from torch.testing._internal.common_utils import slowTest
 from torch.testing._internal.inductor_utils import (
     get_func_call,
+<<<<<<< HEAD
     GPU_TYPE,
     HAS_CPU,
     HAS_GPU_AND_TRITON,
+=======
+    HAS_CPU,
+    HAS_CUDA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_BIG_GPU,
 )
 
@@ -28,7 +33,11 @@ import unittest
 
 from inductor.test_torchinductor import (  # @manual=fbcode//caffe2/test/inductor:test_inductor-library
     check_model,
+<<<<<<< HEAD
     check_model_gpu,
+=======
+    check_model_cuda,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     copy_tests,
     skip_if_cpp_wrapper,
 )
@@ -141,8 +150,13 @@ class BenchmarkFusionTestTemplate:
     )
     @config.patch(max_autotune_gemm_backends="TRITON")
     def test_avoid_register_spilling(self):
+<<<<<<< HEAD
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("GPU only")
+=======
+        if self.device != "cuda":
+            raise unittest.SkipTest("CUDA only")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from torch.nn.functional import gelu
 
@@ -157,8 +171,13 @@ class BenchmarkFusionTestTemplate:
 
             return curr
 
+<<<<<<< HEAD
         m = torch.nn.Linear(2048, 2048, bias=True).half().to(GPU_TYPE)
         inp = torch.rand([2048, 2048]).half().to(GPU_TYPE)
+=======
+        m = torch.nn.Linear(2048, 2048, bias=True).half().cuda()
+        inp = torch.rand([2048, 2048]).half().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with torch.no_grad():
             foo_c = torch.compile(mode="max-autotune-no-cudagraphs")(foo)
@@ -166,7 +185,11 @@ class BenchmarkFusionTestTemplate:
             _, out_code = run_and_get_code(foo_c, m, inp)
 
             # occasionally, CI will make this one kernel. just skip in this case
+<<<<<<< HEAD
             if out_code[0].count("def triton_") != 2:
+=======
+            if not out_code[0].count("def triton_") == 2:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return
 
             # should be multiple triton invocations
@@ -186,7 +209,11 @@ class BenchmarkFusionTestTemplate:
 
         for c in out_code[0], out_code2[0]:
             FileCheck().check("async_compile.wait").check("DeviceGuard").check_count(
+<<<<<<< HEAD
                 f"empty_strided_{GPU_TYPE}", 1, exactly=True
+=======
+                "empty_strided_cuda", 1, exactly=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).check_regex("buf[0-9]* = buf[0-9]*; del buf[0-9]*").check("return").run(c)
 
     def test_tield_kernel_fusion(self):
@@ -198,6 +225,7 @@ class BenchmarkFusionTestTemplate:
         self.common(f, (x,))
 
 
+<<<<<<< HEAD
 if HAS_GPU_AND_TRITON:
 
     class BenchmarkFusionGpuTest(TestCase):
@@ -210,16 +238,34 @@ if HAS_GPU_AND_TRITON:
         @unittest.skipIf(
             getattr(torch, GPU_TYPE).device_count() < 2,
             "The test need at least 2 devices",
+=======
+if HAS_CUDA:
+
+    class BenchmarkFusionCudaTest(TestCase):
+        common = check_model_cuda
+        device = "cuda"
+
+    copy_tests(BenchmarkFusionTestTemplate, BenchmarkFusionCudaTest, "cuda")
+
+    class BenchmarkingTest(TestCase):
+        @unittest.skipIf(
+            torch.cuda.device_count() < 2, "The test need at least 2 devices"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         @skip_if_cpp_wrapper("This tests triton scheduling directly")
         def test_benchmark_on_non_zero_device(self):
             hit_count = 0
+<<<<<<< HEAD
             with getattr(torch, GPU_TYPE).device(f"{GPU_TYPE}:0"):
+=======
+            with torch.cuda.device("cuda:0"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 @torch.compile
                 def relu(x):
                     return realize(x.relu()) + x
 
+<<<<<<< HEAD
                 x = torch.randn(int(16e6), device=f"{GPU_TYPE}:1")
 
                 orig_benchmark_codegened_module = (
@@ -230,18 +276,37 @@ if HAS_GPU_AND_TRITON:
                     nonlocal hit_count
                     hit_count += 1
                     ms, path = orig_benchmark_codegened_module(*args, **kwargs)
+=======
+                x = torch.randn(int(16e6), device="cuda:1")
+
+                orig_benchmark_fused_nodes = TritonScheduling.benchmark_fused_nodes
+
+                def mock_benchmark_fused_nodes(*args, **kwargs):
+                    nonlocal hit_count
+                    hit_count += 1
+                    ms, path = orig_benchmark_fused_nodes(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertTrue(ms > 0)
                     return ms, path
 
                 with unittest.mock.patch.object(
                     TritonScheduling,
+<<<<<<< HEAD
                     "benchmark_codegened_module",
                     benchmark_codegened_module,
+=======
+                    "benchmark_fused_nodes",
+                    mock_benchmark_fused_nodes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     relu(x)
                 self.assertTrue(hit_count > 0)
 
+<<<<<<< HEAD
     class BenchmarkMultiTemplateFusionGpuTest(InductorTestCase):
+=======
+    class BenchmarkMultiTemplateFusionCudaTest(InductorTestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @classmethod
         def setUpClass(cls):
             super().setUpClass()
@@ -276,8 +341,13 @@ if HAS_GPU_AND_TRITON:
             foo_c = torch.compile(mode="max-autotune-no-cudagraphs")(foo)
             first_dim = first_dim if first_dim is not None else size
 
+<<<<<<< HEAD
             m = torch.nn.Linear(size, size, bias=True).half().to(GPU_TYPE)
             inp = torch.rand([first_dim, size]).half().to(GPU_TYPE)
+=======
+            m = torch.nn.Linear(size, size, bias=True).half().cuda()
+            inp = torch.rand([first_dim, size]).half().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             with torch.no_grad():
                 res, code = run_and_get_code(foo_c, m, inp)
@@ -298,7 +368,11 @@ if HAS_GPU_AND_TRITON:
             for out_code in [code, code2]:
                 FileCheck().check(get_func_call()).check_count(
                     "empty_strided", 1, exactly=True
+<<<<<<< HEAD
                 ).check("triton_tem_fused_addmm_relu_t_0").check_count(
+=======
+                ).check("triton_tem_fused_addmm_relu_0").check_count(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ".reset()" if config.cpp_wrapper else "del", 3, exactly=True
                 ).check("" if config.cpp_wrapper else "return").run(out_code[0])
 
@@ -328,9 +402,15 @@ if HAS_GPU_AND_TRITON:
                 )
 
             args = [
+<<<<<<< HEAD
                 torch.randn(4, 4, device=GPU_TYPE),
                 torch.randn(4, 4, device=GPU_TYPE),
                 torch.randn(4, 4, device=GPU_TYPE),
+=======
+                torch.randn(4, 4, device="cuda"),
+                torch.randn(4, 4, device="cuda"),
+                torch.randn(4, 4, device="cuda"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
 
             expected = fn(*args)
@@ -351,5 +431,9 @@ if HAS_CPU and not torch.backends.mps.is_available():
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 
+<<<<<<< HEAD
     if HAS_CPU or HAS_GPU_AND_TRITON:
+=======
+    if HAS_CPU or HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

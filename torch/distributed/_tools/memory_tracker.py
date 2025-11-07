@@ -2,9 +2,15 @@
 import operator
 import pickle
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from itertools import chain
 from typing import Any, no_type_check, TYPE_CHECKING
+=======
+from collections.abc import Sequence
+from itertools import chain
+from typing import Any, Callable, no_type_check, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -232,9 +238,13 @@ class MemoryTracker:
         def _pre_forward_hook(module: nn.Module, inputs: Any) -> None:
             self._cur_module_name = f"{name}.forward"
             if (
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-argument]
                 hasattr(module, "_memory_tracker_is_root")
                 # pyrefly: ignore [not-callable]
+=======
+                hasattr(module, "_memory_tracker_is_root")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and module._memory_tracker_is_root
             ):
                 self._add_marker("fw_start")
@@ -250,9 +260,13 @@ class MemoryTracker:
             outputs: Sequence[torch.Tensor],
         ) -> None:
             if (
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-argument]
                 hasattr(module, "_memory_tracker_is_root")
                 # pyrefly: ignore [not-callable]
+=======
+                hasattr(module, "_memory_tracker_is_root")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and module._memory_tracker_is_root
             ):
                 self._add_marker("fw_bw_boundary")

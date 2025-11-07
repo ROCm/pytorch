@@ -11,7 +11,10 @@ from typing import Any, Callable, Union
 
 import torch
 from torch._inductor import config
+<<<<<<< HEAD
 from torch._inductor.utils import python_subprocess_env
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _IS_WINDOWS = sys.platform == "win32"
@@ -132,7 +135,16 @@ cdll.LoadLibrary("__lib_path__")
                     ],
                     cwd=output_dir,
                     stderr=subprocess.DEVNULL,
+<<<<<<< HEAD
                     env=python_subprocess_env(),
+=======
+                    env={
+                        **os.environ,
+                        "PYTHONPATH": os.environ.get(
+                            "TORCH_CUSTOM_PYTHONPATH", os.pathsep.join(sys.path)
+                        ),
+                    },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             except Exception:
                 return False
@@ -200,13 +212,17 @@ class VecAVX512(VecISA):
         else "/arch:AVX512"
     )  # TODO: use cflags
     _dtype_nelements = {torch.float: 16, torch.bfloat16: 32, torch.float16: 32}
+<<<<<<< HEAD
     _is_avx512_bf16_supported = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __str__(self) -> str:
         return "avx512"
 
     __hash__: Callable[[VecISA], Any] = VecISA.__hash__  # type: ignore[assignment]
 
+<<<<<<< HEAD
     _avx512_bf16_code = """
 #include <cstdint>
 #include <immintrin.h>
@@ -246,13 +262,18 @@ extern "C" __m512bh __avx512_bf16_chk_kernel(__m512 a, __m512 b) {
         else:
             return self._arch_flags
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclasses.dataclass
 class VecAMX(VecAVX512):
     _arch_flags = VecAVX512._arch_flags + " -mamx-tile -mamx-bf16 -mamx-int8"
+<<<<<<< HEAD
     # check amx_fp16 separately since it is not always supported when amx is supported
     # amx_fp16 intrinsic compilation need gcc >=13 on platforms which support amx_fp16
     _is_amx_fp16_supported = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __str__(self) -> str:
         return super().__str__() + " amx_tile"
@@ -280,14 +301,18 @@ extern "C" void __amx_chk_kernel() {
 }
 """
 
+<<<<<<< HEAD
     _amx_fp16_code = _amx_code.replace("_tile_dpbf16ps", "_tile_dpfp16ps")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @functools.cache  # noqa: B019
     def __bool__(self) -> bool:
         if super().__bool__():
             if config.is_fbcode():
                 return False
             if self.check_build(VecAMX._amx_code) and torch.cpu._init_amx():
+<<<<<<< HEAD
                 # check amx-fp16 as well when check amx
                 if torch.cpu._is_amx_fp16_supported():
                     # save _arch_flags
@@ -316,6 +341,11 @@ extern "C" void __amx_chk_kernel() {
             extra_flags += " -mamx-fp16"
         return self._arch_flags + extra_flags
 
+=======
+                return True
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclasses.dataclass
 class VecAVX2(VecISA):
@@ -430,7 +460,10 @@ def get_isa_from_cpu_capability(
         "avx512": "avx512",
     }
     if capability in capability_to_isa_str.keys():
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         isa_str = capability_to_isa_str[capability]
         if isa_str == "INVALID_VEC_ISA":
             return invalid_vec_isa

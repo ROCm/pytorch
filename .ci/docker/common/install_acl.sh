@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/bin/bash
 # Script used only in CD pipeline
 
@@ -25,3 +26,21 @@ do
 done
 
 rm -rf $ACL_CHECKOUT_DIR
+=======
+set -euo pipefail
+
+readonly version=v25.02
+readonly src_host=https://github.com/ARM-software
+readonly src_repo=ComputeLibrary
+
+# Clone ACL
+[[ ! -d ${src_repo} ]] && git clone ${src_host}/${src_repo}.git
+cd ${src_repo}
+
+git checkout $version
+
+# Build with scons
+scons -j8  Werror=0 debug=0 neon=1 opencl=0 embed_kernels=0 \
+  os=linux arch=armv8a build=native multi_isa=1 \
+  fixed_format_kernels=1 openmp=1 cppthreads=0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

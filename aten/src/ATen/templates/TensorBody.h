@@ -158,7 +158,11 @@ class TORCH_API Tensor: public TensorBase {
   // will only lead to trouble and dangling references.
   c10::MaybeOwned<Tensor> expect_contiguous(MemoryFormat memory_format=MemoryFormat::Contiguous) && = delete;
 
+<<<<<<< HEAD
   // The following overloads are very intriguing.  Consider the following
+=======
+  // The following overloads are very intruiging.  Consider the following
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // program:
   //
   //    x[1] = 3;
@@ -491,7 +495,11 @@ class TORCH_API Tensor: public TensorBase {
         "attribute won't be populated during autograd.backward(). If you indeed want the .grad "
         "field to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. "
         "If you access the non-leaf Tensor by mistake, make sure you access the leaf Tensor "
+<<<<<<< HEAD
         "instead. See github.com/pytorch/pytorch/pull/30531 for more information.");
+=======
+        "instead. See github.com/pytorch/pytorch/pull/30531 for more informations.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return maybe_grad;
   }

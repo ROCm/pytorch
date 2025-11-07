@@ -49,7 +49,11 @@ void StoreCollectives::barrier(
           msg += fmt::format("{}, ", i);
         }
       }
+<<<<<<< HEAD
       TORCH_CHECK(false, msg, e.what());
+=======
+      throw std::runtime_error(msg + e.what());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 }
@@ -118,7 +122,11 @@ std::vector<std::vector<uint8_t>> StoreCollectives::gatherRecv(
         msg += fmt::format("{}, ", i);
       }
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, msg, e.what());
+=======
+    throw std::runtime_error(msg + e.what());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // insert local data
@@ -194,7 +202,11 @@ std::vector<std::vector<uint8_t>> StoreCollectives::allGather(
         msg += fmt::format("{}, ", i);
       }
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, msg, e.what());
+=======
+    throw std::runtime_error(msg + e.what());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

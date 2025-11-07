@@ -8,12 +8,20 @@ import pickletools
 import platform
 import types
 from collections import defaultdict, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
+=======
+from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from enum import Enum
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, cast, IO, Optional, Union
+=======
+from typing import Any, Callable, cast, IO, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.serialization import location_tag, normalize_storage_type
@@ -605,9 +613,15 @@ class PackageExporter:
             dependencies (bool, optional): If ``True``, we scan the source for dependencies.
         """
 
+<<<<<<< HEAD
         assert (pickle_protocol == 4) or (pickle_protocol == 3), (
             "torch.package only supports pickle protocols 3 and 4"
         )
+=======
+        assert (pickle_protocol == 4) or (
+            pickle_protocol == 3
+        ), "torch.package only supports pickle protocols 3 and 4"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         filename = self._filename(package, resource)
         # Write the pickle data for `obj`
@@ -652,7 +666,10 @@ class PackageExporter:
             memo: defaultdict[int, str] = defaultdict(None)
             memo_count = 0
             # pickletools.dis(data_value)
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for opcode, arg, _pos in pickletools.genops(data_value):
                 if pickle_protocol == 4:
                     if (

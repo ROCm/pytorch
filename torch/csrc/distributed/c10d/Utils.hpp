@@ -437,7 +437,11 @@ inline at::Tensor newLikeFlat(
   }
   at::DeviceGuard gpuGuard(device);
   std::vector<int64_t> sizes{static_cast<int64_t>(tensors[deviceIdx].size())};
+<<<<<<< HEAD
   std::vector<int64_t> strides{t.numel()};
+=======
+  std::vector<int64_t> strides{static_cast<int64_t>(t.numel())};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   sizes.insert(sizes.end(), t.sizes().begin(), t.sizes().end());
   strides.insert(strides.end(), t.strides().begin(), t.strides().end());
   return at::empty_strided(

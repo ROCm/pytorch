@@ -4,7 +4,10 @@ from collections.abc import Sequence, Sized
 from typing import cast, Optional
 
 import torch
+<<<<<<< HEAD
 from torch._prims_common import IntLike
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
 from torch.distributed.tensor._op_schema import (
     OpSchema,
@@ -17,7 +20,11 @@ from torch.distributed.tensor._op_schema import (
     TupleStrategy,
 )
 from torch.distributed.tensor._ops._common_rules import pointwise_rule
+<<<<<<< HEAD
 from torch.distributed.tensor._ops._embedding_ops import MaskPartial
+=======
+from torch.distributed.tensor._ops._embedding_ops import _MaskPartial
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._ops.utils import (
     expand_to_full_mesh_op_strategy,
     generate_redistribute_costs,
@@ -27,8 +34,11 @@ from torch.distributed.tensor._ops.utils import (
     normalize_dim,
     register_op_strategy,
     register_prop_rule,
+<<<<<<< HEAD
     shift_shard_dims_after_insert,
     shift_shard_dims_after_remove,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.distributed.tensor.placement_types import (
     Partial,
@@ -41,6 +51,7 @@ from torch.distributed.tensor.placement_types import (
 aten = torch.ops.aten
 
 
+<<<<<<< HEAD
 def propagate_single_input_strategy(op_schema: OpSchema) -> StrategyType:
     # For ops with a single tensor input, we perform a 1:1 mapping such that
     # for each strategy that the input supports, we create a corresponding strategy.
@@ -77,23 +88,53 @@ def propagate_single_input_strategy(op_schema: OpSchema) -> StrategyType:
             for strategy in first_input_strategy.strategies
         ]
     )
+=======
+def default_strategy(op_schema: OpSchema) -> StrategyType:
+    # Default strategy by default just propagate the first input strategy
+    select_strategy = op_schema.args_schema[0]
+    assert isinstance(select_strategy, OpStrategy)
+    # we create new DTensorSpecs even for default strategy to assure that
+    # the tensor metas are distinct between the arguments and outputs
+    default_strategy = [
+        OpSpec(
+            output_specs=DTensorSpec(
+                mesh=select_strategy.mesh,
+                placements=strategy.output_spec.placements,
+            )
+        )
+        for strategy in select_strategy.strategies
+    ]
+    return OpStrategy(default_strategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 register_op_strategy(
     [
         aten.clone.default,
         aten.contiguous.default,
+<<<<<<< HEAD
+=======
+        aten.copy_.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aten.detach.default,
         aten.fill_.Scalar,
         aten.view.dtype,
         aten.zero_.default,
     ]
+<<<<<<< HEAD
 )(propagate_single_input_strategy)
 
 
 register_op_strategy(
     aten._to_copy.default, schema_info=RuntimeSchemaInfo(static_kwargkey=["dtype"])
 )(propagate_single_input_strategy)
+=======
+)(default_strategy)
+
+register_op_strategy(
+    aten._to_copy.default, schema_info=RuntimeSchemaInfo(static_kwargkey=["dtype"])
+)(default_strategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_op_strategy(
@@ -109,10 +150,15 @@ def equal_strategy(op_schema: OpSchema) -> StrategyType:
     # same strategy in theory.
     mesh = op_schema.get_mesh_from_args()
     self_strategy, other_strategy = op_schema.args_schema
+<<<<<<< HEAD
     if not isinstance(self_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(self_strategy)}")
     if not isinstance(other_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(other_strategy)}")
+=======
+    assert isinstance(self_strategy, OpStrategy)
+    assert isinstance(other_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     select_strategy = (
         self_strategy
@@ -168,8 +214,12 @@ def create_like_strategy(op_schema: OpSchema) -> StrategyType:
     # move from partial to replicated.
     select_strategy = op_schema.args_schema[0]
     create_like_strategy = OpStrategy([])
+<<<<<<< HEAD
     if not isinstance(select_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(select_strategy)}")
+=======
+    assert isinstance(select_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg_strategy in select_strategy.strategies:
         arg_spec = arg_strategy.output_spec
         output_spec = DTensorSpec(
@@ -201,14 +251,22 @@ def new_factory_strategy(op_schema: OpSchema) -> StrategyType:
     # 1. let the output be replicated
     # 2. let the output follow the input if input and output have the same shape
     input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     mesh = input_strategy.mesh
     input_shape = input_strategy.shape
     output_shape = op_schema.args_schema[1]
+<<<<<<< HEAD
     if not isinstance(output_shape, list):
         raise AssertionError(f"Expected list, got {type(output_shape)}")
+=======
+    assert isinstance(output_shape, list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     new_factory_strategy = OpStrategy([])
     for arg_strategy in input_strategy.strategies:
@@ -218,7 +276,11 @@ def new_factory_strategy(op_schema: OpSchema) -> StrategyType:
             OpSpec(
                 output_specs=replica_spec,
                 input_specs=(input_spec,),
+<<<<<<< HEAD
                 redistribute_cost=[[0.0] * len(input_strategy.strategies)],
+=======
+                redistribute_cost=[[0.0] * mesh.ndim],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
@@ -236,7 +298,11 @@ def new_factory_strategy(op_schema: OpSchema) -> StrategyType:
                     output_specs=input_spec,
                     input_specs=(input_spec,),
                     # encouraging new tensor placement to be the same as input
+<<<<<<< HEAD
                     redistribute_cost=[[-0.1] * len(input_strategy.strategies)],
+=======
+                    redistribute_cost=[[-0.1] * mesh.ndim],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
 
@@ -247,6 +313,7 @@ def new_factory_strategy(op_schema: OpSchema) -> StrategyType:
 def gen_bucketize_strategy(op_schema: OpSchema) -> StrategyType:
     """Just propagate input sharding, but expect replicated for boundaries input."""
     mesh = op_schema.get_mesh_from_args()
+<<<<<<< HEAD
     input_strategy, boundaries_strategy = op_schema.args_schema
     bucketize_strategy = OpStrategy([])
     if not isinstance(input_strategy, OpStrategy):
@@ -273,6 +340,16 @@ def gen_bucketize_strategy(op_schema: OpSchema) -> StrategyType:
                     generate_redistribute_costs(boundaries_strategy, replica_spec),
                 ],
             )
+=======
+    input_strategy = op_schema.args_schema[0]
+    bucketize_strategy = OpStrategy([])
+    assert isinstance(input_strategy, OpStrategy)
+    for arg_strategy in input_strategy.strategies:
+        arg_spec = DTensorSpec(mesh, arg_strategy.output_spec.placements)
+        replica_spec = DTensorSpec(mesh, tuple([Replicate()] * mesh.ndim))
+        bucketize_strategy.strategies.append(
+            OpSpec(output_specs=arg_spec, input_specs=(arg_spec, replica_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     return bucketize_strategy
@@ -292,10 +369,15 @@ def select_int_strategy(op_schema: OpSchema) -> StrategyType:
         - Case 3 shard_dim > selected_dim: shard_dim -= 1.
     """
     input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
     if len(op_schema.args_schema) != 3:
         raise AssertionError(f"Expected 3 args, got {len(op_schema.args_schema)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+    assert len(op_schema.args_schema) == 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     selected_dim, index = (
         cast(int, op_schema.args_schema[1]),
         cast(int, op_schema.args_schema[2]),
@@ -322,11 +404,24 @@ def select_int_strategy(op_schema: OpSchema) -> StrategyType:
         output_specs = input_specs
         if input_specs.is_sharded():
             # handle cases with sharded_dim != selected_dim
+<<<<<<< HEAD
             output_placements = shift_shard_dims_after_remove(
                 input_specs.placements, selected_dim
             )
             output_specs = DTensorSpec(
                 arg_spec.mesh, placements=tuple(output_placements)
+=======
+            output_spec_placements = []
+            for placement in input_specs.placements:
+                if placement.is_shard():
+                    shard_dim = cast(Shard, placement).dim
+                    if shard_dim > selected_dim:
+                        shard_dim -= 1
+                    placement = Shard(dim=shard_dim)
+                output_spec_placements.append(placement)
+            output_specs = DTensorSpec(
+                arg_spec.mesh, placements=tuple(output_spec_placements)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         select_strategy.strategies.append(
@@ -346,6 +441,7 @@ def select_backward_strategy(op_schema: OpSchema) -> OpStrategy:
     # func: select_backward(Tensor grad_output, SymInt[] input_sizes, int dim, SymInt index) -> Tensor
     args_schema = op_schema.args_schema
     input_strategy, dim = args_schema[0], args_schema[2]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {input_strategy}")
     if not isinstance(dim, int):
@@ -357,6 +453,26 @@ def select_backward_strategy(op_schema: OpSchema) -> OpStrategy:
         # grad_input has one more dim than grad_output
         output_placements = shift_shard_dims_after_insert(input_spec.placements, dim)
         output_specs = DTensorSpec(input_spec.mesh, tuple(output_placements))
+=======
+    assert isinstance(input_strategy, OpStrategy), f"{input_strategy}"
+    assert isinstance(dim, int)
+    output_strategies: list[OpSpec] = []
+    for placement_strategy in input_strategy.strategies:
+        input_spec = placement_strategy.output_spec
+        output_spec_placements: list[Placement] = []
+        for placement in input_spec.placements:
+            if isinstance(placement, Shard):
+                shard_dim = placement.dim
+                if shard_dim >= dim:
+                    # NOTE: shard_dim is guaranteed to exist because
+                    # grad_input has one more dim than grad_output
+                    output_spec_placements.append(Shard(shard_dim + 1))
+                else:
+                    output_spec_placements.append(Shard(shard_dim))
+            else:
+                output_spec_placements.append(placement)
+        output_specs = DTensorSpec(input_spec.mesh, tuple(output_spec_placements))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_strategies.append(
             OpSpec(output_specs=output_specs, input_specs=(input_spec,))
         )
@@ -370,18 +486,27 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
     input_strategy, dim, start, end, step = (
         op_schema.args_schema + defaults[len(op_schema.args_schema) :]
     )
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     mesh = input_strategy.mesh
     input_shape = input_strategy.shape
     input_ndim = input_strategy.ndim
+<<<<<<< HEAD
     if not isinstance(dim, int):
         raise AssertionError(f"Expected int, got {type(dim)}")
+=======
+    assert isinstance(dim, int)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if start is None:
         start = 0
     if end is None or end > input_shape[dim]:
         end = input_shape[dim]
+<<<<<<< HEAD
     if not isinstance(start, IntLike):
         raise AssertionError(f"Expected IntLike, got {type(start)}")
     if not isinstance(end, IntLike):
@@ -393,6 +518,16 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
     slice_dim = normalize_dim(dim, input_ndim)  # type: ignore[arg-type]
     start = normalize_dim(start, input_shape[dim])  # type: ignore[arg-type]
     end = normalize_dim(end, input_shape[dim])  # type: ignore[arg-type]
+=======
+    assert isinstance(start, int)
+    assert isinstance(end, int)
+    assert isinstance(step, int)
+
+    # normalize args
+    slice_dim = normalize_dim(dim, input_ndim)
+    start = normalize_dim(start, input_shape[dim])
+    end = normalize_dim(end, input_shape[dim])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     redundant_slice = start == 0 and end == input_shape[dim] and step == 1
 
@@ -403,6 +538,7 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
         if not is_tensor_dim_sharded(arg_spec, dim=slice_dim) or redundant_slice:
             # only add the strategy if the slice dim is not sharded
             out_spec = DTensorSpec(mesh, arg_spec.placements)
+<<<<<<< HEAD
             slice_strategy.strategies.append(
                 OpSpec(
                     output_specs=out_spec,
@@ -410,6 +546,9 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
                     redistribute_cost=[[0.0] * len(input_strategy.strategies)],
                 )
             )
+=======
+            slice_strategy.strategies.append(OpSpec(output_specs=out_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not slice_strategy.strategies:
         # if all strategies are filtered out, unsharding all specs on slice dim
         # of the input strategy, and use that as the op strategy
@@ -418,6 +557,7 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
             unshard_spec = DTensorSpec(
                 mesh, unshard_tensor_dim(arg_spec.placements, dim=slice_dim)
             )
+<<<<<<< HEAD
             slice_strategy.strategies.append(
                 OpSpec(
                     output_specs=unshard_spec,
@@ -426,6 +566,9 @@ def gen_slice_strategy(op_schema: OpSchema) -> StrategyType:
                     ],
                 )
             )
+=======
+            slice_strategy.strategies.append(OpSpec(output_specs=unshard_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return slice_strategy
 
 
@@ -437,8 +580,12 @@ def slice_backward_rules(op_schema: OpSchema) -> OpStrategy:
     # func: slice_backward(Tensor grad_output, SymInt[] input_sizes, int dim, SymInt start, SymInt end, SymInt step) -> Tensor
     args_schema = op_schema.args_schema
     input_strategy, dim = args_schema[0], args_schema[2]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {input_strategy}")
+=======
+    assert isinstance(input_strategy, OpStrategy), f"{input_strategy}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     output_strategies: list[OpSpec] = []
     for placement_strategy in input_strategy.strategies:
         output_spec = placement_strategy.output_spec
@@ -451,9 +598,14 @@ def slice_backward_rules(op_schema: OpSchema) -> OpStrategy:
                 new_placements.append(placement)
         new_spec = DTensorSpec(output_spec.mesh, tuple(new_placements))
         redistribute_cost = [generate_redistribute_costs(input_strategy, new_spec)]
+<<<<<<< HEAD
         new_strategy = OpSpec(
             output_specs=new_spec, redistribute_cost=redistribute_cost
         )
+=======
+        placement_strategy.redistribute_cost = redistribute_cost
+        new_strategy = OpSpec(output_specs=new_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_strategies.append(new_strategy)
     return OpStrategy(output_strategies)
 
@@ -491,11 +643,15 @@ def gen_slice_scatter_strategy(op_schema: OpSchema) -> StrategyType:
     #   TODO: Ideally we'd like to make sure the output is re-sharded afterwards to keep input sharding.
     mesh = op_schema.get_mesh_from_args()
     input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     src_strategy = op_schema.args_schema[1]
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
     if not isinstance(src_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(src_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     input_ndim = input_strategy.ndim
     slice_dim = (
         cast(int, op_schema.args_schema[2]) if len(op_schema.args_schema) > 2 else 0
@@ -510,6 +666,7 @@ def gen_slice_scatter_strategy(op_schema: OpSchema) -> StrategyType:
             is_tensor_dim_sharded(arg_spec, dim=slice_dim)
             or is_tensor_partial(arg_spec)
         ):
+<<<<<<< HEAD
             input_spec = DTensorSpec(mesh, arg_spec.placements, arg_spec.tensor_meta)
             # TODO: need to relax the constraint to src
             src_spec = DTensorSpec(mesh, arg_spec.placements)
@@ -524,12 +681,17 @@ def gen_slice_scatter_strategy(op_schema: OpSchema) -> StrategyType:
                     ],
                 )
             )
+=======
+            # only add the strategy if the slice_scatter dim is not sharded or partial
+            slice_scatter_strategy.strategies.append(OpSpec(output_specs=arg_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not slice_scatter_strategy.strategies:
         # if all strategies are filtered out, replicating all specs on slice_scatter dim
         # of the input strategy, and use that as the op strategy
         for arg_strategy in input_strategy.strategies:
             arg_spec = arg_strategy.output_spec
+<<<<<<< HEAD
             new_placement = replicate_tensor_dim(arg_spec.placements, dim=slice_dim)
             input_spec = DTensorSpec(mesh, new_placement)
             src_spec = DTensorSpec(mesh, new_placement)
@@ -542,6 +704,13 @@ def gen_slice_scatter_strategy(op_schema: OpSchema) -> StrategyType:
                         generate_redistribute_costs(src_strategy, src_spec),
                     ],
                 )
+=======
+            replicate_spec = DTensorSpec(
+                mesh, replicate_tensor_dim(arg_spec.placements, dim=slice_dim)
+            )
+            slice_scatter_strategy.strategies.append(
+                OpSpec(output_specs=replicate_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
     return slice_scatter_strategy
 
@@ -550,20 +719,28 @@ def gen_slice_scatter_strategy(op_schema: OpSchema) -> StrategyType:
 def replica_only_strategy(op_schema: OpSchema) -> StrategyType:
     """Only allow replication on the input/output."""
     input_strategy = op_schema.args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mesh = input_strategy.mesh
     replicate_spec = DTensorSpec(mesh, tuple([Replicate()] * mesh.ndim))
     return OpStrategy([OpSpec(replicate_spec)])
 
 
 @register_op_strategy(
+<<<<<<< HEAD
     [
         aten.scatter_.value,
         aten.scatter.value,
         aten.scatter_.src,
         aten.scatter.src,
     ],
+=======
+    [aten.scatter_.value, aten.scatter.value, aten.scatter_.src, aten.scatter.src],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     schema_info=RuntimeSchemaInfo(1),
 )
 def scatter_strategy(op_schema: OpSchema) -> StrategyType:
@@ -589,6 +766,7 @@ def scatter_strategy(op_schema: OpSchema) -> StrategyType:
     return op_strategy
 
 
+<<<<<<< HEAD
 @register_op_strategy(aten.scatter_add.default, schema_info=RuntimeSchemaInfo(1))
 def scatter_add_strategy(op_schema: OpSchema) -> StrategyType:
     input_strategy = op_schema.args_schema[0]
@@ -625,11 +803,17 @@ def scatter_add_strategy(op_schema: OpSchema) -> StrategyType:
 
 
 @register_op_strategy(aten.gather.default, schema_info=RuntimeSchemaInfo(1))
+=======
+@register_op_strategy(aten.gather.default)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gather_strategy(op_schema: OpSchema) -> StrategyType:
     mesh = op_schema.get_mesh_from_args()
     input_strategy = cast(OpStrategy, op_schema.args_schema[0])
     dim = cast(int, op_schema.args_schema[1])
+<<<<<<< HEAD
     dim = normalize_dim(dim, input_strategy.ndim)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     index_strategy = cast(OpStrategy, op_schema.args_schema[2])
 
     input_shape = input_strategy.shape
@@ -645,8 +829,13 @@ def gather_strategy(op_schema: OpSchema) -> StrategyType:
     # input sharding, input sharded, index accepts mask partial, output follows index
     # this only works when the input is sharded on the gather dimension, and
     # index has size 1 on the gather dimension
+<<<<<<< HEAD
     if dim < len(index_shape) and index_shape[dim] == 1:
         index_partial_placement = MaskPartial(offset_shape=input_shape, offset_dim=dim)
+=======
+    if index_shape[dim] == 1:
+        index_partial_placement = _MaskPartial(offset_shape=input_shape, offset_dim=dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_sharding: PlacementList = [
             index_partial_placement,
             Shard(dim),
@@ -659,12 +848,15 @@ def gather_strategy(op_schema: OpSchema) -> StrategyType:
     index_sharding: PlacementList = [Shard(dim), Replicate(), Shard(dim)]
     single_mesh_dim_strategies.append(index_sharding)
 
+<<<<<<< HEAD
     if len(input_shape) == len(index_shape):
         for d in range(len(input_shape)):
             if d != dim:
                 sharding: PlacementList = [Shard(d), Shard(d), Shard(d)]
                 single_mesh_dim_strategies.append(sharding)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return expand_to_full_mesh_op_strategy(
         mesh, op_schema, single_mesh_dim_strategies, input_index=1
     )
@@ -714,9 +906,14 @@ def _derive_follow_placements_from_tuple_strategy(
 
     follow_placements: Optional[list[Placement]] = None
     mesh = tuple_strategy.child_mesh(0)
+<<<<<<< HEAD
     for arg_strategy in tuple_strategy.children:
         if not isinstance(arg_strategy, OpStrategy):
             raise AssertionError(f"Expected OpStrategy, got {type(arg_strategy)}")
+=======
+    for arg_strategy in tuple_strategy.childs:
+        assert isinstance(arg_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if arg_strategy.mesh != mesh:
             raise ValueError(
                 f"All operands in {op} must have the same mesh, "
@@ -728,29 +925,60 @@ def _derive_follow_placements_from_tuple_strategy(
             if follow_placements is None:
                 follow_placements = list(arg_placements)
                 continue
+<<<<<<< HEAD
             if follow_placements is None:
                 raise AssertionError(
                     "follow_placements should not be None at this point"
                 )
+=======
+            assert follow_placements is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for mesh_idx in range(mesh.ndim):
                 # merge placements with the priority
                 follow_placements[mesh_idx] = merge_placement(
                     follow_placements[mesh_idx], arg_placements[mesh_idx]
                 )
+<<<<<<< HEAD
     if follow_placements is None:
         raise AssertionError("follow placements should not be None!")
     return follow_placements
 
 
+=======
+    assert follow_placements is not None, "follow placements should not be None!"
+    return follow_placements
+
+
+def normalize_shard_for_stack(
+    placements: Sequence[Placement], insert_dim: int = 0
+) -> Sequence[Placement]:
+    # stack op would "insert" new dim, so all sharded dim >= the inserted dim need to
+    # be normalized with the new Shard placement
+    normalized_placements: list[Placement] = []
+    for placement in placements:
+        if isinstance(placement, Shard) and placement.dim >= insert_dim:
+            normalized_placements.append(Shard(placement.dim + 1))
+        else:
+            normalized_placements.append(placement)
+    return normalized_placements
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_op_strategy(aten.stack.default, RuntimeSchemaInfo(1, needs_pytree=True))
 def stack_strategy(op_schema: OpSchema) -> StrategyType:
     args_schema = op_schema.args_schema
     input_tuple_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_tuple_strategy, TupleStrategy):
         raise AssertionError(f"Expected TupleStrategy, got {input_tuple_strategy}")
     first_input_strategy = input_tuple_strategy.children[0]
     if not isinstance(first_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {first_input_strategy}")
+=======
+    assert isinstance(input_tuple_strategy, TupleStrategy), f"{input_tuple_strategy}"
+    first_input_strategy = input_tuple_strategy.childs[0]
+    assert isinstance(first_input_strategy, OpStrategy), f"{first_input_strategy}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     common_input_ndim = first_input_strategy.ndim
     dim = cast(int, args_schema[1]) if len(args_schema) > 1 else 0
     # normalize the dim to be within the common input ndim
@@ -767,6 +995,7 @@ def stack_strategy(op_schema: OpSchema) -> StrategyType:
 
     input_specs = tuple(
         DTensorSpec(mesh, tuple(follow_placements))
+<<<<<<< HEAD
         for _ in range(len(input_tuple_strategy.children))
     )
 
@@ -789,6 +1018,19 @@ def stack_strategy(op_schema: OpSchema) -> StrategyType:
                 redistribute_cost=redistribute_cost,
             )
         )
+=======
+        for _ in range(len(input_tuple_strategy.childs))
+    )
+
+    follow_placements = normalize_shard_for_stack(follow_placements, dim)
+
+    op_strategy.strategies.append(
+        OpSpec(
+            output_specs=DTensorSpec(mesh, tuple(follow_placements)),
+            input_specs=input_specs,
+        )
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return op_strategy
 
 
@@ -796,12 +1038,18 @@ def stack_strategy(op_schema: OpSchema) -> StrategyType:
 def cat_strategy(op_schema: OpSchema) -> StrategyType:
     args_schema = op_schema.args_schema
     input_tuple_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_tuple_strategy, TupleStrategy):
         raise AssertionError(f"Expected TupleStrategy, got {input_tuple_strategy}")
     num_input_tensor = len(input_tuple_strategy.children)
     first_input_strategy = input_tuple_strategy.children[0]
     if not isinstance(first_input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {first_input_strategy}")
+=======
+    assert isinstance(input_tuple_strategy, TupleStrategy), f"{input_tuple_strategy}"
+    first_input_strategy = input_tuple_strategy.childs[0]
+    assert isinstance(first_input_strategy, OpStrategy), f"{first_input_strategy}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     common_input_ndim = first_input_strategy.ndim
     dim = cast(int, args_schema[1]) if len(args_schema) > 1 else 0
     # normalize the dim to be within the common input ndim
@@ -809,6 +1057,7 @@ def cat_strategy(op_schema: OpSchema) -> StrategyType:
 
     mesh = first_input_strategy.mesh
 
+<<<<<<< HEAD
     op_strategy = OpStrategy([])
     # use a set to deduplicate strategies with the same placement
     strategies_placement_pool = set()
@@ -864,6 +1113,27 @@ def cat_strategy(op_schema: OpSchema) -> StrategyType:
                         redistribute_cost=redistribute_costs,
                     )
                 )
+=======
+    follow_placements = _derive_follow_placements_from_tuple_strategy(
+        op_schema.op, input_tuple_strategy
+    )
+    # for cat we unshard the cat dim if it is sharded
+    follow_placements = unshard_tensor_dim(follow_placements, dim)
+
+    # create op strategy base on the follow placements
+    op_strategy = OpStrategy([])
+
+    input_specs = tuple(
+        DTensorSpec(mesh, tuple(follow_placements))
+        for _ in range(len(input_tuple_strategy.childs))
+    )
+    op_strategy.strategies.append(
+        OpSpec(
+            output_specs=DTensorSpec(mesh, tuple(follow_placements)),
+            input_specs=input_specs,
+        )
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return op_strategy
 
 
@@ -871,12 +1141,18 @@ def cat_strategy(op_schema: OpSchema) -> StrategyType:
 def prop_index_select(op_schema: OpSchema) -> OutputSharding:
     values_spec, dim, indices_spec = op_schema.args_schema
 
+<<<<<<< HEAD
     if not isinstance(values_spec, DTensorSpec):
         raise AssertionError(f"Expected DTensorSpec, got {type(values_spec)}")
     if not isinstance(dim, int):
         raise AssertionError(f"Expected int, got {type(dim)}")
     if not isinstance(indices_spec, DTensorSpec):
         raise AssertionError(f"Expected DTensorSpec, got {type(indices_spec)}")
+=======
+    assert isinstance(values_spec, DTensorSpec)
+    assert isinstance(dim, int)
+    assert isinstance(indices_spec, DTensorSpec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     all_indices_spec: list[Optional[DTensorSpec]] = [
         indices_spec if dim == i else None for i in range(values_spec.ndim)
@@ -903,6 +1179,7 @@ def prop_index_select(op_schema: OpSchema) -> OutputSharding:
     return result
 
 
+<<<<<<< HEAD
 @register_op_strategy(
     [
         aten.index_put.default,
@@ -1013,6 +1290,8 @@ def prop_index_put(op_schema: OpSchema) -> StrategyType:
     return op_strategy
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_prop_rule(aten.index.Tensor, schema_info=RuntimeSchemaInfo(needs_pytree=True))
 def prop_index(op_schema: OpSchema) -> OutputSharding:
     """
@@ -1031,10 +1310,15 @@ def prop_index(op_schema: OpSchema) -> OutputSharding:
     #   into either sharded or replicated)
 
     values_spec, multi_indices_spec = op_schema.args_schema
+<<<<<<< HEAD
     if not isinstance(values_spec, DTensorSpec):
         raise AssertionError(f"Expected DTensorSpec, got {type(values_spec)}")
     if not isinstance(multi_indices_spec, list):
         raise AssertionError(f"Expected list, got {type(multi_indices_spec)}")
+=======
+    assert isinstance(values_spec, DTensorSpec)
+    assert isinstance(multi_indices_spec, list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     multi_indices_spec = cast(list[Optional[DTensorSpec]], multi_indices_spec)
     valid_indices_spec: list[tuple[int, DTensorSpec]] = [
         (i, a) for i, a in enumerate(multi_indices_spec) if a is not None
@@ -1053,6 +1337,7 @@ def prop_index(op_schema: OpSchema) -> OutputSharding:
 
     if not need_reshard_on_indices:
         # this means that our inputs are already sharded properly and we will use that as our indices_spec
+<<<<<<< HEAD
         if not isinstance(indices_out.output_spec, DTensorSpec):
             raise AssertionError(
                 f"Expected DTensorSpec, got {type(indices_out.output_spec)}"
@@ -1061,16 +1346,26 @@ def prop_index(op_schema: OpSchema) -> OutputSharding:
     else:
         if indices_out.redistribute_schema is None:
             raise AssertionError("redistribute_schema should not be None")
+=======
+        assert isinstance(indices_out.output_spec, DTensorSpec)
+        indices_spec: DTensorSpec = indices_out.output_spec
+    else:
+        assert indices_out.redistribute_schema is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         valid_indices_suggestion = indices_out.redistribute_schema
         for i, v in enumerate(valid_indices_suggestion.args_spec):
             multi_indices_spec[valid_indices_spec[i][0]] = v
         # we'll need to call pointwise_rule again to see what's our ideal indices_spec and then
         # use that to compute our ideal values_spec
         indices_output_spec = pointwise_rule(valid_indices_suggestion).output_spec
+<<<<<<< HEAD
         if not isinstance(indices_output_spec, DTensorSpec):
             raise AssertionError(
                 f"Expected DTensorSpec, got {type(indices_output_spec)}"
             )
+=======
+        assert isinstance(indices_output_spec, DTensorSpec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         indices_spec = indices_output_spec
 
     lookup_dims = {v[0] for v in valid_indices_spec}
@@ -1129,8 +1424,15 @@ def prop_index(op_schema: OpSchema) -> OutputSharding:
                     DTensorSpec(
                         mesh=values_spec.mesh,
                         placements=tuple(
+<<<<<<< HEAD
                             Replicate() if need_reshard_on_values[i] else v
                             for i, v in enumerate(values_spec.placements)
+=======
+                            [
+                                Replicate() if need_reshard_on_values[i] else v
+                                for i, v in enumerate(values_spec.placements)
+                            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ),
                         tensor_meta=values_spec.tensor_meta,
                     ),
@@ -1150,22 +1452,46 @@ def prop_index(op_schema: OpSchema) -> OutputSharding:
     ],
     RuntimeSchemaInfo(1),
 )
+<<<<<<< HEAD
 def split_strategy(op_schema: OpSchema) -> OpStrategy:
     input_strategy = op_schema.args_schema[0]
     split_size_or_sections = op_schema.args_schema[1]
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+def split_strategy(op_schema: OpSchema) -> TupleStrategy:
+    input_strategy = op_schema.args_schema[0]
+    split_size_or_sections = op_schema.args_schema[1]
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     input_ndim = input_strategy.ndim
     split_dim = (
         cast(int, op_schema.args_schema[2]) if len(op_schema.args_schema) > 2 else 0
     )
     dim = normalize_dim(split_dim, input_ndim)
 
+<<<<<<< HEAD
     def size_split(N, i) -> list:
         # Last chunk will be smaller if the tensor size N
         # along the given dimension dim is not divisible by i.
         if not i > 0:
             raise AssertionError(f"Split size must be positive, got {i}")
+=======
+    # tensor to split cannot have Partial for now
+    for arg_strategy in input_strategy.strategies:
+        arg_spec = arg_strategy.output_spec
+        if is_tensor_partial(arg_spec):
+            raise NotImplementedError(
+                f"splitting distributed tensor with "
+                f"Partial placement is not implemented!\n"
+                f"DTensorSpec={arg_strategy}"
+            )
+
+    def size_split(N, i) -> list:
+        # Last chunk will be smaller if the tensor size N
+        # along the given dimension dim is not divisible by i.
+        assert i > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [i] * (N // i) + ([N % i] if N % i != 0 else [])
 
     output_size_list = (
@@ -1173,6 +1499,7 @@ def split_strategy(op_schema: OpSchema) -> OpStrategy:
         if isinstance(split_size_or_sections, int)
         else split_size_or_sections
     )
+<<<<<<< HEAD
     if not isinstance(output_size_list, Sized):
         raise AssertionError(f"Expected Sized, got {type(output_size_list)}")
 
@@ -1243,3 +1570,27 @@ def gen_unbind_strategy(op_schema: OpSchema) -> StrategyType:
             )
         )
     return unbind_strategy
+=======
+    assert isinstance(output_size_list, Sized)
+
+    split_strategies = []
+
+    for _ in range(len(output_size_list)):
+        op_strategy = OpStrategy([])
+
+        for strategy in input_strategy.strategies:
+            spec = strategy.output_spec
+            placements = spec.placements
+            if is_tensor_dim_sharded(spec, dim=dim):
+                # if the input is sharded on the split dim, we need to unshard it
+                placements = unshard_tensor_dim(spec.placements, dim=dim)
+
+            spec = DTensorSpec(spec.mesh, placements)
+
+            op_strategy.strategies.append(
+                OpSpec(output_specs=spec, input_specs=([spec]))
+            )
+        split_strategies.append(op_strategy)
+
+    return TupleStrategy(split_strategies)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

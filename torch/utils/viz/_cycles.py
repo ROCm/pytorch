@@ -70,7 +70,11 @@ def observe_garbage(observer):
         gc.callbacks.remove(gc_callback)
     return remove
 
+<<<<<<< HEAD
 # Function to visualize cycles adapted from refcycle:
+=======
+# Function to visualize cycles adapated from refcycle:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Copyright 2013 Mark Dickinson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -277,7 +281,11 @@ def create_graph(objects, *, context=None, filter=None):
         references = annotated_references(obj)
         for referrent in gc.get_referents(obj):
             rid = id(referrent)
+<<<<<<< HEAD
             tidx = id_to_node.get(rid)
+=======
+            tidx = id_to_node.get(rid, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if tidx is None:
                 continue
             labels = references.get(rid, ["?"])
@@ -311,11 +319,15 @@ def escape(n):
 
 
 def is_cuda_tensor(obj):
+<<<<<<< HEAD
     return (
         isinstance(obj, torch.Tensor) and
         obj.device.type == "cuda" and
         not isinstance(obj, torch._subclasses.FakeTensor)
     )
+=======
+    return isinstance(obj, torch.Tensor) and obj.is_cuda and not isinstance(obj, torch._subclasses.FakeTensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def cuda_allocation_context():
     snapshot = torch.cuda.memory._snapshot()
@@ -340,7 +352,11 @@ def cuda_allocation_context():
 def to_dot(nodes):
     lines = ["digraph GraphName {", "node [shape=rect];", 'rankdir=LR;']
     for i, n in enumerate(nodes):
+<<<<<<< HEAD
         lines.append(f'{i} [label={escape(n.label)}, color={"red" if n.root else "black"}];')
+=======
+        lines.append(f'{i} [label={escape(n.label)}, color={ "red" if n.root else "black"}];')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for i, f in enumerate(nodes):
         for label, j in f.referrents:
@@ -465,7 +481,10 @@ def to_html(nodes):
         if n.context is None:
             continue
         s = _listener_template.format(id=str(i + 1), stack=escape(f'{n.label}:\n{n.context}'))
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         listeners.append(s)
     dot = to_dot(nodes)
     return _template.replace('$DOT', repr(dot)).replace('$LISTENERS', '\n'.join(listeners))
@@ -487,7 +506,11 @@ def warn_tensor_cycles():
     Install a warning that reports whenever a cycle that is holding CUDA memory is observed.
 
     The warning produces an .html file that visualizes the cycle,
+<<<<<<< HEAD
     and links it to the stack frame that allocated the CUDA tensor.
+=======
+    and links it to the stack frame that allocted the CUDA tensor.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Reference cycles are freed by the cycle collector rather than being cleaned up
     when the objects in the cycle first become unreachable. If a cycle points to a tensor,

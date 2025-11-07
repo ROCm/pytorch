@@ -85,7 +85,11 @@ struct RandomKernel {
 // ==================================================== Normal ========================================================
 
 #ifdef CPU_CAPABILITY_AVX2
+<<<<<<< HEAD
 void normal_fill_16_AVX2(float *data,
+=======
+static void normal_fill_16_AVX2(float *data,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                          const __m256* two_pi,
                          const __m256* one,
                          const __m256* minus_two,
@@ -136,7 +140,11 @@ void normal_fill_AVX2(const TensorBase &self, const float mean, const float std,
 #endif
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void normal_fill_16(scalar_t *data, const scalar_t mean, const scalar_t std) {
+=======
+static void normal_fill_16(scalar_t *data, const scalar_t mean, const scalar_t std) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto j : c10::irange(8)) {
     const scalar_t u1 = 1 - data[j]; // [0, 1) -> (0, 1] for log.
     const scalar_t u2 = data[j + 8];

@@ -1,11 +1,18 @@
 # mypy: allow-untyped-defs
 import contextlib
+<<<<<<< HEAD
 import functools
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass
+<<<<<<< HEAD
 from typing import Optional, overload, Protocol, Union
+=======
+from typing import Any, Optional, overload, Protocol, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeIs
 
 import torch
@@ -28,11 +35,17 @@ from torch._C import (
 
 _is_in_torch_dispatch_mode = False
 _is_in_non_infra_torch_dispatch_mode = False
+<<<<<<< HEAD
 # If inside any mode that has ignore_compile_internals() = False
 _is_in_any_mode_without_ignore_compile_internals = False
 
 
 def is_in_torch_dispatch_mode(include_infra_modes: bool = True) -> bool:
+=======
+
+
+def is_in_torch_dispatch_mode(include_infra_modes=True) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         _is_in_torch_dispatch_mode
         if include_infra_modes
@@ -40,10 +53,13 @@ def is_in_torch_dispatch_mode(include_infra_modes: bool = True) -> bool:
     )
 
 
+<<<<<<< HEAD
 def is_in_any_mode_without_ignore_compile_internals() -> bool:
     return _is_in_any_mode_without_ignore_compile_internals
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TorchDispatchMode:
     """
     A ``TorchDispatchMode`` allows you to override the meaning of all
@@ -71,6 +87,7 @@ class TorchDispatchMode:
     the next mode on the mode stack.  If you want recursively call back into
     your current ``__torch_dispatch__`` implementation, either explicitly
     invoke ``self.__torch_dispatch__(...)``, or use the context manager
+<<<<<<< HEAD
     ``self`` to make PyTorch
     API self-referential (beware of infinite loops, in this case!)
     """
@@ -85,13 +102,25 @@ class TorchDispatchMode:
         if _dispatch_key is not None:
             if not isinstance(_dispatch_key, torch._C.DispatchKey):
                 raise AssertionError("_dispatch_key must be a torch._C.DispatchKey")
+=======
+    ``__torch_dispatch__(self)`` to make PyTorch
+    API self-referential (beware of infinite loops, in this case!)
+    """
+
+    def __init__(self, _dispatch_key=None):
+        if _dispatch_key is not None:
+            assert isinstance(_dispatch_key, torch._C.DispatchKey)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.__dict__["_dispatch_key"] = _dispatch_key
 
         self.old_dispatch_mode_flags: deque[bool] = deque()
         self.old_non_infra_dispatch_mode_flags: deque[bool] = deque()
+<<<<<<< HEAD
         self.old_without_ignore_compile_internals_dispatch_mode_flags: deque[bool] = (
             deque()
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _lazy_init_old_dispatch_mode_flags(self):
         if not hasattr(self, "old_dispatch_mode_flags"):
@@ -100,6 +129,7 @@ class TorchDispatchMode:
         if not hasattr(self, "old_non_infra_dispatch_mode_flags"):
             self.old_non_infra_dispatch_mode_flags: deque[bool] = deque()  # type: ignore[no-redef]
 
+<<<<<<< HEAD
         if not hasattr(
             self, "old_without_ignore_compile_internals_dispatch_mode_flags"
         ):
@@ -107,14 +137,19 @@ class TorchDispatchMode:
                 bool
             ] = deque()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         raise NotImplementedError
 
     def __enter__(self):
         global _is_in_torch_dispatch_mode
         global _is_in_non_infra_torch_dispatch_mode
+<<<<<<< HEAD
         global _is_in_any_mode_without_ignore_compile_internals
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Previously, there wasn't any state in this class' constructor
         # super calls were added to existing modes, but for any new modes
         # this will replicate the previous behavior of not strictly needing
@@ -128,6 +163,7 @@ class TorchDispatchMode:
         _is_in_non_infra_torch_dispatch_mode = (
             _is_in_non_infra_torch_dispatch_mode or not self.is_infra_mode()
         )
+<<<<<<< HEAD
         self.old_without_ignore_compile_internals_dispatch_mode_flags.append(
             _is_in_any_mode_without_ignore_compile_internals
         )
@@ -135,6 +171,8 @@ class TorchDispatchMode:
             _is_in_any_mode_without_ignore_compile_internals
             or not self.ignore_compile_internals()
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _push_mode(self)
         return self
 
@@ -150,17 +188,24 @@ class TorchDispatchMode:
         _is_in_non_infra_torch_dispatch_mode = (
             self.old_non_infra_dispatch_mode_flags.pop()
         )
+<<<<<<< HEAD
         global _is_in_any_mode_without_ignore_compile_internals
         _is_in_any_mode_without_ignore_compile_internals = (
             self.old_without_ignore_compile_internals_dispatch_mode_flags.pop()
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _pop_mode(mb_dk_or_mode_key)
 
     @classmethod
     def push(cls, *args, **kwargs):
         warnings.warn(
+<<<<<<< HEAD
             "`Mode.push()` is no longer necessary and can be replaced with just `with Mode()`",
             stacklevel=2,
+=======
+            "`Mode.push()` is no longer necessary and can be replaced with just `with Mode()`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         instance = cls(*args, **kwargs)
         return instance
@@ -169,6 +214,7 @@ class TorchDispatchMode:
     def is_infra_mode(cls):
         return False
 
+<<<<<<< HEAD
     @classmethod
     def ignore_compile_internals(cls):
         """Ignore operators that are compiled via torch.compile.
@@ -208,12 +254,19 @@ def _get_current_dispatch_mode() -> Optional[TorchDispatchMode]:
     executed) if there are any.
     """
     stack_len = _len_torch_dispatch_stack()
+=======
+
+def _get_current_dispatch_mode():
+    stack_len = _len_torch_dispatch_stack()
+    # Return a user mode on the stack if there are any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if stack_len > 0:
         return _get_dispatch_stack_at(stack_len - 1)
     return None
 
 
 def _detect_infra_mode(key):
+<<<<<<< HEAD
     if key not in (
         torch._C._TorchDispatchModeKey.FUNCTIONAL,
         torch._C._TorchDispatchModeKey.PROXY,
@@ -223,15 +276,25 @@ def _detect_infra_mode(key):
                 or PROXY ({torch._C._TorchDispatchModeKey.PROXY}) _TorchDispatchModeKey, \
                     got {key}"
         )
+=======
+    assert key in [
+        torch._C._TorchDispatchModeKey.FUNCTIONAL,
+        torch._C._TorchDispatchModeKey.PROXY,
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._ops import _get_dispatch_mode_pre_dispatch
 
     pre_dispatch_mode = _get_dispatch_mode_pre_dispatch(key)
     post_dispatch_mode = torch._C._get_dispatch_mode(key)
 
+<<<<<<< HEAD
     if pre_dispatch_mode is not None and post_dispatch_mode is not None:
         raise AssertionError(
             "At most one of pre_dispatch_mode and post_dispatch_mode may be active"
         )
+=======
+    assert (pre_dispatch_mode is None) or (post_dispatch_mode is None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if pre_dispatch_mode is None:
         return post_dispatch_mode
@@ -257,6 +320,7 @@ def _unset_infra_mode(key):
 
 
 def _disable_infra_mode(key):
+<<<<<<< HEAD
     if key not in (
         torch._C._TorchDispatchModeKey.FUNCTIONAL,
         torch._C._TorchDispatchModeKey.PROXY,
@@ -264,6 +328,12 @@ def _disable_infra_mode(key):
         raise AssertionError(
             "key must be either FUNCTIONAL or PROXY _TorchDispatchModeKey"
         )
+=======
+    assert key in (
+        torch._C._TorchDispatchModeKey.FUNCTIONAL,
+        torch._C._TorchDispatchModeKey.PROXY,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mode_unset = _unset_infra_mode(key)
     try:
         yield mode_unset
@@ -272,22 +342,30 @@ def _disable_infra_mode(key):
             _push_mode(mode_unset)
 
 
+<<<<<<< HEAD
 def _get_current_dispatch_mode_stack() -> list[TorchDispatchMode]:
     """
     Returns the current stack of dispatch modes, with the most recent
     (i.e., the one that will be processed first) at the end of the
     list (standard stack convention).
     """
+=======
+def _get_current_dispatch_mode_stack():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stack_len = _len_torch_dispatch_stack()
     return [_get_dispatch_stack_at(i) for i in range(stack_len)]
 
 
 def _push_mode(mode: TorchDispatchMode):
     k = mode._dispatch_key if hasattr(mode, "_dispatch_key") else None
+<<<<<<< HEAD
     if k is not None and k != torch._C.DispatchKey.PreDispatch:
         raise AssertionError(
             "mode._dispatch_key must be None or DispatchKey.PreDispatch"
         )
+=======
+    assert k is None or k == torch._C.DispatchKey.PreDispatch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if k is None:
         _push_on_torch_dispatch_stack(mode)
         return
@@ -388,12 +466,22 @@ class BaseTorchDispatchMode(TorchDispatchMode):
 
 # Subtypes which have __tensor_flatten__ and __tensor_unflatten__.
 class TensorWithFlatten(Protocol):
+<<<<<<< HEAD
     def __tensor_flatten__(self) -> tuple[Sequence[str], object]: ...
+=======
+    def __tensor_flatten__(self) -> tuple[Sequence[str], object]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def __tensor_unflatten__(
         inner_tensors: int, flatten_spec: int, outer_size: int, outer_stride: int
+<<<<<<< HEAD
     ) -> torch.Tensor: ...
+=======
+    ) -> torch.Tensor:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # It would be really nice to be able to say that the return of
     # is_traceable_wrapper_subclass() is Intersection[torch.Tensor,
@@ -402,6 +490,7 @@ class TensorWithFlatten(Protocol):
     shape: torch._C.Size
 
     @overload
+<<<<<<< HEAD
     def stride(self, dim: None = None) -> tuple[int, ...]: ...
 
     @overload
@@ -416,6 +505,28 @@ class TensorWithFlatten(Protocol):
     def storage_offset(self) -> int: ...
 
     def dim(self) -> int: ...
+=======
+    def stride(self, dim: None = None) -> tuple[int, ...]:
+        ...
+
+    @overload
+    def stride(self, dim: int) -> int:
+        ...
+
+    @overload
+    def size(self, dim: None = None) -> tuple[int, ...]:
+        ...
+
+    @overload
+    def size(self, dim: int) -> int:
+        ...
+
+    def storage_offset(self) -> int:
+        ...
+
+    def dim(self) -> int:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def to(
@@ -425,7 +536,12 @@ class TensorWithFlatten(Protocol):
         copy: bool = False,
         *,
         memory_format: Optional[torch.memory_format] = None,
+<<<<<<< HEAD
     ) -> torch.Tensor: ...
+=======
+    ) -> torch.Tensor:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def to(
@@ -436,7 +552,12 @@ class TensorWithFlatten(Protocol):
         copy: bool = False,
         *,
         memory_format: Optional[torch.memory_format] = None,
+<<<<<<< HEAD
     ) -> torch.Tensor: ...
+=======
+    ) -> torch.Tensor:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def to(
@@ -446,7 +567,12 @@ class TensorWithFlatten(Protocol):
         copy: bool = False,
         *,
         memory_format: Optional[torch.memory_format] = None,
+<<<<<<< HEAD
     ) -> torch.Tensor: ...
+=======
+    ) -> torch.Tensor:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_traceable_wrapper_subclass(t: object) -> TypeIs[TensorWithFlatten]:
@@ -479,7 +605,11 @@ def is_traceable_wrapper_subclass(t: object) -> TypeIs[TensorWithFlatten]:
                 that require the stride info to be constructed. In most cases, this arg can be
                 safely ignored.
     """
+<<<<<<< HEAD
     is_subclass = isinstance(t, torch.Tensor) and type(t) is not torch.Tensor
+=======
+    is_subclass = isinstance(t, torch.Tensor) and type(t) != torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         is_subclass
         and hasattr(t, "__tensor_flatten__")
@@ -491,7 +621,11 @@ def is_traceable_wrapper_subclass_type(t: type) -> TypeIs[type[TensorWithFlatten
     """Same as above, but takes a type argument instead of an instance."""
     return (
         issubclass(t, torch.Tensor)
+<<<<<<< HEAD
         and t is not torch.Tensor
+=======
+        and t != torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and hasattr(t, "__tensor_flatten__")
         and hasattr(t, "__tensor_unflatten__")
     )
@@ -525,6 +659,7 @@ def transform_subclass(t, callback, outer_size=None, outer_stride=None):
     # NB: Purposefully guard here to simplify the inner / outer symbols.
     # Using sym_eq() for symbolic comparison can result in an expression that's too
     # difficult to guard on, so we use == here.
+<<<<<<< HEAD
     if sub.shape != outer_size:
         raise AssertionError(
             f"Expected return value from {type(t)}__tensor_unflatten__() to have "
@@ -535,6 +670,16 @@ def transform_subclass(t, callback, outer_size=None, outer_stride=None):
             f"Expected return value from {type(t)}__tensor_unflatten__() to have "
             f"stride equal to {outer_stride}, but got: {sub.stride()}"
         )
+=======
+    assert sub.shape == outer_size, (
+        f"Expected return value from {type(t)}__tensor_unflatten__() to have "
+        f"shape equal to {outer_size}, but got: {sub.shape}"
+    )
+    assert sub.stride() == outer_stride, (
+        f"Expected return value from {type(t)}__tensor_unflatten__() to have "
+        f"stride equal to {outer_stride}, but got: {sub.stride()}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return sub
 
@@ -551,12 +696,18 @@ def _correct_storage_aliasing(func, schema_info, args, outs):
     It does this by unsafely overwriting the storage field of the output tensor
     to be the same storage as the input.
     """
+<<<<<<< HEAD
     if not isinstance(func, torch._ops.OpOverload):
         raise AssertionError(f"func must be an OpOverload, got {type(args)}")
     if not isinstance(args, tuple):
         raise AssertionError(f"args must be a tuple, got {type(args)}")
     if not isinstance(outs, (list, tuple)):
         raise AssertionError(f"outs must be a list or tuple, got {type(args)}")
+=======
+    assert isinstance(func, torch._ops.OpOverload)
+    assert isinstance(args, tuple)
+    assert isinstance(outs, (list, tuple))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def alias_non_inplace_storage(arg, ret):
         # This is hopefully a reasonable assert:
@@ -565,6 +716,7 @@ def _correct_storage_aliasing(func, schema_info, args, outs):
         # in theory if a subclass that needs this API wants to sometimes return
         # plain tensors, we could remove the assert and just not perform the aliasing,
         # but it seems safer to learn more about this case first.
+<<<<<<< HEAD
         #
         # Performance note: This is all just to assert that the argument and result
         # types match, checking that is cheaper than is_traceable_wrapper_subclass_type,
@@ -582,6 +734,15 @@ def _correct_storage_aliasing(func, schema_info, args, outs):
                         f"Called {str(func)} with input of type {type(arg)}\n"
                         f"and output of type {type(ret)}. But expected types to match."
                     )
+=======
+        if is_traceable_wrapper_subclass(arg) or is_traceable_wrapper_subclass(ret):
+            ret_list = ret if isinstance(ret, list) else [ret]
+            for r in ret_list:
+                assert type(arg) == type(
+                    r
+                ), f"""Called {str(func)} with input of type {type(arg)}
+and output of type {type(ret)}. But expected types to match."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Need to call a non-dispatcher helper, because we explicitly do **not**
         # want our subclass to intercept the set_() call.
         # instead, our subclass should directly have its storage swapped out.
@@ -597,6 +758,7 @@ def _correct_storage_aliasing(func, schema_info, args, outs):
             for r in ret:
                 torch._functionalize_unsafe_set(r, arg)
         else:
+<<<<<<< HEAD
             if not isinstance(ret, torch.Tensor):
                 raise AssertionError(f"expected torch.Tensor, got {type(ret)}")
             torch._functionalize_unsafe_set(ret, arg)
@@ -607,6 +769,22 @@ def _correct_storage_aliasing(func, schema_info, args, outs):
                 schema_arg.alias_set & schema_out.alias_set
             ) and not schema_arg.is_write
             if is_read_only_alias_match:
+=======
+            assert isinstance(ret, torch.Tensor), f"type: {type(ret)}"
+            torch._functionalize_unsafe_set(ret, arg)
+
+    def is_read_only_alias_match(arg, ret):
+        shared_aliases = arg.alias_set & ret.alias_set
+        return len(shared_aliases) > 0 and not arg.is_write
+
+    num_args = len(func._schema.arguments)
+    num_returns = len(func._schema.returns)
+    for arg_idx in range(num_args):
+        for return_idx in range(num_returns):
+            if is_read_only_alias_match(
+                schema_info.args[arg_idx], schema_info.outs[return_idx]
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 alias_non_inplace_storage(args[arg_idx], outs[return_idx])
 
 
@@ -625,6 +803,7 @@ class SchemaInfo:
     args: list[AliasInfo]
     outs: list[AliasInfo]
 
+<<<<<<< HEAD
     # NOTE[SchemaInfo int_tags]: This has nothing to do with aliasing, but we take
     # advantage of our existing caching of data for each OpOverload to paper over an
     # efficiency problem with pybind11::enum_ (which currently is used to implement
@@ -632,20 +811,35 @@ class SchemaInfo:
     # each element must be converted to int with the __int__ method, which incurs a lot
     # of overhead. Converting to int once and caching removes this per-op overhead.
     int_tags: list[int]
+=======
+
+# Can't import torch._ops.OpOverload due to circular reference
+parsed_schema_map: dict[Any, SchemaInfo] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Given an OpOverload, returns schema information on it.
 # This is cached for efficiency, since it can involve running torchgen
+<<<<<<< HEAD
 @functools.cache
 def get_alias_info(func) -> SchemaInfo:
+=======
+def get_alias_info(func) -> SchemaInfo:
+    if func in parsed_schema_map:
+        return parsed_schema_map[func]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # For ATen ops: use torchgen (since torchscript parser doesn't handle alias annotations
     # properly for some ops that output tensorlists)
     if func.namespace == "aten":
         torchgen_schema_str = str(func._schema)
+<<<<<<< HEAD
         if not torchgen_schema_str.startswith("aten::"):
             raise AssertionError(
                 "Expected torchgen schema string to start with 'aten::'"
             )
+=======
+        assert torchgen_schema_str.startswith("aten::")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # remove the aten:: namespace, which is added by the torchscript parser,
         # and torchgen doesn't know how to handle
         torchgen_schema_str = torchgen_schema_str[6:]
@@ -702,6 +896,7 @@ def get_alias_info(func) -> SchemaInfo:
             )
             for a in func._schema.returns
         ]
+<<<<<<< HEAD
     schema_info = SchemaInfo(
         args=arg_schemas, outs=out_schemas, int_tags=[int(x) for x in func.tags]
     )
@@ -712,6 +907,13 @@ def get_alias_info(func) -> SchemaInfo:
 _TORCH_TAG_INPLACE_VIEW_INT = int(torch.Tag.inplace_view)  # type: ignore[call-overload]
 
 
+=======
+    schema_info = SchemaInfo(args=arg_schemas, outs=out_schemas)
+    parsed_schema_map[func] = schema_info
+    return schema_info
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def return_and_correct_aliasing(func, args, kwargs, out):
     """
     This function should be used by wrapper tensor ``__torch_dispatch__`` subclasses
@@ -733,6 +935,7 @@ def return_and_correct_aliasing(func, args, kwargs, out):
     schema_info = get_alias_info(func)
 
     def get_write_alias(x):
+<<<<<<< HEAD
         alias_set = x.alias_set
         if not alias_set or not x.is_write:
             return None
@@ -742,6 +945,16 @@ def return_and_correct_aliasing(func, args, kwargs, out):
         # timeit says next(iter(alias_set)) is faster than list(alias_set)[0] even for
         # set of size 1 on Python 3.13.
         return next(iter(alias_set))
+=======
+        if len(x.alias_set) == 0:
+            return None
+        alias_set = list(x.alias_set)
+        # torchscript allows for complicated alias sets, but our dispatcher ops only really involve simple aliasing
+        assert len(alias_set) == 1
+        if x.is_write:
+            return alias_set[0]
+        return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_arg_from_alias(output_alias, schema_info, args, kwargs):
         new_args, new_kwargs = torch.fx.operator_schemas.normalize_function(  # type: ignore[misc]
@@ -752,10 +965,14 @@ def return_and_correct_aliasing(func, args, kwargs, out):
             i for i, a in enumerate(schema_info.args) if output_alias in a.alias_set
         ]
         # For any dispatcher op with an output alias, we expect it to map to exactly one alias in the schema's input arguments.
+<<<<<<< HEAD
         if len(arg_indices) != 1:
             raise AssertionError(
                 "Expected exactly one argument index for the given output alias"
             )
+=======
+        assert len(arg_indices) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         idx = arg_indices[0]
         arg_info = schema_info.args[idx]
         if arg_info.name is not None and arg_info.name in new_kwargs:
@@ -770,8 +987,12 @@ def return_and_correct_aliasing(func, args, kwargs, out):
 
     # For inplace_view ops in particular, we'll try hard to make sure that the wrapper subclass's
     # metadata is set correctly.
+<<<<<<< HEAD
     # See NOTE[SchemaInfo int_tags] above.
     if _TORCH_TAG_INPLACE_VIEW_INT in schema_info.int_tags:
+=======
+    if torch.Tag.inplace_view in func.tags:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # no_dispatch() to make sure that we secretly change the metadata on the wrapper,
         # but don't end up dispatching the op anywhere else.
         mutated_args = [
@@ -781,10 +1002,14 @@ def return_and_correct_aliasing(func, args, kwargs, out):
         ]
         # Assumption: we have a very small number of inplace_view ops that follow a strict schema:
         # there is only a single argument that gets its metadata mutated.
+<<<<<<< HEAD
         if len(mutated_args) != 1:
             raise AssertionError(
                 "expected exactly one mutated arg for inplace_view ops"
             )
+=======
+        assert len(mutated_args) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This check exists because we generally *do* want to update the metadata of any wrapper subclasses,
         # but FunctionalTensor is special: it overrides all size/stride calls to plumb to the inner tensor.
         # so we don't actually need to update the metadata (and attempting to do so causes errors)
@@ -803,6 +1028,7 @@ def return_and_correct_aliasing(func, args, kwargs, out):
 
     # Next: we need to make sure to return inputs directly, if the output is a mutable alias (e.g. add_()).
 
+<<<<<<< HEAD
     # Compute write aliases once instead of repeatedly.
     schema_info_outs_write_aliases = [get_write_alias(r) for r in schema_info.outs]
     # simple case: none of our outputs have mutable aliases, so we can return the output as-is
@@ -816,13 +1042,37 @@ def return_and_correct_aliasing(func, args, kwargs, out):
     if len(schema_info_outs_write_aliases) == 1:
         return get_arg_from_alias(
             schema_info_outs_write_aliases[0], schema_info, args, kwargs
+=======
+    # simple case: none of our outputs have mutable aliases, so we can return the output as-is
+    if not any(get_write_alias(r) is not None for r in schema_info.outs):
+        return out
+
+    # simplifying assumption: we don't have **any** ops with return types like "-> (Tensor(a!), Tensor)"
+    if not all(get_write_alias(r) is not None for r in schema_info.outs):
+        raise RuntimeError("Unsupported schema: " + str(func._schema))
+
+    if len(func._schema.returns) == 1:
+        return get_arg_from_alias(
+            get_write_alias(schema_info.outs[0]), schema_info, args, kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     # In the multi-return case, all aten ops return a tuple / list, so cast accordingly.
     outs_to_return = type(out)(
         [
+<<<<<<< HEAD
             (get_arg_from_alias(write_alias, schema_info, args, kwargs))
             for write_alias in schema_info_outs_write_aliases
+=======
+            (
+                get_arg_from_alias(
+                    get_write_alias(schema_info.outs[i]), schema_info, args, kwargs
+                )
+                if get_write_alias(r) is not None
+                else o
+            )
+            for ((i, r), o) in zip(enumerate(schema_info.outs), out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     )
     return outs_to_return

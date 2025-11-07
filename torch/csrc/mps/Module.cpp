@@ -501,12 +501,15 @@ void initModule(PyObject* module) {
     at::mps::getMPSProfiler().startCapture(fileName);
   });
   m.def("_mps_stopCapture", []() { at::mps::getMPSProfiler().stopCapture(); });
+<<<<<<< HEAD
   m.def("_mps_get_name", []() {
     return at::mps::MPSDevice::getInstance()->getName();
   });
   m.def("_mps_get_core_count", []() {
     return at::mps::MPSDevice::getInstance()->getCoreCount();
   });
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #endif /* USE_MPS */
 

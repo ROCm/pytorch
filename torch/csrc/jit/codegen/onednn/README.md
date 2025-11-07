@@ -81,7 +81,11 @@ cmake/Modules/FindMKLDNN.cmake
 cmake/Dependencies.cmake
 ```
 
+<<<<<<< HEAD
 To map another op to oneDNN Graph, you should add an entry for it in createOperator in torch/csrc/jit/codegen/onednn/graph_helper.cpp.
+=======
+To map another op to oneDNN Graph, you should add an entry for it in in createOperator in torch/csrc/jit/codegen/onednn/graph_helper.cpp.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 If it has an inplace variant, you should add it in the lambda being passed to RemoveTensorMutation in
 torch/csrc/jit/codegen/onednn/interface.cpp. You might also want to add it to canFuseNode in torch/csrc/jit/codegen/onednn/register_interface.cpp.
 

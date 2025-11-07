@@ -146,7 +146,10 @@ __global__ void nll_loss2d_backward_no_reduce_kernel(
   int64_t batch_size = target.size(0);
   int64_t H = target.size(1);
   int64_t W = target.size(2);
+<<<<<<< HEAD
   int64_t n_classes = grad_input.size(1);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   CUDA_KERNEL_LOOP(index, n_threads) {
     const int64_t b = index % batch_size;
@@ -157,7 +160,10 @@ __global__ void nll_loss2d_backward_no_reduce_kernel(
     if (cur_target == ignore_index) {
       continue;
     }
+<<<<<<< HEAD
     CUDA_KERNEL_ASSERT(cur_target >= 0 && cur_target < n_classes);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t value = -(weight != nullptr ? weight[cur_target] : static_cast<scalar_t>(1));
     grad_input[b][cur_target][h][w] = value * grad_output[b][h][w];
   }

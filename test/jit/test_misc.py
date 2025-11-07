@@ -12,11 +12,15 @@ import torch.testing._internal.jit_utils
 from jit.test_module_interface import TestModuleInterface  # noqa: F401
 from torch import jit
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     freeze_rng_state,
     raise_on_run_directly,
     skipIfTorchDynamo,
 )
+=======
+from torch.testing._internal.common_utils import freeze_rng_state, raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase, make_global, RUN_CUDA_HALF
 
 
@@ -437,6 +441,7 @@ class TestMisc(JitTestCase):
         self.assertTrue(ret.numel() == 1)
         self.assertTrue(len(ret.size()) == 1)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("The test case only test the parser. No need to wrap dynamo.")
     def test_parse_ir_single_inf(self):
         ir = """
@@ -485,6 +490,8 @@ class TestMisc(JitTestCase):
         ret = func()
         self.assertTrue(ret == False)  # noqa: E712
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_script_many_decorators(self):
         def no_op_decorator(f):
             return f

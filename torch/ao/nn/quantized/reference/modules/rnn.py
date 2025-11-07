@@ -663,11 +663,15 @@ class LSTM(RNNBase):
         # xxx: isinstance check needs to be in conditional for TorchScript to compile
         if isinstance(orig_input, PackedSequence):
             output_packed = PackedSequence(
+<<<<<<< HEAD
                 output,
                 # pyrefly: ignore [bad-argument-type]
                 batch_sizes,
                 sorted_indices,
                 unsorted_indices,
+=======
+                output, batch_sizes, sorted_indices, unsorted_indices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return output_packed, self.permute_hidden(hidden, unsorted_indices)
         else:
@@ -827,11 +831,15 @@ class GRU(RNNBase):
         # xxx: isinstance check needs to be in conditional for TorchScript to compile
         if isinstance(orig_input, PackedSequence):
             output_packed = PackedSequence(
+<<<<<<< HEAD
                 output,
                 # pyrefly: ignore [bad-argument-type]
                 batch_sizes,
                 sorted_indices,
                 unsorted_indices,
+=======
+                output, batch_sizes, sorted_indices, unsorted_indices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return output_packed, self.permute_hidden(hidden, unsorted_indices)
         else:

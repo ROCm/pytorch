@@ -43,7 +43,10 @@ def broadcast(tensor, devices=None, *, out=None):
         devices = [_get_device_index(d) for d in devices]
         return torch._C._broadcast(tensor, devices)
     else:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch._C._broadcast_out(tensor, out)
 
 
@@ -201,7 +204,10 @@ def scatter(tensor, devices=None, chunk_sizes=None, dim=0, streams=None, *, out=
     """
     tensor = _handle_complex(tensor)
     if out is None:
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         devices = [_get_device_index(d) for d in devices]
         return tuple(torch._C._scatter(tensor, devices, chunk_sizes, dim, streams))
     else:

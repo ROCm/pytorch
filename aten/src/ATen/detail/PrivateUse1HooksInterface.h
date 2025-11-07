@@ -38,7 +38,11 @@ struct TORCH_API PrivateUse1HooksInterface : AcceleratorHooksInterface {
 
   Generator getNewGenerator(
       [[maybe_unused]] DeviceIndex device_index = -1) const override {
+<<<<<<< HEAD
     // TODO(FFFrog): Preserved for BC and will be removed in the future.
+=======
+    // TODO(FFFrog): Perserved for BC and will be removed in the future.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (at::GetGeneratorPrivate().has_value())
       return at::GetGeneratorForPrivateuse1(device_index);
 

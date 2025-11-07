@@ -26,9 +26,13 @@ import itertools
 import logging
 import types
 import warnings
+<<<<<<< HEAD
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from typing import Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._C
 import torch.fx
@@ -37,7 +41,10 @@ from torch._dispatch.python import enable_python_dispatcher
 from torch._dynamo.utils import get_fake_value
 from torch._dynamo.variables.builtin import BuiltinVariable
 from torch._dynamo.variables.constant import ConstantVariable
+<<<<<<< HEAD
 from torch._dynamo.variables.ctx_manager import RepararametrizeModuleContextVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.variables.functions import UserFunctionVariable
 from torch._dynamo.variables.nn_module import UnspecializedNNModuleVariable
 from torch._dynamo.variables.tensor import SymNodeVariable
@@ -71,6 +78,7 @@ log = logging.getLogger(__name__)
 hc_log = torch._logging.getArtifactLogger(__name__, "hierarchical_compile")
 
 
+<<<<<<< HEAD
 @dataclass
 class OutputSpec:
     """
@@ -98,6 +106,8 @@ class OutputSpec:
             assert len(self.masks_to_filter_const_values) == len(self.const_values)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def raise_hard_error_if_graph_break(reason):
     def deco(fn):
         @functools.wraps(fn)
@@ -105,6 +115,7 @@ def raise_hard_error_if_graph_break(reason):
             try:
                 return fn(*args, **kwargs)
             except (Unsupported, ObservedException) as e:
+<<<<<<< HEAD
                 import sys
 
                 if isinstance(e, Unsupported):
@@ -118,6 +129,10 @@ def raise_hard_error_if_graph_break(reason):
                         f"{reason} Got {msg}", real_stack
                     )
                 raise exc.with_traceback(sys.exc_info()[2]) from None
+=======
+                msg = " Scroll up to find out what causes the graph break."
+                raise UncapturedHigherOrderOpError(reason + msg) from e
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return graph_break_as_hard_error
 
@@ -244,7 +259,11 @@ def _make_inlined(tx: "InstructionTranslator", f):
 
 
 def _call_function_and_unflatten_output(
+<<<<<<< HEAD
     tx, fn, args, kwargs, flat_example_value, ret_spec
+=======
+    tx, fn, args, kwargs, flat_example_value, ret_treespec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     from .builder import wrap_fx_proxy
 
@@ -260,6 +279,7 @@ def _call_function_and_unflatten_output(
         example_value=flat_example_value,
     )
 
+<<<<<<< HEAD
     if ret_spec.masks_to_filter_const_values:
         from torch._dynamo.external_utils import insert_const_values_with_mask
 
@@ -269,12 +289,19 @@ def _call_function_and_unflatten_output(
             flat_variable, ret_spec.masks_to_filter_const_values, ret_spec.const_values
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Transform variable back into a list (previously made into a tuple by
     # speculate_subgraph function) so as to respect the pytree API typing.
     flat_list_variable = BuiltinVariable(list).call_function(tx, [flat_variable], {})
     return (
+<<<<<<< HEAD
         _make_inlined(tx, pytree.tree_unflatten)(flat_list_variable, ret_spec.treespec)
         if ret_spec.treespec
+=======
+        _make_inlined(tx, pytree.tree_unflatten)(flat_list_variable, ret_treespec)
+        if ret_treespec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else flat_variable
     )
 
@@ -312,6 +339,7 @@ def _check_supported_callable_arg(
         )
 
 
+<<<<<<< HEAD
 def _call_while_loop(
     self: VariableTracker,
     tx: "InstructionTranslator",
@@ -550,6 +578,8 @@ def _call_while_loop(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def are_same_graph_modules(fn_name, a_mod, b_mod, fake_mode):
     from torch._subclasses._fake_tensor_utils import _CacheKeyState
     from torch._subclasses.fake_tensor import extract_tensor_metadata
@@ -718,7 +748,15 @@ def validate_args_and_maybe_create_graph_inputs(
                     new_proxy = tracer.create_graph_input(
                         arg_name, a.python_type(), example_value
                     )
+<<<<<<< HEAD
                     example_value = node.meta.get("example_value", None)
+=======
+                    example_value = (
+                        node.meta["example_value"]
+                        if "example_value" in node.meta
+                        else None
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     a = wrap_fx_proxy_cls(
                         target_cls=type(a),
                         tx=tx,
@@ -756,7 +794,13 @@ def validate_args_and_maybe_create_graph_inputs(
             # If `a` can be put into a graph
             elif a.maybe_fx_node() is not None:
                 node = a.maybe_fx_node()
+<<<<<<< HEAD
                 example_value = node.meta.get("example_value", None)
+=======
+                example_value = (
+                    node.meta["example_value"] if "example_value" in node.meta else None
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 arg_name = node.name if sub_args_names is None else sub_args_names[idx]
                 new_proxy = tracer.create_graph_input(
                     arg_name, a.python_type(), example_value
@@ -858,7 +902,10 @@ def _merge_graph_inputs(
         def _insert_or_replace_phs(new_args, name_suffix):
             for arg in new_args:
                 new_ph = graph.placeholder(arg.node.name + name_suffix)
+<<<<<<< HEAD
                 new_ph.meta = arg.node.meta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Override with new_ph if there exists a old placeholder.
                 if arg in lifted_freevars:
                     old_ph = lifted_freevars[arg].node
@@ -905,9 +952,12 @@ def speculate_subgraph(
     set_subgraph_inputs="automatic",
     restore_side_effects=True,
     should_flatten_outputs=False,
+<<<<<<< HEAD
     # if should_flatten_outputs is True, `remove_consts_from_outputs` remove the
     # const outputs from the subgraph output.
     remove_consts_from_outputs=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     under_activation_checkpoint=False,
     # TODO - supports input_mutation and aliasing should be False by default for strictness
     supports_input_mutation=True,
@@ -992,26 +1042,38 @@ def speculate_subgraph(
 
             if restore_side_effects:
                 new_side_effects = tx.output.side_effects.clone()
+<<<<<<< HEAD
                 prev_side_effects.track_runahead_tensor_and_symvar_side_effects(
+=======
+                prev_side_effects.track_tensor_variables_from_runahead_side_effects(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     new_side_effects
                 )
                 tx.output.side_effects = prev_side_effects
 
             treespec = None
+<<<<<<< HEAD
             masks_to_filter_const_values = None
             const_values = None
             if should_flatten_outputs:
                 from torch._dynamo.external_utils import filter_out_const_values
 
+=======
+            if should_flatten_outputs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Flatten the speculated subgraph output.
                 output, treespec = _make_inlined(tx, pytree.tree_flatten)(
                     output
                 ).unpack_var_sequence(tx)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Actually, transform the list (returned by flatten) into a tuple
                 # for dynamo consistency.
                 output = BuiltinVariable(tuple).call_function(tx, [output], {})
 
+<<<<<<< HEAD
                 if remove_consts_from_outputs:
                     # Filter out the constants and save them into a spec. Filtering
                     # out constants makes the graph simpler for the backends. We
@@ -1030,6 +1092,8 @@ def speculate_subgraph(
                         output, masks_to_filter_const_values
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Register output to graph
             # Modeled off of compile_and_call_fx_graph
             # TODO: support pytree output
@@ -1037,6 +1101,7 @@ def speculate_subgraph(
             # like bwd.
             if always_restore:
                 # Nothing left to do here
+<<<<<<< HEAD
                 return (
                     (
                         output,
@@ -1047,6 +1112,9 @@ def speculate_subgraph(
                     tx.output.graph,
                     subtracer.lifted_freevars,
                 )
+=======
+                return (output, treespec), tx.output.graph, subtracer.lifted_freevars
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 validate_subgraph_output_types(output)
 
@@ -1155,19 +1223,26 @@ def speculate_subgraph(
                             context=context,
                             explanation=f"Higher order ops do not support aliasing. Found in {source_target.name()}",
                             hints=[
+<<<<<<< HEAD
                                 "Replace `return input` with `return input.clone()` to avoid aliasing.",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 "Consider using the debug context to change user code to avoid aliasing.",
                                 "Please open an issue.",
                             ],
                         )
 
                 return (
+<<<<<<< HEAD
                     (
                         output,
                         OutputSpec(
                             treespec, masks_to_filter_const_values, const_values
                         ),
                     ),
+=======
+                    (output, treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     graph,
                     lifted_freevars,
                 )
@@ -1183,7 +1258,11 @@ def speculate_subgraph(
             f"fall back to eager-mode PyTorch, which could lead to a slowdown."
         )
         log.info(msg)
+<<<<<<< HEAD
         log.info(ex)  # noqa: G200
+=======
+        log.info(ex)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise ex
 
 
@@ -1207,6 +1286,7 @@ class TorchHigherOrderOperatorVariable(VariableTracker):
 
     @staticmethod
     def make(value, source=None, **kwargs):
+<<<<<<< HEAD
         variable_class = _hop_name_to_variable_class.get(value.__name__)
         if variable_class is not None:
             return variable_class(value, source, **kwargs)
@@ -1216,10 +1296,71 @@ class TorchHigherOrderOperatorVariable(VariableTracker):
         if isinstance(value, BaseHOP):
             return BaseHOPVariable(value, source, **kwargs)
         unimplemented(f"HigherOrderOperator {value.__name__}")
+=======
+        from torch._higher_order_ops import BaseHOP
+
+        if value.__name__ == "cond":
+            return CondHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "while_loop":
+            return WhileLoopHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ in ("map", "map_impl"):
+            return MapHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "executorch_call_delegate":
+            return ExecutorchCallDelegateHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "out_dtype":
+            return OutDtypeHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "wrap":
+            return WrapHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "hints_wrapper":
+            return HintsWrapperHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "flex_attention":
+            return FlexAttentionHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "flex_attention_backward":
+            return FlexAttentionBackwardHighOrderVariable(value, source, **kwargs)
+        elif value.__name__ in (
+            "wrap_activation_checkpoint",
+            "tag_activation_checkpoint",
+        ):
+            return CheckpointHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "_export_tracepoint":
+            return ExportTracepointHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "trace_wrapped":
+            return TraceWrappedHigherOrderOperatorVariable(value, source, **kwargs)
+        elif value.__name__ == "strict_mode":
+            return StrictModeHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "run_with_rng_state":
+            return RunWithRNGStateHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "associative_scan":
+            return AssociativeScanHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "scan":
+            return ScanHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "call_torchbind":
+            return CallTorchbindHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "wrap_with_set_grad_enabled":
+            return WrapWithSetGradEnabledHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "wrap_with_autocast":
+            return WrapWithAutocastHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "dynamo_bypassing_wrapper":
+            return DynamoBypassingWrapperHigherOrderVariable(value, source, **kwargs)
+        elif (
+            value.__name__ == "auto_functionalized"
+            or value.__name__ == "auto_functionalized_v2"
+        ):
+            return AutoFunctionalizeHigherOrderVariable(value, source, **kwargs)
+        elif value.__name__ == "invoke_subgraph":
+            return InvokeSubgraphHigherOrderVariable(value, source, **kwargs)
+        elif isinstance(value, BaseHOP):
+            return BaseHOPVariable(value, source, **kwargs)
+        elif value.__name__ == "custom_function_call":
+            return CustomFunctionHigherOrderOperatorVariable(value, source, **kwargs)
+        else:
+            unimplemented(f"HigherOrderOperator {value.__name__}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_function(
         self,
         tx: "InstructionTranslator",
+<<<<<<< HEAD
         args: Sequence[VariableTracker],
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
@@ -1234,6 +1375,9 @@ class TorchHigherOrderOperatorVariable(VariableTracker):
         self,
         tx: "InstructionTranslator",
         args: Sequence[VariableTracker],
+=======
+        args: list[VariableTracker],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
         unimplemented(f"HigherOrderOperator {self.value.__name__}")
@@ -1247,7 +1391,11 @@ class CustomFunctionHigherOrderOperatorVariable(TorchHigherOrderOperatorVariable
     Wraps torch._functorch.autograd_function.custom_function_call
     """
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -1258,7 +1406,11 @@ class CustomFunctionHigherOrderOperatorVariable(TorchHigherOrderOperatorVariable
             torch._dynamo.variables.UserDefinedObjectVariable(
                 self.value, source=self.source
             ),
+<<<<<<< HEAD
             source=AttrSource(self.source, "__call__"),
+=======
+            source=AttrSource(AttrSource(self.source, "__call__"), "__func__"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).call_function(tx, args, kwargs)
 
 
@@ -1269,7 +1421,11 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="Cond doesn't work unless it is captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -1325,9 +1481,13 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
                 f"{operands.python_type()}",
             )
         operands_seq = operands.unpack_var_sequence(tx)
+<<<<<<< HEAD
         if not only_consist_of(
             operands, (TensorVariable, ConstantVariable, SymNodeVariable)
         ):
+=======
+        if not only_consist_of(operands, (TensorVariable, ConstantVariable)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unimplemented(
                 "Expect operands to be a tuple of pytrees that only consists of tensor leaves."
             )
@@ -1354,7 +1514,11 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
             ix = 1 if branch else 2
             # TODO: Support kwargs
             (
+<<<<<<< HEAD
                 (ret_val, ret_spec),
+=======
+                (ret_val, ret_treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ret_graph,
                 ret_lifted_freevars,
             ) = speculate_subgraph(
@@ -1365,17 +1529,23 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
                 "cond",
                 source_target=self.value,
                 should_flatten_outputs=True,
+<<<<<<< HEAD
                 # TODO - removing consts from control flow ops need more work
                 remove_consts_from_outputs=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 supports_input_mutation=self.supports_input_mutation,
                 supports_aliasing=self.supports_aliasing,
             )
 
+<<<<<<< HEAD
             # need to ensure we increase epoch so we don't memoize unbacked bindings
             # across different subgraphs which can interfere with runtime assertion
             # generation.
             tx.fake_mode.epoch += 1
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not only_consist_of(ret_val, (TensorVariable, ConstantVariable)):
                 unimplemented(
                     "Expected branches to return a possibly nested pytree of tensors "
@@ -1387,24 +1557,43 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
                         "Expected branches to return a possibly nested pytree of tensors "
                         f"or constant ints but it consists of others {ret.python_type()}.",
                     )
+<<<<<<< HEAD
             return ret_val, ret_spec, ret_graph, ret_lifted_freevars
 
         (true_r, true_spec, true_graph, true_lifted_freevars) = speculate_branch(True)
+=======
+            return ret_val, ret_treespec, ret_graph, ret_lifted_freevars
+
+        (true_r, true_treespec, true_graph, true_lifted_freevars) = speculate_branch(
+            True
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         true_nn_modules = dict(tx.output.nn_modules)
 
         (
             false_r,
+<<<<<<< HEAD
             false_spec,
+=======
+            false_treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             false_graph,
             false_lifted_freevars,
         ) = speculate_branch(False)
         false_nn_modules = dict(tx.output.nn_modules)
 
+<<<<<<< HEAD
         same_spec = _make_inlined(tx, pytree.TreeSpec.__eq__)(
             true_spec.treespec, false_spec.treespec
         ).as_python_constant()
         # 3.14: NotImplemented cannot be converted to bool
         if same_spec is not NotImplemented and not same_spec:
+=======
+        same_treespec = _make_inlined(tx, pytree.TreeSpec.__eq__)(
+            true_treespec, false_treespec
+        )
+        if not same_treespec.as_python_constant():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unimplemented("Expected branches to return the same pytree structure.")
 
         (
@@ -1449,7 +1638,11 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
             p_args,
             {},
             None,
+<<<<<<< HEAD
             true_spec,
+=======
+            true_treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -1459,7 +1652,11 @@ class CallTorchbindHigherOrderVariable(TorchHigherOrderOperatorVariable):
         self.script_obj_var = script_obj_var
         self.method_name = method_name
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
@@ -1512,12 +1709,17 @@ class WhileLoopHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="while_loop doesn't work unless it is captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
+<<<<<<< HEAD
         return _call_while_loop(self, tx, args, kwargs, stack_output=False)
 
 
@@ -1535,6 +1737,236 @@ class WhileLoopStackOutputHigherOrderVariable(TorchHigherOrderOperatorVariable):
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
         return _call_while_loop(self, tx, args, kwargs, stack_output=True)
+=======
+        from torch._higher_order_ops.while_loop import _create_unbacked_symint
+
+        from . import TensorVariable
+
+        args, kwargs = LazyVariableTracker.realize_all((args, kwargs))
+        cond_fn, body_fn, operands, additional_inputs = args
+
+        # Input checks
+        for i, k in enumerate(["cond_fn", "body_fn", "operands"]):
+            if v := kwargs.pop(k, None):
+                assert i == len(args), (
+                    "did not provide the right number of non-keyword args"
+                )
+                args.append(v)
+
+        if kwargs:
+            unimplemented(
+                f"torch.while_loop: Got unexpected kwargs: {list(kwargs.keys())}"
+            )
+
+        if len(args) != 4:
+            unimplemented(
+                f"Expected 4 arguments but got {len(args)}.\n"
+                f"Usage: while_loop(cond_fn, body_fn, operands)",
+            )
+
+        # cond_fn and body_fn input check
+        _check_supported_callable_arg(tx, cond_fn, "cond_fn")
+        _check_supported_callable_arg(tx, body_fn, "body_fn")
+
+        # operands input check
+        operands_seq = operands.unpack_var_sequence(tx)
+
+        # additional_inputs input check
+        if not isinstance(additional_inputs, (ListVariable, TupleVariable)):
+            unimplemented(
+                f"Expected additional_inputs to be a list/tuple but got "
+                f"{additional_inputs.python_type()}. It seems to be an "
+                f"internal error, please report an issue to PyTorch."
+            )
+        additional_inputs_seq = additional_inputs.unpack_var_sequence(tx)
+
+        with discard_graph_changes(tx):
+            # See NOTE [unspecialize int carry with unbacked symints]
+            # Note: this must be run under discard graph changes.
+            def create_unbacked_sym_node_var(tx) -> SymNodeVariable:
+                example_value = _create_unbacked_symint(
+                    tx.output.fake_mode, ignore_fresh_unbacked_symbols=True
+                )
+                proxy = tx.output.current_tracer.create_graph_input(
+                    "unbacked_symint", type(example_value), example_value
+                )
+                return SymNodeVariable.create(tx, proxy, example_value)
+
+            new_operands_seq = [
+                (
+                    create_unbacked_sym_node_var(tx)
+                    if (
+                        isinstance(carry, ConstantVariable)
+                        and carry.python_type() is int
+                    )
+                    or (isinstance(carry, SymNodeVariable))
+                    else carry
+                )
+                for carry in operands_seq
+            ]
+
+        # create cond subgrpahs
+        (
+            (cond_r, _cond_treespec),
+            cond_graph,
+            cond_lifted_freevars,
+        ) = speculate_subgraph(
+            tx,
+            cond_fn,
+            new_operands_seq + additional_inputs_seq,
+            {},
+            "while_loop",
+            source_target=self.value,
+            # NOTE [why we cannot use "automatic" for while_loop]:
+            # The reason is that we want to enforce
+            # the ordering of inputs and outputs to be consistent and the the ordering
+            # of cond_fn and body_fn to the consistent.
+            # e.g. suppose we use "automatic" and we have:
+            #
+            # def body_fn(ph1, ph2):
+            #   new_a, new_b = ph2.cos(), ph1.sin()
+            #   return new_a, new_b
+            #
+            # a, b = torch.randn(3), torch.randn(3)
+            # new_a, new_b = body_fn(a, b)
+            #
+            # Using automatic, the ordering of arguments will be the order that they're
+            # used. In this example, the capture graph looks like:
+            #
+            # def captured_body(ph1, ph2):
+            #   new_a, new_b = ph1.cos(), ph2.add_(1)
+            #   return new_a, new_b
+            #
+            # This is fine when we change the calling convention of captured_body to be
+            # new_a, new_b = captured_body(b, a).
+            # But for while_loop, the next iteration's input is previous iteration output
+            # we'll end up feeding captured_body(new_a, new_b) instead.
+            # So it's best we always enforce the ordering of carried_inputs the same as outputs
+            # with "flatten_manual".
+            set_subgraph_inputs="flatten_manual",
+            supports_input_mutation=self.supports_input_mutation,
+            supports_aliasing=self.supports_aliasing,
+        )
+        cond_nn_modules = dict(tx.output.nn_modules)
+        validate_subgraph_output_types(cond_r)
+        if isinstance(cond_r, TensorVariable):
+            cond_r_meta = _extract_tensor_metadata(
+                cond_r.proxy.node.meta["example_value"], include_contiguity=False
+            )
+            if (
+                not cond_r_meta.dtype == torch.bool
+                or not cond_r_meta.shape == torch.Size([])
+            ):
+                unimplemented(
+                    f"Expected cond_fn to return a scalar tensor or a bool but got {cond_r_meta.shape}"
+                )
+        elif isinstance(cond_r, ConstantVariable):
+            # short-circuiting while_loop when cond_fn returns a constant such as 0, 1 True or False
+            pred = cond_r.as_python_constant()
+            if pred:
+                unimplemented(
+                    f"Infinite loop detected because while_loop's cond_fn always returns the same value {pred}"
+                )
+            else:
+                return operands
+
+        # create body subgraph
+        (
+            (body_r, body_treespec),
+            body_graph,
+            body_lifted_freevars,
+        ) = speculate_subgraph(
+            tx,
+            body_fn,
+            new_operands_seq + additional_inputs_seq,
+            {},
+            "while_loop",
+            source_target=self.value,
+            set_subgraph_inputs="flatten_manual",
+            should_flatten_outputs=True,
+            supports_input_mutation=False,
+            supports_aliasing=False,
+        )
+        validate_subgraph_output_types(body_r)
+
+        # We set include contiguity=False because we have vmap x HOP tests, where if
+        # include_contiguity=True will call t.is_contiguous inside of vmap and get an error
+        # "querying is_contiguous inside of vmap for memory_format other than
+        # torch.contiguous_format is not yet implemented". This is okay because stride
+        # is still checked.
+        check_meta_consistency_vt(
+            body_r.unpack_var_sequence(tx),
+            operands_seq,
+            "body_fn_output",
+            "carried_inputs",
+            include_contiguity=False,
+        )
+
+        (
+            cond_graph,
+            body_graph,
+            cond_shared,
+            _body_shared,
+            cond_unique,
+            body_unique,
+        ) = _merge_graph_inputs(
+            cond_graph,
+            cond_lifted_freevars,
+            "cond_fn",
+            body_graph,
+            body_lifted_freevars,
+            "body_fn",
+        )
+
+        # Note: cond_shared and body_shared refer to the same proxy in parent graph
+        # so using either of them is OK. Use cond_shared as it doesn't matter.
+        additional_lifted_inputs = cond_shared + cond_unique + body_unique
+
+        body_nn_modules = dict(tx.output.nn_modules)
+
+        cond_name = tx.output.install_subgraph(
+            "cond_fn",
+            torch.fx.GraphModule(cond_nn_modules, cond_graph),
+        )
+        body_name = tx.output.install_subgraph(
+            "body_fn",
+            torch.fx.GraphModule(body_nn_modules, body_graph),
+        )
+
+        cond_node = make_attr(tx, cond_name)
+        body_node = make_attr(tx, body_name)
+
+        p_args = (
+            cond_node,
+            body_node,
+            tuple([operand.as_proxy() for operand in operands_seq]),
+            tuple(
+                [inp.as_proxy() for inp in additional_inputs_seq]
+                + additional_lifted_inputs
+            ),
+        )
+
+        flat_example_value = pytree.tree_map_only(
+            torch.fx.Proxy,
+            lambda a: a.node.meta["example_value"],
+            body_r.as_proxy(),
+        )
+        unspecialized_flat_example_value = pytree.tree_map_only(
+            (int, torch.SymInt),
+            lambda _: _create_unbacked_symint(
+                tx.output.fake_mode, ignore_fresh_unbacked_symbols=False
+            ),
+            flat_example_value,
+        )
+        return _call_function_and_unflatten_output(
+            tx,
+            torch.ops.higher_order.while_loop,
+            p_args,
+            {},
+            unspecialized_flat_example_value,
+            body_treespec,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
@@ -1544,7 +1976,11 @@ class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="associative_scan must be captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
@@ -1623,7 +2059,11 @@ class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         sub_args = sub_args + sub_args_additional_inputs
         (
+<<<<<<< HEAD
             (combine_result, _combine_spec),
+=======
+            (combine_result, _combine_treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             combine_graph,
             combine_lifted_freevars,
         ) = speculate_subgraph(
@@ -1661,8 +2101,13 @@ class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
         # We need to have this check this way, because in case init is a TreeSpec and carry
         # but carry is only a LeafSpec, these two cannot be compared correctly.
         if (
+<<<<<<< HEAD
             xs_treespec.as_python_constant().is_leaf()
             != _combine_treespec.as_python_constant().is_leaf()
+=======
+            isinstance(xs_treespec.as_python_constant(), pytree.LeafSpec)
+            != isinstance(_combine_treespec.as_python_constant(), pytree.LeafSpec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) or not _make_inlined(tx, pytree.TreeSpec.__eq__)(
             xs_treespec, _combine_treespec
         ).as_python_constant():
@@ -1697,11 +2142,17 @@ class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         with tx.fake_mode:
             sub_args_fake = [
+<<<<<<< HEAD
                 (
                     leaf.node.meta["example_value"].clone()
                     if hasattr(leaf.node.meta["example_value"], "clone")
                     else leaf.node.meta["example_value"]
                 )
+=======
+                leaf.node.meta["example_value"].clone()
+                if hasattr(leaf.node.meta["example_value"], "clone")
+                else leaf.node.meta["example_value"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for leaf in pytree.tree_leaves(proxy_vars_inputcheck)
             ]
             pre_dispatch = False
@@ -1734,13 +2185,26 @@ class AssociativeScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
             additional_inputs_proxy,
         )
 
+<<<<<<< HEAD
+=======
+        with tx.fake_mode:
+            out_meta = tuple(
+                inp_proxy.node.meta["example_value"].clone() for inp_proxy in xs_proxy
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _call_function_and_unflatten_output(
             tx,
             torch.ops.higher_order.associative_scan,
             p_args,
             {},
+<<<<<<< HEAD
             None,
             OutputSpec(xs_treespec),
+=======
+            out_meta,
+            xs_treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -1751,13 +2215,21 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="scan must be captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
+<<<<<<< HEAD
         from torch._higher_order_ops.scan import _extract_carry_and_out
+=======
+        from torch._higher_order_ops.scan import _extract_carry_and_out, stack_y
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._higher_order_ops.utils import first_slice_copy
 
         args, kwargs = LazyVariableTracker.realize_all((args, kwargs))
@@ -1768,7 +2240,10 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
                 combine_fn_var,
                 (
                     variables.nn_module.NNModuleVariable,
+<<<<<<< HEAD
                     variables.nn_module.UnspecializedNNModuleVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     variables.FunctoolsPartialVariable,
                 ),
             ):
@@ -1777,6 +2252,7 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
                     f"or a graph module if we're re-exporting but got "
                     f"{combine_fn.python_type()}. Please report an issue to PyTorch if you're seeing this."
                 )
+<<<<<<< HEAD
             return isinstance(
                 combine_fn_var,
                 (
@@ -1784,6 +2260,9 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
                     variables.nn_module.UnspecializedNNModuleVariable,
                 ),
             )
+=======
+            return isinstance(combine_fn_var, variables.nn_module.NNModuleVariable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def arg_extractor(combine_fn, init, xs, additional_inputs):
             return combine_fn, init, xs, additional_inputs
@@ -1855,7 +2334,11 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         sub_args = sub_args_init + sub_args_inp + sub_args_additional_inputs
         (
+<<<<<<< HEAD
             (combine_result, _combine_spec),
+=======
+            (combine_result, _combine_treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             combine_graph,
             combine_lifted_freevars,
         ) = speculate_subgraph(
@@ -1889,7 +2372,11 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
                     f"Expect combine_fn to return a tuple (next_carry, y) but got {combine_result_vars}"
                 )
             carry_tree, out_vars = combine_result_vars
+<<<<<<< HEAD
             carry_vars, _ = _make_inlined(tx, pytree.tree_flatten)(
+=======
+            carry_vars, carry_treespec = _make_inlined(tx, pytree.tree_flatten)(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 carry_tree
             ).unpack_var_sequence(tx)
             carry_vars = carry_vars.unpack_var_sequence(tx)
@@ -1898,9 +2385,13 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
             ).unpack_var_sequence(tx)
 
             # additional output checking
+<<<<<<< HEAD
             _combine_spec = OutputSpec(
                 _make_inlined(tx, pytree.tree_structure)(combine_result)
             )
+=======
+            _combine_treespec = _make_inlined(tx, pytree.tree_structure)(combine_result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             check_meta_consistency_vt(
                 init_vars,
@@ -1929,6 +2420,10 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
         additional_inputs_proxy = list(additional_inputs.as_proxy()) + list(
             combine_freevars_proxy
         )
+<<<<<<< HEAD
+=======
+        y_proxies = [out_var.as_proxy() for out_var in out_vars]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         combine_gm = torch.fx.GraphModule(dict(tx.output.nn_modules), combine_graph)
         combine_fn_name = tx.output.install_subgraph("scan_combine_fn", combine_gm)
@@ -1940,8 +2435,24 @@ class ScanHigherOrderVariable(TorchHigherOrderOperatorVariable):
             additional_inputs_proxy,
         )
 
+<<<<<<< HEAD
         return _call_function_and_unflatten_output(
             tx, torch.ops.higher_order.scan, p_args, {}, None, _combine_spec
+=======
+        with tx.fake_mode:
+            example_carry = [
+                init_p.node.meta["example_value"].clone() for init_p in init_proxy
+            ]
+            # For the fake mode, we need to duplicate the init tensor along the dim
+            # to have the same size as the xs arguments
+            example_stacked_out = [
+                stack_y(y.node.meta["example_value"], scan_length) for y in y_proxies
+            ]
+            out_meta = [*example_carry, *example_stacked_out]
+
+        return _call_function_and_unflatten_output(
+            tx, torch.ops.higher_order.scan, p_args, {}, out_meta, _combine_treespec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -1961,7 +2472,11 @@ class MapHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="map doesn't work unless it is captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
@@ -2020,8 +2535,11 @@ class MapHigherOrderVariable(TorchHigherOrderOperatorVariable):
             source_target=self.value,
             set_subgraph_inputs="flatten_manual",
             should_flatten_outputs=True,
+<<<<<<< HEAD
             # TODO - removing consts from control flow ops need more work
             remove_consts_from_outputs=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             supports_input_mutation=self.supports_input_mutation,
             supports_aliasing=self.supports_aliasing,
         )
@@ -2059,7 +2577,11 @@ class MapHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
 
 class ExecutorchCallDelegateHigherOrderVariable(TorchHigherOrderOperatorVariable):
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2077,6 +2599,7 @@ class ExecutorchCallDelegateHigherOrderVariable(TorchHigherOrderOperatorVariable
             unimplemented(
                 "executorch_call_delegate: kwargs arguments were not enabled."
             )
+<<<<<<< HEAD
         if isinstance(args[0], variables.NNModuleVariable):
             lowered_module = tx.output.get_submodule(args[0].module_key)
             lowered_node = make_attr(tx, args[0].module_key)
@@ -2087,6 +2610,11 @@ class ExecutorchCallDelegateHigherOrderVariable(TorchHigherOrderOperatorVariable
             lowered_node = tx.output.register_static_attr_and_return_proxy(
                 "delegate", lowered_module
             )
+=======
+        lowered_module = tx.output.get_submodule(args[0].module_key)
+
+        lowered_node = make_attr(tx, args[0].module_key)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         p_args = tuple(arg.as_proxy() for arg in args[1:])
         real_sub_args = pytree.tree_map_only(
@@ -2139,6 +2667,7 @@ class FunctionalCallVariable(FunctorchHigherOrderVariable):
         return super().call_function(tx, args, kwargs)
 
 
+<<<<<<< HEAD
 class ReparametrizeModuleCallVariable(FunctorchHigherOrderVariable):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2156,6 +2685,11 @@ class WrapHigherOrderVariable(TorchHigherOrderOperatorVariable):
     # TODO - Go through all subclasses of WrapHigherOrderVariable to see if
     # restore_side_effects can be ignored. For now, this is conservative.
     restore_side_effects = True
+=======
+class WrapHigherOrderVariable(TorchHigherOrderOperatorVariable):
+    supports_input_mutation = True
+    supports_aliasing = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def install_subgraph_in_output_graph(
         self, tx, fn_vt, fn_args_vt, kwargs, body_gmod, attr_name="wrap_body"
@@ -2189,7 +2723,10 @@ class WrapHigherOrderVariable(TorchHigherOrderOperatorVariable):
             kwargs,
             description,
             source_target=self.value,
+<<<<<<< HEAD
             restore_side_effects=self.restore_side_effects,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             should_flatten_outputs=True,
             under_activation_checkpoint=under_activation_checkpoint,
             supports_input_mutation=self.supports_input_mutation,
@@ -2220,7 +2757,11 @@ class WrapHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         return proxy_args, {}, example_value, body_r, treespec, body_gmod, body_name
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2408,7 +2949,11 @@ class HintsWrapperHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="Hints_wrapper doesn't work unless it is captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self, tx, args: "list[VariableTracker]", kwargs: "dict[str, VariableTracker]"
     ) -> "VariableTracker":
         _check_supported_callable_arg(tx, args[0], "body_fn")
@@ -2478,7 +3023,11 @@ class HintsWrapperHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
 
 class OutDtypeHigherOrderVariable(TorchHigherOrderOperatorVariable):
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2516,7 +3065,11 @@ class StrictModeHigherOrderVariable(TorchHigherOrderOperatorVariable):
     @raise_hard_error_if_graph_break(
         reason="strict_mode HOO doesn't work unless it is captured completely with torch.compile."
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2534,7 +3087,11 @@ class StrictModeHigherOrderVariable(TorchHigherOrderOperatorVariable):
             )
 
         (
+<<<<<<< HEAD
             (ret_val, ret_spec),
+=======
+            (ret_val, ret_treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ret_graph,
             ret_lifted_freevars,
         ) = speculate_subgraph(
@@ -2572,11 +3129,16 @@ class StrictModeHigherOrderVariable(TorchHigherOrderOperatorVariable):
             p_args,
             {},
             flat_example_value,
+<<<<<<< HEAD
             ret_spec,
+=======
+            ret_treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
 class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
+<<<<<<< HEAD
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         # If side effects are allowed under checkpoint, we should not restore
@@ -2586,6 +3148,9 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
         )
 
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
@@ -2594,6 +3159,11 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
         from torch._higher_order_ops.wrap import TagActivationCheckpoint
         from torch.utils.checkpoint import noop_context_fn
 
+<<<<<<< HEAD
+=======
+        from .builder import wrap_fx_proxy
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         context_fn = None
         if "context_fn" in kwargs and kwargs["context_fn"] != noop_context_fn:
             ctx = kwargs.pop("context_fn")
@@ -2602,7 +3172,11 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
             elif isinstance(
                 ctx, torch._dynamo.variables.functions.FunctoolsPartialVariable
             ):
+<<<<<<< HEAD
                 context_fn = ctx.guard_as_python_constant()
+=======
+                context_fn = ctx.as_python_constant()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 raise NotImplementedError(
                     f"checkpoint not implemented for {type(ctx)} context_fn"
@@ -2617,7 +3191,11 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
             _,
             example_value,
             _body_r,
+<<<<<<< HEAD
             out_spec,
+=======
+            treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkpointed_gmod,
             _,
         ) = self.create_wrapped_node(
@@ -2633,6 +3211,7 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
 
         _, checkpoint_kwargs = proxy_args_kwargs([], checkpoint_kwargs)
 
+<<<<<<< HEAD
         return _call_function_and_unflatten_output(
             tx,
             self.value,
@@ -2642,17 +3221,49 @@ class CheckpointHigherOrderVariable(WrapHigherOrderVariable):
             out_spec,
         )
 
+=======
+        # Store the invocation as a call
+        variable = wrap_fx_proxy(
+            tx=tx,
+            proxy=tx.output.create_proxy(
+                "call_function",
+                self.value,
+                args=tuple(p_args),
+                kwargs=checkpoint_kwargs,
+            ),
+            example_value=example_value,
+        )
+
+        if treespec is None:
+            return variable
+
+        # Transform variable back into a list (previously made into a tuple by
+        # speculate_subgraph function) so as to respect the pytree API typing.
+        variable = BuiltinVariable(list).call_function(tx, [variable], {})
+
+        return _make_inlined(tx, pytree.tree_unflatten)(variable, treespec)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DynamoBypassingWrapperHigherOrderVariable(WrapHigherOrderVariable):
     def __init__(self, hop, source) -> None:
         super().__init__(hop, source)
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: list[VariableTracker],
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
+<<<<<<< HEAD
+=======
+        from .builder import wrap_fx_proxy
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         func_var = args[0]
 
         if isinstance(func_var, torch._dynamo.variables.UserFunctionVariable):
@@ -2670,7 +3281,11 @@ class DynamoBypassingWrapperHigherOrderVariable(WrapHigherOrderVariable):
             _,
             example_value,
             _body_r,
+<<<<<<< HEAD
             out_spec,
+=======
+            treespec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gmod,
             _,
         ) = self.create_wrapped_node(
@@ -2686,6 +3301,7 @@ class DynamoBypassingWrapperHigherOrderVariable(WrapHigherOrderVariable):
         gmod_meta_key = "_dynamo_bypassing_wrapper_fn"
         gmod.meta[gmod_meta_key] = func
 
+<<<<<<< HEAD
         return _call_function_and_unflatten_output(
             tx,
             self.value,
@@ -2695,6 +3311,29 @@ class DynamoBypassingWrapperHigherOrderVariable(WrapHigherOrderVariable):
             out_spec,
         )
 
+=======
+        # Store the invocation as a call
+        variable = wrap_fx_proxy(
+            tx=tx,
+            proxy=tx.output.create_proxy(
+                "call_function",
+                self.value,
+                args=(gmod_meta_key,) + tuple(p_args),
+                kwargs={},
+            ),
+            example_value=example_value,
+        )
+
+        if treespec is None:
+            return variable
+
+        # Transform variable back into a list (previously made into a tuple by
+        # speculate_subgraph function) so as to respect the pytree API typing.
+        variable = BuiltinVariable(list).call_function(tx, [variable], {})
+
+        return _make_inlined(tx, pytree.tree_unflatten)(variable, treespec)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ExportTracepointHigherOrderVariable(TorchHigherOrderOperatorVariable):
     def call_function(
@@ -2720,7 +3359,11 @@ class ExportTracepointHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
 
 class RunWithRNGStateHigherOrderVariable(TorchHigherOrderOperatorVariable):
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2743,7 +3386,11 @@ class RunWithRNGStateHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
 
 class AutoFunctionalizeHigherOrderVariable(TorchHigherOrderOperatorVariable):
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self, tx, args: "list[VariableTracker]", kwargs: "dict[str, VariableTracker]"
     ) -> "VariableTracker":
         from .builder import wrap_fx_proxy
@@ -2780,7 +3427,11 @@ class FlexAttentionBackwardHighOrderVariable(TorchHigherOrderOperatorVariable):
         else:
             return arg.as_proxy()
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self, tx, args: "list[VariableTracker]", kwargs: "dict[str, VariableTracker]"
     ) -> "VariableTracker":
         from .builder import wrap_fx_proxy
@@ -2812,7 +3463,11 @@ class TraceWrappedHigherOrderOperatorVariable(TorchHigherOrderOperatorVariable):
     here in the call to dynamo from compiled autograd.
     """
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -2844,6 +3499,11 @@ class FlexAttentionHigherOrderVariable(TorchHigherOrderOperatorVariable):
     ):
         from .._trace_wrapped_higher_order_op import TransformGetItemToIndex
 
+<<<<<<< HEAD
+=======
+        tx: InstructionTranslator = tx
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def create_scalar():
             return query.call_method(
                 tx,
@@ -2871,7 +3531,11 @@ class FlexAttentionHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         with TransformGetItemToIndex():
             (
+<<<<<<< HEAD
                 (_body_output, _body_spec),
+=======
+                (_body_output, _body_treespec),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 body_graph,
                 body_lifted_freevars,
             ) = speculate_subgraph(
@@ -2901,7 +3565,11 @@ class FlexAttentionHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         return proxy_args
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -3383,7 +4051,11 @@ class BaseHOPVariable(WrapHigherOrderVariable):
     def python_type(self):
         return type(self.value)
 
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -3407,7 +4079,10 @@ class BaseHOPVariable(WrapHigherOrderVariable):
             lambda a: a.node.meta["example_value"],
             body_r.as_proxy(),
         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         p_kwargs = {key: value.as_proxy() for key, value in kwargs.items()}
         return _call_function_and_unflatten_output(
             tx, self.value, p_args, p_kwargs, flat_example_value, treespec
@@ -3415,7 +4090,11 @@ class BaseHOPVariable(WrapHigherOrderVariable):
 
 
 class InvokeSubgraphHigherOrderVariable(WrapHigherOrderVariable):
+<<<<<<< HEAD
     supports_input_mutation = True
+=======
+    supports_input_mutation = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     supports_aliasing = False
 
     def install_subgraph_in_output_graph(
@@ -3481,7 +4160,11 @@ class InvokeSubgraphHigherOrderVariable(WrapHigherOrderVariable):
     @raise_hard_error_if_graph_break(
         reason="torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
     )
+<<<<<<< HEAD
     def _call_function(
+=======
+    def call_function(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         tx: "InstructionTranslator",
         args: "list[VariableTracker]",
@@ -3520,6 +4203,7 @@ class InvokeSubgraphHigherOrderVariable(WrapHigherOrderVariable):
             flat_example_value,
             treespec,
         )
+<<<<<<< HEAD
 
 
 class LocalMapWrappedHigherOrderVariable(WrapHigherOrderVariable):
@@ -3817,3 +4501,5 @@ _hop_name_to_variable_class = {
     "custom_function_call": CustomFunctionHigherOrderOperatorVariable,
     "local_map_hop": LocalMapWrappedHigherOrderVariable,
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

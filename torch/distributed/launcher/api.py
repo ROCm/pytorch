@@ -6,6 +6,7 @@
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
 import os
 import sys
 import uuid
@@ -16,6 +17,14 @@ from typing import Any, Optional, Union
 import torch
 import torch.distributed.elastic.rendezvous.registry as rdzv_registry
 from torch._utils_internal import get_default_numa_options
+=======
+import sys
+import uuid
+from dataclasses import dataclass, field
+from typing import Any, Callable, Optional, Union
+
+import torch.distributed.elastic.rendezvous.registry as rdzv_registry
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.elastic import events, metrics
 from torch.distributed.elastic.agent.server.api import WorkerSpec
 from torch.distributed.elastic.agent.server.local_elastic_agent import LocalElasticAgent
@@ -28,7 +37,10 @@ from torch.distributed.elastic.multiprocessing.errors import ChildFailedError
 from torch.distributed.elastic.rendezvous import RendezvousParameters
 from torch.distributed.elastic.rendezvous.utils import parse_rendezvous_endpoint
 from torch.distributed.elastic.utils.logging import get_logger
+<<<<<<< HEAD
 from torch.numa.binding import NumaOptions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["LaunchConfig", "elastic_launch", "launch_agent"]
@@ -71,10 +83,13 @@ class LaunchConfig:
         local_ranks_filter: ranks for which to show logs in console. If not set, show from all.
         event_log_handler: name of the event logging handler as registered in
           `elastic/events/handlers.py <https://docs.pytorch.org/docs/stable/elastic/events.html>`_.
+<<<<<<< HEAD
         duplicate_stdout_filters: If non-empty, duplicates stdout to a file containing only lines
                                 that match _any_ of the filter strings.
         duplicate_stderr_filters: If non-empty, duplicates stderr to a file containing only lines
                                 that match _any_ of the filter strings.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
     .. note::
@@ -100,10 +115,13 @@ class LaunchConfig:
     metrics_cfg: dict[str, str] = field(default_factory=dict)
     local_addr: Optional[str] = None
     event_log_handler: str = "null"
+<<<<<<< HEAD
     numa_options: Optional[NumaOptions] = None
     signals_to_handle: str = "SIGTERM,SIGINT,SIGHUP,SIGQUIT"
     duplicate_stdout_filters: Optional[list[str]] = None
     duplicate_stderr_filters: Optional[list[str]] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         default_timeout = 900
@@ -116,6 +134,7 @@ class LaunchConfig:
         if self.logs_specs is None:
             self.logs_specs = DefaultLogsSpecs()
 
+<<<<<<< HEAD
         if (
             self.numa_options is None
             and torch.cuda.is_available()
@@ -125,6 +144,8 @@ class LaunchConfig:
             self.numa_options = get_default_numa_options()
             logger.info("Using default numa options = %r", self.numa_options)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class elastic_launch:
     """
@@ -220,6 +241,7 @@ def launch_agent(
 
     logger.info(
         "Starting elastic_operator with launch configs:\n"
+<<<<<<< HEAD
         "  entrypoint               : %(entrypoint)s\n"
         "  min_nodes                : %(min_nodes)s\n"
         "  max_nodes                : %(max_nodes)s\n"
@@ -236,6 +258,21 @@ def launch_agent(
         "  numa_options             : %(numa_options)s\n",
         "  duplicate_stdout_filters : %(duplicate_stdout_filters)s\n",
         "  duplicate_stderr_filters : %(duplicate_stderr_filters)s\n",
+=======
+        "  entrypoint         : %(entrypoint)s\n"
+        "  min_nodes          : %(min_nodes)s\n"
+        "  max_nodes          : %(max_nodes)s\n"
+        "  nproc_per_node     : %(nproc_per_node)s\n"
+        "  run_id             : %(run_id)s\n"
+        "  rdzv_backend       : %(rdzv_backend)s\n"
+        "  rdzv_endpoint      : %(rdzv_endpoint)s\n"
+        "  rdzv_configs       : %(rdzv_configs)s\n"
+        "  max_restarts       : %(max_restarts)s\n"
+        "  monitor_interval   : %(monitor_interval)s\n"
+        "  log_dir            : %(log_dir)s\n"
+        "  metrics_cfg        : %(metrics_cfg)s\n"
+        "  event_log_handler  : %(event_log_handler)s\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         {
             "entrypoint": entrypoint_name,
             "min_nodes": config.min_nodes,
@@ -250,10 +287,13 @@ def launch_agent(
             "log_dir": config.logs_specs.root_log_dir,  # type: ignore[union-attr]
             "metrics_cfg": config.metrics_cfg,
             "event_log_handler": config.event_log_handler,
+<<<<<<< HEAD
             "numa_options": config.numa_options,
             "signals_to_handle": config.signals_to_handle,
             "duplicate_stdout_filters": config.duplicate_stdout_filters,
             "duplicate_stderr_filters": config.duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
     )
 
@@ -269,9 +309,12 @@ def launch_agent(
 
     master_addr, master_port = _get_addr_and_port(rdzv_parameters)
 
+<<<<<<< HEAD
     # Set the signals to handle in the environment variable
     os.environ["TORCHELASTIC_SIGNALS_TO_HANDLE"] = config.signals_to_handle
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     spec = WorkerSpec(
         role=config.role,
         local_world_size=config.nproc_per_node,
@@ -284,9 +327,12 @@ def launch_agent(
         master_port=master_port,
         local_addr=config.local_addr,
         event_log_handler=config.event_log_handler,
+<<<<<<< HEAD
         numa_options=config.numa_options,
         duplicate_stdout_filters=config.duplicate_stdout_filters,
         duplicate_stderr_filters=config.duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     agent = LocalElasticAgent(

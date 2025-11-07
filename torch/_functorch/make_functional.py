@@ -6,8 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 import copy
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, NoReturn, Union
+=======
+from collections.abc import Iterable, Sequence
+from typing import Any, Callable, NoReturn, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -42,9 +47,13 @@ def create_names_map(
     This function creates a mapping from the names in named_params to the
     names in tied_named_params: {'A': ['A'], 'B': ['B', 'B_tied']}.
     """
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
     named_params = dict(named_params)
     # pyrefly: ignore [no-matching-overload]
+=======
+    named_params = dict(named_params)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tied_named_params = dict(tied_named_params)
 
     tensors_dict_keys = set(named_params.keys())
@@ -53,11 +62,17 @@ def create_names_map(
 
     tensor_to_mapping: dict[Tensor, tuple[str, list[str]]] = {}
     for key, tensor in named_params.items():
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
         tensor_to_mapping[tensor] = (key, [])
     for key, tensor in tied_named_params.items():
         assert tensor in tensor_to_mapping
         # pyrefly: ignore [bad-argument-type]
+=======
+        tensor_to_mapping[tensor] = (key, [])
+    for key, tensor in tied_named_params.items():
+        assert tensor in tensor_to_mapping
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_to_mapping[tensor][1].append(key)
     return dict(tensor_to_mapping.values())
 
@@ -378,12 +393,18 @@ def make_functional(
         model = nn.Linear(3, 3)
         func, params = make_functional(model)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def compute_loss(params, x, t):
             y = func(params, x)
             return nn.functional.mse_loss(y, t)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_weights = grad(compute_loss)(params, x, t)
 
     If the model has any buffers, please use :func:`make_functional_with_buffers` instead.
@@ -449,12 +470,18 @@ def make_functional_with_buffers(
         model = nn.Linear(3, 3)
         func, params, buffers = make_functional_with_buffers(model)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def compute_loss(params, buffers, x, t):
             y = func(params, buffers, x)
             return nn.functional.mse_loss(y, t)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_weights = grad(compute_loss)(params, buffers, x, t)
 
     Args:
@@ -477,7 +504,11 @@ def make_functional_with_buffers(
 
 
 def transpose_stack(
+<<<<<<< HEAD
     tuple_of_tuple_of_tensors: tuple[tuple[Tensor, ...], ...],
+=======
+    tuple_of_tuple_of_tensors: tuple[tuple[Tensor, ...], ...]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[Tensor, ...]:
     tuple_of_tuple_of_tensors = tuple(zip(*tuple_of_tuple_of_tensors))
     results = tuple(
@@ -536,7 +567,11 @@ def combine_state_for_ensemble(
             "have the same training/eval mode."
         )
     model0_typ = type(models[0])
+<<<<<<< HEAD
     if not all(type(m) is model0_typ for m in models):
+=======
+    if not all(type(m) == model0_typ for m in models):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise RuntimeError(
             "combine_state_for_ensemble: Expected all models to be of the same class."
         )

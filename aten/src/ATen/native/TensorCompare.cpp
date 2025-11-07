@@ -73,6 +73,10 @@
 #include <ATen/ops/where_native.h>
 #include <ATen/ops/zeros_like.h>
 
+<<<<<<< HEAD
+=======
+#include <iostream>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <utility>
 #endif
 
@@ -846,7 +850,11 @@ TORCH_IMPL_FUNC(clamp_Tensor_out)
 (const Tensor& self,
  const OptionalTensorRef min,
  const OptionalTensorRef max,
+<<<<<<< HEAD
  const Tensor& /*unused*/) {
+=======
+ const Tensor&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (min && max) {
     clamp_stub(device_type(), *this);
   } else if (min) {

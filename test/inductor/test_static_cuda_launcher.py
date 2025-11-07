@@ -13,10 +13,17 @@ from torch._inductor.runtime.triton_compat import CompiledKernel, tl, triton
 from torch._inductor.runtime.triton_helpers import libdevice
 from torch._inductor.test_case import TestCase
 from torch.testing._internal.common_utils import skipIfRocm
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
 
 
 @requires_cuda_and_triton
+=======
+from torch.testing._internal.triton_utils import requires_cuda
+
+
+@requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestStaticCudaLauncher(TestCase):
     def setUp(self):
         super().setUp()
@@ -396,7 +403,11 @@ def kernel_many_args(out_tensor, {decl}):
         self.assertEqual(buf0, buf1)
 
 
+<<<<<<< HEAD
 @requires_cuda_and_triton
+=======
+@requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch._inductor.config.patch(
     {"use_static_cuda_launcher": True, "strict_static_cuda_launcher": True}
 )

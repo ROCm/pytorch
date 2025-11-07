@@ -167,7 +167,11 @@ std::shared_ptr<Graph> ToONNX(
   ConstantValueMap::ClearMaps();
   auto new_graph = std::make_shared<Graph>(graph->current_scope());
   py::dict env;
+<<<<<<< HEAD
   // Kept identical to values in env. Used for constant-time existence check.
+=======
+  // Kept identical to values in env. Used for constant-time existance check.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::set values_in_env;
   try {
     BlockToONNX(
@@ -260,12 +264,19 @@ void NodeToONNX(
     ::torch::onnx::OperatorExportTypes operator_export_type,
     py::dict& env,
     py::set& values_in_env) {
+<<<<<<< HEAD
   py::object onnx_utils =
       py::module::import("torch.onnx._internal.torchscript_exporter.utils");
   py::object onnx_globals =
       py::module::import("torch.onnx._internal.torchscript_exporter._globals");
   py::object onnx_registration = py::module::import(
       "torch.onnx._internal.torchscript_exporter.registration");
+=======
+  py::object onnx = py::module::import("torch.onnx");
+  py::object onnx_globals = py::module::import("torch.onnx._globals");
+  py::object onnx_registration =
+      py::module::import("torch.onnx._internal.registration");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Setup all the lambda helper functions.
 
@@ -476,7 +487,11 @@ void NodeToONNX(
     // IMPORTANT: NEVER pass raw pointer of smart pointer managed objects to
     // Python. Check #87343 for details.
     py::list new_nodes = py::list();
+<<<<<<< HEAD
     py::object raw_output = onnx_utils.attr("_run_symbolic_function")(
+=======
+    py::object raw_output = onnx.attr("_run_symbolic_function")(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         g->shared_from_this(),
         new_block,
         n,
@@ -592,7 +607,11 @@ void NodeToONNX(
 
       // IMPORTANT: NEVER pass raw pointer of smart pointer managed objects to
       // Python. Check #87343 for details.
+<<<<<<< HEAD
       py::object raw_output = onnx_utils.attr("_run_symbolic_method")(
+=======
+      py::object raw_output = onnx.attr("_run_symbolic_method")(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           new_block->owningGraph()->shared_from_this(),
           op->name(),
           pyobj.attr("symbolic"),
@@ -607,7 +626,11 @@ void NodeToONNX(
       // IMPORTANT: NEVER pass raw pointer of smart pointer managed objects to
       // Python. Check #87343 for details.
       py::list new_nodes = py::list();
+<<<<<<< HEAD
       py::object raw_output = onnx_utils.attr("_run_symbolic_function")(
+=======
+      py::object raw_output = onnx.attr("_run_symbolic_function")(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           new_block->owningGraph()->shared_from_this(),
           new_block,
           n,

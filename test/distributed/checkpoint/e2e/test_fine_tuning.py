@@ -82,23 +82,39 @@ class FineTuningModel(nn.Module):
 class TestFineTuning(DTensorTestBase):
     @property
     def world_size(self) -> int:
+<<<<<<< HEAD
         return min(4, torch.accelerator.device_count())
 
     @property
     def backend(self):
         curr_backend = dist.get_default_backend_for_device(self.device_type)
         return f"cpu:gloo,{self.device_type}:{curr_backend}"
+=======
+        return min(4, torch.cuda.device_count())
+
+    @property
+    def backend(self):
+        return "cpu:gloo,cuda:nccl"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def pretrain(self, pretrain_dir: str) -> None:
         device_mesh = init_device_mesh(self.device_type, (self.world_size,))
 
+<<<<<<< HEAD
         model = PreTrainedModel().to(self.device_type)
+=======
+        model = PreTrainedModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = FSDP(model, device_mesh=device_mesh)
         optim = torch.optim.Adam(model.parameters(), lr=1e-3)
 
         # Training
         for _ in range(3):
+<<<<<<< HEAD
             batch = torch.rand(32, DIM, device=self.device_type)
+=======
+            batch = torch.rand(32, DIM, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             loss = model(batch).sum()
             loss.backward()
             optim.step()
@@ -115,7 +131,11 @@ class TestFineTuning(DTensorTestBase):
     def finetune(self, pretrain_dir: str, finetune_dir: str) -> None:
         device_mesh = init_device_mesh(self.device_type, (self.world_size,))
 
+<<<<<<< HEAD
         model = FineTuningModel().to(self.device_type)
+=======
+        model = FineTuningModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: make the parallelism more complicated, e.g., using 2D + DDP.
         model = FSDP(model, use_orig_params=True, device_mesh=device_mesh)
         optim = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -163,7 +183,11 @@ class TestFineTuning(DTensorTestBase):
 
             # Training
             for _ in range(3):
+<<<<<<< HEAD
                 batch = torch.rand(32, DIM, device=self.device_type)
+=======
+                batch = torch.rand(32, DIM, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 loss = model(batch).sum()
                 loss.backward()
                 optim.step()

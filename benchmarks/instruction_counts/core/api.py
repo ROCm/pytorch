@@ -66,7 +66,11 @@ class GroupedSetup:
 
     def __post_init__(self) -> None:
         for field in dataclasses.fields(self):
+<<<<<<< HEAD
             assert field.type is str
+=======
+            assert field.type == str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             value: str = getattr(self, field.name)
             object.__setattr__(self, field.name, textwrap.dedent(value))
 

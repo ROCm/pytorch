@@ -239,6 +239,7 @@ void triangular_solve_batched_cublas(const Tensor& A, const Tensor& B, bool left
 
 template <typename scalar_t>
 inline void apply_gels_batched(const Tensor& A, Tensor& B, Tensor& infos) {
+<<<<<<< HEAD
 #if defined(USE_ROCM) && (ROCM_VERSION >= 50400)
   auto trans = HIPBLAS_OP_N;
 #elif defined(USE_ROCM) && (ROCM_VERSION < 50400)
@@ -246,6 +247,9 @@ inline void apply_gels_batched(const Tensor& A, Tensor& B, Tensor& infos) {
 #else
   auto trans = CUBLAS_OP_N;
 #endif
+=======
+  auto trans = CUBLAS_OP_N;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto m = cuda_int_cast(A.size(-2), "m");
   auto n = cuda_int_cast(A.size(-1), "n");
 

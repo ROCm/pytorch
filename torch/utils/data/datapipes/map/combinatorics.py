@@ -64,7 +64,10 @@ class ShufflerIterDataPipe(IterDataPipe[_T_co]):
     ) -> None:
         super().__init__()
         self.datapipe = datapipe
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.indices = list(range(len(datapipe))) if indices is None else indices
         self._enabled = True
         self._seed = None
@@ -96,7 +99,10 @@ class ShufflerIterDataPipe(IterDataPipe[_T_co]):
         self._shuffled_indices = self._rng.sample(self.indices, len(self.indices))
 
     def __len__(self) -> int:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.datapipe)
 
     def __getstate__(self):

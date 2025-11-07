@@ -12,6 +12,7 @@ from torch.testing import make_tensor, FileCheck
 from torch.testing._internal.common_cuda import SM53OrLater, SM80OrLater, TEST_CUSPARSE_GENERIC
 from torch.testing._internal.common_utils import \
     (TEST_WITH_TORCHINDUCTOR, TEST_WITH_ROCM, TEST_CUDA_CUDSS, TEST_SCIPY, TEST_NUMPY, TEST_MKL, IS_WINDOWS, TestCase,
+<<<<<<< HEAD
      run_tests, load_tests, coalescedonoff, parametrize, subtest, skipIfTorchDynamo,
      skipIfRocmVersionLessThan, IS_FBCODE, IS_REMOTE_GPU, suppress_warnings)
 from torch.testing._internal.common_device_type import \
@@ -20,13 +21,28 @@ from torch.testing._internal.common_device_type import \
 from torch.testing._internal.common_methods_invocations import \
     (op_db, sparse_csr_unary_ufuncs, ReductionOpInfo)
 from torch.testing._internal.common_cuda import TEST_CUDA
+=======
+     run_tests, load_tests, coalescedonoff, parametrize, subtest, skipIfTorchDynamo, skipIfRocm,
+     skipIfRocmVersionLessThan, IS_FBCODE, IS_REMOTE_GPU, suppress_warnings)
+from torch.testing._internal.common_device_type import \
+    (ops, instantiate_device_type_tests, dtypes, OpDTypes, dtypesIfCUDA, onlyCPU, onlyCUDA, skipCUDAIfNoSparseGeneric,
+     precisionOverride, skipMeta, skipCUDAIf, skipCPUIfNoMklSparse, skipCUDAIfRocmVersionLessThan,
+     largeTensorTest)
+from torch.testing._internal.common_methods_invocations import \
+    (op_db, sparse_csr_unary_ufuncs, ReductionOpInfo)
+from torch.testing._internal.common_cuda import _get_torch_cuda_version, TEST_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_dtype import (
     floating_types, all_types_and_complex_and, floating_and_complex_types, floating_types_and,
     all_types_and_complex, floating_and_complex_types_and)
 from torch.testing._internal.opinfo.definitions.linalg import sample_inputs_linalg_solve
 from torch.testing._internal.opinfo.definitions.sparse import validate_sample_input_sparse
+<<<<<<< HEAD
 from test_sparse import HIPSPARSE_BF16_SUPPORTED, HIPSPARSE_FP16_SUPPORTED, \
     SPARSE_FLOAT16_SUPPORTED, SPARSE_BFLOAT16_SUPPORTED, SPARSE_COMPLEX128_SUPPORTED
+=======
+from test_sparse import CUSPARSE_SPMM_COMPLEX128_SUPPORTED, HIPSPARSE_SPMM_COMPLEX128_SUPPORTED
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import operator
 
 if TEST_SCIPY:
@@ -36,15 +52,37 @@ if TEST_NUMPY:
     import numpy as np
 # load_tests from torch.testing._internal.common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
 
 no_mkl_sparse = IS_WINDOWS or not TEST_MKL
 
+=======
+load_tests = load_tests
+
+no_mkl_sparse = IS_WINDOWS or not TEST_MKL
+
+def _check_cusparse_triangular_solve_available():
+    version = _get_torch_cuda_version()
+    # cusparseSpSM was added in 11.3.1 but we don't have access to patch version
+    min_supported_version = (11, 4)
+    return version >= min_supported_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _check_cusparse_spgemm_available():
     # cusparseSpGEMM was added in 11.0
     return not TEST_WITH_ROCM
 
+<<<<<<< HEAD
+=======
+def _check_cusparse_sddmm_available():
+    if TEST_WITH_ROCM:
+        return True
+    version = _get_torch_cuda_version()
+    # cusparseSDDMM was added in 11.2.1 but we don't have access to patch version
+    min_supported_version = (11, 3)
+    return version >= min_supported_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _sparse_csr_ops = list(filter(lambda op: op.supports_sparse_csr, op_db))
 _sparse_compressed_ops = list(filter(lambda op: (op.supports_sparse_csr or op.supports_sparse_csc
@@ -136,7 +174,11 @@ class TestSparseCSRSampler(TestCase):
         index_dtype = torch.int32
         for n_rows in range(1, 10):
             for n_cols in range(1, 10):
+<<<<<<< HEAD
                 for nnz in range(n_rows * n_cols + 1):
+=======
+                for nnz in range(0, n_rows * n_cols + 1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     crow_indices = self._make_crow_indices(
                         n_rows, n_cols, nnz,
                         device=device, dtype=index_dtype)
@@ -1492,6 +1534,11 @@ class TestSparseCSR(TestCase):
                 csr.matmul(bad_vec)
 
     @onlyCUDA
+<<<<<<< HEAD
+=======
+    # hmm, the test passes ok on CUDA when Rocm is not available:
+    @skipCUDAIfRocmVersionLessThan((5, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     def test_baddbmm(self, device, dtype):
 
@@ -1532,10 +1579,16 @@ class TestSparseCSR(TestCase):
                     run_test(c, a, a_batched, b, op_b, op_out, dtype=dtype, device=device)
 
     @onlyCUDA
+<<<<<<< HEAD
     @dtypes(*floating_and_complex_types_and(*[torch.half] if HIPSPARSE_FP16_SUPPORTED else [],
                                             *[torch.bfloat16] if HIPSPARSE_BF16_SUPPORTED else []))
     @skipCUDAIfNoSparseGeneric
     @skipIfRocmVersionLessThan((6, 3))
+=======
+    @skipCUDAIfNoSparseGeneric
+    @skipIfRocmVersionLessThan((6, 3))
+    @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_bmm(self, device, dtype):
         def run_test(a, a_batched, b, op_b=False, op_out=False, *, dtype=None, device=None):
             b = b.mH if (op_b and a.shape == b.shape) else b
@@ -1942,8 +1995,13 @@ class TestSparseCSR(TestCase):
 
     @dtypes(*floating_and_complex_types())
     @dtypesIfCUDA(*floating_and_complex_types_and(
+<<<<<<< HEAD
                   *[torch.half] if SPARSE_FLOAT16_SUPPORTED else [],
                   *[torch.bfloat16] if SPARSE_BFLOAT16_SUPPORTED else []))
+=======
+                  *[torch.half] if SM53OrLater and TEST_CUSPARSE_GENERIC else [],
+                  *[torch.bfloat16] if SM80OrLater and TEST_CUSPARSE_GENERIC else []))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @precisionOverride({torch.bfloat16: 3.5e-2, torch.float16: 1e-2})
     def test_sparse_addmm(self, device, dtype):
         def test_shape(m, n, p, nnz, broadcast, index_dtype, alpha_beta=None):
@@ -1977,9 +2035,17 @@ class TestSparseCSR(TestCase):
     @precisionOverride({torch.double: 1e-8, torch.float: 1e-4, torch.bfloat16: 0.6,
                         torch.half: 1e-1, torch.cfloat: 1e-4, torch.cdouble: 1e-8})
     @dtypesIfCUDA(*floating_types_and(torch.complex64,
+<<<<<<< HEAD
                                       *[torch.bfloat16] if SPARSE_BFLOAT16_SUPPORTED else [],
                                       *[torch.half] if SPARSE_FLOAT16_SUPPORTED else [],
                                       *[torch.complex128] if SPARSE_COMPLEX128_SUPPORTED else []))
+=======
+                                      *[torch.bfloat16] if (SM80OrLater and not TEST_WITH_ROCM) else [],
+                                      *[torch.half] if (SM53OrLater and not TEST_WITH_ROCM) else [],
+                                      *[torch.complex128]
+                                      if CUSPARSE_SPMM_COMPLEX128_SUPPORTED or HIPSPARSE_SPMM_COMPLEX128_SUPPORTED
+                                      else []))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @sparse_compressed_nonblock_layouts()
     def test_addmm_all_sparse_csr(self, device, dtype, layout):
         M = torch.randn(10, 25, device=device).to(dtype)
@@ -2051,9 +2117,17 @@ class TestSparseCSR(TestCase):
     @skipCPUIfNoMklSparse
     @dtypes(*floating_and_complex_types())
     @dtypesIfCUDA(*floating_types_and(torch.complex64,
+<<<<<<< HEAD
                                       *[torch.bfloat16] if SPARSE_BFLOAT16_SUPPORTED else [],
                                       *[torch.half] if SPARSE_FLOAT16_SUPPORTED else [],
                                       *[torch.complex128] if SPARSE_COMPLEX128_SUPPORTED else []))
+=======
+                                      *[torch.bfloat16] if SM80OrLater and not TEST_WITH_ROCM else [],
+                                      *[torch.half] if SM53OrLater and not TEST_WITH_ROCM else [],
+                                      *[torch.complex128]
+                                      if CUSPARSE_SPMM_COMPLEX128_SUPPORTED or HIPSPARSE_SPMM_COMPLEX128_SUPPORTED
+                                      else []))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @precisionOverride({torch.double: 1e-8, torch.float: 1e-4, torch.bfloat16: 0.6,
                         torch.half: 1e-1, torch.cfloat: 1e-4, torch.cdouble: 1e-8})
     def test_addmm_sizes_all_sparse_csr(self, device, dtype, m, n, k):
@@ -2330,7 +2404,14 @@ class TestSparseCSR(TestCase):
             run_test(index_dtype)
 
     @skipCPUIfNoMklSparse
+<<<<<<< HEAD
     @skipCUDAIfRocm(msg="needs HIPSPARSE_GENERIC_SPSV or SPSM")
+=======
+    @skipCUDAIf(
+        not _check_cusparse_triangular_solve_available(),
+        "cuSparse Generic API SpSV is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     @precisionOverride({torch.float32: 1e-3, torch.complex64: 1e-3,
                         torch.float64: 1e-8, torch.complex128: 1e-8})
@@ -2407,6 +2488,13 @@ class TestSparseCSR(TestCase):
                                                                                  itertools.product([True, False], repeat=4)):
             run_test(n, k, upper, unitriangular, transpose, zero)
 
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        not _check_cusparse_sddmm_available(),
+        "cuSparse Generic API SDDMM is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     @precisionOverride({torch.float32: 1e-3, torch.complex64: 1e-3,
                         torch.float64: 1e-8, torch.complex128: 1e-8})
@@ -2457,6 +2545,13 @@ class TestSparseCSR(TestCase):
                 for op_a, op_b in itertools.product([True, False], repeat=2):
                     run_test(c, a, b, op_a, op_b)
 
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        not _check_cusparse_sddmm_available(),
+        "cuSparse Generic API SDDMM is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     def test_sampled_addmm_autograd(self, device, dtype):
         from torch.testing._internal.common_methods_invocations import sample_inputs_sparse_sampled_addmm
@@ -2483,9 +2578,19 @@ class TestSparseCSR(TestCase):
             self.assertEqual(a.grad, a1.grad)
             self.assertEqual(b.grad, b1.grad)
 
+<<<<<<< HEAD
     @skipCUDAIfRocm
     @onlyCUDA
     @skipCUDAIf(True, "Causes CUDA memory exception, see https://github.com/pytorch/pytorch/issues/72177")
+=======
+    @onlyCUDA
+    # It works on ROCm and CUDA issue is currently active
+    @skipCUDAIf(not TEST_WITH_ROCM, "Causes CUDA memory exception, see https://github.com/pytorch/pytorch/issues/72177")
+    @skipCUDAIf(
+        not _check_cusparse_sddmm_available(),
+        "cuSparse Generic API SDDMM is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     @precisionOverride({torch.float32: 1e-3, torch.complex64: 1e-3,
                         torch.float64: 1e-8, torch.complex128: 1e-8})
@@ -2501,6 +2606,13 @@ class TestSparseCSR(TestCase):
             run_test(c, a, b)
 
     @onlyCUDA
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        not _check_cusparse_sddmm_available(),
+        "cuSparse Generic API SDDMM is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32, torch.float64, torch.complex64, torch.complex128)
     def test_sampled_addmm_errors(self, device, dtype):
         # test that the errors are the same for dense and sparse sampled versions
@@ -2697,7 +2809,11 @@ class TestSparseCSR(TestCase):
             # Sparse CSR only supports 2D tensors as inputs
             # Fail early to prevent silent success with this test
             if sample.input.ndim != 2:
+<<<<<<< HEAD
                 raise ValueError(f"Expected 2D tensor but got tensor with dimension: {sample.input.ndim}.")
+=======
+                raise ValueError("Expected 2D tensor but got tensor with dimension: {sample.input.ndim}.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             sample.input = sample.input.to_sparse_csr()
             expect = op(sample.input, *sample.args, **sample.kwargs)
@@ -2721,7 +2837,11 @@ class TestSparseCSR(TestCase):
             # Sparse CSR only supports 2D tensors as inputs
             # Fail early to prevent silent success with this test
             if sample.input.ndim != 2:
+<<<<<<< HEAD
                 raise ValueError(f"Expected 2D tensor but got tensor with dimension: {sample.input.ndim}.")
+=======
+                raise ValueError("Expected 2D tensor but got tensor with dimension: {sample.input.ndim}.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             sample.input = sample.input.to_sparse_csr()
             expect = op(sample.input, *sample.args, **sample.kwargs)
@@ -2755,7 +2875,11 @@ class TestSparseCSR(TestCase):
             raise ValueError("Expected at least one 2D tensor in samples.")
 
         for sample in samples:
+<<<<<<< HEAD
             # We must skip samples of low dimensionality, we can't convert them to sparsed compressed layouts
+=======
+            # We must skip samples of low dimensionality, we can't covert them to sparsed compressed layouts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if sample.input.ndim < 2:
                 continue
             sparse_input = sample.input.to_sparse_csr().requires_grad_(True)
@@ -2780,6 +2904,13 @@ class TestSparseCSR(TestCase):
             dense_output.backward(dense_covector)
             self.assertEqual(sparse_input.grad, dense_input.grad)
 
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        not _check_cusparse_sddmm_available(),
+        "cuSparse Generic API SDDMM is not available"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float64)
     def test_autograd_dense_output_addmm(self, device, dtype):
         from torch.testing._internal.common_methods_invocations import sample_inputs_addmm
@@ -3215,7 +3346,11 @@ class TestSparseCSR(TestCase):
         # helpers
 
         def _check_against_scipy_matrix(pt_matrix, dense, blocksize, **kwargs):
+<<<<<<< HEAD
             # scipy has no bsc layout, so we check against the bsr layout of the transposed dense
+=======
+            # scipy has no bsc layout, so we check against the bsr layout of the tranposed dense
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if layout == torch.sparse_bsc:
                 sp_matrix = self._construct_sp_matrix(dense.t(), layout=torch.sparse_bsr, blocksize=blocksize[::-1])
             else:
@@ -3232,7 +3367,11 @@ class TestSparseCSR(TestCase):
             self.assertEqual(torch.tensor(sp_matrix.indptr, dtype=torch.int64), compressed_indices_mth(pt_matrix))
             self.assertEqual(torch.tensor(sp_matrix.indices, dtype=torch.int64), plain_indices_mth(pt_matrix))
             if layout == torch.sparse_bsc:
+<<<<<<< HEAD
                 # we must transpose the blocks before comparing
+=======
+                # we must tranpose the blocks before comparing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(torch.tensor(sp_matrix.data), pt_matrix.values().transpose(-2, -1))
             else:
                 self.assertEqual(torch.tensor(sp_matrix.data), pt_matrix.values())
@@ -3331,7 +3470,11 @@ class TestSparseCSR(TestCase):
 
         # special cases for batched tensors
         if batched:
+<<<<<<< HEAD
             # batched sparse tensors need only have the same number of non-zeros in each batch not necessarily the
+=======
+            # batched sparse tensors need only have the same number of non-zeros in each batch not nessesarily the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # same sparsity pattern in each batch
             sparse_shape = sparse_sizes[0]
             hybrid_shape = hybrid_sizes[0]
@@ -3342,7 +3485,11 @@ class TestSparseCSR(TestCase):
             # number of elements/blocks in each batch (total not nnz)
             batch_mask_shape = sparse_shape
             if layout in blocked_layouts:
+<<<<<<< HEAD
                 # if we are blocked the mask is generated for the block valued elements
+=======
+                # if we are blocked the mask is genereated for the block valued elemetns
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 batch_mask_shape = sparse_shape[0] // blocksize[0], sparse_shape[1] // blocksize[1]
 
             # random bool vector w/ length equal to max possible nnz for the sparse_shape
@@ -3563,8 +3710,13 @@ class TestSparseCompressedTritonKernels(TestCase):
     @onlyCUDA
     @dtypes(torch.half, torch.bfloat16, torch.float)
     @dtypesIfCUDA(torch.half, *[torch.bfloat16] if SM80OrLater else [], torch.float)
+<<<<<<< HEAD
     @unittest.skipIf((not TEST_WITH_TORCHINDUCTOR) or (IS_FBCODE and IS_REMOTE_GPU),
                      "Skipped for internal with remote GPUs")
+=======
+    @unittest.skipIf((not TEST_WITH_TORCHINDUCTOR) or (IS_FBCODE and IS_REMOTE_GPU) or torch._running_with_deploy(),
+                     "Skipped for deploy and internal with remote GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_bsr_dense_bmm(self, device, dtype, index_dtype, block_size):
         from functools import partial
         from torch.sparse._triton_ops import bsr_dense_mm
@@ -3640,8 +3792,13 @@ class TestSparseCompressedTritonKernels(TestCase):
 
     @onlyCUDA
     @dtypes(torch.half)
+<<<<<<< HEAD
     @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU,
                      "Skipped for internal with remote GPUs")
+=======
+    @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU or torch._running_with_deploy(),
+                     "Skipped for deploy and internal with remote GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_bsr_dense_bmm_error_messages(self, device, dtype):
         from torch.sparse._triton_ops import bsr_dense_mm
 
@@ -3685,6 +3842,10 @@ class TestSparseCompressedTritonKernels(TestCase):
 
     @parametrize("block_size", [16, 32, 64])
     @onlyCUDA
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.half, torch.bfloat16, torch.float)
     @dtypesIfCUDA(torch.half, *[torch.bfloat16] if SM80OrLater else [], torch.float)
     @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU, "Test requires Triton")
@@ -3774,7 +3935,11 @@ class TestSparseCompressedTritonKernels(TestCase):
                 input_broadcasted_clone.col_indices(),
                 # For testing `out=` let's make values to have "weird" strides
                 # so that if the kernel modifies values to it's needs, the result
+<<<<<<< HEAD
                 # is being copied into out.values.
+=======
+                # is being compied into out.values.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 input_broadcasted_clone.values().transpose(-3, -2).contiguous().transpose(-3, -2),
                 layout=input_broadcasted_clone.layout,
                 size=input_broadcasted_clone.shape
@@ -3889,7 +4054,11 @@ class TestSparseCompressedTritonKernels(TestCase):
                     try:
                         result = bsr_scatter_mm(bsr, dense, indices_data=indices_data)
                     except triton.compiler.OutOfResources:
+<<<<<<< HEAD
                         # ensure that there was at least one successful test:
+=======
+                        # ensure that there was at least one succesful test:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         assert SPLIT_N < SPLIT_N_list[0]
                         break
 
@@ -4097,7 +4266,11 @@ class TestSparseCompressedTritonKernels(TestCase):
             left_alpha = make_tensor(M, dtype=dtype, device=device, low=0.5, high=high) if has_left_alpha else None
             right_alpha = make_tensor(N, dtype=dtype, device=device, low=0.5, high=high) if has_right_alpha else None
 
+<<<<<<< HEAD
             if 0 and op == "bsr_dense_addmm":  # noqa: SIM223
+=======
+            if 0 and op == "bsr_dense_addmm":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Find optimal kernel parameters, the speed-up is
                 # about 10x for running this test.
                 #

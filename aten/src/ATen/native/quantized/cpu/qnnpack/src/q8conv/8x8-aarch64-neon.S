@@ -23,10 +23,17 @@
 
 #  Args passed via stack.
 #  TOS
+<<<<<<< HEAD
 #  |------------|
 #  |out ch index| 0
 #  |params      | 8
 #  |------------|
+=======
+#  |-----------|
+#  |out ch indx| 0
+#  |params     | 8
+#  |-----------|
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # void pytorch_q8conv_ukernel_8x8__aarch64_neon(
 #    size_t mr,

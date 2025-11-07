@@ -77,7 +77,10 @@ def swap_tensor(
             setattr(module, name, tensor)
         elif hasattr(module, name):
             delattr(module, name)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return orig_tensor
 
 
@@ -146,7 +149,11 @@ class NamedMemberAccessor:
                     f"{module._get_name()} has no attribute `{attr}`"
                 ) from ex
             if not isinstance(submodule, torch.nn.Module):
+<<<<<<< HEAD
                 raise TypeError(
+=======
+                raise TypeError(  # noqa: B904
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     f"submodule `{name}`: {submodule} is not an instance of torch.nn.Module"
                 )
             self.memo[name] = submodule

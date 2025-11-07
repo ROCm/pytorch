@@ -33,8 +33,13 @@ import inspect
 import logging
 import math
 import re
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._C
 import torch._refs
@@ -52,6 +57,7 @@ from ..create_parameter_op import (
     tracable_create_parameter,
 )
 from ..device_interface import get_registered_device_interfaces
+<<<<<<< HEAD
 from ..exc import raise_observed_exception, unimplemented_v2
 from ..guards import GuardBuilder, install_guard
 from ..source import (
@@ -60,17 +66,29 @@ from ..source import (
     SyntheticLocalSource,
     TorchSource,
 )
+=======
+from ..exc import unimplemented, unimplemented_v2
+from ..guards import GuardBuilder, install_guard
+from ..source import CallFunctionNoArgsSource, SyntheticLocalSource
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..utils import (
     check_unspec_or_constant_args,
     guard_if_dyn,
     has_torch_function,
     hashable,
+<<<<<<< HEAD
     is_wrapper_or_member_descriptor,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     product,
     proxy_args_kwargs,
     unwrap_if_wrapper,
 )
+<<<<<<< HEAD
 from .base import raise_type_error_exc, typestr, VariableTracker
+=======
+from .base import typestr, VariableTracker
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .ctx_manager import (
     AutocastModeVariable,
     ProfilerContextVariable,
@@ -78,7 +96,10 @@ from .ctx_manager import (
 )
 from .dicts import ConstDictVariable
 from .distributed import DistributedVariable, ProcessGroupVariable
+<<<<<<< HEAD
 from .functions import bind_args_cached
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .lists import ListVariable, TupleVariable
 from .torch_function import (
     can_dispatch_torch_function,
@@ -126,6 +147,7 @@ supported_ctx_manager_classes = dict.fromkeys(
         torch.autograd.graph.disable_saved_tensors_hooks,
         torch.cpu.amp.autocast_mode.autocast,
         torch.cuda.amp.autocast_mode.autocast,
+<<<<<<< HEAD
         torch.fx.traceback.annotate,
         torch.fx.traceback.annotate.__wrapped__,  # type: ignore[attr-defined]
         # We'll let Dynamo inline into the contextlib part of these context
@@ -136,6 +158,10 @@ supported_ctx_manager_classes = dict.fromkeys(
         # This allows us to support calling functions decorated with these
         # context managers, without much extra effort or code dup.
         torch.nn.attention.sdpa_kernel.__wrapped__,  # type: ignore[attr-defined]
+=======
+        torch.nn.attention.sdpa_kernel,
+        torch.nn.attention._sdpa_kernel_variadic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 )
 
@@ -148,7 +174,10 @@ REWRITE_OPS_TO_TENSOR_SIZE_METHOD = dict.fromkeys(
 
 constant_fold_functions_need_guards = [
     torch.accelerator.current_device_index,
+<<<<<<< HEAD
     torch.accelerator.current_accelerator,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.cuda.current_device,
     torch.cuda.is_initialized,
     torch.xpu.current_device,
@@ -200,16 +229,23 @@ def tracing_state_functions() -> dict[Callable[[], Any], Optional[bool]]:
         torch.jit.is_tracing: False,
         torch._C._get_tracing_state: None,
         torch.fx._symbolic_trace.is_fx_tracing: False,
+<<<<<<< HEAD
         torch.fx._symbolic_trace.is_fx_symbolic_tracing: False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.onnx.is_in_onnx_export: False,
         torch._dynamo.external_utils.is_compiling: True,
         torch._utils.is_compiling: True,
         torch.compiler.is_compiling: True,
         torch.compiler.is_dynamo_compiling: True,
         torch.compiler.is_exporting: True,
+<<<<<<< HEAD
         # Look into https://github.com/pytorch/pytorch/pull/164721 why this is
         # turned to True for Dynamo.
         torch.nn.modules.activation._is_make_fx_tracing: True,
+=======
+        torch.nn.modules.activation._is_make_fx_tracing: False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
 
@@ -246,6 +282,7 @@ class BaseTorchVariable(VariableTracker):
 
     @classmethod
     def create_with_source(cls, value, source):
+<<<<<<< HEAD
         if inspect.isclass(value):
             install_guard(source.make_guard(GuardBuilder.CLASS_MATCH))
         elif inspect.ismodule(value):
@@ -263,6 +300,9 @@ class BaseTorchVariable(VariableTracker):
             pass
         else:
             install_guard(source.make_guard(GuardBuilder.FUNCTION_MATCH))
+=======
+        install_guard(source.make_guard(GuardBuilder.FUNCTION_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls(value, source=source)
 
     def __init__(self, value, **kwargs) -> None:
@@ -292,6 +332,7 @@ class BaseTorchVariable(VariableTracker):
     def can_constant_fold_through(self):
         if self.value in constant_fold_functions:
             return True
+<<<<<<< HEAD
 
         if (
             self.value is torch.autograd._profiler_enabled
@@ -312,6 +353,8 @@ class BaseTorchVariable(VariableTracker):
             # interaction with Kineto is not a valid usecase. So, this is ok.
             return True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return getattr(self.value, "__module__", None) == "math"
 
 
@@ -347,7 +390,10 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
             DisabledSavedTensorsHooksVariable,
             DualLevelContextManager,
             FSDPParamGroupUseTrainingStateVariable,
+<<<<<<< HEAD
             FxTracebackAnnotateVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             GradIncrementNestingCtxManagerVariable,
             GradInplaceRequiresGradCtxManagerVariable,
             GradModeVariable,
@@ -382,6 +428,7 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
             assert len(args) <= 1 and len(kwargs) == 0
             inf_mode = args[0].as_python_constant() if len(args) == 1 else True
             return InferenceModeVariable.create(tx, inf_mode)
+<<<<<<< HEAD
         elif self.value in (
             torch.fx.traceback.annotate,
             torch.fx.traceback.annotate.__wrapped__,  # type: ignore[attr-defined]
@@ -390,6 +437,8 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
             return FxTracebackAnnotateVariable(
                 args[0].as_python_constant(), source=self.source
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif inspect.isclass(self.value) and issubclass(self.value, torch.Stream):
             from torch._dynamo.variables.builder import wrap_fx_proxy_cls
 
@@ -469,6 +518,7 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
             return FSDPParamGroupUseTrainingStateVariable.create(
                 tx, args[0], args[1].as_python_constant()
             )
+<<<<<<< HEAD
         elif self.value is torch.nn.attention.sdpa_kernel.__wrapped__:  # type: ignore[attr-defined]
             name_to_arg_map = bind_args_cached(
                 self.value, tx, self.source, args, kwargs
@@ -476,6 +526,19 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
             backends = name_to_arg_map["backends"].as_python_constant()
             set_priority = name_to_arg_map["set_priority"].as_python_constant()
             return SDPAKernelVariable.create(tx, backends, set_priority)
+=======
+        elif self.value is torch.nn.attention.sdpa_kernel:
+            assert len(args) == 1 or (len(kwargs) == 1 and "backends" in kwargs)
+            backends = args[0] if len(args) == 1 else kwargs["backends"]
+            set_priority = kwargs["set_priority"] if "set_priority" in kwargs else False
+            return SDPAKernelVariable.create(
+                tx, backends.as_python_constant(), set_priority
+            )
+        elif self.value is torch.nn.attention._sdpa_kernel_variadic:
+            return SDPAKernelVariable.create(
+                tx, [arg.as_python_constant() for arg in args]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return super().call_function(tx, args, kwargs)
 
@@ -548,7 +611,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
             self, tx: "InstructionTranslator", *args, **kwargs
         ):
             assert not kwargs
+<<<<<<< HEAD
             if self.value is torch._C._dispatch_keys:
+=======
+            if self.value in (torch._C._dispatch_keys,):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(args) == 1
                 assert isinstance(args[0], variables.TensorVariable)
                 example_value = args[0].proxy.node.meta["example_value"]
@@ -648,6 +715,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 # torch.compile is a no-op in dynamo
                 return args[0]
 
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="torch.compile call with > 1 args",
                 context=f"args={args}, kwargs={kwargs}",
@@ -657,6 +725,9 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                     *graph_break_hints.SUPPORTABLE,
                 ],
             )
+=======
+            unimplemented("torch.compile is used as a decorator in the compiled frame")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @register(*REWRITE_OPS_TO_TENSOR_SIZE_METHOD)
         def handle_tensor_size_rewrites(self, tx: "InstructionTranslator", input):
@@ -682,6 +753,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         def handle_use_deterministic_algorithms(
             self, tx: "InstructionTranslator", mode, warn_only=False
         ):
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             if warn_only and warn_only.as_python_constant():
                 unimplemented_v2(
@@ -693,6 +765,10 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                         *graph_break_hints.SUPPORTABLE,
                     ],
                 )
+=======
+            if warn_only and warn_only.as_python_constant():
+                unimplemented("torch.use_deterministic_algorithms(warn_only=True)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return DeterministicAlgorithmsVariable.create(tx, mode.as_python_constant())
 
         @register(torch.are_deterministic_algorithms_enabled)
@@ -743,6 +819,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         @register(torch.from_numpy)
         def handle_from_numpy(self, tx: "InstructionTranslator", *args):
             if not config.trace_numpy:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="call `torch.from_numpy` with `torch._dynamo.config.trace_numpy=False`",
                     context=f"trace_numpy={config.trace_numpy}",
@@ -764,6 +841,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                         *graph_break_hints.USER_ERROR,
                     ],
                 )
+=======
+                unimplemented("torch.from_numpy. config.trace_numpy is False")
+            if not np:
+                unimplemented("torch.from_numpy. NumPy is not available")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return wrap_fx_proxy_cls(
                 target_cls=TensorVariable,
                 tx=tx,
@@ -975,6 +1057,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
             from .lists import BaseListVariable
 
             if layout and layout.as_python_constant() == torch.strided:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="Attempted to use strided NestedTensor",
                     context=f"layout={layout}",
@@ -994,6 +1077,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                         *graph_break_hints.USER_ERROR,
                     ],
                 )
+=======
+                unimplemented("torch.compile does not support strided NestedTensor")
+            if not isinstance(tensor_list, BaseListVariable):
+                unimplemented("nested_tensor with non-list input")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @register(torch.nn.functional.one_hot)
         def handle_one_hot(self, tx: "InstructionTranslator", *args, **kwargs):
@@ -1002,6 +1090,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 and args[1].is_python_constant()
                 and args[1].as_python_constant() == -1
             ):
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="Attempted to use `torch.nn.functional.one_hot` with data-dependent output shape",
                     context=f"args={args}, kwargs={kwargs}",
@@ -1010,6 +1099,10 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                         "Explicitly set the `num_classes` param of the function call "
                         "`torch.nn.functional.one_hot` to something other than -1.",
                     ],
+=======
+                unimplemented(
+                    "torch.nn.functional.one_hot with data-dependent output shape"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         @register(torch.fx.experimental.symbolic_shapes.guard_size_oblivious)
@@ -1067,7 +1160,10 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
             else:
                 raise torch._dynamo.exc.Unsupported("branch not supported")
             return variables.ConstantVariable.create(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.fx.experimental.symbolic_shapes.guard_scalar(val)
             )
 
@@ -1114,7 +1210,10 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 return
 
             return variables.ConstantVariable.create(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.fx.experimental.symbolic_shapes.has_static_value(val)
             )
 
@@ -1180,6 +1279,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         ):
             assert not args and not kwargs
             if not tx.symbolic_torch_function_state.mode_stack:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="Attempted to pop from empty torch function mode stack",
                     context="",
@@ -1189,6 +1289,9 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                         *graph_break_hints.USER_ERROR,
                     ],
                 )
+=======
+                raise unimplemented("Popping from an empty torch function mode stack")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             TorchFunctionModeStackVariable.register_mutation(tx)
             return tx.symbolic_torch_function_state.pop_torch_function_mode()
 
@@ -1196,11 +1299,15 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         def handle_push_torch_function(
             self, tx: "InstructionTranslator", *args, **kwargs
         ):
+<<<<<<< HEAD
             if len(args) != 1 or kwargs:
                 raise_type_error_exc(
                     tx,
                     f"push_torch_function takes exactly one argument ({len(args)} given)",
                 )
+=======
+            assert len(args) == 1 and not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             TorchFunctionModeStackVariable.register_mutation(tx)
             tx.symbolic_torch_function_state.push_torch_function_mode(args[0])
             return ConstantVariable.create(None)
@@ -1209,23 +1316,32 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         def handle_len_torch_function(
             self, tx: "InstructionTranslator", *args, **kwargs
         ):
+<<<<<<< HEAD
             if args or kwargs:
                 raise_type_error_exc(tx, "len_torch_function_stack takes no arguments")
+=======
+            assert not args and not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return ConstantVariable.create(
                 len(tx.symbolic_torch_function_state.mode_stack)
             )
 
         @register(torch._C._get_function_stack_at)
         def handle_get_stack_at(self, tx: "InstructionTranslator", *args, **kwargs):
+<<<<<<< HEAD
             if len(args) != 1 or kwargs:
                 raise_type_error_exc(
                     tx,
                     f"get_function_stack_at takes exactly one argument ({len(args)} given)",
                 )
+=======
+            assert len(args) == 1 and not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ind = args[0].as_python_constant()
             assert ind >= 0 and ind < len(tx.symbolic_torch_function_state.mode_stack)
             return tx.symbolic_torch_function_state.mode_stack[ind]
 
+<<<<<<< HEAD
         @register(torch.get_device_module.__wrapped__)
         def handle_get_device_module(self, tx, *args, **kwargs):
             if len(args) + len(kwargs) > 1 or (kwargs and "device" not in kwargs):
@@ -1268,6 +1384,8 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
             # pyrefly: ignore [unbound-name]
             return VariableTracker.build(tx, module, new_source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @register(torch.set_default_device)
         def handle_set_default_device(
             self, tx: "InstructionTranslator", *args, **kwargs
@@ -1330,6 +1448,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 arg_type = flat_arg_vt.python_type()
                 if not is_graphable_type(arg_type):
                     type_name = flat_arg_vt.python_type().__qualname__
+<<<<<<< HEAD
                     unimplemented_v2(
                         gb_type="Invalid input type for nonstrict_trace-ed function",
                         context=f"Encountered input of type <{type_name}>.",
@@ -1344,6 +1463,15 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                             "* `torch.utils._pytree.register_dataclass`\n"
                             "* `torch.utils._pytree.register_pytree_node`",
                         ],
+=======
+                    unimplemented(
+                        f"""
+For `nonstrict_trace`-ed function, the only allowed input types are basic types (e.g., torch.Tensor, int, float) or pytree containers of those. Here you are calling the function with arguments that contain a value of type <{type_name}>, please use one of the following to register the type with pytree:
+  * `torch.utils._pytree.register_constant`
+  * `torch.utils._pytree.register_dataclass`
+  * `torch.utils._pytree.register_pytree_node`
+"""  # NOQA: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
             # Since we checked with `is_graphable` above, `as_proxy` on the
@@ -1364,6 +1492,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 import torch.utils._pytree as pytree
 
                 if pytree.is_constant_class(typ):
+<<<<<<< HEAD
                     unimplemented_v2(
                         gb_type="Input marked with `pytree.register_constant` constructed in the `torch.compile` region",
                         context=f"Input={input_spec_vt}, offending type <{type_name}>.",
@@ -1395,6 +1524,27 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                             *graph_break_hints.SUPPORTABLE,
                         ],
                         from_exc=e,
+=======
+                    unimplemented(
+                        f"""
+You are calling a `nonstrict_trace`-ed function with an input that contains an object of type <{type_name}>, which was marked with `pytree.register_constant`. However, the object was constructed _inside_ the `torch.compile` region.
+
+Please construct the object _outside_ the `torch.compile` region, or submit an issue to GitHub.
+    """  # NOQA: B950
+                    )
+                else:
+                    unimplemented(
+                        f"""
+You are calling a `nonstrict_trace`-ed function where one one of the inputs has been registered with a `pytree_flatten` that puts an object of type <{type_name}> into the context.
+
+Please consider modifying that `pytree_flatten` to avoid putting the object into context, and apply one of the following to <{type_name}>
+  * `torch.utils._pytree.register_constant`
+  * `torch.utils._pytree.register_dataclass`
+  * `torch.utils._pytree.register_pytree_node`
+
+If the above doesn't work, please subtmit an issue to GitHub.
+"""  # NOQA: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
             fn = self.value
@@ -1420,18 +1570,25 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 f"{fn.__name__}_spec", f_spec
             )
             input_spec_proxy = tx.output.register_static_attr_and_return_proxy(
+<<<<<<< HEAD
                 fn.__name__ + "_input_spec",
                 # pyrefly: ignore [unbound-name]
                 input_spec,
             )
             f_spec_proxy.node.type = type(f_spec)
             # pyrefly: ignore [unbound-name]
+=======
+                fn.__name__ + "_input_spec", input_spec
+            )
+            f_spec_proxy.node.type = type(f_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input_spec_proxy.node.type = type(input_spec)
             all_args = (f_spec_proxy, input_spec_proxy, *proxified_flat_args)
 
             # 2. Create a proxy call to `flat_apply`, then fake-tensor propagate
             # the call and wrap output into a VariableTracker.
             proxy = tx.output.create_proxy("call_function", flat_apply, all_args, {})
+<<<<<<< HEAD
             try:
                 # TODO support more output types once `flat_apply` supports
                 # pytree-able output types. We can have Dynamo trace through an
@@ -1453,6 +1610,14 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                     ),
                     hints=[*graph_break_hints.SUPPORTABLE],
                 )
+=======
+            out_vt = wrap_fx_proxy(tx, proxy)
+            # TODO support more output types
+            # Q: flat_apply will likely pytree_flatten the output for this, then
+            # how do we intercept the output before flatten, and wrap those?
+            # - Maybe we can have `flat_apply` return the output spec, so that
+            #   Dynamo can unflatten and wrap the result.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return out_vt
 
@@ -1467,6 +1632,7 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 source = CallFunctionNoArgsSource(self.source)
                 install_guard(source.make_guard(GuardBuilder.EQUALS_MATCH))
             # constant fold
+<<<<<<< HEAD
             try:
                 return ConstantVariable.create(
                     self.as_python_constant()(
@@ -1480,6 +1646,14 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                     tx,
                     args=list(map(ConstantVariable.create, exc.args)),
                 )
+=======
+            return ConstantVariable.create(
+                self.as_python_constant()(
+                    *[x.as_python_constant() for x in args],
+                    **{k: v.as_python_constant() for k, v in kwargs.items()},
+                ),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.is_tensor_method():
             name = self.value.__name__
@@ -1530,6 +1704,7 @@ To support this behavior, we need to allow const-propping tensors that store sym
 For now, dynamo will explicitly graph break when it encounters user code with this behavior.
 """
             log.warning(msg)
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="Attempted to call torch in-graph function on only torch.SymInt arguments",
                 context=f"fn={self.value}, args={args}, kwargs={kwargs}",
@@ -1541,6 +1716,9 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                     *graph_break_hints.SUPPORTABLE,
                 ],
             )
+=======
+            unimplemented(msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TODO(voz): Replace w/ dynamic shape rewrite table.
         # Ideally, we would be able to do this at ctor time, but alas we need a combination
@@ -1557,6 +1735,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
         # variant torch ops, the original function could come from a user
         # defined `@allow_in_graph` function as well, which doesn't have the
         # same semantics as the torch ops.
+<<<<<<< HEAD
 
         # Calling fake tensor propagation can mutate the out= tensor in
         # tx.output.tracked_fakes. tracked_fakes are used to apply
@@ -1582,6 +1761,17 @@ For now, dynamo will explicitly graph break when it encounters user code with th
             # e.g., out=output_tensor
             if isinstance(out_kwarg_vt, variables.TensorVariable):
                 saved_out_shapes = out_kwarg_vt.proxy.node.meta["example_value"].shape
+=======
+        fake_out_shape = None
+        if "out" in kwargs and isinstance(kwargs["out"], variables.TensorVariable):
+            # Calling fake tensor propagation can mutate the out= tensor in
+            # tx.output.tracked_fakes. tracked_fakes are used to apply
+            # symbolic_shape guards. Mutating them destroys the information
+            # prior to tracing, which is essential for creating right
+            # guards. So save the shape now, and check later if it has
+            # changed. If it has, graph break.
+            fake_out_shape = kwargs["out"].proxy.node.meta["example_value"].shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         tensor_variable = wrap_fx_proxy(
             tx=tx,
@@ -1598,6 +1788,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
             and "requires_grad" in kwargs
             and kwargs["requires_grad"].as_python_constant()
         ):
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="Attempted to use tensor creation function with requires_grad=True",
                 context=f"fn={self.value}, args={args}, kwargs={kwargs}",
@@ -1611,6 +1802,18 @@ For now, dynamo will explicitly graph break when it encounters user code with th
 
         # Handle e.g., `torch.add(a, b, out=result)`
         if saved_out_shapes is not None:
+=======
+            unimplemented(
+                """factory functions that return tensors that require grad are not supported.
+Either create the tensor outside the compiled region, or do not set the tensor to require_grad"""
+            )
+
+        # Handle e.g., `torch.add(a, b, out=result)`
+        if "out" in kwargs and not (
+            isinstance(kwargs["out"], variables.ConstantVariable)
+            and kwargs["out"].as_python_constant() is None
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # out variants of torch operators like torch.sort and torch.sigmoid
             # mutate the tensors in the out field.
             #
@@ -1619,6 +1822,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
             # take the conservative approach to graph break on size changes, and
             # assume other cases can fall through soundly.
             #
+<<<<<<< HEAD
             # Note that although these tensor variables would hold different
             # proxies, the in-place mutation semantics is preserved in the FX
             # graph, so we won't have correctness issues.
@@ -1689,6 +1893,66 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                             *graph_break_hints.SUPPORTABLE,
                         ],
                     )
+=======
+            # Note that although these tensor variablels would hold different
+            # proxies, the in-place mutation semantics is preserved in the FX
+            # graph, so we won't have correctness issues.
+            if isinstance(tensor_variable, TupleVariable):
+                assert isinstance(kwargs["out"], (TupleVariable, ListVariable))
+                for out_tensor, result_tensor in zip(
+                    kwargs["out"].items, tensor_variable.items
+                ):
+                    if (
+                        isinstance(out_tensor, variables.TensorVariable)
+                        and isinstance(result_tensor, variables.TensorVariable)
+                        and out_tensor._size
+                        != result_tensor._size  # we actually want to compare None values here
+                    ):
+                        # It's hard to get out variants with resizing on graph inputs work
+                        # properly across dynamo/aot/inductor, just fall back.
+                        unimplemented("out variants with resizing on graph inputs")
+            elif isinstance(tensor_variable, TensorVariable):
+                assert isinstance(kwargs["out"], TensorVariable)
+                assert "example_value" in kwargs["out"].proxy.node.meta
+                fake_tensor = tensor_variable.proxy.node.meta["example_value"]
+                fake_out = kwargs["out"].proxy.node.meta["example_value"]
+                if fake_out_shape != fake_tensor.shape:
+                    # It's hard to get out variants with resizing on graph inputs work
+                    # properly across dynamo/aot/inductor, just fall back.
+                    unimplemented("out variants with resizing on graph inputs")
+                if not torch._prims_common.is_contiguous(fake_out):
+                    # It's difficult to handle strides correctly in functionalization
+                    # when calling an out= op with a non-contiguous out argument
+                    unimplemented(
+                        "out= op was called where output tensor was non-contiguous"
+                    )
+            elif (
+                isinstance(tensor_variable, ConstantVariable)
+                and tensor_variable.value is None
+            ):
+                # Handle out-variant custom ops that return None.
+                if isinstance(kwargs["out"], TensorVariable):
+                    assert "example_value" in kwargs["out"].proxy.node.meta
+                    fake_out = kwargs["out"].proxy.node.meta["example_value"]
+                    if not torch._prims_common.is_contiguous(fake_out):
+                        # It's difficult to handle strides correctly in functionalization
+                        # when calling an out= op with a non-contiguous out argument
+                        unimplemented(
+                            "out= op was called where output tensor was non-contiguous"
+                        )
+                elif isinstance(kwargs["out"], ListVariable):
+                    for idx, x in enumerate(kwargs["out"].items):
+                        assert "example_value" in x.proxy.node.meta  # type: ignore[attr-defined]
+                        fake_out = x.proxy.node.meta["example_value"]  # type: ignore[attr-defined]
+                        if not torch._prims_common.is_contiguous(fake_out):
+                            # It's difficult to handle strides correctly in functionalization
+                            # when calling an out= op with a non-contiguous out argument
+                            unimplemented(
+                                "out= op was called where some of the output tensors were non-contiguous"
+                            )
+            else:
+                unimplemented(f"out variant of {type(kwargs['out'])}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return tensor_variable
 
@@ -1712,6 +1976,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                     torch.nn.modules.utils._ntuple(count)(value.as_python_constant()),
                 )
             else:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="Attempted to use `torch.nn.modules.utils._ntuple` with unsupported argument type",
                     context=f"value={value}",
@@ -1720,6 +1985,9 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                         "Change use of _ntuple with argument as constant or tensor.",
                     ],
                 )
+=======
+                unimplemented(f"torch.nn.modules.utils._ntuple({value})")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.value is torch.nn.modules.utils._ntuple:
             return variables.LambdaVariable(handle_ntuple)
@@ -1730,6 +1998,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
     def call_nn_parameter(cls, tx, data=None, requires_grad=True):
         """A call to torch.nn.Parameter() gets lifted to before the graph"""
         if tx.export:
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="Attempted to use `torch.nn.Parameter()` with export",
                 context="",
@@ -1739,11 +2008,15 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                     *graph_break_hints.SUPPORTABLE,
                 ],
             )
+=======
+            unimplemented("nn parameter construction not supported with export")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(requires_grad, variables.VariableTracker):
             try:
                 requires_grad = requires_grad.as_python_constant()
             except NotImplementedError:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="non-constant `requires_grad` argument to `torch.nn.Parameter`",
                     context=f"requires_grad={requires_grad}",
@@ -1836,6 +2109,36 @@ For now, dynamo will explicitly graph break when it encounters user code with th
         # pyrefly: ignore [missing-attribute]
         if data.requires_grad:
             # pyrefly: ignore [missing-attribute]
+=======
+                unimplemented("Parameter(requires_grad=...) not constant")
+
+        if not isinstance(data, variables.TensorVariable):
+            unimplemented(f"Parameter(data={data}) not implemented")
+
+        # this results in cleaner graphs, but only works for inputs
+        if data.source:
+            return cls._nn_param_via_prefix_insert(tx, data, requires_grad)
+
+        if isinstance(
+            data, TensorWithTFOverrideVariable
+        ) or is_traceable_wrapper_subclass_type(data.class_type):
+            unimplemented("Parameter constructor with tensor subclass NYI")
+
+        if not can_convert_to_tracable_parameter():
+            unimplemented("Workaround for issues with nn_parameter construction")
+
+        try:
+            shape = tuple(data.var_getattr(tx, "shape").as_python_constant())
+            dtype = data.var_getattr(tx, "dtype").as_python_constant()
+            device = data.var_getattr(tx, "device").as_python_constant()
+        except NotImplementedError as e:
+            unimplemented(f"Parameter not python_constant: {e}")
+
+        placeholder = tx.output.synthetic_graph_input(
+            new_parameter_placeholder, [shape, dtype, device, requires_grad]
+        )
+        if data.requires_grad:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             data = data.call_method(tx, "detach", [], {})
 
         from .builder import wrap_fx_proxy
@@ -1845,7 +2148,10 @@ For now, dynamo will explicitly graph break when it encounters user code with th
             tx.output.create_proxy(
                 "call_function",
                 tracable_create_parameter,
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (data.as_proxy(), placeholder.as_proxy()),
                 {},
             ),
@@ -1857,7 +2163,11 @@ For now, dynamo will explicitly graph break when it encounters user code with th
         result.class_type = torch.nn.Parameter
 
         # TODO(jansel/bdhirsh) - There is some issue with
+<<<<<<< HEAD
         # tracable_create_parameter. It does not seem to use the right
+=======
+        # tracable_create_paramter. It does not seem to use the right
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # grad_enabled. Since this is parameter, we can just override the
         # has_grad_fn field to False to workaround the issue.
         result.has_grad_fn = False
@@ -1872,8 +2182,12 @@ For now, dynamo will explicitly graph break when it encounters user code with th
         varname = tx.output.new_var()
 
         # construct the nn.Parameter before the graph save it to varname
+<<<<<<< HEAD
         assert tx.output.root_tx is not None
         cg = PyCodegen(tx.output.root_tx)
+=======
+        cg = PyCodegen(tx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cg.add_push_null(lambda: cg.load_import_from("torch.nn", "Parameter"))
         cg(data.source)
         cg(variables.ConstantVariable(requires_grad))
@@ -1883,6 +2197,7 @@ For now, dynamo will explicitly graph break when it encounters user code with th
 
         data_node = data.as_proxy().node
         if data_node.op not in ("placeholder", "get_attr"):
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="Unexpected type of data placeholder op for parameter construction",
                 context=f"data_node.op={data_node.op}",
@@ -1890,13 +2205,21 @@ For now, dynamo will explicitly graph break when it encounters user code with th
                 hints=[
                     *graph_break_hints.DIFFICULT,
                 ],
+=======
+            unimplemented(
+                "Unexpected type of data placeholder op for parameter construction"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # add the newly constructed nn.Parameter as a graph input
         source = SyntheticLocalSource(varname)
         example_value = torch.nn.Parameter(
+<<<<<<< HEAD
             tx.output.example_value_from_input_node(data.as_proxy().node),
             requires_grad=requires_grad,
+=======
+            tx.output.example_value_from_input_node(data.as_proxy().node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         result = VariableTracker.build(tx, example_value, source)
         # Realize the VT because we will delete the guards on it in the next line.
@@ -1943,7 +2266,11 @@ class DispatchKeySetVariable(BaseTorchVariable):
         return cls(value, source=source)
 
     def is_constant_fold_method(self, name):
+<<<<<<< HEAD
         return name == "has"
+=======
+        return name in ["has"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_method(
         self,
@@ -1986,7 +2313,11 @@ class FuncTorchInterpreterVariable(BaseTorchVariable):
             return variables.EnumVariable(self.value.key())
         elif name == "process":
             return tx.inline_user_function_return(
+<<<<<<< HEAD
                 VariableTracker.build(tx, self.value.process.__func__),
+=======
+                variables.UserFunctionVariable(self.value.process.__func__),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 [self] + args,
                 kwargs,
             )

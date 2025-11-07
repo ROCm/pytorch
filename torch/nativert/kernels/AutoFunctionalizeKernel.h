@@ -4,8 +4,13 @@
 #include <ATen/core/function_schema.h>
 #include <c10/core/Device.h>
 
+<<<<<<< HEAD
 #include <torch/nativert/executor/ExecutionFrame.h>
 #include <torch/nativert/executor/OpKernel.h>
+=======
+#include <torch/nativert/executor/ExecutionFrame.h> // @manual
+#include <torch/nativert/executor/OpKernel.h> // @manual
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::nativert {
 

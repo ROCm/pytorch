@@ -514,8 +514,13 @@ class TestSubgraphRewriter(JitTestCase):
         symbolic_traced: torch.fx.GraphModule = symbolic_trace(module)
         for n, m in zip(symbolic_traced.graph.nodes, graph.nodes):
             if n.op == "placeholder":
+<<<<<<< HEAD
                 assert n.type is int
                 assert m.type is int
+=======
+                assert n.type == int
+                assert m.type == int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_subgraph_rewriter_replace_consecutive_submodules(self):
         def f(x):

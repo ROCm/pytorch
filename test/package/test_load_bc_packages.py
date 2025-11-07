@@ -17,7 +17,11 @@ packaging_directory = f"{Path(__file__).parent}/package_bc"
 
 
 class TestLoadBCPackages(PackageTestCase):
+<<<<<<< HEAD
     """Tests for checking loading has backwards compatibility"""
+=======
+    """Tests for checking loading has backwards compatiblity"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIf(
         IS_FBCODE or IS_SANDCASTLE,

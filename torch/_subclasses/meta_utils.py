@@ -5,23 +5,38 @@ import dataclasses
 import functools
 import threading
 import typing
+<<<<<<< HEAD
+=======
+import warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import weakref
 from abc import abstractmethod
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
 from typing import (
     Any,
+<<<<<<< HEAD
+=======
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ClassVar,
     Generic,
     NewType,
     Optional,
     Protocol,
     TYPE_CHECKING,
+<<<<<<< HEAD
     TypeGuard,
     TypeVar,
     Union,
 )
 from typing_extensions import override, TypedDict, TypeIs, Unpack
+=======
+    TypeVar,
+    Union,
+)
+from typing_extensions import override, TypedDict, TypeGuard, TypeIs, Unpack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._C._autograd import CreationMeta
@@ -46,7 +61,11 @@ from torch.utils.weak import WeakIdKeyDictionary
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Generator
+=======
+    from collections.abc import Generator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from torch._C._functorch import CInterpreter
     from torch._guards import Source
@@ -80,8 +99,13 @@ def safe_is_leaf(t: Union[MetaTensorDesc, torch.Tensor]) -> bool:
 
 
 def safe_grad(t: _TensorLikeT) -> Optional[_TensorLikeT]:
+<<<<<<< HEAD
     with torch._logging.hide_warnings(torch._logging._internal.safe_grad_filter):
         # pyrefly: ignore [bad-return]
+=======
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "The .grad attribute of a Tensor")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return t.grad
 
 
@@ -356,9 +380,13 @@ class MetaTensorDescriber:
 
         maybe_functorch_stack = None
         if is_functorch_wrapped:
+<<<<<<< HEAD
             with (
                 torch._functorch.pyfunctorch.temporarily_clear_interpreter_stack()
             ) as maybe_functorch_stack:
+=======
+            with torch._functorch.pyfunctorch.temporarily_clear_interpreter_stack() as maybe_functorch_stack:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 pass
 
         attrs = None
@@ -416,10 +444,15 @@ class MetaTensorDescriber:
             device=t.device,
             size=t.size(),
             stride=stride,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             storage_offset=storage_offset,
             dynamo_dynamic_indices=list(getattr(t, "_dynamo_dynamic_indices", set())),
             dynamo_hint_overrides=getattr(t, "_dynamo_hint_overrides", {}),
+=======
+            storage_offset=storage_offset,
+            dynamo_dynamic_indices=list(getattr(t, "_dynamo_dynamic_indices", set())),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sparse_dim=(
                 t.sparse_dim() if t.is_sparse or is_sparse_compressed(t) else None
             ),
@@ -520,7 +553,12 @@ class ViewFunc(Generic[_TensorT]):
         new_base: _TensorT,
         symint_visitor_fn: Optional[Callable[[int], int]] = None,
         tensor_visitor_fn: Optional[Callable[[torch.Tensor], _TensorT]] = None,
+<<<<<<< HEAD
     ) -> _TensorT: ...
+=======
+    ) -> _TensorT:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def from_tensor(t: torch.Tensor) -> ViewFunc:
@@ -541,11 +579,15 @@ class _FakeTensorViewFunc(ViewFunc["FakeTensor"]):
         tensor_visitor_fn: Optional[Callable[[torch.Tensor], FakeTensor]] = None,
     ) -> FakeTensor:
         return torch._subclasses.fake_tensor.FakeTensor._view_func_unsafe(
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             t,
             new_base,
             symint_visitor_fn,
             tensor_visitor_fn,
+=======
+            t, new_base, symint_visitor_fn, tensor_visitor_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -580,7 +622,12 @@ class _CustomViewFunc(ViewFunc[_TensorT], Generic[_TensorT]):
 class _MetaTensorCallback(Protocol, Generic[_TensorT_cov]):
     def __call__(
         self, arg: Callable[[], torch.Tensor], /, *, device: Union[torch.device, str]
+<<<<<<< HEAD
     ) -> _TensorT_cov: ...
+=======
+    ) -> _TensorT_cov:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _MetaTensorCallbackKwargs(TypedDict, total=False):
@@ -597,7 +644,12 @@ class _MetaTensorCallbackOptDevice(Protocol, Generic[_TensorT_cov]):
         arg: Callable[[], torch.Tensor],
         /,
         **kwargs: Unpack[_MetaTensorCallbackKwargs],
+<<<<<<< HEAD
     ) -> _TensorT_cov: ...
+=======
+    ) -> _TensorT_cov:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass(frozen=True)
@@ -621,7 +673,10 @@ class MetaTensorDesc(Generic[_TensorT]):
     # defined on NJT
     size: tuple[int, ...]
     dynamo_dynamic_indices: list[int]
+<<<<<<< HEAD
     dynamo_hint_overrides: dict[int, int]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     layout: torch.layout = torch.strided
     is_inference: bool = False
@@ -790,9 +845,15 @@ class MetaConverter(Generic[_TensorT]):
         ] = weakref.WeakValueDictionary()
         # Maps MetaTensorId to torch.Tensor (typically a meta tensor or
         # FakeTensor)
+<<<<<<< HEAD
         self.tensor_memo: weakref.WeakValueDictionary[MetaTensorId, _TensorT] = (
             weakref.WeakValueDictionary()
         )
+=======
+        self.tensor_memo: weakref.WeakValueDictionary[
+            MetaTensorId, _TensorT
+        ] = weakref.WeakValueDictionary()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.hit = 0
         self.miss = 0
         self.del_hook = None
@@ -893,6 +954,7 @@ class MetaConverter(Generic[_TensorT]):
                 f"__meta_utils_unknown_tensor{len(self.tensor_memo)}"
             )
 
+<<<<<<< HEAD
         msg = (
             " This indicates you set no_dispatch() before calling into this"
             " function.  This is an error: we may be creating fake tensors and"
@@ -902,6 +964,15 @@ class MetaConverter(Generic[_TensorT]):
         assert not torch._C._dispatch_tls_local_exclude_set().has(
             torch._C.DispatchKey.Python
         ), msg
+=======
+        # This indicates you set no_dispatch() before calling into this
+        # function.  This is an error: we may be creating fake tensors and
+        # will perform operations on them which need fake tensor mode to
+        # be active.  You will segfault if you are in a no_dispatch() block.
+        assert not torch._C._dispatch_tls_local_exclude_set().has(
+            torch._C.DispatchKey.Python
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.arg_cnt += 1
 
         # When we make as_strided calls, we end up generating a guard
@@ -966,7 +1037,10 @@ class MetaConverter(Generic[_TensorT]):
                         [d in t.dynamo_dynamic_indices for d in range(t.ndim)],
                         src,
                         symbolic_context=symbolic_context,
+<<<<<<< HEAD
                         hint_overrides=t.dynamo_hint_overrides,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
             else:
                 return (t.size, t.stride, t.storage_offset)
@@ -1019,7 +1093,10 @@ class MetaConverter(Generic[_TensorT]):
             # Morally, the code here is same as transform_subclass, but we've
             # written it from scratch to read EmptyCreateSubclass
             outer_size = outer_size if outer_size is not None else t.size
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outer_stride = outer_stride if outer_stride is not None else t.stride
 
             assert symbolic_context is None or isinstance(
@@ -1276,7 +1353,10 @@ class MetaConverter(Generic[_TensorT]):
                 ) -> torch.Tensor:
                     # It's possible to close over an undefined tensor (e.g. NJT's lengths).
                     if visited_t is None:
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         return None
 
                     # NB: visited_t being a Tensor here is very naughty!  Should
@@ -1284,7 +1364,11 @@ class MetaConverter(Generic[_TensorT]):
 
                     # Fake inner tensors of view subclasses will come from the mapping built above.
                     visited_id = self.describer.get_tensor_id(visited_t)
+<<<<<<< HEAD
                     fake_visited_t = real_to_fake_mapping.get(visited_id)
+=======
+                    fake_visited_t = real_to_fake_mapping.get(visited_id, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if fake_visited_t is not None:
                         return fake_visited_t
 
@@ -1407,7 +1491,10 @@ class MetaConverter(Generic[_TensorT]):
                     if t.requires_grad:
                         r.requires_grad = True
                     if t.requires_grad and not is_leaf:
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         r = self._backward_error(r)
                 elif t.is_nested and not t.is_traceable_wrapper_subclass:
                     # TODO: Handle this better in Dynamo?
@@ -1446,7 +1533,10 @@ class MetaConverter(Generic[_TensorT]):
                     if t.requires_grad:
                         r.requires_grad = True
                     if t.requires_grad and not is_leaf:
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         r = self._backward_error(r)
                 elif t.is_functorch_wrapped:
                     if t.is_view:
@@ -1543,7 +1633,10 @@ class MetaConverter(Generic[_TensorT]):
                                     )
                                     assert t.data is not None
                                     _safe_copy(r.real_tensor, t.data)  # type: ignore[attr-defined]
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         return r
 
                     r = _to_fake_tensor(t)
@@ -1657,7 +1750,11 @@ class MetaConverter(Generic[_TensorT]):
                                 with torch.enable_grad():
                                     r = view_from_base(base, t)
 
+<<<<<<< HEAD
                                 # NB: We don't actually faithfully replicate
+=======
+                                # NB: We don't actaully faithfully replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 # autograd connectivity, but that doesn't matter
                                 # today. See following for more info:
                                 # https://gist.github.com/soulitzer/e03f015b314c3f5fcf80888c69390913
@@ -1683,8 +1780,11 @@ class MetaConverter(Generic[_TensorT]):
                             torch._C.DispatchKey.ADInplaceOrView, old_exclude
                         )
 
+<<<<<<< HEAD
                     r.fake_device = t.device  # type: ignore[attr-defined]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     is_leaf = t.is_leaf
 
@@ -1693,7 +1793,10 @@ class MetaConverter(Generic[_TensorT]):
                         not (t.is_batchedtensor or t.is_gradtrackingtensor)
                         and t.is_functorch_wrapped
                     ) or t.is_legacy_batchedtensor:
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         return NotImplemented
 
                     (
@@ -1740,7 +1843,10 @@ class MetaConverter(Generic[_TensorT]):
                             # the metadata of the inner tensor.
                             # So instead, we now have a dedicated fn to set autograd history,
                             # without inadvertently changing other metadata.
+<<<<<<< HEAD
                             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             r = self._backward_error(r)
 
                     s = t.storage
@@ -1789,9 +1895,15 @@ class MetaConverter(Generic[_TensorT]):
                         # subclasses.  Relevant test is
                         # DynamicShapesFunctionTests::test_add_dynamic_shapes in
                         # test/dynamo/test_dynamic_shapes.py
+<<<<<<< HEAD
                         maybe_fake_mgr: AbstractContextManager[None] = (
                             contextlib.nullcontext()
                         )
+=======
+                        maybe_fake_mgr: AbstractContextManager[
+                            None
+                        ] = contextlib.nullcontext()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         from torch._subclasses.fake_tensor import (
                             in_kernel_invocation_manager,
                             maybe_get_fake_mode,
@@ -1820,7 +1932,10 @@ class MetaConverter(Generic[_TensorT]):
 
                     # TODO: Use a valid grad-specific symbolic context instead of recycling
                     # the one from t. This isn't correct if e.g. t._is_view() != t.grad._is_view().
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     r.grad = self.meta_tensor(
                         t.grad,
                         shape_env,
@@ -1828,15 +1943,22 @@ class MetaConverter(Generic[_TensorT]):
                         AttrSource(source, "grad"),
                         symbolic_context,
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
                 torch._C._set_conj(r, t.is_conj)
                 # pyrefly: ignore [unbound-name]
+=======
+                torch._C._set_conj(r, t.is_conj)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._C._set_neg(r, t.is_neg)
             # This can be skipped if necessary for performance reasons
             skip_leaf = (
                 t.is_gradtrackingtensor and t.level == GRAD_TENSOR_SENTINEL_VALUE
             )
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert_metadata_eq(assert_eq, t, r, skip_symbolic=True, skip_leaf=skip_leaf)
             # Thanks to storage resizing, it's possible to end up with a tensor
             # that advertises a real size, but has a storage that actually has zero bytes.
@@ -1844,23 +1966,36 @@ class MetaConverter(Generic[_TensorT]):
             from torch.fx.experimental.symbolic_shapes import guard_or_false
 
             if t.storage is not None and guard_or_false(t.storage.size == 0):
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
                 r.untyped_storage().resize_(0)
 
             if t.is_parameter:
                 # pyrefly: ignore [unbound-name]
+=======
+                r.untyped_storage().resize_(0)
+
+            if t.is_parameter:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 r._is_param = True
 
             # See Note: [Creating symbolic nested int]
             if t.nested_int is not None:
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
                 assert _is_fake_tensor(r)
                 # pyrefly: ignore [unbound-name]
+=======
+                assert _is_fake_tensor(r)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 r.nested_int_memo = r.fake_mode.create_symbolic_nested_int(
                     nt_tensor_id=t.nested_int
                 )
 
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.set_tensor_memo(t, r)
 
         return self._checked_get_tensor_memo(t)
@@ -1904,13 +2039,19 @@ class MetaConverter(Generic[_TensorT]):
                 (t._is_view() and t._base is not None and t._base.is_sparse)
             ):
                 self.miss += 1
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return NotImplemented
             else:
                 self.hit += 1
         elif torch.overrides.is_tensor_like(t):
             self.miss += 1
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return NotImplemented
         else:
             # non-Tensor types don't count as hit or miss

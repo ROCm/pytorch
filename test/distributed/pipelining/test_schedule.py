@@ -8,15 +8,23 @@ import os
 from model_registry import MultiMLP
 
 import torch
+<<<<<<< HEAD
 from torch._dynamo import OptimizedModule
 from torch.distributed.pipelining import (
     Schedule1F1B,
     ScheduleDualPipeV,
+=======
+from torch.distributed.pipelining import (
+    Schedule1F1B,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ScheduleGPipe,
     ScheduleInterleaved1F1B,
     ScheduleInterleavedZeroBubble,
     ScheduleLoopedBFS,
+<<<<<<< HEAD
     ScheduleZBVZeroBubble,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.distributed.pipelining._utils import generate_stage_to_rank_mapping
 from torch.distributed.pipelining.schedules import (
@@ -41,7 +49,11 @@ from torch.distributed.pipelining.schedules import (
     W,
 )
 from torch.distributed.pipelining.stage import _PipelineStageBase, PipelineStage
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import requires_accelerator_dist_backend
+=======
+from torch.testing._internal.common_distributed import requires_nccl
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     check_leaked_tensors,
     instantiate_parametrized_tests,
@@ -54,7 +66,10 @@ from torch.testing._internal.distributed.fake_pg import FakeStore
 
 ARTIFACTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts")
 
+<<<<<<< HEAD
 device = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 logger = logging.getLogger(__name__)
 torch.manual_seed(0)
 
@@ -66,7 +81,11 @@ class MockPipelineStage(_PipelineStageBase):
         self.num_stages = kwargs.get("num_stages", 1)
         self.group_size = kwargs.get("group_size", 1)
         self.group_rank = kwargs.get("group_rank", 0)
+<<<<<<< HEAD
         self.group = kwargs.get("group")
+=======
+        self.group = kwargs.get("group", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _create_grad_recv_info(self, *args, **kwargs):
         return None
@@ -203,6 +222,7 @@ class ScheduleTest(TestCase):
 
         torch.distributed.destroy_process_group()
 
+<<<<<<< HEAD
     @parametrize(
         "ScheduleClass",
         [
@@ -268,6 +288,9 @@ class ScheduleTest(TestCase):
         ],
     )
     def test_zero_bubble_schedule_errors_with_compile(self, ScheduleClass):
+=======
+    def test_zero_bubble_schedule_errors_with_compile(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Test that zero bubble schedules raise an error when used with torch.compile.
         """
@@ -280,18 +303,28 @@ class ScheduleTest(TestCase):
         model = MultiMLP(8, n_layers=n_stages)
         # full_mod
         compiled_model = torch.compile(model)
+<<<<<<< HEAD
         self.assertTrue(isinstance(compiled_model, OptimizedModule))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stage = PipelineStage(
             compiled_model,
             0,
             n_stages,
             device,
         )
+<<<<<<< HEAD
         try:
             with self.assertRaises(RuntimeError):
                 ScheduleClass([stage], 2)
         finally:
             torch.distributed.destroy_process_group()
+=======
+        with self.assertRaises(RuntimeError):
+            ScheduleInterleavedZeroBubble([stage], 2)
+
+        torch.distributed.destroy_process_group()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 instantiate_parametrized_tests(ScheduleTest)
@@ -418,6 +451,7 @@ class TestSchedulePlan(TestCase):
                     num_stages=num_stages,
                 )
 
+<<<<<<< HEAD
     @parametrize(
         "ScheduleClass",
         [ScheduleDualPipeV, ScheduleZBVZeroBubble],
@@ -459,10 +493,13 @@ class TestSchedulePlan(TestCase):
                     schedule.pipeline_order, group_size, num_stages, num_microbatches
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestSchedulePlan)
 
 
+<<<<<<< HEAD
 class TestScheduleCsv(TestCase):
     @parametrize(
         "ScheduleClass,csv_name",
@@ -503,6 +540,8 @@ class TestScheduleCsv(TestCase):
 instantiate_parametrized_tests(TestScheduleCsv)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestScheduleLowering(TestCase):
     """Tests lowering passes that convert simple compute-only (FBW) schedules into compute+comms schedules"""
 
@@ -536,6 +575,7 @@ class TestScheduleLowering(TestCase):
                 "compute": ["0F0", "0F1", "   ", "0B0", "0B1"],
                 "comms": ["0UNSHARD", "0F0", "0F1", "0B0", "0B1", "0RESHARD"],
             },
+<<<<<<< HEAD
             {
                 "compute": ["0F0", "0F1", "1F0", "1F1", "1B0", "1B1", "0B0", "0B1"],
                 "comms": [
@@ -553,6 +593,8 @@ class TestScheduleLowering(TestCase):
                     "0RESHARD",
                 ],
             },
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
     )
     def test_unshard_reshard(self, test_info):
@@ -825,7 +867,11 @@ class TestScheduleLowering(TestCase):
         # print(_format_pipeline_order(simulated_schedule))
         self.assertEqual(num_steps, 113)
 
+<<<<<<< HEAD
     @requires_accelerator_dist_backend(["nccl", "xccl"])
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_grad_with_v_schedule(self):
         """
         We have a special case for V schedules where 2 adjacent stages are on the same rank.
@@ -845,6 +891,10 @@ class TestScheduleLowering(TestCase):
         d_hid = 512
         batch_size = 256
         n_stages = 2
+<<<<<<< HEAD
+=======
+        device = "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         full_mod = MultiMLP(d_hid, n_layers=n_stages)
         full_mod.to(device)
 
@@ -888,7 +938,11 @@ class TestScheduleLowering(TestCase):
             loss_fn=loss_fn,
             scale_grads=False,
         )
+<<<<<<< HEAD
         schedule._prepare_schedule_with_comms(
+=======
+        schedule._load_actions(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {
                 0: self._parse_actions(
                     [
@@ -943,7 +997,11 @@ class TestScheduleLowering(TestCase):
 
         torch.distributed.destroy_process_group()
 
+<<<<<<< HEAD
     @requires_accelerator_dist_backend(["nccl", "xccl"])
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_grad_with_split_b_w(self):
         """
         Ensure that separate dInput and dWeight computations are correctly executed.
@@ -956,6 +1014,10 @@ class TestScheduleLowering(TestCase):
         d_hid = 512
         batch_size = 256
         n_stages = 1
+<<<<<<< HEAD
+=======
+        device = "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         full_mod = MultiMLP(d_hid, n_layers=n_stages)
         full_mod.to(device)
 
@@ -997,9 +1059,14 @@ class TestScheduleLowering(TestCase):
             stages,
             num_microbatches,
             loss_fn=loss_fn,
+<<<<<<< HEAD
             scale_grads=False,
         )
         schedule._prepare_schedule_with_comms(
+=======
+        )
+        schedule._load_actions(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {
                 0: self._parse_actions(
                     [

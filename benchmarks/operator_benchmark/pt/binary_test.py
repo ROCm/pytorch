@@ -25,7 +25,11 @@ binary_configs_broadcast = op_bench.config_list(
     ],
     cross_product_configs={
         "device": ["cpu"],
+<<<<<<< HEAD
         "dtype": [torch.float, torch.bfloat16, torch.float64],
+=======
+        "dtype": [torch.float],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     },
     tags=["short"],
 )
@@ -56,9 +60,12 @@ binary_ops_list = op_bench.op_list(
         ["sub", torch.sub],
         ["div", torch.div],
         ["mul", torch.mul],
+<<<<<<< HEAD
         ["asr", torch.bitwise_right_shift],
         ["lsl", torch.bitwise_left_shift],
         ["xor", torch.bitwise_xor],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ],
 )
 
@@ -71,8 +78,13 @@ binary_short_configs = op_bench.config_list(
     ],
     cross_product_configs={
         "device": ["cpu", "cuda"],
+<<<<<<< HEAD
         "dtype_one": [torch.int32, torch.uint8],
         "dtype_two": [torch.int32, torch.uint8],
+=======
+        "dtype_one": [torch.int32],
+        "dtype_two": [torch.int32],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     },
     tags=["short"],
 )
@@ -82,8 +94,13 @@ binary_long_configs = op_bench.cross_product_configs(
     N=[32, 64],
     K=[256, 512],
     device=["cpu", "cuda"],
+<<<<<<< HEAD
     dtype_one=[torch.int8, torch.int32, torch.uint8],
     dtype_two=[torch.int8, torch.int32, torch.uint8],
+=======
+    dtype_one=[torch.int8, torch.int32],
+    dtype_two=[torch.int8, torch.int32],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tags=["long"],
 )
 

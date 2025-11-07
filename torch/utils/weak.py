@@ -3,6 +3,11 @@ from __future__ import annotations
 
 import collections.abc as _collections_abc
 import weakref
+<<<<<<< HEAD
+=======
+
+from _weakrefset import _IterationGuard  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Mapping, MutableMapping
 from weakref import ref
 
@@ -20,6 +25,7 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 # TODO: make weakref properly thread safe following
 # https://github.com/python/cpython/pull/125325
 class _IterationGuard:
@@ -47,6 +53,8 @@ class _IterationGuard:
                 w._commit_removals()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This file defines a variant of WeakKeyDictionary that overrides the hashing
 # behavior of the key to use object identity, rather than the builtin
 # __eq__/__hash__ functions.  This is useful for Tensor weak keys, as their
@@ -292,10 +300,15 @@ class WeakIdKeyDictionary(MutableMapping):
             if o is not None:
                 return o, value
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def pop(self, key, *args):
         self._dirty_len = True
         # pyrefly: ignore [not-iterable]
+=======
+    def pop(self, key, *args):
+        self._dirty_len = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.data.pop(self.ref_type(key), *args)  # CHANGED
 
     def setdefault(self, key, default=None):
@@ -310,7 +323,11 @@ class WeakIdKeyDictionary(MutableMapping):
                 dict = type({})(dict)
             for key, value in dict.items():
                 d[self.ref_type(key, self._remove)] = value  # CHANGED
+<<<<<<< HEAD
         if kwargs:
+=======
+        if len(kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.update(kwargs)
 
     def __ior__(self, other):
@@ -352,16 +369,24 @@ class TensorWeakRef:
     ref: WeakRef[Tensor]
 
     def __init__(self, tensor: Tensor):
+<<<<<<< HEAD
         if not isinstance(tensor, Tensor):
             raise AssertionError(f"expected torch.Tensor, got {type(tensor)}.")
+=======
+        assert isinstance(tensor, Tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ref = weakref.ref(tensor)
 
     def __call__(self):
         out = self.ref()
         if out is None:
             return out
+<<<<<<< HEAD
         if not isinstance(out, Tensor):
             raise AssertionError(f"expected torch.Tensor, got {type(out)}.")
+=======
+        assert isinstance(out, Tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO, add _fix_weakref type binding
         out._fix_weakref()  # type: ignore[attr-defined]
         return out

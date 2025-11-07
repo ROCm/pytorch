@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import TypeAlias, Union
+=======
+from typing import Callable, Union
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:

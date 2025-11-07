@@ -179,11 +179,15 @@ class ParametrizationList(ModuleList):
 
         # Register the tensor(s)
         if self.is_tensor:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if original.dtype != new.dtype:
                 raise ValueError(
                     "When `right_inverse` outputs one tensor, it may not change the dtype.\n"
                     f"original.dtype: {original.dtype}\n"
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
                     f"right_inverse(original).dtype: {new.dtype}"
                 )
@@ -201,6 +205,13 @@ class ParametrizationList(ModuleList):
             # manually in the optimiser
             with torch.no_grad():
                 # pyrefly: ignore [bad-argument-type]
+=======
+                    f"right_inverse(original).dtype: {new.dtype}"
+                )
+            # Set the original to original so that the user does not need to re-register the parameter
+            # manually in the optimiser
+            with torch.no_grad():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _maybe_set(original, new)
             _register_parameter_or_buffer(self, "original", original)
         else:
@@ -401,7 +412,10 @@ def _inject_property(module: Module, tensor_name: str) -> None:
         if torch.jit.is_scripting():
             raise RuntimeError("Parametrization is not working with scripting.")
         parametrization = self.parametrizations[tensor_name]
+<<<<<<< HEAD
         # pyrefly: ignore [redundant-condition]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if _cache_enabled:
             if torch.jit.is_scripting():
                 # Scripting
@@ -701,7 +715,10 @@ def remove_parametrizations(
     # Fetch the original tensor
     assert isinstance(module.parametrizations, ModuleDict)  # Make mypy happy
     parametrizations = module.parametrizations[tensor_name]
+<<<<<<< HEAD
     # pyrefly: ignore [invalid-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if parametrizations.is_tensor:
         original = parametrizations.original
         assert isinstance(original, torch.Tensor), "is_tensor promised us a Tensor"

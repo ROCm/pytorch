@@ -134,7 +134,13 @@ Example::
     >>> torch.special.digamma(a)
     tensor([-0.5772, -1.9635])
 
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 gammaln = _add_docstr(
@@ -160,7 +166,13 @@ Example::
     >>> torch.special.gammaln(a)
     tensor([ 0.5724,  0.0000, -0.1208])
 
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 polygamma = _add_docstr(
@@ -196,7 +208,13 @@ Example::
     tensor([ 6.4939, 97.4091])
     >>> torch.special.polygamma(4, a)
     tensor([ -24.8863, -771.4742])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 erf = _add_docstr(
@@ -220,7 +238,13 @@ Example::
 
     >>> torch.special.erf(torch.tensor([0, -1., 10.]))
     tensor([ 0.0000, -0.8427,  1.0000])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 erfc = _add_docstr(
@@ -245,7 +269,13 @@ Example::
 
     >>> torch.special.erfc(torch.tensor([0, -1., 10.]))
     tensor([ 1.0000, 1.8427,  0.0000])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 erfcx = _add_docstr(
@@ -273,7 +303,13 @@ Example::
 
     >>> torch.special.erfcx(torch.tensor([0, -1., 10.]))
     tensor([ 1.0000, 5.0090, 0.0561])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 erfinv = _add_docstr(
@@ -299,7 +335,13 @@ Example::
 
     >>> torch.special.erfinv(torch.tensor([0, 0.5, -1.]))
     tensor([ 0.0000,  0.4769,    -inf])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 logit = _add_docstr(
@@ -337,7 +379,13 @@ Example::
     tensor([0.2796, 0.9331, 0.6486, 0.1523, 0.6516])
     >>> torch.special.logit(a, eps=1e-6)
     tensor([-0.9466,  2.6352,  0.6131, -1.7169,  0.6261])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 logsumexp = _add_docstr(
@@ -346,7 +394,13 @@ logsumexp = _add_docstr(
 logsumexp(input, dim, keepdim=False, *, out=None)
 
 Alias for :func:`torch.logsumexp`.
+<<<<<<< HEAD
 """.format(**multi_dim_common),
+=======
+""".format(
+        **multi_dim_common
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 expit = _add_docstr(
@@ -373,7 +427,13 @@ Example::
     tensor([ 0.9213,  1.0887, -0.8858, -1.7683])
     >>> torch.special.expit(t)
     tensor([ 0.7153,  0.7481,  0.2920,  0.1458])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 exp2 = _add_docstr(
@@ -398,7 +458,13 @@ Example::
 
     >>> torch.special.exp2(torch.tensor([0, math.log2(2.), 3, 4]))
     tensor([ 1.,  2.,  8., 16.])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 expm1 = _add_docstr(
@@ -426,7 +492,13 @@ Example::
 
     >>> torch.special.expm1(torch.tensor([0, math.log(2.)]))
     tensor([ 0.,  1.])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 xlog1py = _add_docstr(
@@ -471,7 +543,13 @@ Example::
     tensor([1.6094, 3.2189, 4.8283])
     >>> torch.special.xlog1py(2, y)
     tensor([2.7726, 2.1972, 1.3863])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 xlogy = _add_docstr(
@@ -516,7 +594,13 @@ Example::
     tensor([1.3863, 2.7726, 4.1589])
     >>> torch.special.xlogy(2, y)
     tensor([2.1972, 1.3863, 0.0000])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 i0 = _add_docstr(
@@ -542,7 +626,13 @@ Example::
     >>> torch.i0(torch.arange(5, dtype=torch.float32))
     tensor([ 1.0000,  1.2661,  2.2796,  4.8808, 11.3019])
 
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 i0e = _add_docstr(
@@ -567,7 +657,13 @@ Example::
 
     >>> torch.special.i0e(torch.arange(5, dtype=torch.float32))
     tensor([1.0000, 0.4658, 0.3085, 0.2430, 0.2070])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 i1 = _add_docstr(
@@ -592,7 +688,13 @@ Example::
 
     >>> torch.special.i1(torch.arange(5, dtype=torch.float32))
     tensor([0.0000, 0.5652, 1.5906, 3.9534, 9.7595])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 i1e = _add_docstr(
@@ -618,7 +720,13 @@ Example::
 
     >>> torch.special.i1e(torch.arange(5, dtype=torch.float32))
     tensor([0.0000, 0.2079, 0.2153, 0.1968, 0.1788])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ndtr = _add_docstr(
@@ -643,7 +751,13 @@ Example::
 
     >>> torch.special.ndtr(torch.tensor([-3., -2, -1, 0, 1, 2, 3]))
     tensor([0.0013, 0.0228, 0.1587, 0.5000, 0.8413, 0.9772, 0.9987])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ndtri = _add_docstr(
@@ -671,7 +785,13 @@ Example::
 
     >>> torch.special.ndtri(torch.tensor([0, 0.25, 0.5, 0.75, 1]))
     tensor([   -inf, -0.6745,  0.0000,  0.6745,     inf])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 log_ndtr = _add_docstr(
@@ -696,7 +816,13 @@ Example::
 
     >>> torch.special.log_ndtr(torch.tensor([-3., -2, -1, 0, 1, 2, 3]))
     tensor([-6.6077 -3.7832 -1.841  -0.6931 -0.1728 -0.023  -0.0014])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 log1p = _add_docstr(
@@ -737,7 +863,13 @@ Example::
     tensor([ 0.2252, -0.2948,  1.0267, -1.1566])
     >>> torch.special.sinc(t)
     tensor([ 0.9186,  0.8631, -0.0259, -0.1300])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 round = _add_docstr(
@@ -842,7 +974,13 @@ Example::
     tensor([1.6449, 0.0823])
     >>> torch.special.zeta(2, torch.tensor([1., 2.]))
     tensor([1.6449, 0.6449])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 multigammaln = _add_docstr(
@@ -879,7 +1017,13 @@ Example::
     >>> torch.special.multigammaln(a, 2)
     tensor([[0.3928, 0.4007, 0.7586],
             [1.0311, 0.3901, 0.5049]])
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 gammainc = _add_docstr(
@@ -928,7 +1072,13 @@ Example::
     >>> b = torch.special.gammainc(a1, a2) + torch.special.gammaincc(a1, a2)
     tensor([1., 1., 1.])
 
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 gammaincc = _add_docstr(
@@ -976,7 +1126,13 @@ Example::
     >>> b = torch.special.gammainc(a1, a2) + torch.special.gammaincc(a1, a2)
     tensor([1., 1., 1.])
 
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 airy_ai = _add_docstr(
@@ -993,7 +1149,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 bessel_j0 = _add_docstr(
@@ -1010,7 +1172,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 bessel_j1 = _add_docstr(
@@ -1027,7 +1195,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 bessel_y0 = _add_docstr(
@@ -1044,7 +1218,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 bessel_y1 = _add_docstr(
@@ -1061,7 +1241,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 chebyshev_polynomial_t = _add_docstr(
@@ -1092,7 +1278,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 chebyshev_polynomial_u = _add_docstr(
@@ -1124,7 +1316,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 chebyshev_polynomial_v = _add_docstr(
@@ -1142,7 +1340,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 chebyshev_polynomial_w = _add_docstr(
@@ -1160,7 +1364,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 hermite_polynomial_h = _add_docstr(
@@ -1186,7 +1396,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 hermite_polynomial_he = _add_docstr(
@@ -1212,7 +1428,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 laguerre_polynomial_l = _add_docstr(
@@ -1238,7 +1460,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 legendre_polynomial_p = _add_docstr(
@@ -1264,7 +1492,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 modified_bessel_i0 = _add_docstr(
@@ -1281,7 +1515,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 modified_bessel_i1 = _add_docstr(
@@ -1298,7 +1538,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 modified_bessel_k0 = _add_docstr(
@@ -1315,7 +1561,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 modified_bessel_k1 = _add_docstr(
@@ -1332,7 +1584,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 scaled_modified_bessel_k0 = _add_docstr(
@@ -1349,7 +1607,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 scaled_modified_bessel_k1 = _add_docstr(
@@ -1366,7 +1630,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 shifted_chebyshev_polynomial_t = _add_docstr(
@@ -1384,7 +1654,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 shifted_chebyshev_polynomial_u = _add_docstr(
@@ -1402,7 +1678,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 shifted_chebyshev_polynomial_v = _add_docstr(
@@ -1420,7 +1702,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 shifted_chebyshev_polynomial_w = _add_docstr(
@@ -1438,7 +1726,13 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 spherical_bessel_j0 = _add_docstr(
@@ -1455,5 +1749,11 @@ Args:
 
 Keyword args:
     {out}
+<<<<<<< HEAD
 """.format(**common_args),
+=======
+""".format(
+        **common_args
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )

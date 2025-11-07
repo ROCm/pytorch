@@ -40,6 +40,7 @@ from tools.flight_recorder.components.types import types
 
 def main(args: Optional[Sequence[str]] = None) -> None:
     config = JobConfig()
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
     args = config.parse_args(args)
     # pyrefly: ignore [missing-attribute]
@@ -51,6 +52,13 @@ def main(args: Optional[Sequence[str]] = None) -> None:
     # pyrefly: ignore [missing-attribute]
     if args.output:
         # pyrefly: ignore [no-matching-overload]
+=======
+    args = config.parse_args(args)
+    assert args.trace_dir, "Trace directory trace_dir is required"
+    details, version = read_dir(args)
+    db = build_db(details, args, version)
+    if args.output:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with open(args.output, "wb") as f:
             pickle.dump((types, db), f)
 

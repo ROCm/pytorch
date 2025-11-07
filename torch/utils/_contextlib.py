@@ -6,9 +6,13 @@ import functools
 import inspect
 import sys
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, cast, overload, TypeVar
 from typing_extensions import Self
+=======
+from typing import Any, Callable, cast, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Used for annotating the decorator usage of _DecoratorContextManager (e.g.,
@@ -50,7 +54,11 @@ def _wrap_generator(ctx_factory, func):
                         gen.close()
                     raise
 
+<<<<<<< HEAD
                 except BaseException:  # noqa: B036
+=======
+                except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Propagate the exception thrown at us by the caller
                     with ctx_factory():
                         response = gen.throw(*sys.exc_info())
@@ -87,6 +95,7 @@ def context_decorator(ctx, func):
     be a multi-shot context manager that can be directly invoked multiple times)
     or a callable that produces a context manager.
     """
+<<<<<<< HEAD
     if callable(ctx) and hasattr(ctx, "__enter__"):
         raise AssertionError(
             f"Passed in {ctx} is both callable and also a valid context manager "
@@ -95,6 +104,15 @@ def context_decorator(ctx, func):
             "context_decorator(lambda: ctx()); if you intended to pass a context "
             "manager directly, rewrite your call as context_decorator(lambda: ctx)"
         )
+=======
+    assert not (callable(ctx) and hasattr(ctx, "__enter__")), (
+        f"Passed in {ctx} is both callable and also a valid context manager "
+        "(has __enter__), making it ambiguous which interface to use.  If you "
+        "intended to pass a context manager factory, rewrite your call as "
+        "context_decorator(lambda: ctx()); if you intended to pass a context "
+        "manager directly, rewrite your call as context_decorator(lambda: ctx)"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not callable(ctx):
 
@@ -119,7 +137,10 @@ def context_decorator(ctx, func):
 
     @functools.wraps(func)
     def decorate_context(*args, **kwargs):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-context-manager]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with ctx_factory():
             return func(*args, **kwargs)
 
@@ -159,12 +180,16 @@ class _DecoratorContextManager:
 class _NoParamDecoratorContextManager(_DecoratorContextManager):
     """Allow a context manager to be used as a decorator without parentheses."""
 
+<<<<<<< HEAD
     @overload
     def __new__(cls, orig_func: F) -> F: ...  # type: ignore[misc]
     @overload
     def __new__(cls, orig_func: None = None) -> Self: ...
 
     def __new__(cls, orig_func: F | None = None) -> Self | F:  # type: ignore[misc]
+=======
+    def __new__(cls, orig_func=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if orig_func is None:
             return super().__new__(cls)
         return cls()(orig_func)

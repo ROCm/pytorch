@@ -257,7 +257,11 @@ void THPStorage_writeFileRaw(
         at::device(self->device()).dtype(c10::kByte),
         {self->device()});
     cpu_tensor = device_tensor.to(at::kCPU);
+<<<<<<< HEAD
     data = static_cast<uint8_t*>(cpu_tensor.data_ptr());
+=======
+    data = (uint8_t*)cpu_tensor.data_ptr();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (save_size) {
     if (torch::utils::THP_nativeByteOrder() ==
@@ -266,8 +270,13 @@ void THPStorage_writeFileRaw(
     else {
       int64_t nsize{}; // convert big endian cpu to little endian storage
       torch::utils::THP_encodeBuffer(
+<<<<<<< HEAD
           reinterpret_cast<uint8_t*>(&nsize),
           reinterpret_cast<const int64_t*>(&numel),
+=======
+          (uint8_t*)&nsize,
+          (const int64_t*)&numel,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           torch::utils::THPByteOrder::THP_LITTLE_ENDIAN,
           1);
       doWrite(fd, &nsize, sizeof(int64_t));
@@ -279,7 +288,11 @@ void THPStorage_writeFileRaw(
           torch::utils::THPByteOrder::THP_LITTLE_ENDIAN) {
     doWrite(fd, data, size_bytes);
   } else {
+<<<<<<< HEAD
     size_t buffer_size = std::min(numel, static_cast<size_t>(5000));
+=======
+    size_t buffer_size = std::min(numel, (size_t)5000);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<uint8_t> le_buffer;
     le_buffer.resize(buffer_size * element_size);
     for (size_t i = 0; i < numel; i += buffer_size) {
@@ -287,19 +300,31 @@ void THPStorage_writeFileRaw(
       if (element_size == 2) {
         torch::utils::THP_encodeBuffer(
             le_buffer.data(),
+<<<<<<< HEAD
             reinterpret_cast<const int16_t*>(data) + i,
+=======
+            (const int16_t*)data + i,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch::utils::THPByteOrder::THP_LITTLE_ENDIAN,
             to_convert);
       } else if (element_size == 4) {
         torch::utils::THP_encodeBuffer(
             le_buffer.data(),
+<<<<<<< HEAD
             reinterpret_cast<const int32_t*>(data) + i,
+=======
+            (const int32_t*)data + i,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch::utils::THPByteOrder::THP_LITTLE_ENDIAN,
             to_convert);
       } else if (element_size == 8) {
         torch::utils::THP_encodeBuffer(
             le_buffer.data(),
+<<<<<<< HEAD
             reinterpret_cast<const int64_t*>(data) + i,
+=======
+            (const int64_t*)data + i,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch::utils::THPByteOrder::THP_LITTLE_ENDIAN,
             to_convert);
       }
@@ -333,8 +358,12 @@ c10::intrusive_ptr<c10::StorageImpl> THPStorage_readFileRaw(
   if (torch::utils::THP_nativeByteOrder() ==
       torch::utils::THPByteOrder::THP_BIG_ENDIAN) {
     int64_t tsize = size; // convert little endian storage to big endian cpu
+<<<<<<< HEAD
     torch::utils::THP_decodeBuffer(
         &size, reinterpret_cast<const uint8_t*>(&tsize), true, 1);
+=======
+    torch::utils::THP_decodeBuffer(&size, (const uint8_t*)&tsize, true, 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   size_t nbytes = element_size * size;
   if (!storage.defined()) {
@@ -352,14 +381,25 @@ c10::intrusive_ptr<c10::StorageImpl> THPStorage_readFileRaw(
         _storage_nbytes);
   }
 
+<<<<<<< HEAD
   std::string cpu_data;
+=======
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+  std::unique_ptr<char[]> cpu_data;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   uint8_t* data{};
   if (storage->device_type() == at::kCPU) {
     data = static_cast<uint8_t*>(storage->mutable_data());
   } else {
+<<<<<<< HEAD
     cpu_data.resize(nbytes);
     data = reinterpret_cast<uint8_t*>(cpu_data.data());
+=======
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+    cpu_data = std::unique_ptr<char[]>(new char[nbytes]);
+    data = (uint8_t*)cpu_data.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // fast track for bytes and little endian
@@ -368,6 +408,7 @@ c10::intrusive_ptr<c10::StorageImpl> THPStorage_readFileRaw(
           torch::utils::THPByteOrder::THP_LITTLE_ENDIAN) {
     doRead(file, data, storage->nbytes());
   } else {
+<<<<<<< HEAD
     int64_t buffer_size = std::min(size, static_cast<int64_t>(5000));
     std::vector<uint8_t> le_buffer;
     le_buffer.resize(buffer_size * element_size);
@@ -375,10 +416,21 @@ c10::intrusive_ptr<c10::StorageImpl> THPStorage_readFileRaw(
     for (int64_t i = 0; i < size; i += buffer_size) {
       size_t to_convert = std::min(size - i, buffer_size);
       doRead(file, le_buffer.data(), element_size * to_convert);
+=======
+    int64_t buffer_size = std::min(size, (int64_t)5000);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+    std::unique_ptr<uint8_t[]> le_buffer(
+        new uint8_t[buffer_size * element_size]);
+
+    for (int64_t i = 0; i < size; i += buffer_size) {
+      size_t to_convert = std::min(size - i, buffer_size);
+      doRead(file, le_buffer.get(), element_size * to_convert);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
       if (element_size == 2) {
         torch::utils::THP_decodeBuffer(
+<<<<<<< HEAD
             reinterpret_cast<int16_t*>(data) + i,
             le_buffer.data(),
             true,
@@ -395,6 +447,15 @@ c10::intrusive_ptr<c10::StorageImpl> THPStorage_readFileRaw(
             le_buffer.data(),
             true,
             to_convert);
+=======
+            (int16_t*)data + i, le_buffer.get(), true, to_convert);
+      } else if (element_size == 4) {
+        torch::utils::THP_decodeBuffer(
+            (int32_t*)data + i, le_buffer.get(), true, to_convert);
+      } else if (element_size == 8) {
+        torch::utils::THP_decodeBuffer(
+            (int64_t*)data + i, le_buffer.get(), true, to_convert);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }

@@ -57,7 +57,11 @@ void main() {
     // out CxHxW plane.
 
   ivec4 c_index = pos_in_batch / uBlock.in_extents.w;
+<<<<<<< HEAD
     // we divide pos_in_batch by HxW, to compute the channel index
+=======
+    // we devide pos_in_batch by HxW, to compute the channel index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ivec4 pos_in_hw = pos_in_batch % uBlock.in_extents.w;
     // we compute the reminder mod HxW, to find the positions in the flatten

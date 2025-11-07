@@ -16,8 +16,15 @@ from torch.testing._internal.common_quantization import skipIfNoFBGEMM
 from torch.testing._internal.common_quantized import override_quantized_engine
 from torch.testing._internal.common_utils import (
     raise_on_run_directly,
+<<<<<<< HEAD
     set_default_dtype,
     skipCUDAMemoryLeakCheckIf,
+=======
+    NAVI4_ARCH,
+    set_default_dtype,
+    skipCUDAMemoryLeakCheckIf,
+    skipIfRocmArch,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     TEST_WITH_ROCM,
 )
@@ -563,7 +570,11 @@ class TestFreezing(JitTestCase):
         self.assertTrue(mf.hasattr("sub1"))
         self.assertTrue(mf.sub1.hasattr("a"))
         self.assertFalse(mf.sub1.hasattr("b"))
+<<<<<<< HEAD
         # sub2 is fully folded because self.sub1 and self.sub2.sub are not alias (Scripting bug)
+=======
+        # sub2 is fully folded becasue self.sub1 and self.sub2.sub are not alias (Scripting bug)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertFalse(mf.hasattr("sub2"))
         input = torch.randn(2, 2)
         output = m.forward(input)
@@ -2083,9 +2094,15 @@ class TestFrozenOptimizations(JitTestCase):
 
             mod_eager = ConvBN(3, 32, kernel_size=3, stride=2).eval()
             inps = [4, 3, 4]
+<<<<<<< HEAD
             if modules[0] is nn.Conv2d:
                 inps.append(inps[-1])
             if modules[0] is nn.Conv3d:
+=======
+            if modules[0] == nn.Conv2d:
+                inps.append(inps[-1])
+            if modules[0] == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
 
@@ -2224,9 +2241,15 @@ class TestFrozenOptimizations(JitTestCase):
             mod_eager = ConvOp(3, 32, kernel_size=3, stride=2).eval()
 
             inps = [4, 3, 4]
+<<<<<<< HEAD
             if module is nn.Conv2d:
                 inps.append(inps[-1])
             if module is nn.Conv3d:
+=======
+            if module == nn.Conv2d:
+                inps.append(inps[-1])
+            if module == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
 
@@ -2366,10 +2389,17 @@ class TestFrozenOptimizations(JitTestCase):
             mod_eager = LinearBN(32, 32).eval()
 
             inps = [3, 32]
+<<<<<<< HEAD
             if modules[1] is nn.BatchNorm2d:
                 inps.append(inps[-1])
                 inps.append(inps[-1])
             if modules[1] is nn.BatchNorm3d:
+=======
+            if modules[1] == nn.BatchNorm2d:
+                inps.append(inps[-1])
+                inps.append(inps[-1])
+            if modules[1] == nn.BatchNorm3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
                 inps.append(inps[-1])
@@ -2429,6 +2459,7 @@ class TestFrozenOptimizations(JitTestCase):
 
             N, C = 3, bn_in
             input_shape = [N, C]
+<<<<<<< HEAD
             if modules[1] is nn.BatchNorm1d:
                 H = linear_in
                 input_shape.append(H)
@@ -2437,6 +2468,16 @@ class TestFrozenOptimizations(JitTestCase):
                 input_shape.append(H)
                 input_shape.append(W)
             elif modules[1] is nn.BatchNorm3d:
+=======
+            if modules[1] == nn.BatchNorm1d:
+                H = linear_in
+                input_shape.append(H)
+            elif modules[1] == nn.BatchNorm2d:
+                H, W = 4, linear_in
+                input_shape.append(H)
+                input_shape.append(W)
+            elif modules[1] == nn.BatchNorm3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 D, H, W = 4, 4, linear_in
                 input_shape.append(D)
                 input_shape.append(H)
@@ -2504,10 +2545,17 @@ class TestFrozenOptimizations(JitTestCase):
             mod_eager = LinearBN(32, 32).cuda().eval()
 
             inps = [3, 32]
+<<<<<<< HEAD
             if modules[1] is nn.BatchNorm2d:
                 inps.append(inps[-1])
                 inps.append(inps[-1])
             if modules[1] is nn.BatchNorm3d:
+=======
+            if modules[1] == nn.BatchNorm2d:
+                inps.append(inps[-1])
+                inps.append(inps[-1])
+            if modules[1] == nn.BatchNorm3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
                 inps.append(inps[-1])
@@ -2757,9 +2805,15 @@ class TestFrozenOptimizations(JitTestCase):
             for module, trace in product([nn.Conv2d, nn.Conv3d], [False, True]):
                 mod = module(3, 32, kernel_size=3, stride=2).eval()
                 inps = [4, 3, 4]
+<<<<<<< HEAD
                 if module is nn.Conv2d:
                     inps.append(inps[-1])
                 if module is nn.Conv3d:
+=======
+                if module == nn.Conv2d:
+                    inps.append(inps[-1])
+                if module == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     inps.append(inps[-1])
                     inps.append(inps[-1])
 
@@ -2967,6 +3021,10 @@ class TestFrozenOptimizations(JitTestCase):
             self.assertEqual(frozen(inp), mod(inp))
 
     @unittest.skipIf(not (TEST_CUDNN or TEST_WITH_ROCM), "requires CUDNN")
+<<<<<<< HEAD
+=======
+    @skipIfRocmArch(NAVI4_ARCH)  # not supported by MIOPEN on NAVI4x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_freeze_conv_relu_fusion(self):
         with set_default_dtype(torch.float):
             conv_bias = [True, False]
@@ -2997,7 +3055,11 @@ class TestFrozenOptimizations(JitTestCase):
                 mod_eager = Net(3, 6, kernel_size=3, stride=2).eval().cuda()
 
                 inps = [5, 3, 4, 4]
+<<<<<<< HEAD
                 if conv is nn.Conv3d:
+=======
+                if conv == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     inps.append(inps[-1])
                 inp = torch.rand(inps).cuda()
 
@@ -3029,6 +3091,10 @@ class TestFrozenOptimizations(JitTestCase):
                 self.assertEqual(mod_eager(inp), frozen_mod(inp))
 
     @unittest.skipIf(not (TEST_CUDNN or TEST_WITH_ROCM), "requires CUDNN")
+<<<<<<< HEAD
+=======
+    @skipIfRocmArch(NAVI4_ARCH)  # not supported by MIOPEN on NAVI4x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_freeze_conv_relu_fusion_not_forward(self):
         with set_default_dtype(torch.float):
 

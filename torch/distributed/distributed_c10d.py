@@ -14,9 +14,14 @@ import sys
 import time
 import warnings
 from collections import namedtuple
+<<<<<<< HEAD
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from datetime import timedelta
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -351,6 +356,7 @@ class Backend(str):  # noqa: SLOT000
             # assume default devices "cpu" and "cuda", but warn
             warnings.warn(
                 f"Device capability of {name} unspecified, assuming `cpu` and "
+<<<<<<< HEAD
                 "`cuda` or `xpu`. Please specify it via the `devices` argument of "
                 "`register_backend`.",
                 stacklevel=2,
@@ -358,6 +364,12 @@ class Backend(str):  # noqa: SLOT000
             Backend.backend_capability[name.lower()] = (
                 ["cpu", "cuda", "xpu"] if torch.xpu.is_available() else ["cpu", "cuda"]
             )
+=======
+                "`cuda`. Please specify it via the `devices` argument of "
+                "`register_backend`."
+            )
+            Backend.backend_capability[name.lower()] = ["cpu", "cuda"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(devices, str):
             # Single device string specified. Simply convert to list.
             Backend.backend_capability[name.lower()] = [devices]
@@ -373,7 +385,10 @@ class BackendConfig:
     def __init__(self, backend: Backend):
         """Init."""
         self.device_backend_map: dict[str, Backend] = {}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend = str(backend)
 
         if backend == Backend.UNDEFINED:
@@ -394,7 +409,10 @@ class BackendConfig:
             # e.g. "nccl", "gloo", "ucc", "mpi"
             supported_devices = Backend.backend_capability[backend.lower()]
             backend_val = Backend(backend)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.device_backend_map = dict.fromkeys(supported_devices, backend_val)
         elif ":" in backend.lower():
             # Backend specified in "device:backend" format
@@ -413,7 +431,10 @@ class BackendConfig:
                         f"Invalid device:backend pairing: \
                                      {device_backend_pair_str}. {backend_str_error_message}"
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 device, backend = device_backend_pair
                 if device in self.device_backend_map:
                     raise ValueError(
@@ -428,8 +449,12 @@ class BackendConfig:
             warnings.warn(
                 f"Device capability of {backend} unknown, assuming `cpu` and "
                 "`cuda`. You can specify it in `device:backend` format in "
+<<<<<<< HEAD
                 "`init_process_group` call.",
                 stacklevel=2,
+=======
+                "`init_process_group` call."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             backend_val = Backend(backend)
             self.device_backend_map = {
@@ -753,8 +778,12 @@ def _get_default_timeout(backend: Backend) -> timedelta:
             # TODO moco benchmark on CPU initializes pgnccl backend today, triggered this assert in CI before it was
             # changed to be a warning.  We should fix the moco model.
             warnings.warn(
+<<<<<<< HEAD
                 "Attempted to get default timeout for nccl backend, but NCCL support is not compiled",
                 stacklevel=2,
+=======
+                "Attempted to get default timeout for nccl backend, but NCCL support is not compiled"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return default_pg_timeout
         return default_pg_nccl_timeout
@@ -805,7 +834,10 @@ def _get_object_coll_device(group: Optional[ProcessGroup] = None) -> str:
             f"You are using a Backend {type(group)} as a ProcessGroup. "
             "This usage is deprecated since PyTorch 2.0. Please use a public API "
             "of PyTorch Distributed instead.",
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # Provide backward compatibility to cases where `group` passed in is
         # actually a Backend (like `ProcessGroupGloo`) rather than a
@@ -872,8 +904,12 @@ def _get_pg_default_device(group: Optional[ProcessGroup] = None) -> torch.device
         "backward-compatiblity reason. If you need to find a device for object "
         "collectives, please use `_get_object_coll_device`. If you need to query "
         "the device types supported by group, please use "
+<<<<<<< HEAD
         "`_device_capability(group)`. ",
         stacklevel=2,
+=======
+        "`_device_capability(group)`. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     group = group or _get_default_group()
 
@@ -915,8 +951,12 @@ def _get_pg_default_device(group: Optional[ProcessGroup] = None) -> torch.device
         warnings.warn(
             "Multiple backends are registered with this ProcessGroup. We cannot "
             f"determine which one is the default. Returning {rv}. "
+<<<<<<< HEAD
             "Please consider using other APIs.",
             stacklevel=2,
+=======
+            "Please consider using other APIs."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return rv
 
@@ -978,7 +1018,11 @@ def _store_based_barrier(
         except RuntimeError as e:
             worker_count = store.add(store_key, 0)
             # Print status periodically to keep track.
+<<<<<<< HEAD
             logger.debug(  # noqa: G200
+=======
+            logger.debug(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Waiting in store based barrier to initialize process group for %s seconds"
                 "rank: %s, key: %s (world_size=%s, num_workers_joined=%s, timeout=%s error=%s)",
                 time.time() - start,
@@ -1016,8 +1060,12 @@ def _warn_not_in_group(op_name) -> None:
     global_rank = -1 if GroupMember.WORLD is None else GroupMember.WORLD.rank()
     warnings.warn(
         f"Running {op_name} on global rank {global_rank} which does not "
+<<<<<<< HEAD
         "belong to the given group.",
         stacklevel=2,
+=======
+        "belong to the given group."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -1192,7 +1240,10 @@ def _as_iterable(obj) -> collections.abc.Iterable:
 
 def _ensure_all_tensors_same_dtype(*tensors) -> None:
     last_dtype = None
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for tensor in itertools.chain.from_iterable(map(_as_iterable, tensors)):
         tensor_dtype = tensor.dtype
         # Mixing complex and its element type is allowed
@@ -1265,6 +1316,7 @@ def is_xccl_available() -> bool:
     return _XCCL_AVAILABLE
 
 
+<<<<<<< HEAD
 def _check_single_backend_availability(backend_name: str) -> bool:
     """
     Helper function to check if a single backend is available.
@@ -1277,6 +1329,8 @@ def _check_single_backend_availability(backend_name: str) -> bool:
     return str(backend_name).lower() in Backend.backend_list
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_backend_available(backend: str) -> bool:
     """
     Check backend availability.
@@ -1290,6 +1344,7 @@ def is_backend_available(backend: str) -> bool:
         bool: Returns true if the backend is available otherwise false.
     """
     # If the backend has an ``is_backend_available`` function, return the result of that function directly
+<<<<<<< HEAD
     if ":" in backend.lower():  # composite backend like "cpu:gloo"
         backend_config = BackendConfig(Backend(backend))
         device_backend_map = backend_config.get_device_backend_map()
@@ -1300,6 +1355,13 @@ def is_backend_available(backend: str) -> bool:
     else:
         # Handle simple backend strings like "nccl", "gloo"
         return _check_single_backend_availability(backend)
+=======
+    available_func = getattr(torch.distributed, f"is_{backend.lower()}_available", None)
+    if available_func:
+        return available_func()
+
+    return backend.lower() in Backend.backend_list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_initialized() -> bool:
@@ -1564,9 +1626,13 @@ def _set_pg_timeout(timeout: timedelta, group: Optional[ProcessGroup] = None) ->
         elif is_gloo_available() and isinstance(backend, ProcessGroupGloo):
             backends.add(backend)  # type: ignore[arg-type]
     if len(backends) == 0:
+<<<<<<< HEAD
         warnings.warn(
             "Set timeout is now only supported for either nccl or gloo.", stacklevel=2
         )
+=======
+        warnings.warn("Set timeout is now only supported for either nccl or gloo.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for backend in backends:
         backend._set_default_timeout(timeout)
 
@@ -1583,7 +1649,10 @@ def init_process_group(
     group_name: str = "",
     pg_options: Optional[Any] = None,
     device_id: Optional[Union[torch.device, int]] = None,
+<<<<<<< HEAD
     _ranks: Optional[list[int]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Initialize the default distributed process group.
@@ -1602,12 +1671,20 @@ def init_process_group(
     Args:
         backend (str or Backend, optional): The backend to use. Depending on
             build-time configurations, valid values include ``mpi``, ``gloo``,
+<<<<<<< HEAD
             ``nccl``, ``ucc``, ``xccl`` or one that is registered by a third-party
+=======
+            ``nccl``, ``ucc``, or one that is registered by a third-party
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             plugin.
             Since 2.6, if ``backend`` is not provided, c10d will use a backend
             registered for the device type indicated by the `device_id` kwarg
             (if provided). The known default registrations today are: ``nccl``
+<<<<<<< HEAD
             for ``cuda``, ``gloo`` for ``cpu``, ``xccl`` for ``xpu``.
+=======
+            for ``cuda``, ``gloo`` for ``cpu``.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             If neither ``backend`` nor ``device_id`` is provided, c10d will
             detect the accelerator on the run-time machine and use a backend
             registered for that detected accelerator (or ``cpu``).
@@ -1658,8 +1735,11 @@ def init_process_group(
             want to know NCCL initialization error early, you can also use this
             field. If an `int` is provided, the API assumes that the accelerator
             type at compile time will be used.
+<<<<<<< HEAD
         _ranks: The ranks in the process group. If provided, the process
                group name will be the hash of all the ranks in the group.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note:: To enable ``backend == Backend.MPI``, PyTorch needs to be built from source
         on a system that supports MPI.
@@ -1764,17 +1844,25 @@ def init_process_group(
     internals of c10d. This means we can ignore the value
     they provide as it not exposed in a public way.
     """
+<<<<<<< HEAD
     if _ranks is None or len(_ranks) == 0:
         group_name = _process_group_name([], use_hashed_name=False)
     else:
         group_name = _process_group_name(_ranks, use_hashed_name=True)
+=======
+    group_name = _process_group_name([], use_hashed_name=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if backend == Backend.MPI:
         if world_size != -1 or rank != -1:
             warnings.warn(
                 f"For MPI backend, world_size ({world_size}) and rank ({rank}) "
                 "are ignored since they are assigned by the "
+<<<<<<< HEAD
                 "MPI runtime.",
                 stacklevel=2,
+=======
+                "MPI runtime."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         default_pg, _ = _new_process_group_helper(
@@ -1787,6 +1875,7 @@ def init_process_group(
             timeout=timeout,
             group_desc="default_pg",
         )
+<<<<<<< HEAD
     else:
         # backward compatible API
         if store is None:
@@ -1800,6 +1889,17 @@ def init_process_group(
                 )
                 store, rank, world_size = next(rendezvous_iterator)
                 store.set_timeout(timeout)
+=======
+        _update_default_pg(default_pg)
+    else:
+        # backward compatible API
+        if store is None:
+            rendezvous_iterator = rendezvous(
+                not_none(init_method), rank, world_size, timeout=timeout
+            )
+            store, rank, world_size = next(rendezvous_iterator)
+            store.set_timeout(timeout)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Use a PrefixStore to avoid accidental overrides of keys used by
             # different systems (e.g. RPC) in case the store is multi-tenant.
@@ -1817,8 +1917,12 @@ def init_process_group(
             device_id=device_id,
             group_desc="default_pg",
         )
+<<<<<<< HEAD
 
     _update_default_pg(default_pg)
+=======
+        _update_default_pg(default_pg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _world.pg_group_ranks[GroupMember.WORLD] = {  # type: ignore[index]
         i: i
@@ -1874,7 +1978,10 @@ def _get_split_source(pg):
         split_from = pg._get_backend(pg.bound_device_id)
     elif pg is _world.default_pg:
         try:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             split_from = pg._get_backend(torch.device("cuda"))
         except RuntimeError:
             # no cuda device associated with this backend
@@ -1980,9 +2087,15 @@ def _new_process_group_helper(
     if "," not in str(backend) and ":" not in str(backend):
         assert backend in Backend.backend_type_map, f"Unknown backend type {backend}"
         if backend == Backend.UNDEFINED:
+<<<<<<< HEAD
             # Currently when backend is UNDEFINED, only one backend will be initialized
             # we use nccl (if cuda is available) or gloo as default backend
             # so we can correctly call getDefaultBackend which in ProcessGroup.
+=======
+            # Currently when backend is UNDEFINED, both ``gloo`` and ``nccl`` backends
+            # will be created, we use nccl(if cuda is available) or gloo as default
+            # backend so we can correctly call getDefaultBackend which in ProcessGroup.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if Backend.NCCL in backend_config.get_device_backend_map().values():
                 pg._set_default_backend(ProcessGroup.BackendType.NCCL)
             else:
@@ -2035,11 +2148,15 @@ def _new_process_group_helper(
             if not is_gloo_available():
                 raise RuntimeError("Distributed package doesn't have Gloo built in")
             backend_class = ProcessGroupGloo(
+<<<<<<< HEAD
                 backend_prefix_store,
                 group_rank,
                 group_size,
                 # pyrefly: ignore [bad-argument-type]
                 timeout=timeout,
+=======
+                backend_prefix_store, group_rank, group_size, timeout=timeout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             backend_class.options.global_ranks_in_group = global_ranks_in_group
             backend_class.options.group_name = group_name
@@ -2054,14 +2171,21 @@ def _new_process_group_helper(
                 if backend_options._timeout != timeout:
                     warnings.warn(
                         "backend_options._timeout was specified, "
+<<<<<<< HEAD
                         "but timeout kwarg has a default value that will always override it. ",
                         stacklevel=2,
+=======
+                        "but timeout kwarg has a default value that will always override it. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
             else:
                 # default backend_options for NCCL
                 backend_options = ProcessGroupNCCL.Options()
                 backend_options.is_high_priority_stream = False
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             backend_options._timeout = timeout
 
             if split_from:
@@ -2081,16 +2205,21 @@ def _new_process_group_helper(
             # RuntimeError if is_ucc_available() returns false.
 
             backend_class = ProcessGroupUCC(
+<<<<<<< HEAD
                 backend_prefix_store,
                 group_rank,
                 group_size,
                 # pyrefly: ignore [bad-argument-type]
                 timeout=timeout,
+=======
+                backend_prefix_store, group_rank, group_size, timeout=timeout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             backend_type = ProcessGroup.BackendType.UCC
         elif backend_str == Backend.XCCL:
             if not is_xccl_available():
                 raise RuntimeError("Distributed package doesn't have XCCL built in")
+<<<<<<< HEAD
             backend_options = ProcessGroupXCCL.Options()
             backend_options.global_ranks_in_group = global_ranks_in_group
             backend_options.group_name = group_name
@@ -2098,6 +2227,10 @@ def _new_process_group_helper(
             backend_options._timeout = timeout
             backend_class = ProcessGroupXCCL(
                 backend_prefix_store, group_rank, group_size, backend_options
+=======
+            backend_class = ProcessGroupXCCL(
+                backend_prefix_store, group_rank, group_size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             backend_type = ProcessGroup.BackendType.XCCL
         else:
@@ -2119,7 +2252,10 @@ def _new_process_group_helper(
                 dist_backend_opts.store = backend_prefix_store
                 dist_backend_opts.group_rank = group_rank
                 dist_backend_opts.group_size = group_size
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dist_backend_opts.timeout = timeout
                 dist_backend_opts.group_id = group_name
                 dist_backend_opts.global_ranks_in_group = global_ranks_in_group
@@ -2163,7 +2299,10 @@ def _new_process_group_helper(
                         store=backend_prefix_store,
                         rank=group_rank,
                         world_size=group_size,
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         timeout=timeout,
                     )
 
@@ -2237,7 +2376,11 @@ def destroy_process_group(group: Optional[ProcessGroup] = None):
     # alive until all works and hooks are done. The current implementation does the
     # latter. Therefore, we explicitly call _wait_for_pending_works() here to wait
     # for the pending hooks to finish.
+<<<<<<< HEAD
     if type(pg) is ProcessGroup and pg._has_hooks():
+=======
+    if type(pg) == ProcessGroup and pg._has_hooks():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pg._wait_for_pending_works()
 
     if group is None or group == GroupMember.WORLD:
@@ -2276,8 +2419,12 @@ def destroy_process_group(group: Optional[ProcessGroup] = None):
         if pg in _world.pg_coalesce_state.keys():
             warnings.warn(
                 "Some coalesced collectives haven't been launched when "
+<<<<<<< HEAD
                 "ProcessGroup is destroyed. They will be cleaned.",
                 stacklevel=2,
+=======
+                "ProcessGroup is destroyed. They will be cleaned."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             del _world.pg_coalesce_state[pg]
 
@@ -2367,8 +2514,12 @@ def _abort_process_group(group: Optional[ProcessGroup] = None):
         if pg in _world.pg_coalesce_state.keys():
             warnings.warn(
                 "Some coalesced collectives haven't been launched when "
+<<<<<<< HEAD
                 "ProcessGroup is aborted. They will be cleaned.",
                 stacklevel=2,
+=======
+                "ProcessGroup is aborted. They will be cleaned."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             del _world.pg_coalesce_state[pg]
 
@@ -2819,7 +2970,11 @@ def batch_isend_irecv(p2p_op_list: list[P2POp]) -> list[Work]:
         key = "group_dst" if op.op == isend else "group_src"
         return {key: op.group_peer}
 
+<<<<<<< HEAD
     if type(group) is ProcessGroup and group._get_backend(device).supports_coalescing:
+=======
+    if type(group) == ProcessGroup and group._get_backend(device).supports_coalescing:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NCCL style coalescing
         with _coalescing_manager(group, device, async_ops=True) as cm:
             for p2p_op in p2p_op_list:
@@ -2886,8 +3041,11 @@ def broadcast(
     opts.rootRank = group_src
     opts.rootTensor = 0
     opts.asyncOp = async_op
+<<<<<<< HEAD
     if tensor.is_complex():
         tensor = torch.view_as_real(tensor)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     work = group.broadcast([tensor], opts)
     if async_op:
         return work
@@ -3375,7 +3533,10 @@ def gather_object(
         return
 
     assert object_gather_list is not None, "Must provide object_gather_list on dst rank"
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i, tensor in enumerate(output_tensors):
         tensor = tensor.type(torch.uint8)
         tensor_size = object_size_list[i]
@@ -3389,7 +3550,10 @@ def send_object_list(
     group: Optional[ProcessGroup] = None,
     device: Optional[torch.device] = None,
     group_dst: Optional[int] = None,
+<<<<<<< HEAD
     use_batch: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Sends picklable objects in ``object_list`` synchronously.
@@ -3410,10 +3574,13 @@ def send_object_list(
             ``device`` before sending. Default is ``None``.
         group_dst (int, optional): Destination rank on ``group``.
             Must specify one of ``dst`` and ``group_dst`` but not both
+<<<<<<< HEAD
         use_batch (bool, optional): If True, use batch p2p operations instead of
             regular send operations. This avoids initializing 2-rank communicators and
             uses existing entire group communicators. See batch_isend_irecv for usage and
             assumptions. Default is ``False``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Returns:
         ``None``.
 
@@ -3477,12 +3644,16 @@ def send_object_list(
     object_sizes_tensor = torch.cat(size_list)
 
     # Send object sizes
+<<<<<<< HEAD
     if use_batch:
         batch_isend_irecv(
             [P2POp(isend, object_sizes_tensor, group_peer=group_dst, group=group)]
         ).pop().wait()
     else:
         send(object_sizes_tensor, group_dst=group_dst, group=group)
+=======
+    send(object_sizes_tensor, group_dst=group_dst, group=group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Concatenate and send serialized object tensors
     # Note: torch.cat will do an extra memory copy to the current device, if the tensor_list
@@ -3492,12 +3663,16 @@ def send_object_list(
     else:
         object_tensor = torch.cat(tensor_list)
 
+<<<<<<< HEAD
     if use_batch:
         batch_isend_irecv(
             [P2POp(isend, object_tensor, group_peer=group_dst, group=group)]
         ).pop().wait()
     else:
         send(object_tensor, group_dst=group_dst, group=group)
+=======
+    send(object_tensor, group_dst=group_dst, group=group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -3507,7 +3682,10 @@ def recv_object_list(
     group: Optional[ProcessGroup] = None,
     device: Optional[torch.device] = None,
     group_src: Optional[int] = None,
+<<<<<<< HEAD
     use_batch: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Receives picklable objects in ``object_list`` synchronously.
@@ -3525,10 +3703,13 @@ def recv_object_list(
         device (``torch.device``, optional): If not None, receives on this device.
             Default is ``None``.
         group_src (int, optional): Destination rank on ``group``.  Invalid to specify both ``src`` and ``group_src``.
+<<<<<<< HEAD
         use_batch (bool, optional): If True, use batch p2p operations instead of
             regular send operations. This avoids initializing 2-rank communicators and
             uses existing entire group communicators. See batch_isend_irecv for usage and
             assumptions. Default is ``False``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         Sender rank. -1 if rank is not part of the group. If rank is part of the group,
@@ -3572,10 +3753,13 @@ def recv_object_list(
         >>> objects
         ['foo', 12, {1: 2}]
     """
+<<<<<<< HEAD
     group = _group_or_default_group(group)
     group_src = _canonicalize_group_rank(group, src, group_src)
     _check_not_self_rank(group, group_src, "source")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _rank_not_in_group(group):
         _warn_not_in_group("recv_object_list")
         return -1
@@ -3592,6 +3776,7 @@ def recv_object_list(
     )
 
     # Receive object sizes
+<<<<<<< HEAD
     if use_batch:
         work = batch_isend_irecv(
             [
@@ -3607,6 +3792,9 @@ def recv_object_list(
         rank_sizes = get_global_rank(group, group_src)
     else:
         rank_sizes = recv(object_sizes_tensor, group=group, group_src=group_src)
+=======
+    rank_sizes = recv(object_sizes_tensor, src=src, group=group, group_src=group_src)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Tensor to receive serialized objects into.
     object_tensor = torch.empty(  # type: ignore[call-overload]
@@ -3615,6 +3803,7 @@ def recv_object_list(
         device=current_device,
     )
 
+<<<<<<< HEAD
     if use_batch:
         work = batch_isend_irecv(
             [
@@ -3630,6 +3819,9 @@ def recv_object_list(
         rank_objects = get_global_rank(group, group_src)
     else:
         rank_objects = recv(object_tensor, group=group, group_src=group_src)
+=======
+    rank_objects = recv(object_tensor, src=src, group=group, group_src=group_src)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert rank_sizes == rank_objects, (
         "Mismatch in return ranks for object sizes and objects."
     )
@@ -3752,10 +3944,15 @@ def broadcast_object_list(
     # has only one element, we can skip the copy.
     if my_group_rank == group_src:
         if len(tensor_list) == 1:  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
             object_tensor = tensor_list[0]
         else:
             # pyrefly: ignore [unbound-name]
+=======
+            object_tensor = tensor_list[0]
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             object_tensor = torch.cat(tensor_list)
     else:
         object_tensor = torch.empty(  # type: ignore[call-overload]
@@ -3884,7 +4081,10 @@ def scatter_object_list(
     broadcast(max_tensor_size, group_src=group_src, group=group)
 
     # Scatter actual serialized objects
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     output_tensor = torch.empty(
         max_tensor_size.item(), dtype=torch.uint8, device=pg_device
     )
@@ -4901,11 +5101,14 @@ def barrier(
         None, if not async_op or if not part of the group
 
     .. note:: `ProcessGroupNCCL` now blocks the cpu thread till the completion of the barrier collective.
+<<<<<<< HEAD
     .. note:: `ProcessGroupNCCL` implements barrier as an all_reduce of a 1-element tensor. A device must be chosen
        for allocating this tensor.  The device choice is made by checking in this order (1) the first device passed to
        `device_ids` arg of barrier if not None, (2) the device passed to init_process_group if not None, (3) the device
        that was first used with this process group, if another collective with tensor inputs has been performed, (4)
        the device index indicated by the global rank mod local device count.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     group = group or _get_default_group()
 
@@ -4921,18 +5124,25 @@ def barrier(
     if isinstance(device_ids, list):
         opts.device_ids = device_ids
         # use only the first device id
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         opts.device = torch.device(device.type, device_ids[0])
     elif getattr(group, "bound_device_id", None) is not None:
         # Use device id from `init_process_group(device_id=...)`
         opts.device = group.bound_device_id  # type: ignore[assignment]
     elif device.type == "cpu" or _get_object_coll_device(group) == "cpu":
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         opts.device = torch.device("cpu")
     else:
         # Use the current device set by the user. If user did not set any, this
         # may use default device 0, causing issues like hang or all processes
         # creating context on device 0.
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
         opts.device = device
         if group.rank() == 0:
@@ -4941,6 +5151,12 @@ def barrier(
                 "You can specify `device_id` in `init_process_group` to mute this warning.",
                 stacklevel=2,
             )
+=======
+        opts.device = device
+        warnings.warn(  # warn only once
+            "No device id is provided via `init_process_group` or `barrier `. Using the current device set by the user. "
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     work = group.barrier(opts=opts)
 
@@ -5021,7 +5237,10 @@ def monitored_barrier(
         warnings.warn(
             "Please specify timeout arg as a timedelta. "
             f"Converting current value of {timeout} assuming it represents seconds",
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         timeout = timedelta(seconds=timeout)
 
@@ -5066,7 +5285,10 @@ def _hash_ranks_to_str(ranks: list[int]) -> str:
 # Takes a list of ranks and computes an integer color
 def _process_group_color(ranks: list[int]) -> int:
     # Convert list to tuple to make it hashable
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ranks = tuple(ranks)
     hash_value = hash(ranks)
     # Split color must be:
@@ -5105,7 +5327,11 @@ def _is_safe_to_split() -> bool:
     users must be aware that a pg is only splittable after the first collective is
     issued.
     """
+<<<<<<< HEAD
     return _get_default_group().bound_device_id is not None
+=======
+    return False if _get_default_group().bound_device_id is None else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_time_logger
@@ -5147,8 +5373,13 @@ def split_group(
 
     """
     # check inputs
+<<<<<<< HEAD
     if split_ranks is None or len(split_ranks) == 0:
         raise ValueError("split_ranks cannot be None or empty")
+=======
+    if split_ranks is None:
+        raise ValueError("split_ranks cannot be None")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     global _world
     default_pg = _get_default_group()
@@ -5157,6 +5388,10 @@ def split_group(
         raise RuntimeError(
             "No device associated with the default pg, not safe to split any process groups"
         )
+<<<<<<< HEAD
+=======
+    _default_backend, default_store = _world.pg_map[default_pg]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global_rank = default_pg.rank()
     global_world_size = default_pg.size()
 
@@ -5187,8 +5422,16 @@ def split_group(
         )
 
     # set the group_desc before the color or no_cloor split
+<<<<<<< HEAD
     if hasattr(parent_backend, "comm_split_count") and group_desc is None:
         group_desc = f"{parent_pg.group_desc}:split:{parent_backend.comm_split_count()}"  # type: ignore[attr-defined]
+=======
+    group_desc = (
+        f"{parent_pg.group_desc}:split:{parent_backend.comm_split_count()}"  # type: ignore[attr-defined]
+        if group_desc is None
+        else group_desc
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     parent_backend_str, _ = _world.pg_map[parent_pg]
     # same type of backend as the parent process group
@@ -5206,9 +5449,14 @@ def split_group(
     _check_valid_timeout(timeout)
 
     # find my group of ranks and my group local rank in split_ranks
+<<<<<<< HEAD
     # for ranks which are not in any split PGs, we just pass in this the first split group
     # and None will be returned.
     my_group = split_ranks[0]
+=======
+    my_group = None
+    group_rank = -1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for split_group in split_ranks:
         if len(split_group) == 0:
@@ -5222,6 +5470,7 @@ def split_group(
         split_group = sorted(split_group)
         if parent_group_rank in split_group:
             my_group = split_group
+<<<<<<< HEAD
             break
 
     # use_hashed_name is True to ensure that subgroups have unique names.
@@ -5258,11 +5507,94 @@ def split_group(
 
     # Create the global rank to group rank mapping
     _world.pg_group_ranks[split_pg] = {
+=======
+            group_rank = split_group.index(parent_group_rank)
+            break
+    # if my rank does not belong to any sub group,
+    # no_color split should be called
+    if my_group is None or group_rank == -1:
+        parent_backend.perform_nocolor_split(device_id)  # type: ignore[attr-defined]
+        return None
+
+    group_name = _process_group_name(my_group, use_hashed_name=False)
+    global_ranks_in_my_group = [parent_group_to_global_ranks[rank] for rank in my_group]
+
+    prefix_store = PrefixStore(f"{group_name}/", default_store)
+    # We register the backend after initializing and timeout is set in pg_options.
+    pg: ProcessGroup = ProcessGroup(
+        prefix_store,
+        group_rank,
+        len(my_group),
+    )
+    pg.bound_device_id = device_id  # type: ignore[union-attr]
+    pg_options._timeout = timeout  # type: ignore[union-attr]
+    pg_options.split_from = parent_backend  # type: ignore[union-attr]
+    pg_options.split_color = _process_group_color(my_group)  # type: ignore[union-attr]
+    pg_options.global_ranks_in_group = global_ranks_in_my_group  # type: ignore[union-attr]
+    pg_options.group_name = group_name  # type: ignore[union-attr]
+
+    if parent_backend_str == Backend.NCCL:
+        backend_type = ProcessGroup.BackendType.NCCL
+        if not isinstance(pg_options, ProcessGroupNCCL.Options):
+            raise RuntimeError(
+                "Expected pg_options argument to be of type ProcessGroupNCCL.Options"
+            )
+        backend_class = ProcessGroupNCCL(
+            prefix_store, group_rank, len(my_group), pg_options
+        )
+    else:
+        assert parent_backend_str.upper() in Backend._plugins, (
+            f"Unknown c10d backend type {parent_backend_str.upper()}"
+        )
+        backend_plugin = Backend._plugins[parent_backend_str.upper()]
+        creator_fn = backend_plugin.creator_fn
+        extended_api = backend_plugin.extended_api
+        backend_type = ProcessGroup.BackendType.CUSTOM
+        if not extended_api:
+            backend_class = creator_fn(prefix_store, group_rank, len(my_group), timeout)
+        else:
+            dist_backend_opts = _DistributedBackendOptions()
+            dist_backend_opts.store = prefix_store
+            dist_backend_opts.group_rank = group_rank
+            dist_backend_opts.group_size = len(my_group)
+            backend_class = creator_fn(dist_backend_opts, pg_options)
+
+    pg._set_default_backend(backend_type)
+    backend_class._set_sequence_number_for_group()
+
+    pg._register_backend(torch.device("cuda"), backend_type, backend_class)
+
+    # set group_name and group_desc to backend
+    assert group_name is not None
+    assert group_desc is not None
+    pg._set_group_name(group_name)
+    pg._set_group_desc(group_desc)
+
+    # always eagerly initialize the backend in split_group
+    eager_backend = pg._get_backend(device_id)
+    eager_backend.eager_connect_single_device(device_id)
+
+    # update global state
+    _world.pg_map[pg] = (backend, prefix_store)
+    _world.pg_names[pg] = group_name
+    _register_process_group(group_name, pg)
+    _world.pg_backend_config[pg] = str(backend_config)
+    pg_tag = f"ptd:{group_name}"
+    _world.tags_to_pg.setdefault(pg_tag, []).append(pg)
+    _world.pg_to_tag[pg] = pg_tag
+
+    # Create the global rank to group rank mapping
+    _world.pg_group_ranks[pg] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         global_rank: group_rank
         for group_rank, global_rank in enumerate(global_ranks_in_my_group)
     }
 
+<<<<<<< HEAD
     return split_pg
+=======
+    return pg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_time_logger

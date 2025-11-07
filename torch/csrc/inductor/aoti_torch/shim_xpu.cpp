@@ -80,8 +80,11 @@ AOTITorchError aoti_torch_get_current_sycl_queue(void** ret) {
 
 #if AT_MKLDNN_ENABLED()
 #include <ATen/native/mkldnn/xpu/Conv.h>
+<<<<<<< HEAD
 #include <ATen/native/mkldnn/xpu/qconv.h>
 #include <ATen/native/mkldnn/xpu/qlinear.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 AOTITorchError aoti_torch_xpu_mkldnn__convolution_pointwise_binary(
     AtenTensorHandle X,
@@ -206,6 +209,7 @@ AOTITorchError aoti_torch_xpu_mkldnn__convolution_pointwise(
   });
 }
 
+<<<<<<< HEAD
 AOTITorchError aoti_torch_xpu__qlinear_pointwise_tensor(
     AtenTensorHandle X,
     AtenTensorHandle act_scale,
@@ -429,4 +433,6 @@ AOTITorchError aoti_torch_xpu__qconv2d_pointwise_binary_tensor(
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // AT_MKLDNN_ENABLED()

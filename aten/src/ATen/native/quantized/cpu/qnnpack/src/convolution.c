@@ -368,7 +368,11 @@ static enum pytorch_qnnp_status pytorch_qnnp_create_convolution_ndhwc_q8(
     case pytorch_qnnp_ukernel_type_xzp_gemm: {
       // TODO: XZP kernels won't be supporting per channel quantization.
       // For now we dont use XZP kernels anywhere. Probably deprecate it for now
+<<<<<<< HEAD
       // and resurrect later if needed.
+=======
+      // and ressurrect later if needed.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const uint32_t nr = pytorch_qnnp_params.q8conv_xzp.nr;
       const uint32_t kr = pytorch_qnnp_params.q8conv_xzp.kr;
       const uint32_t sr = pytorch_qnnp_params.q8conv_xzp.kc;

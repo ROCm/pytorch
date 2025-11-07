@@ -78,7 +78,11 @@ def issubtype(left, right, recursive=True):
         if getattr(right, "__origin__", None) is Generic:
             return True
 
+<<<<<<< HEAD
     if right is type(None):
+=======
+    if right == type(None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
     # Right-side type
@@ -138,7 +142,11 @@ def _issubtype_with_constraints(variant, constraints, recursive=True):
     #   - TypeVar[TypeVar[...]]
     # So, variant and each constraint may be a TypeVar or a Union.
     # In these cases, all of inner types from the variant are required to be
+<<<<<<< HEAD
     # extracted and verified as a subtype of any constraint. And, all of
+=======
+    # extraced and verified as a subtype of any constraint. And, all of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # inner types from any constraint being a TypeVar or a Union are
     # also required to be extracted and verified if the variant belongs to
     # any of them.
@@ -265,7 +273,10 @@ class _DataPipeType:
 
 # Default type for DataPipe without annotation
 _T_co = TypeVar("_T_co", covariant=True)
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-annotation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _DEFAULT_TYPE = _DataPipeType(Generic[_T_co])
 
 
@@ -284,7 +295,10 @@ class _DataPipeMeta(GenericMeta):
         return super().__new__(cls, name, bases, namespace, **kwargs)  # type: ignore[call-overload]
 
         # TODO: the statements below are not reachable by design as there is a bug and typing is low priority for now.
+<<<<<<< HEAD
         # pyrefly: ignore [no-access]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cls.__origin__ = None
         if "type" in namespace:
             return super().__new__(cls, name, bases, namespace, **kwargs)  # type: ignore[call-overload]

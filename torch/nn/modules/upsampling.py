@@ -169,9 +169,12 @@ class Upsample(Module):
         self.recompute_scale_factor = recompute_scale_factor
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.interpolate(
             input,
             self.size,
@@ -188,9 +191,12 @@ class Upsample(Module):
         super().__setstate__(state)
 
     def extra_repr(self) -> str:
+<<<<<<< HEAD
         """
         Return the extra representation of the module.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.scale_factor is not None:
             info = "scale_factor=" + repr(self.scale_factor)
         else:

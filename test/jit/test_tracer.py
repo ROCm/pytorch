@@ -960,9 +960,14 @@ class TestTracer(JitTestCase):
         V = Variable
         a, b = V(torch.rand(1)), V(torch.rand(1))
         ge = torch.jit.trace(foo, (a, b))
+<<<<<<< HEAD
         a, b = (
             V(torch.rand(1), requires_grad=True),
             V(torch.rand(1), requires_grad=True),
+=======
+        a, b = V(torch.rand(1), requires_grad=True), V(
+            torch.rand(1), requires_grad=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         (r,) = ge(a, b)
         da, db = torch.autograd.grad(r + 3, [a, b], create_graph=True)

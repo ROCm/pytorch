@@ -9,7 +9,10 @@
 
 #include <c10/core/Device.h>
 #include <c10/core/DeviceType.h>
+<<<<<<< HEAD
 #include <c10/core/alignment.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/macros/Export.h>
 #include <c10/macros/Macros.h>
 #include <c10/util/Exception.h>

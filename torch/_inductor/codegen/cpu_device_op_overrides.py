@@ -14,9 +14,12 @@ class CpuDeviceOpOverrides(DeviceOpOverrides):
             """
         )
 
+<<<<<<< HEAD
     def cpp_kernel_type(self) -> str:
         return "void*"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set_device(self, device_idx: int) -> str:
         return "pass"
 

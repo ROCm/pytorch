@@ -11,7 +11,11 @@ class TestQuantizedTensor(unittest.TestCase):
     """
     def test_int_repr(self):
         # generate tensor with random fp values
+<<<<<<< HEAD
         tensor2quantize = torch.tensor([0, 0.0215, 0.1692, 0.385, 1, 0.0391])
+=======
+        tensor2quantize = tensor2quantize = torch.tensor([0, 0.0215, 0.1692, 0.385, 1, 0.0391])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         observer = APoTObserver(b=4, k=2)
 

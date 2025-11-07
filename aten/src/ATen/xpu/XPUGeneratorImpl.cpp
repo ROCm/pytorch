@@ -1,14 +1,22 @@
+<<<<<<< HEAD
 #include <ATen/Functions.h>
 #include <ATen/Tensor.h>
 #include <ATen/Utils.h>
 #include <ATen/xpu/XPUGeneratorImpl.h>
 #include <ATen/xpu/XPUGraphsUtils.h>
+=======
+#include <ATen/Utils.h>
+#include <ATen/xpu/XPUGeneratorImpl.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/StreamGuard.h>
 #include <c10/util/CallOnce.h>
 #include <c10/xpu/XPUFunctions.h>
 
+<<<<<<< HEAD
 constexpr uint64_t PHILOX_ROUND_SIZE = 4;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at {
 namespace xpu::detail {
 namespace {
@@ -63,6 +71,7 @@ Generator createXPUGenerator(DeviceIndex device) {
 
 } // namespace xpu::detail
 
+<<<<<<< HEAD
 // Creates a clone of this XPU Generator State.
 c10::intrusive_ptr<XPUGeneratorState> XPUGeneratorState::clone() {
   return make_intrusive<XPUGeneratorState>(
@@ -124,10 +133,24 @@ void XPUGeneratorImpl::set_current_seed(uint64_t seed) {
 
 void XPUGeneratorImpl::set_offset(uint64_t offset) {
   at::xpu::assertNotCapturing("Cannot call XPUGeneratorImpl::set_offset");
+=======
+XPUGeneratorImpl::XPUGeneratorImpl(DeviceIndex device_index)
+    : GeneratorImpl{
+          Device(DeviceType::XPU, device_index),
+          DispatchKeySet(c10::DispatchKey::XPU)} {}
+
+void XPUGeneratorImpl::set_current_seed(uint64_t seed) {
+  seed_ = seed;
+  set_philox_offset_per_thread(0);
+}
+
+void XPUGeneratorImpl::set_offset(uint64_t offset) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   set_philox_offset_per_thread(offset);
 }
 
 uint64_t XPUGeneratorImpl::get_offset() const {
+<<<<<<< HEAD
   at::xpu::assertNotCapturing("Cannot call XPUGeneratorImpl::get_offset");
   return state_->philox_offset_per_thread_;
 }
@@ -139,6 +162,16 @@ uint64_t XPUGeneratorImpl::current_seed() const {
 
 uint64_t XPUGeneratorImpl::seed() {
   at::xpu::assertNotCapturing("Cannot call XPUGeneratorImpl::seed");
+=======
+  return philox_offset_per_thread_;
+}
+
+uint64_t XPUGeneratorImpl::current_seed() const {
+  return seed_;
+}
+
+uint64_t XPUGeneratorImpl::seed() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto random = c10::detail::getNonDeterministicRandom(true);
   this->set_current_seed(random);
   return random;
@@ -146,9 +179,15 @@ uint64_t XPUGeneratorImpl::seed() {
 
 c10::intrusive_ptr<c10::TensorImpl> XPUGeneratorImpl::get_state() const {
   // The RNG state comprises the seed, and an offset used for Philox.
+<<<<<<< HEAD
   constexpr size_t seed_size = sizeof(uint64_t);
   constexpr size_t offset_size = sizeof(uint64_t);
   constexpr size_t total_size = seed_size + offset_size;
+=======
+  static const size_t seed_size = sizeof(uint64_t);
+  static const size_t offset_size = sizeof(uint64_t);
+  static const size_t total_size = seed_size + offset_size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // The internal state is returned as a CPU byte tensor.
   auto state_tensor = at::detail::empty_cpu(
@@ -168,6 +207,7 @@ c10::intrusive_ptr<c10::TensorImpl> XPUGeneratorImpl::get_state() const {
 }
 
 void XPUGeneratorImpl::set_state(const c10::TensorImpl& new_state) {
+<<<<<<< HEAD
   at::xpu::assertNotCapturing(
       "Please ensure to utilize the XPUGeneratorImpl::set_state_index method during capturing.");
   constexpr size_t seed_size = sizeof(uint64_t);
@@ -192,11 +232,28 @@ void XPUGeneratorImpl::set_state(const c10::TensorImpl& new_state) {
   if (!no_philox_seed) {
     memcpy(&philox_offset, new_rng_state + seed_size, offset_size);
   }
+=======
+  static const size_t seed_size = sizeof(uint64_t);
+  static const size_t offset_size = sizeof(uint64_t);
+  static const size_t total_size = seed_size + offset_size;
+
+  at::detail::check_rng_state(new_state);
+  auto new_state_size = new_state.numel();
+  TORCH_CHECK(new_state_size == total_size, "RNG state is wrong size");
+
+  uint64_t input_seed;
+  auto new_rng_state = new_state.data_dtype_initialized<uint8_t>();
+  memcpy(&input_seed, new_rng_state, seed_size);
+  this->set_current_seed(input_seed);
+  uint64_t philox_offset;
+  memcpy(&philox_offset, new_rng_state + seed_size, offset_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   this->set_philox_offset_per_thread(philox_offset);
 }
 
 void XPUGeneratorImpl::set_philox_offset_per_thread(uint64_t offset) {
   TORCH_CHECK(offset % 4 == 0, "offset must be a multiple of 4");
+<<<<<<< HEAD
   state_->philox_offset_per_thread_ = offset;
 }
 
@@ -218,15 +275,30 @@ PhiloxXpuState XPUGeneratorImpl::philox_xpu_state(uint64_t increment) {
     state_->increase(increment);
     return PhiloxXpuState(state_->seed_, offset);
   }
+=======
+  philox_offset_per_thread_ = offset;
+}
+
+uint64_t XPUGeneratorImpl::philox_offset_per_thread() const {
+  return philox_offset_per_thread_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::pair<uint64_t, uint64_t> XPUGeneratorImpl::philox_engine_inputs(
     uint64_t increment) {
+<<<<<<< HEAD
   at::xpu::assertNotCapturing(
       "Refactor this op to use XPUGeneratorImpl::philox_xpu_state. Cannot call XPUGeneratorImpl::philox_engine_inputs");
   uint64_t offset = state_->philox_offset_per_thread_;
   state_->increase(increment);
   return std::make_pair(state_->seed_, offset);
+=======
+  increment = ((increment + 3) / 4) * 4;
+  TORCH_INTERNAL_ASSERT(this->philox_offset_per_thread_ % 4 == 0);
+  uint64_t offset = this->philox_offset_per_thread_;
+  this->philox_offset_per_thread_ += increment;
+  return std::make_pair(this->seed_, offset);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 DeviceType XPUGeneratorImpl::device_type() {
@@ -238,8 +310,14 @@ std::shared_ptr<XPUGeneratorImpl> XPUGeneratorImpl::clone() const {
 }
 
 XPUGeneratorImpl* XPUGeneratorImpl::clone_impl() const {
+<<<<<<< HEAD
   at::xpu::assertNotCapturing("Cannot call XPUGeneratorImpl::clone_impl");
   auto gen = new XPUGeneratorImpl(this->device().index(), state_->clone());
+=======
+  auto gen = new XPUGeneratorImpl(this->device().index());
+  gen->set_current_seed(this->seed_);
+  gen->set_philox_offset_per_thread(this->philox_offset_per_thread_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return gen;
 }
 

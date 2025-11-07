@@ -34,7 +34,11 @@ struct Dist {
   //     finish :   This tells what to do with the aggregated value to compute
   //                the norm. Generally this is the result of val ^ (1 / p).
   //     backward : This is the gradient for that norm. Arguments are pretty
+<<<<<<< HEAD
   //                self explanatory.
+=======
+  //                self explanitory.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //
   // There are a few cases where these aren't used. The 0 norm has no backward,
   // because it's always 0, so that's shortcircuited earlier. There's a special
@@ -139,7 +143,11 @@ struct Dist {
     static inline data_t map(const data_t& diff, const data_t& p) { return diff; }
     static inline data_t red(const data_t& agg, const data_t& up) { return max(agg, up); }
     static inline scalar_t finish(const scalar_t agg, const scalar_t p) { return agg; }
+<<<<<<< HEAD
     // TODO This backward pass uses a very complex expression to compute (diff
+=======
+    // TODO This backward pass uses a very complext expression to compute (diff
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // == dist) that could be much faster if using SSE instructions.
     static inline Vec backward(const Vec& diff, const scalar_t grad, const scalar_t dist, const Vec& p) { return Vec(grad) * sign(diff) * (Vec(1) - vec::minimum(Vec(1), (diff.abs() - Vec(dist)).abs().ceil())); }
   };
@@ -160,9 +168,16 @@ struct Dist {
     // value of k.
     parallel_for(0, combs, internal::GRAIN_SIZE / (16 * m), [p, self_start, self_end, n, m, res_start](int64_t k, int64_t end) {
       const Vec pvec(p);
+<<<<<<< HEAD
       double n2 = static_cast<double>(n) - .5;
       // The -1 accounts for floating point truncation issues
       int64_t i = static_cast<int64_t>((n2 - std::sqrt(n2 * n2 - 2.0 * static_cast<double>(k) - 1.0)));
+=======
+      double n2 = n - .5;
+      // The -1 accounts for floating point truncation issues
+      // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+      int64_t i = static_cast<int64_t>((n2 - std::sqrt(n2 * n2 - 2 * k - 1)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t j = k - n * i + i * (i + 1) / 2 + i + 1;
 
       const scalar_t * self_i = self_start + i * m;
@@ -421,19 +436,31 @@ void pdist_forward_kernel_impl(Tensor& result, const Tensor& self, const double 
   });
 }
 
+<<<<<<< HEAD
 void pdist_backward_kernel_impl(Tensor& result, const Tensor& grad, const Tensor& self, const double p, const Tensor& dist) {
+=======
+static void pdist_backward_kernel_impl(Tensor& result, const Tensor& grad, const Tensor& self, const double p, const Tensor& dist) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES(self.scalar_type(), "pdist_backward", [&] {
     Dist<scalar_t>::apply_backward_pdist(result, grad, self, p, dist);
   });
 }
 
+<<<<<<< HEAD
 void cdist_kernel_impl(Tensor& result, const Tensor& x1, const Tensor& x2, const double p) {
+=======
+static void cdist_kernel_impl(Tensor& result, const Tensor& x1, const Tensor& x2, const double p) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES(result.scalar_type(), "cdist", [&] {
     Dist<scalar_t>::apply_cdist(result, x1, x2, p);
   });
 }
 
+<<<<<<< HEAD
 void cdist_backward_kernel_impl(Tensor& result, const Tensor& grad, const Tensor& x1, const Tensor& x2, const double p, const Tensor& dist) {
+=======
+static void cdist_backward_kernel_impl(Tensor& result, const Tensor& grad, const Tensor& x1, const Tensor& x2, const double p, const Tensor& dist) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES(result.scalar_type(), "cdist_backward", [&] {
     Dist<scalar_t>::apply_backward_cdist(result, grad, x1, x2, p, dist);
   });

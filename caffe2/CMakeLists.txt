@@ -243,8 +243,13 @@ configure_file("${TORCH_SRC_DIR}/_utils_internal.py"
   COPYONLY)
 
 # Generate header with version info
+<<<<<<< HEAD
 configure_file("${TORCH_SRC_DIR}/headeronly/version.h.in"
   "${TORCH_SRC_DIR}/headeronly/version.h"
+=======
+configure_file("${TORCH_SRC_DIR}/csrc/api/include/torch/version.h.in"
+  "${TORCH_SRC_DIR}/csrc/api/include/torch/version.h"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   @ONLY)
 
 set(GENERATED_CXX_TORCH
@@ -267,7 +272,10 @@ if(NOT INTERN_DISABLE_AUTOGRAD AND NOT BUILD_LITE_INTERPRETER)
     "${TORCH_SRC_DIR}/csrc/autograd/generated/ADInplaceOrViewType_0.cpp"
     "${TORCH_SRC_DIR}/csrc/autograd/generated/ADInplaceOrViewType_1.cpp"
     "${TORCH_SRC_DIR}/csrc/inductor/aoti_torch/generated/c_shim_cpu.cpp"
+<<<<<<< HEAD
     "${TORCH_SRC_DIR}/csrc/inductor/aoti_torch/generated/c_shim_aten.cpp"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   )
   if(BUILD_LAZY_TS_BACKEND)
     list(APPEND GENERATED_CXX_TORCH
@@ -316,7 +324,10 @@ set(GENERATED_CXX_PYTHON
   "${TORCH_SRC_DIR}/csrc/autograd/generated/python_special_functions.cpp"
   "${TORCH_SRC_DIR}/csrc/autograd/generated/python_return_types.cpp"
   "${TORCH_SRC_DIR}/csrc/autograd/generated/python_enum_tag.cpp"
+<<<<<<< HEAD
   "${TORCH_SRC_DIR}/csrc/functionalization/generated/ViewMetaClassesPythonBinding.cpp"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   )
 
 set(GENERATED_H_PYTHON
@@ -380,9 +391,12 @@ add_custom_command(
     "${TORCH_ROOT}/aten/src/ATen/templates/LazyIr.h"
     "${TORCH_ROOT}/aten/src/ATen/templates/LazyNonNativeIr.h"
     "${TORCH_ROOT}/aten/src/ATen/templates/RegisterDispatchKey.cpp"
+<<<<<<< HEAD
     "${TORCH_ROOT}/aten/src/ATen/templates/ViewMetaClasses.h"
     "${TORCH_ROOT}/aten/src/ATen/templates/ViewMetaClasses.cpp"
     "${TORCH_ROOT}/aten/src/ATen/templates/ViewMetaClassesPythonBinding.cpp"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ${autograd_python}
     ${autograd_yaml}
     ${autograd_templates}
@@ -556,6 +570,7 @@ if(USE_CUDA OR USE_ROCM)
   append_filelist("libtorch_cuda_core_sources" Caffe2_GPU_HIP_JIT_FUSERS_SRCS)
 endif()
 
+<<<<<<< HEAD
 # NativeRT is disabled
 # if(USE_CUDA)
 #   append_filelist("libtorch_nativert_cuda_sources" Caffe2_GPU_SRCS)
@@ -564,6 +579,8 @@ endif()
 #   append_filelist("libtorch_nativert_cuda_sources" Caffe2_HIP_SRCS)
 # endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(USE_CUDA)
   list(APPEND Caffe2_GPU_CU_SRCS ${Caffe2_GPU_HIP_JIT_FUSERS_SRCS})
   add_library(caffe2_nvrtc SHARED ${ATen_NVRTC_STUB_SRCS})
@@ -593,7 +610,10 @@ if(USE_CUDA)
         ${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/CUDASymmetricMemoryOps.cu
         ${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/CUDASymmetricMemoryUtils.cpp
         ${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.cu
+<<<<<<< HEAD
         ${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/cuda_mem_pool.cpp
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         PROPERTIES COMPILE_FLAGS "-DPYTORCH_C10_DRIVER_API_SUPPORTED=1"
       )
     endif()
@@ -607,12 +627,15 @@ if(USE_CUDA)
       set_source_files_properties(${ASYNC_MM_FILE} PROPERTIES COMPILE_FLAGS "-gencode arch=compute_90a,code=sm_90a")
     endif()
   endif()
+<<<<<<< HEAD
   if(NOT WIN32)
     set_source_files_properties(
       ${TORCH_ROOT}/aten/src/ATen/cuda/CUDAGreenContext.cpp
       PROPERTIES COMPILE_FLAGS "-DPYTORCH_C10_DRIVER_API_SUPPORTED=1"
     )
   endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   set_source_files_properties(
     ${TORCH_ROOT}/aten/src/ATen/cuda/detail/LazyNVRTC.cpp
     PROPERTIES COMPILE_DEFINITIONS "NVRTC_SHORTHASH=${CUDA_NVRTC_SHORTHASH}"
@@ -844,6 +867,10 @@ if(USE_MPS)
   if(CAN_COMPILE_METAL)
     add_dependencies(torch_cpu metallibs)
     target_link_options(torch_cpu PRIVATE -Wl,-sectcreate,__TEXT,metal_basic,${CMAKE_CURRENT_BINARY_DIR}/aten/src/ATen/kernels_basic.metallib)
+<<<<<<< HEAD
+=======
+    target_link_options(torch_cpu PRIVATE -Wl,-sectcreate,__TEXT,metal_bfloat,${CMAKE_CURRENT_BINARY_DIR}/aten/src/ATen/kernels_bfloat.metallib)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else()
     target_compile_definitions(torch_cpu PRIVATE PYTORCH_JIT_COMPILE_SHADERS)
   endif()
@@ -910,6 +937,18 @@ if(USE_LLVM AND LLVM_FOUND)
     support core analysis executionengine instcombine
     scalaropts transformutils ${LLVM_TARGETS_TO_BUILD} orcjit)
   target_link_libraries(torch_cpu PRIVATE ${LLVM_LINK_LIBS})
+<<<<<<< HEAD
+=======
+  if(APPLE)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/unexported_symbols.lds")
+    set_target_properties(torch_cpu PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+    set_target_properties(torch_cpu PROPERTIES LINK_FLAGS "-Wl,-unexported_symbols_list,${LINKER_SCRIPT}")
+  elseif(UNIX)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/version_script.lds")
+    set_target_properties(torch_cpu PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+    target_link_libraries(torch_cpu PRIVATE "-Wl,--version-script=${LINKER_SCRIPT}")
+  endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif(USE_LLVM AND LLVM_FOUND)
 
 # This is required for older versions of CMake, which don't allow
@@ -997,6 +1036,7 @@ elseif(USE_CUDA)
     target_compile_definitions(torch_cuda PRIVATE USE_NCCL)
   endif()
 
+<<<<<<< HEAD
   # Compile with NVSHMEM
   # Default value of `USE_NVSHMEM` is set in CMakeLists.txt under root, to ON.
   if(USE_NVSHMEM)
@@ -1033,17 +1073,44 @@ elseif(USE_CUDA)
   # If NVSHMEM_LIBRARY is found, we build torch_cuda with NVSHMEM support.
   if(NVSHMEM_HOST_LIB AND NVSHMEM_DEVICE_LIB AND NVSHMEM_INCLUDE_DIR)
     message(STATUS "NVSHMEM found, building with NVSHMEM support")
+=======
+  # Use env var for these for now for prototyping purposes
+  set(USE_NVSHMEM $ENV{USE_NVSHMEM} CACHE BOOL "Whether to build with NVSHMEM support")
+  # If user has specified NVSHMEM_HOME, we use it;
+  # Otherwise, NVSHMEM_HOME is auto detected in tools/setup_helpers/cmake.py
+  if($ENV{NVSHMEM_HOME})
+    set(NVSHMEM_HOME $ENV{NVSHMEM_HOME} CACHE PATH "Path to NVSHMEM build dir")
+  endif()
+
+  if(USE_NVSHMEM AND NOT DEFINED NVSHMEM_HOME)
+    message(WARNING "USE_NVSHMEM set to 1 but NVSHMEM_HOME not found. Please run `pip install nvidia-nvshmem-<version>`, or set NVSHMEM_HOME to the NVSHMEM build dir")
+    # Disable nvshmem if NVSHMEM_HOME is not found
+    set(USE_NVSHMEM FALSE CACHE BOOL "Whether to build with NVSHMEM support")
+  endif()
+
+  if(USE_NVSHMEM)
+    message("Building with NVSHMEM support:  '${NVSHMEM_HOME}'")
+    set(NVSHMEM_INCLUDE_DIR "${NVSHMEM_HOME}/include")
+    set(NVSHMEM_LIB_DIR "${NVSHMEM_HOME}/lib")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     include_directories(${NVSHMEM_INCLUDE_DIR})
 
     # Linking with nvshmem requires the source binary to be built with -rdc
     # which is not viable for libtorch_cuda. So we isolate the linking of
+<<<<<<< HEAD
     # nvshmem in torch_nvshmem.
     add_library(torch_nvshmem SHARED
+=======
+    # nvshmem in nvshmem_extension.
+    add_library(nvshmem_extension SHARED
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "${TORCH_SRC_DIR}/csrc/distributed/c10d/cuda/utils.cpp"
         "${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/nvshmem_extension.cu"
         "${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/NVSHMEMSymmetricMemory.cu"
         "${TORCH_SRC_DIR}/csrc/distributed/c10d/symm_mem/CUDASymmetricMemoryUtils.cpp"
     )
+<<<<<<< HEAD
     set_target_properties(torch_nvshmem PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     target_compile_options(torch_nvshmem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-rdc=true>)
     target_compile_options(torch_nvshmem PRIVATE "-U__CUDA_NO_HALF_OPERATORS__")
@@ -1057,6 +1124,22 @@ elseif(USE_CUDA)
     install(TARGETS torch_nvshmem EXPORT Caffe2Targets DESTINATION "${TORCH_INSTALL_LIB_DIR}")
   else()
     message(STATUS "NVSHMEM not found, not building with NVSHMEM support.")
+=======
+    set_target_properties(nvshmem_extension PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    target_compile_options(nvshmem_extension PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-rdc=true>)
+    target_compile_options(nvshmem_extension PRIVATE "-U__CUDA_NO_HALF_OPERATORS__")
+    target_link_directories(nvshmem_extension PRIVATE ${NVSHMEM_LIB_DIR})
+    target_link_libraries(nvshmem_extension PRIVATE
+        # Full path needed bc nvshmem wheel ships with .so.3 instead of .so;
+        # otherwise, we could just write `nvshmem_host`
+        ${NVSHMEM_LIB_DIR}/libnvshmem_host.so.3
+        nvshmem_device
+    )
+    target_compile_definitions(torch_cuda PUBLIC USE_NVSHMEM)
+    target_compile_definitions(nvshmem_extension PUBLIC USE_NVSHMEM)
+    target_link_libraries(torch_cuda PRIVATE nvshmem_extension)
+    install(TARGETS nvshmem_extension EXPORT Caffe2Targets DESTINATION lib)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
 
   if(USE_UCC)
@@ -1072,7 +1155,11 @@ elseif(USE_CUDA)
         UNFUSE_FMA                      # Addressing issue #121558
       )
     target_sources(torch_cuda PRIVATE $<TARGET_OBJECTS:flash_attention>)
+<<<<<<< HEAD
     target_include_directories(torch_cuda SYSTEM PUBLIC
+=======
+    target_include_directories(torch_cuda PUBLIC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third_party/flash-attention/csrc>
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third_party/flash-attention/include>
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third_party/cutlass/include>
@@ -1102,10 +1189,24 @@ elseif(USE_CUDA)
         torch_cuda
     )
     if($ENV{ATEN_STATIC_CUDA})
+<<<<<<< HEAD
     target_link_libraries(torch_cuda_linalg PRIVATE
         CUDA::cusolver_static
         ${CUDAToolkit_LIBRARY_DIR}/libcusolver_lapack_static.a     # needed for libcusolver_static
     )
+=======
+      if(CUDA_VERSION_MAJOR LESS_EQUAL 11)
+        target_link_libraries(torch_cuda_linalg PRIVATE
+            CUDA::cusolver_static
+            ${CUDAToolkit_LIBRARY_DIR}/liblapack_static.a     # needed for libcusolver_static
+        )
+      elseif(CUDA_VERSION_MAJOR GREATER_EQUAL 12)
+        target_link_libraries(torch_cuda_linalg PRIVATE
+            CUDA::cusolver_static
+            ${CUDAToolkit_LIBRARY_DIR}/libcusolver_lapack_static.a     # needed for libcusolver_static
+        )
+      endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else()
       target_link_libraries(torch_cuda_linalg PRIVATE
           CUDA::cusolver
@@ -1132,11 +1233,14 @@ elseif(USE_CUDA)
     set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/../aten/src/ATen/native/sparse/cuda/SparseCUDABlas.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
     set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/../aten/src/ATen/native/sparse/cuda/SparseBlasImpl.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   endif()
+<<<<<<< HEAD
   # Set driver api defined for PeerToPeerAccess
   if(NOT WIN32)
     set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/../aten/src/ATen/cuda/PeerToPeerAccess.cpp PROPERTIES COMPILE_FLAGS "-DPYTORCH_C10_DRIVER_API_SUPPORTED=1")
   endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 if(USE_XPU)
@@ -1193,11 +1297,27 @@ if(USE_XPU)
   if(NOT TARGET torch_xpu_ops)
     message(WARNING "Failed to include ATen XPU implementation target")
   else()
+<<<<<<< HEAD
+=======
+    target_link_libraries(torch_xpu PRIVATE torch_xpu_ops)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # USE_C10D_XCCL to decide if XCCL backend is enabled in torch-xpu-ops build.
     if(USE_C10D_XCCL)
       target_compile_definitions(torch_xpu PUBLIC USE_C10D_XCCL)
     endif()
+<<<<<<< HEAD
     target_link_libraries(torch_xpu PRIVATE $<LINK_LIBRARY:WHOLE_ARCHIVE,torch_xpu_ops>)
+=======
+    if(MSVC)
+      # Windows
+      target_link_options(torch_xpu PRIVATE
+      "-WHOLEARCHIVE:$<TARGET_FILE:torch_xpu_ops>")
+    else()
+      # Linux
+      target_link_options(torch_xpu PRIVATE
+          "-Wl,--whole-archive,$<TARGET_FILE:torch_xpu_ops>,--no-whole-archive")
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Set cached ${ATen_XPU_INCLUDE_DIRS} to torch
     include_directories(SYSTEM ${ATen_XPU_INCLUDE_DIRS})
@@ -1358,6 +1478,7 @@ if(BUILD_TEST)
     )
   else()
     add_subdirectory(${TORCH_ROOT}/test/cpp/jit ${CMAKE_BINARY_DIR}/test_jit)
+<<<<<<< HEAD
     add_subdirectory(${TORCH_ROOT}/test/cpp/lazy ${CMAKE_BINARY_DIR}/test_lazy)
     # NativeRT is disabled
     # add_subdirectory(${TORCH_ROOT}/test/cpp/nativert ${CMAKE_BINARY_DIR}/test_nativert)
@@ -1367,6 +1488,14 @@ if(BUILD_TEST)
       add_subdirectory(${TORCH_ROOT}/test/cpp/aoti_inference ${CMAKE_BINARY_DIR}/test_aoti_inference)
     endif()
 
+=======
+    add_subdirectory(${TORCH_ROOT}/test/cpp/nativert ${CMAKE_BINARY_DIR}/test_nativert)
+    add_subdirectory(${TORCH_ROOT}/test/inductor ${CMAKE_BINARY_DIR}/test_inductor)
+    add_subdirectory(
+      ${TORCH_ROOT}/test/cpp/tensorexpr
+      ${CMAKE_BINARY_DIR}/test_tensorexpr
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if(USE_DISTRIBUTED)
       add_subdirectory(${TORCH_ROOT}/test/cpp/c10d ${CMAKE_BINARY_DIR}/test_cpp_c10d)
       if(NOT WIN32)
@@ -1384,6 +1513,19 @@ if(BUILD_TEST)
         ${CMAKE_BINARY_DIR}/test_mobile_nnc
       )
     endif()
+<<<<<<< HEAD
+=======
+    add_subdirectory(${TORCH_ROOT}/test/cpp/lazy
+                     ${CMAKE_BINARY_DIR}/test_lazy)
+  endif()
+  if(BUILD_AOT_INDUCTOR_TEST)
+    add_subdirectory(
+      ${TORCH_ROOT}/test/cpp/aoti_abi_check
+      ${CMAKE_BINARY_DIR}/test_aoti_abi_check)
+    add_subdirectory(
+      ${TORCH_ROOT}/test/cpp/aoti_inference
+      ${CMAKE_BINARY_DIR}/test_aoti_inference)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
 endif()
 
@@ -1454,8 +1596,13 @@ if(USE_ROCM)
   if(USE_MEM_EFF_ATTENTION)
     target_compile_definitions(torch_hip PRIVATE USE_MEM_EFF_ATTENTION)
   endif()
+<<<<<<< HEAD
   if(USE_ROCM_CK_SDPA)
     target_compile_definitions(torch_hip PRIVATE USE_ROCM_CK_SDPA)
+=======
+  if(USE_CK_FLASH_ATTENTION)
+    target_compile_definitions(torch_hip PRIVATE USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
 endif()
 
@@ -1641,11 +1788,15 @@ if(USE_CUDA)
   endif()
   target_link_libraries(torch_cuda INTERFACE torch::cudart)
   target_link_libraries(torch_cuda PUBLIC c10_cuda)
+<<<<<<< HEAD
   if(TARGET torch::nvtx3)
     target_link_libraries(torch_cuda PRIVATE torch::nvtx3)
   else()
     target_link_libraries(torch_cuda PUBLIC torch::nvtoolsext)
   endif()
+=======
+  target_link_libraries(torch_cuda PRIVATE CUDA::nvtx3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   target_include_directories(
       torch_cuda INTERFACE $<INSTALL_INTERFACE:include>)
@@ -1658,10 +1809,13 @@ if(USE_CUDA)
   # order of the libraries in the linker call matters here when statically
   # linking; libculibos and cublas must be last.
   target_link_libraries(torch_cuda PUBLIC torch_cpu_library ${Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS})
+<<<<<<< HEAD
   if(USE_FBGEMM_GENAI)
     # Link fbgemm_genai to torch_cuda (only for (1) CUDA build for SM100).
     target_link_libraries(torch_cuda PRIVATE fbgemm_genai)
   endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 # ---[ XPU library.
@@ -1741,9 +1895,12 @@ if(BUILD_SHARED_LIBS)
   if(USE_CUDA)
     target_link_libraries(torch_global_deps ${Caffe2_PUBLIC_CUDA_DEPENDENCY_LIBS})
     target_link_libraries(torch_global_deps torch::cudart)
+<<<<<<< HEAD
     if(TARGET torch::nvtoolsext)
       target_link_libraries(torch_global_deps torch::nvtoolsext)
     endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
   install(TARGETS torch_global_deps DESTINATION "${TORCH_INSTALL_LIB_DIR}")
 endif()
@@ -1782,11 +1939,14 @@ if(USE_ROCM)
   target_link_libraries(torch_hip PUBLIC torch_cpu_library ${Caffe2_PUBLIC_HIP_DEPENDENCY_LIBS})
   target_link_libraries(torch_hip PRIVATE ${Caffe2_HIP_DEPENDENCY_LIBS})
 
+<<<<<<< HEAD
   if(USE_FBGEMM_GENAI)
     if(USE_ROCM)
       target_link_libraries(torch_hip PRIVATE fbgemm_genai)
     endif()
   endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Since PyTorch files contain HIP headers, this is also needed to capture the includes.
   # ROCM_INCLUDE_DIRS is defined in LoadHIP.cmake
   target_include_directories(torch_hip PRIVATE ${Caffe2_HIP_INCLUDE} ${ROCM_INCLUDE_DIRS})
@@ -1850,12 +2010,15 @@ if(BUILD_TEST)
               target_link_libraries(${test_name}_${CPU_CAPABILITY} Sanitizer::undefined)
             endif()
           endif()
+<<<<<<< HEAD
           if(USE_LSAN AND TARGET Sanitizer::leak)
             target_link_libraries(${test_name}_${CPU_CAPABILITY} Sanitizer::leak)
           endif()
           if(USE_TSAN AND TARGET Sanitizer::thread)
             target_link_libraries(${test_name}_${CPU_CAPABILITY} Sanitizer::thread)
           endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else()
           add_executable(${test_name}_${CPU_CAPABILITY} "${test_src}")
           target_link_libraries(${test_name}_${CPU_CAPABILITY} torch_library sleef gtest_main)

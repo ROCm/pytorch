@@ -1,8 +1,16 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import types
 import warnings
 import weakref
 from copyreg import dispatch_table
+=======
+import logging
+import types
+import weakref
+from copyreg import dispatch_table
+from logging import getLogger
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import torch
@@ -11,6 +19,13 @@ from torch.storage import UntypedStorage
 from torch.utils.weak import WeakIdKeyDictionary
 
 
+<<<<<<< HEAD
+=======
+logger = getLogger()
+logger.setLevel(logging.INFO)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class StateDictStager:
     """
     A class for optimizing storage objects during staging for async checkpointing.
@@ -23,6 +38,7 @@ class StateDictStager:
     Attributes:
         pin_memory (bool): Whether to pin CPU memory for faster CPU-GPU transfers
         share_memory (bool): Whether to share memory across processes
+<<<<<<< HEAD
         pin_memory_min_bytes (int): Minimum tensor size in bytes to pin memory (default: 5)
         _cached_storage_mapping (WeakIdKeyDictionary): Maps storage objects to optimized CPU storages using weak references
     """
@@ -38,6 +54,16 @@ class StateDictStager:
                 "Ignoring pin_memory flag for checkpoint staging as pinning memory"
                 "requires CUDA, but CUDA is not available. ",
                 stacklevel=2,
+=======
+        _cached_storage_mapping (WeakIdKeyDictionary): Maps storage objects to optimized CPU storages using weak references
+    """
+
+    def __init__(self, pin_memory: bool = False, share_memory: bool = False):
+        if pin_memory and not torch.cuda.is_available():
+            logger.warning(
+                "Ignoring pin_memory flag for checkpoint staging as pinning memory"
+                "requires CUDA, but CUDA is not available. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.pin_memory = False
         else:
@@ -45,16 +71,24 @@ class StateDictStager:
         self.share_memory = share_memory
         # Mapping from original storage objects to CPU storages using weak references
         self._cached_storage_mapping = WeakIdKeyDictionary()
+<<<<<<< HEAD
         self.pin_memory_min_bytes = pin_memory_min_bytes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def _deepcopy_atomic(x, _):
             return x
 
+<<<<<<< HEAD
         def _deepcopy_list(x, memo, non_blocking=False):
+=======
+        def _deepcopy_list(x, memo):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y: list = []
             memo[id(x)] = y
             append = y.append
             for a in x:
+<<<<<<< HEAD
                 append(
                     self.deepcopy_with_tensor_offload(
                         a, memo, non_blocking=non_blocking
@@ -67,6 +101,13 @@ class StateDictStager:
                 self.deepcopy_with_tensor_offload(a, memo, non_blocking=non_blocking)
                 for a in x
             ]
+=======
+                append(self.deepcopy_with_tensor_offload(a, memo))
+            return y
+
+        def _deepcopy_tuple(x, memo):
+            y = [self.deepcopy_with_tensor_offload(a, memo) for a in x]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # We're not going to put the tuple in the memo, but it's still important we
             # check for it, in case the tuple contains recursive mutable structures.
             try:
@@ -83,6 +124,7 @@ class StateDictStager:
             # No elements changed, return original tuple
             return x
 
+<<<<<<< HEAD
         def _deepcopy_dict(x, memo, non_blocking=False):
             y: dict = {}
             memo[id(x)] = y
@@ -102,6 +144,20 @@ class StateDictStager:
                 self.deepcopy_with_tensor_offload(
                     x.__self__, memo, non_blocking=non_blocking
                 ),
+=======
+        def _deepcopy_dict(x, memo):
+            y: dict = {}
+            memo[id(x)] = y
+            for key, value in x.items():
+                y[self.deepcopy_with_tensor_offload(key, memo)] = (
+                    self.deepcopy_with_tensor_offload(value, memo)
+                )
+            return y
+
+        def _deepcopy_method(x, memo):  # Copy instance methods
+            return type(x)(
+                x.__func__, self.deepcopy_with_tensor_offload(x.__self__, memo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         d: dict[Any, Any] = {}
@@ -126,9 +182,13 @@ class StateDictStager:
         d[list] = _deepcopy_list
 
     def _stage_untyped_storage(
+<<<<<<< HEAD
         self,
         storage: UntypedStorage,
         non_blocking: bool = False,
+=======
+        self, storage: UntypedStorage, non_blocking: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Called from the hooked storage_deepcopy function in torch.Tensor.__deepcopy__.
@@ -162,10 +222,14 @@ class StateDictStager:
         else:
             new_storage = type(storage)(storage.size(), device="cpu")
 
+<<<<<<< HEAD
         # Skip pinning for tensors below the minimum size threshold
         # Small tensors (e.g., optimizer step counters, scalars) have negligible
         # transfer time improvement from pinning, but pinning overhead is significant
         if self.pin_memory and new_storage.nbytes() >= self.pin_memory_min_bytes:
+=======
+        if self.pin_memory and new_storage.nbytes() > 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pin_memory_utils.pin_memory(new_storage.data_ptr(), new_storage.nbytes())
             # Set up a weak reference to unpin when cpu storage is garbage collected
             f = weakref.finalize(
@@ -184,10 +248,17 @@ class StateDictStager:
     @torch.no_grad()
     def stage(
         self,
+<<<<<<< HEAD
         state_dict: Any,
         non_blocking: bool = False,
     ) -> Any:
         return self.deepcopy_with_tensor_offload(state_dict, None, [], non_blocking)
+=======
+        state_dict: dict[str, Any],
+        non_blocking: bool = False,
+    ) -> dict[str, Any]:
+        return self.deepcopy_with_tensor_offload(state_dict, non_blocking=non_blocking)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _offload_tensor(self, x, memo, non_blocking=False):
         """
@@ -204,15 +275,21 @@ class StateDictStager:
         Returns:
             A CPU copy of the tensor with optimized storage
         """
+<<<<<<< HEAD
         # if data_ptr is not 0, we allocate a new storage below. so we can skip
         # memory allocation by using [] for size.
         y = x.new_empty([] if x.data_ptr() != 0 else x.size(), device="cpu")
+=======
+        # Create a new empty tensor on CPU
+        y = x.new_empty([], device="cpu")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Store in memo dict early to handle recursive references
         d = id(x)
         memo[d] = y
 
         if type(x) is torch.Tensor or x.data_ptr() != 0:
+<<<<<<< HEAD
             # Get the untyped storage
             untyped_storage = x.untyped_storage()
             storage_id = id(untyped_storage)
@@ -232,6 +309,14 @@ class StateDictStager:
                 memo[storage_id] = copied_storage
 
             # Set the tensor data using the staged storage
+=======
+            # Try to get the untyped storage and optimize it
+            untyped_storage = x.untyped_storage()
+            copied_storage = self._stage_untyped_storage(
+                untyped_storage, non_blocking=non_blocking
+            )
+            # Set the tensor data using the optimized storage
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y.set_(copied_storage, x.storage_offset(), x.size(), x.stride())
 
         # Copy any attributes the tensor might have
@@ -258,6 +343,7 @@ class StateDictStager:
 
         return y
 
+<<<<<<< HEAD
     def close(self):
         """
         Clean up all cached storages and release associated resources.
@@ -268,6 +354,8 @@ class StateDictStager:
         """
         self._cached_storage_mapping.clear()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.no_grad()
     def deepcopy_with_tensor_offload(self, x, memo=None, _nil=[], non_blocking=False):  # noqa: B006
         """Deep copy operation on arbitrary Python objects with special handling for PyTorch tensors.
@@ -299,6 +387,7 @@ class StateDictStager:
         # tensors and subclasses of tensors are handled separately
         if isinstance(x, torch.Tensor):
             y = self._offload_tensor(x, memo, non_blocking=non_blocking)
+<<<<<<< HEAD
         else:
             # Use the dispatch table for standard types
             copier = self._deepcopy_dispatch.get(cls)
@@ -379,6 +468,40 @@ class StateDictStager:
                                 raise RuntimeError(
                                     f"Unexpected pickle protocol return value length: {len(rv)}"
                                 )
+=======
+
+        # Use the dispatch table for standard types
+        copier = self._deepcopy_dispatch.get(cls)
+        if copier is not None:
+            y = copier(x, memo)
+        else:
+            if issubclass(cls, type):
+                y = self._deepcopy_dispatch[type](x, memo)
+            else:
+                copier = getattr(x, "__deepcopy__", None)
+                if copier is not None:
+                    y = copier(memo)
+                else:
+                    reductor = dispatch_table.get(cls)
+                    if reductor:
+                        rv = reductor(x)
+                    else:
+                        reductor = getattr(x, "__reduce_ex__", None)
+                        if reductor is not None:
+                            rv = reductor(4)
+                        else:
+                            reductor = getattr(x, "__reduce__", None)
+                            if reductor:
+                                rv = reductor()
+                            else:
+                                raise RuntimeError(
+                                    f"un(deep)copyable object of type {cls}"
+                                )
+                    if isinstance(rv, str):
+                        y = x
+                    else:
+                        y = self._reconstruct(x, memo, *rv)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # If is its own copy, don't memoize.
         if y is not x:
@@ -403,6 +526,7 @@ class StateDictStager:
             memo[id(memo)] = [x]
 
     def _reconstruct(
+<<<<<<< HEAD
         self,
         x,
         memo,
@@ -419,15 +543,26 @@ class StateDictStager:
                 self.deepcopy_with_tensor_offload(arg, memo, non_blocking=non_blocking)
                 for arg in args
             )
+=======
+        self, x, memo, func, args, state=None, listiter=None, dictiter=None
+    ):
+        deep = memo is not None
+        if deep and args:
+            args = (self.deepcopy_with_tensor_offload(arg, memo) for arg in args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y = func(*args)
         if deep:
             memo[id(x)] = y
 
         if state is not None:
             if deep:
+<<<<<<< HEAD
                 state = self.deepcopy_with_tensor_offload(
                     state, memo, non_blocking=non_blocking
                 )
+=======
+                state = self.deepcopy_with_tensor_offload(state, memo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if hasattr(y, "__setstate__"):
                 y.__setstate__(state)
             else:
@@ -444,9 +579,13 @@ class StateDictStager:
         if listiter is not None:
             if deep:
                 for item in listiter:
+<<<<<<< HEAD
                     item = self.deepcopy_with_tensor_offload(
                         item, memo, non_blocking=non_blocking
                     )
+=======
+                    item = self.deepcopy_with_tensor_offload(item, memo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     y.append(item)
             else:
                 for item in listiter:
@@ -454,12 +593,17 @@ class StateDictStager:
         if dictiter is not None:
             if deep:
                 for key, value in dictiter:
+<<<<<<< HEAD
                     key = self.deepcopy_with_tensor_offload(
                         key, memo, non_blocking=non_blocking
                     )
                     value = self.deepcopy_with_tensor_offload(
                         value, memo, non_blocking=non_blocking
                     )
+=======
+                    key = self.deepcopy_with_tensor_offload(key, memo)
+                    value = self.deepcopy_with_tensor_offload(value, memo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     y[key] = value
             else:
                 for key, value in dictiter:

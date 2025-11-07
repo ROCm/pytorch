@@ -188,6 +188,7 @@ auto PyNode::apply(variable_list&& inputs) -> variable_list {
   }
 
   // Now the number of gradients should match
+<<<<<<< HEAD
   TORCH_CHECK(
       num_outputs == num_forward_inputs,
       "function ",
@@ -197,6 +198,15 @@ auto PyNode::apply(variable_list&& inputs) -> variable_list {
       ", got ",
       num_outputs,
       ")");
+=======
+  if (num_outputs != num_forward_inputs) {
+    std::string msg("function ");
+    msg += name() + " returned an incorrect number of gradients (expected ";
+    msg += std::to_string(num_forward_inputs) + ", got ";
+    msg += std::to_string(num_outputs) + ")";
+    throw std::runtime_error(msg);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Massage the Python results tuple back into a C++ variable_list
   return to_variable_list(r.get(), is_variable_input);
@@ -437,6 +447,7 @@ variable_list PyNode::to_variable_list(
     PyObject* output = PyTuple_GET_ITEM(outputs, i);
     bool was_variable = is_variable_input[i];
     if (!was_variable) {
+<<<<<<< HEAD
       TORCH_CHECK(
           output == Py_None,
           "function ",
@@ -444,17 +455,35 @@ variable_list PyNode::to_variable_list(
           " returned a gradient different than None at position ",
           i + 1,
           ", but the corresponding forward input was not a Variable");
+=======
+      if (output != Py_None) {
+        std::string msg("function ");
+        msg += name() + " returned a gradient different than None at position ";
+        msg += std::to_string(i + 1) +
+            ", but the corresponding forward input was not a Variable";
+        throw std::runtime_error(msg);
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       continue;
     }
     if (output == Py_None) {
       results.emplace_back();
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(
           THPVariable_Check(output),
           "expected Variable or None (got ",
           THPUtils_typename(output),
           ")");
 
+=======
+      if (!THPVariable_Check(output)) {
+        std::string msg("expected Variable or None (got ");
+        msg += THPUtils_typename(output);
+        msg += ")";
+        throw std::runtime_error(msg);
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       results.emplace_back(THPVariable_Unpack(output));
     }
   }
@@ -539,7 +568,10 @@ static PyObject* THPFunction_new(
   new (&self->saved_variables) std::vector<SavedVariable>();
   new (&self->is_variable_input) std::vector<bool>();
   self->materialize_grads = true;
+<<<<<<< HEAD
   self->pure_view = false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   self->materialize_non_diff_grads = true;
   return obj;
 }
@@ -717,8 +749,12 @@ static void _wrap_outputs(
       cdata_if_executable,
       jvp_user_function,
       to_save_if_setup_context,
+<<<<<<< HEAD
       view_as_self_fn,
       self->pure_view);
+=======
+      view_as_self_fn);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   for (const auto i : c10::irange(num_outputs)) {
     PyObject* obj = PyTuple_GetItem(raw_output, i);
@@ -797,6 +833,7 @@ static void _get_tensors_to_save(
         if (is_executable) {
           // TODO: We should really just ALWAYS throw an error here, but
           // doing so will break some internal tests. We should fix those.
+<<<<<<< HEAD
           TORCH_CHECK_TYPE(
               false,
               fmt::format(
@@ -808,20 +845,36 @@ static void _get_tensors_to_save(
       }
     }
     Py_CLEAR(self->to_save);
+=======
+          throw torch::TypeError(
+              "save_for_backward can only save variables, but argument %ld is of "
+              "type %s",
+              i,
+              Py_TYPE(obj)->tp_name);
+        }
+      }
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 // Save any variables that requested by to_save
 static void _save_variables(
     const std::vector<std::optional<at::Tensor>>& tensors_to_save,
     const std::shared_ptr<PyNode>& cdata_ptr,
+<<<<<<< HEAD
     THPFunction* self,
     PyObject* outputs,
     int64_t num_outputs) {
   if (tensors_to_save.empty())
+=======
+    THPFunction* self) {
+  if (!self->to_save)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return;
   size_t num_saved = tensors_to_save.size();
   self->saved_variables.clear();
   self->saved_variables.reserve(num_saved);
+<<<<<<< HEAD
 
   std::unordered_set<at::TensorImpl*> output_impls{};
   output_impls.reserve(num_outputs);
@@ -833,15 +886,26 @@ static void _save_variables(
     }
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& opt_tensor : tensors_to_save) {
     if (!opt_tensor.has_value()) {
       self->saved_variables.emplace_back();
     } else {
+<<<<<<< HEAD
       bool is_output =
           output_impls.count(opt_tensor.value().unsafeGetTensorImpl()) > 0;
       self->saved_variables.emplace_back(opt_tensor.value(), is_output);
     }
   }
+=======
+      bool is_output = opt_tensor.value().grad_fn().get() == cdata_ptr.get();
+      self->saved_variables.emplace_back(opt_tensor.value(), is_output);
+    }
+  }
+  // Free .to_save
+  Py_CLEAR(self->to_save);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Mark requires_grad = 0 on non-differentiable variables (as per
@@ -1071,8 +1135,12 @@ void _trace_post_record(
       }
     }
   }
+<<<<<<< HEAD
   py::object onnx_globals =
       py::module::import("torch.onnx._internal.torchscript_exporter._globals");
+=======
+  py::object onnx_globals = py::module::import("torch.onnx._globals");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::bool_ is_in_onnx_export =
       py::module::import("torch.onnx.__init__").attr("is_in_onnx_export");
   py::bool_ is_autograd_inlining_enabled =
@@ -1153,8 +1221,12 @@ PyObject* process_outputs(
   // wrapping as the outputs must have their grad_fn/fw_grad properly set before
   // we save them.
   if (is_executable) {
+<<<<<<< HEAD
     _save_variables(
         tensors_to_save, cdata, grad_fn, outputs.get(), num_outputs);
+=======
+    _save_variables(tensors_to_save, cdata, grad_fn);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     // Remove unnecessary attributes
     Py_CLEAR(grad_fn->to_save);
@@ -1458,6 +1530,7 @@ int THPFunction_set_materialize_grads(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 int THPFunction_set_pure_view(
     THPFunction* self,
     PyObject* value,
@@ -1472,6 +1545,8 @@ int THPFunction_set_pure_view(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyObject* THPFunction_get_materialize_non_diff_grads(
     THPFunction* self,
     void* _unused) {
@@ -1746,11 +1821,14 @@ static struct PyGetSetDef THPFunction_properties[] = {
      (setter)THPFunction_set_materialize_grads,
      nullptr,
      nullptr},
+<<<<<<< HEAD
     {"_is_pure_view",
      nullptr,
      (setter)THPFunction_set_pure_view,
      nullptr,
      nullptr},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_materialize_non_diff_grads",
      (getter)THPFunction_get_materialize_non_diff_grads,
      (setter)THPFunction_set_materialize_non_diff_grads,

@@ -4,8 +4,11 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+<<<<<<< HEAD
 import functools
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from types import (
     BuiltinMethodType,
     FunctionType,
@@ -13,8 +16,16 @@ from types import (
     MethodDescriptorType,
     WrapperDescriptorType,
 )
+<<<<<<< HEAD
 from typing import Any
 
+=======
+
+from functorch._C import dim as _C
+
+
+_wrap_method = _C._wrap_method
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 FUNC_TYPES = (
     FunctionType,
@@ -25,6 +36,7 @@ FUNC_TYPES = (
 PROPERTY_TYPES = (GetSetDescriptorType, property)
 
 
+<<<<<<< HEAD
 def _py_wrap_method(orig: Callable, __torch_function__: Callable) -> Callable:
     def impl(*args: Any, **kwargs: Any) -> Any:
         return __torch_function__(orig, None, args, kwargs)
@@ -43,6 +55,26 @@ def wrap_type(to_patch: Any, pattern: type, __torch_function__: Callable) -> Non
         all.update(t.__dict__)
 
     def wrap_attr(orig: Any) -> property:
+=======
+def _py_wrap_method(orig, __torch_function__):
+    def impl(*args, **kwargs):
+        return __torch_function__(orig, None, args, kwargs)
+
+    return impl
+
+
+def wrap_type(use_c, to_patch, pattern, __torch_function__):
+    if use_c:
+        wrap_method = _wrap_method
+    else:
+        wrap_method = _py_wrap_method
+
+    all = {}
+    for t in reversed(pattern.mro()[:-1]):  # skip object
+        all.update(t.__dict__)
+
+    def wrap_attr(orig):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return property(wrap_method(orig.__get__, __torch_function__))
 
     for name, obj in all.items():

@@ -2,11 +2,18 @@
 
 #include <ATen/core/functional.h> //fmap
 #include <ATen/core/stack.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/codegen/fuser/kernel_cache.h>
 #include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/runtime/custom_operator.h>
 #include <torch/csrc/jit/runtime/interpreter.h>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <stdexcept>
 
 namespace torch::jit::fuser {
@@ -38,7 +45,12 @@ static RegisterOperators reg_fused_operators({Operator(
 
 void runFallback(int64_t key, Stack& stack) {
   auto maybe_spec = retrieve(key);
+<<<<<<< HEAD
   TORCH_CHECK(maybe_spec, "Failed to find fusion spec to run fallback.")
+=======
+  if (!maybe_spec)
+    throw std::runtime_error("Failed to find fusion spec to run fallback.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   InterpreterState{(*maybe_spec)->code()}.run(stack);
 }

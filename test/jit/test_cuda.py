@@ -14,6 +14,10 @@ from torch.testing._internal.common_utils import (
     NoTest,
     raise_on_run_directly,
     skipCUDANonDefaultStreamIf,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_CUDA,
 )
 from torch.testing._internal.jit_utils import JitTestCase
@@ -47,6 +51,10 @@ class TestCUDA(JitTestCase):
         torch.cuda.empty_cache()
         super().tearDown()
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
     def test_cuda_synchronize(self):
         # Test device synchronization.
@@ -119,6 +127,10 @@ class TestCUDA(JitTestCase):
 
         self.assertTrue(event_default_args)
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
     def test_current_stream(self):
         # Test current stream on the device and check if the stream device index
@@ -158,6 +170,10 @@ class TestCUDA(JitTestCase):
         self.assertEqual(0, d2)
         self.assertEqual(d0, d2)
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_MULTIGPU, "detected only one GPU")
     @unittest.skipIf(not TEST_LARGE_TENSOR, "not enough memory")
     @skipCUDANonDefaultStreamIf(True)
@@ -292,7 +308,11 @@ class TestCUDA(JitTestCase):
             default_stream_id: int
             user_stream_id: int
 
+<<<<<<< HEAD
         # The test aims at checking different stream properties.
+=======
+        # The test aims at checking different stream proporties.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch.jit.script
         def test_get_stream():
             device_index = torch.cuda.current_device()
@@ -499,7 +519,11 @@ class TestCUDA(JitTestCase):
 
         # Record the CUDA event for operation torch.mm on the current stream
         # and then test if the elapsed time is greater than 0. This test is also
+<<<<<<< HEAD
         # an adaption from eager mode CUDA tests available at test/test_cuda.py
+=======
+        # an adaption from eager mdoe CUDA tests available at test/test_cuda.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch.jit.script
         def test_event():
             device_index = torch.cuda.current_device()
@@ -522,7 +546,11 @@ class TestCUDA(JitTestCase):
         self.assertGreater(test_event(), 0)
 
         # Check for stream synchronization , when a large tensor multiplication is
+<<<<<<< HEAD
         # computed on the stream. The stream.query should be true once the synchronization is done
+=======
+        # computed on the stream. The stream.query should be true once the synchroniztion is done
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @torch.jit.script
         def test_stream_synchronize() -> float:
             device_index = torch.cuda.current_device()

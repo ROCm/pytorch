@@ -78,7 +78,11 @@ inline bool areAnyOptionalTensorSubclassLike(
 // NOTE: This function expects a scalar tensor of boolean dtype.
 // Eg.
 // Non-Composite Compliant Pattern : (t == 0).all().item<bool>()
+<<<<<<< HEAD
 // Composite Compliant Pattern : is_salar_tensor_true((t == 0).all())
+=======
+// Composite Compliant Patter : is_salar_tensor_true((t == 0).all())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline bool is_scalar_tensor_true(const Tensor& t) {
   TORCH_INTERNAL_ASSERT(t.dim() == 0)
   TORCH_INTERNAL_ASSERT(t.scalar_type() == kBool)

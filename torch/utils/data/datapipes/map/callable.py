@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import TypeVar
+=======
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes.datapipe import MapDataPipe
@@ -60,7 +64,10 @@ class MapperMapDataPipe(MapDataPipe[_T_co]):
         self.fn = fn  # type: ignore[assignment]
 
     def __len__(self) -> int:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.datapipe)
 
     def __getitem__(self, index) -> _T_co:

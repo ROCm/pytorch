@@ -25,7 +25,11 @@ struct TORCH_API HPUHooksInterface : AcceleratorHooksInterface {
         false, "Cannot get device of pointer on HPU without HPU backend");
   }
 
+<<<<<<< HEAD
   bool isPinnedPtr(const void* /*data*/) const override {
+=======
+  bool isPinnedPtr(const void*) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
 

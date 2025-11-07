@@ -77,15 +77,19 @@ install_ubuntu() {
   # see: https://github.com/pytorch/pytorch/issues/65931
   apt-get install -y libgnutls30
 
+<<<<<<< HEAD
   if [[ "$UBUNTU_VERSION" == "22.04"* ]]; then
     apt-get install -y libopenblas-dev
   fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Cleanup package manager
   apt-get autoclean && apt-get clean
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 }
 
+<<<<<<< HEAD
 build_libpng() {
   # install few packages
   yum install -y zlib zlib-devel
@@ -125,6 +129,16 @@ install_centos() {
   ccache_deps="asciidoc docbook-dtds docbook-style-xsl libxslt"
   numpy_deps="gcc-gfortran"
   yum install -y $ALLOW_ERASE \
+=======
+install_centos() {
+  # Need EPEL for many packages we depend on.
+  # See http://fedoraproject.org/wiki/EPEL
+  yum --enablerepo=extras install -y epel-release
+
+  ccache_deps="asciidoc docbook-dtds docbook-style-xsl libxslt"
+  numpy_deps="gcc-gfortran"
+  yum install -y \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     $ccache_deps \
     $numpy_deps \
     autoconf \
@@ -141,13 +155,20 @@ install_centos() {
     glibc-headers \
     glog-devel \
     libstdc++-devel \
+<<<<<<< HEAD
     make \
+=======
+    libsndfile-devel \
+    make \
+    opencv-devel \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sudo \
     wget \
     vim \
     unzip \
     gdb
 
+<<<<<<< HEAD
   if [[ $OS_VERSION == 9 ]]
   then
 	  dnf --enablerepo=crb -y install libsndfile-devel
@@ -163,6 +184,8 @@ install_centos() {
   # Libpng is required for torchvision build.
   build_libpng
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Cleanup
   yum clean all
   rm -rf /var/cache/yum
@@ -170,10 +193,15 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
+<<<<<<< HEAD
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
 # Install base packages depending on the base OS
+=======
+# Install base packages depending on the base OS
+ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 case "$ID" in
   ubuntu)
     install_ubuntu

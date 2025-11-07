@@ -7,7 +7,10 @@ import unittest
 from collections import defaultdict
 from unittest.mock import Mock, patch
 
+<<<<<<< HEAD
 # pyrefly: ignore [import-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from gen_operators_yaml import (
     fill_output,
     get_parser_options,
@@ -242,6 +245,9 @@ class GenOperatorsYAMLTest(unittest.TestCase):
 
         fill_output(output, options)
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for op_val in output["operators"].values():
             self.assertFalse(op_val["include_all_overloads"])

@@ -359,7 +359,11 @@ struct C10_API VariableVersion {
   // https://cplusplus.github.io/LWG/issue2334.
   VariableVersion(uint32_t version)
       : version_counter_(c10::make_intrusive<VersionCounter>(version)) {}
+<<<<<<< HEAD
   VariableVersion(Disabled /*unused*/ = DISABLED) {}
+=======
+  VariableVersion(Disabled = DISABLED) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool enabled() const {
     return version_counter_;
@@ -522,21 +526,35 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
    */
   TensorImpl(
       Storage&& storage,
+<<<<<<< HEAD
       DispatchKeySet /*key_set*/,
+=======
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const caffe2::TypeMeta data_type);
 
   // See Note [Enum ImplType]
   TensorImpl(
+<<<<<<< HEAD
       ImplType /*unused*/,
       Storage&& storage,
       DispatchKeySet /*key_set*/,
+=======
+      ImplType,
+      Storage&& storage,
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const caffe2::TypeMeta data_type);
 
   /**
    * Construct a 1-dim 0 size tensor that doesn't have a storage.
    */
   TensorImpl(
+<<<<<<< HEAD
       DispatchKeySet /*key_set*/,
+=======
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const caffe2::TypeMeta data_type,
       std::optional<c10::Device> device_opt);
 
@@ -563,9 +581,15 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
   // from under us.
   TensorImpl(
       Storage&& storage,
+<<<<<<< HEAD
       DispatchKeySet /*key_set*/,
       const caffe2::TypeMeta data_type,
       std::optional<c10::Device> /*device_opt*/);
+=======
+      DispatchKeySet,
+      const caffe2::TypeMeta data_type,
+      std::optional<c10::Device>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   TensorImpl(const TensorImpl&) = delete;
@@ -643,6 +667,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     }
   }
 
+<<<<<<< HEAD
   template <typename T>
   ArrayRef<T> generic_sizes() {
     static_assert(
@@ -654,10 +679,30 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     } else {
       return sym_sizes();
     }
+=======
+  // From https://stackoverflow.com/a/3057522/23845
+  // TODO: does C++14 have a stdlib template for this?
+  template <typename T>
+  struct identity {
+    typedef T type;
+  };
+
+  template <typename T>
+  ArrayRef<T> generic_sizes() {
+    return _generic_sizes(identity<T>());
+  }
+
+  ArrayRef<int64_t> _generic_sizes(identity<int64_t>) {
+    return sizes();
+  }
+  ArrayRef<c10::SymInt> _generic_sizes(identity<c10::SymInt>) {
+    return sym_sizes();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   template <typename T>
   ArrayRef<T> generic_strides() {
+<<<<<<< HEAD
     static_assert(
         std::is_same_v<T, int64_t> || std::is_same_v<T, c10::SymInt>,
         "Only supports int64_t and c10::SymInt.");
@@ -667,10 +712,21 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     } else {
       return sym_strides();
     }
+=======
+    return _generic_strides(identity<T>());
+  }
+
+  ArrayRef<int64_t> _generic_strides(identity<int64_t>) {
+    return strides();
+  }
+  ArrayRef<c10::SymInt> _generic_strides(identity<c10::SymInt>) {
+    return sym_strides();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   template <typename T>
   T generic_storage_offset() {
+<<<<<<< HEAD
     static_assert(
         std::is_same_v<T, int64_t> || std::is_same_v<T, c10::SymInt>,
         "Only supports int64_t and c10::SymInt.");
@@ -680,6 +736,16 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     } else {
       return sym_storage_offset();
     }
+=======
+    return _generic_storage_offset(identity<T>());
+  }
+
+  int64_t _generic_storage_offset(identity<int64_t>) {
+    return storage_offset();
+  }
+  c10::SymInt _generic_storage_offset(identity<c10::SymInt>) {
+    return sym_storage_offset();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   /**
@@ -808,6 +874,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     }
   }
 
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous(
       at::MemoryFormat memory_format = at::MemoryFormat::Contiguous) const {
     if (C10_UNLIKELY(matches_policy(SizesStridesPolicy::CustomStrides))) {
@@ -845,6 +912,8 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return is_contiguous_default_impl<c10::SymBool>(memory_format);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /**
    * Whether or not a tensor is laid out in contiguous memory.
    *
@@ -860,6 +929,33 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return is_contiguous_default(memory_format);
   }
 
+<<<<<<< HEAD
+=======
+  // These are factored into separate functions in case subclasses
+  // want to use them
+  bool is_contiguous_default(at::MemoryFormat memory_format) const {
+    if (has_symbolic_sizes_strides_) {
+      if (memory_format == at::MemoryFormat::ChannelsLast) {
+        return symbolic_shape_meta().is_channels_last_contiguous().guard_bool(
+            __FILE__, __LINE__);
+      } else if (memory_format == at::MemoryFormat::ChannelsLast3d) {
+        return symbolic_shape_meta()
+            .is_channels_last_3d_contiguous()
+            .guard_bool(__FILE__, __LINE__);
+      }
+      return symbolic_shape_meta().is_contiguous().guard_bool(
+          __FILE__, __LINE__);
+    }
+
+    if (memory_format == at::MemoryFormat::ChannelsLast) {
+      return is_channels_last_contiguous_;
+    } else if (memory_format == at::MemoryFormat::ChannelsLast3d) {
+      return is_channels_last_3d_contiguous_;
+    }
+    return is_contiguous_;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_strides_like_default(at::MemoryFormat memory_format) const {
     if (has_symbolic_sizes_strides_) {
       if (memory_format == at::MemoryFormat::ChannelsLast) {
@@ -882,6 +978,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     }
   }
 
+<<<<<<< HEAD
   SymBool sym_is_non_overlapping_and_dense_default() const {
     if (has_symbolic_sizes_strides_) {
       return symbolic_shape_meta().is_non_overlapping_and_dense();
@@ -893,6 +990,11 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
   bool is_non_overlapping_and_dense_default() const {
     if (has_symbolic_sizes_strides_) {
       return sym_is_non_overlapping_and_dense_default().guard_bool(
+=======
+  bool is_non_overlapping_and_dense_default() const {
+    if (has_symbolic_sizes_strides_) {
+      return symbolic_shape_meta().is_non_overlapping_and_dense().guard_bool(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           __FILE__, __LINE__);
     } else {
       return is_non_overlapping_and_dense_;
@@ -985,6 +1087,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
    * for a tensor to have rank, but not well defined sizes.
    */
   // sizes_strides_policy_ >= CustomStrides
+<<<<<<< HEAD
 
   virtual bool is_strides_like_custom(at::MemoryFormat memory_format) const;
 
@@ -1003,6 +1106,11 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
         .guard_bool(__FILE__, __LINE__);
   }
 
+=======
+  virtual bool is_contiguous_custom(at::MemoryFormat memory_format) const;
+  virtual bool is_strides_like_custom(at::MemoryFormat memory_format) const;
+  virtual bool is_non_overlapping_and_dense_custom() const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // sizes_strides_policy_ >= CustomSizes
   // Currently this method only exists to be overwritten by subclasses such as
   // NestedTensorImpl.
@@ -1036,9 +1144,15 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
   virtual c10::SymInt sym_storage_offset_custom() const;
 
  public:
+<<<<<<< HEAD
 /**
  * True if this tensor has storage. See storage() for details.
  */
+=======
+  /**
+   * True if this tensor has storage. See storage() for details.
+   */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef DEBUG
   // Allow subclasses to check that their storage_ is never getting set in debug
   // builds.
@@ -1048,11 +1162,19 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
 #endif
       bool
       has_storage() const
+<<<<<<< HEAD
 // NOTE: we devirtualize this because it arguably shouldn't be an
 // error just to ask subclasses if they have storage.
 // This used to throw for most subclasses, but OpaqueTensorImpl
 // wanted it to successfully return false, so we went ahead and made
 // it a non-error.
+=======
+  // NOTE: we devirtualize this because it arguably shouldn't be an
+  // error just to ask subclasses if they have storage.
+  // This used to throw for most subclasses, but OpaqueTensorImpl
+  // wanted it to successfully return false, so we went ahead and made
+  // it a non-error.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef C10_DISABLE_TENSORIMPL_EXTENSIBILITY
   {
     return storage_;
@@ -2086,7 +2208,10 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
       constexpr auto sparse_backends = DispatchKeySet(
           {BackendComponent::CPUBit,
            BackendComponent::CUDABit,
+<<<<<<< HEAD
            BackendComponent::MPSBit,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
            BackendComponent::HIPBit,
            BackendComponent::XPUBit});
       constexpr auto sparse_k = DispatchKeySet(DispatchKey::Sparse);
@@ -2480,11 +2605,14 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return is_strides_like(at::MemoryFormat::ChannelsLast3d);
   }
 
+<<<<<<< HEAD
   bool is_non_overlapping_and_dense_or_false() const {
     return sym_is_non_overlapping_and_dense().guard_or_false(
         __FILE__, __LINE__);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_non_overlapping_and_dense() const {
     if (C10_UNLIKELY(matches_policy(SizesStridesPolicy::CustomStrides))) {
       return is_non_overlapping_and_dense_custom();
@@ -2492,6 +2620,7 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return is_non_overlapping_and_dense_default();
   }
 
+<<<<<<< HEAD
   SymBool sym_is_non_overlapping_and_dense() const {
     if (C10_UNLIKELY(matches_policy(SizesStridesPolicy::CustomStrides))) {
       return sym_is_non_overlapping_and_dense_custom();
@@ -2499,6 +2628,8 @@ struct C10_API TensorImpl : public c10::intrusive_ptr_target {
     return sym_is_non_overlapping_and_dense_default();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // if this returns true, then it is guaranteed that this tensor has symbolic
   // sizes/strides
   bool has_symbolic_sizes_strides() const {

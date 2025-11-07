@@ -77,7 +77,11 @@ def customized_ctx_manager_with_graph_break(mode):
         torch._C._set_grad_enabled(prev)
 
 
+<<<<<<< HEAD
 class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
+=======
+class CtxManagerTests(torch._dynamo.test_case.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_no_grad(self):
         def fn1(a, b):
             x = a + 1
@@ -230,7 +234,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
         res = opt_fn(x)
         self.assertEqual(ref, res)
         self.assertEqual(cnts.frame_count, 1)
+<<<<<<< HEAD
         self.assertEqual(cnts.op_count, 20)
+=======
+        self.assertEqual(cnts.op_count, 12)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.expectedFailure  # https://github.com/pytorch/pytorch/issues/118204
     @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
@@ -335,7 +343,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
         res = opt_fn(x)
         self.assertEqual(ref, res)
         self.assertEqual(cnts.frame_count, 1)
+<<<<<<< HEAD
         self.assertEqual(cnts.op_count, 37)
+=======
+        self.assertEqual(cnts.op_count, 21)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
     def test_cuda_stream_compared_with_constant(self):
@@ -388,7 +400,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
 
         ref1 = fn(x, s1, s1)
         res1 = opt_fn(x, s1, s1)
+<<<<<<< HEAD
         # We have a re-compilation because of changing inputs
+=======
+        # We have a re-compilation because of chaning inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(cnts.frame_count, 2)
         self.assertEqual(ref1, res1)
 
@@ -403,7 +419,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
 
         ref0 = fn(x, s0, s1)
         res0 = opt_fn(x, s0, s1)
+<<<<<<< HEAD
         # We have a re-compilation because of changing inputs
+=======
+        # We have a re-compilation because of chaning inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(cnts.frame_count, 2)
         self.assertEqual(ref0, res0)
 
@@ -517,7 +537,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
         res = opt_fn(x, cur_stream, new_stream)
         self.assertEqual(ref, res)
         self.assertEqual(cnts.frame_count, 1)
+<<<<<<< HEAD
         self.assertEqual(cnts.op_count, 27)
+=======
+        self.assertEqual(cnts.op_count, 19)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
     def test_cuda_event_method(self):
@@ -557,7 +581,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
         res = opt_fn(x)
         self.assertEqual(ref, res)
         self.assertEqual(cnts.frame_count, 1)
+<<<<<<< HEAD
         self.assertEqual(cnts.op_count, 27)
+=======
+        self.assertEqual(cnts.op_count, 19)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
     def test_cuda_device(self):
@@ -1706,7 +1734,11 @@ class GraphModule(torch.nn.Module):
         cnts = torch._dynamo.testing.CompileCounter()
         opt_f = torch.compile(f, backend=cnts)
         opt_f(torch.randn(2, 2, 2, 2).to(dtype=torch.float16))
+<<<<<<< HEAD
         self.assertEqual(cnts.frame_count, 2)
+=======
+        self.assertEqual(cnts.frame_count, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # test sdpa_kernel graph break with 2 arguments
     def test_sdpa_kernel_ctx_manager3(self):
@@ -1742,6 +1774,7 @@ class GraphModule(torch.nn.Module):
         opt_f = torch.compile(f, backend="eager")
         opt_f(torch.randn(2, 2))
 
+<<<<<<< HEAD
     # Regression test to make sure dynamo won't crash on these kwargs.
     def test_sdpa_kernel_ctx_manager_kwargs(self):
         backends = [torch.nn.attention.SDPBackend.MATH]
@@ -1819,6 +1852,8 @@ class GraphModule(torch.nn.Module):
         opt_f = torch.compile(f, backend="eager")
         opt_f(torch.randn(2, 2))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_profiler_use_after_with_block(self):
         counters.clear()
 
@@ -1835,6 +1870,7 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(ref, res)
         self.assertEqual(len(counters["graph_break"]), 1)
 
+<<<<<<< HEAD
     def test_311_resume_block_keyerror(self):
         # https://github.com/pytorch/pytorch/issues/162313
         flag = True
@@ -1894,13 +1930,21 @@ class ContextlibContextManagerTests(
 ):
     def setUp(self):
         super().setUp()
+=======
+
+class ContextlibContextManagerTests(torch._dynamo.test_case.TestCase):
+    def setUp(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._prev = torch._dynamo.config.enable_trace_contextlib
         self._u_prev = torch._dynamo.config.enable_trace_unittest
         torch._dynamo.config.enable_trace_contextlib = True
         torch._dynamo.config.enable_trace_unittest = True
 
     def tearDown(self):
+<<<<<<< HEAD
         super().tearDown()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._dynamo.config.enable_trace_contextlib = self._prev
         torch._dynamo.config.enable_trace_unittest = self._u_prev
 

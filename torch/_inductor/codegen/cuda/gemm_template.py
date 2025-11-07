@@ -10,10 +10,14 @@ from typing import Any, Optional, Union
 
 import torch
 import torch.utils._pytree as pytree
+<<<<<<< HEAD
 from torch._inductor.autotune_process import TensorMeta
 from torch._inductor.codegen.cuda.cutlass_cache import maybe_fetch_ops
 from torch._inductor.codegen.wrapper import PythonWrapperCodegen
 from torch._inductor.runtime.runtime_utils import dynamo_timed
+=======
+from torch._inductor.codegen.cuda.cutlass_cache import maybe_fetch_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.scheduler import BaseSchedulerNode
 from torch._inductor.select_algorithm import create_inputs_key
 from torch._inductor.utils import clear_on_fresh_cache
@@ -35,6 +39,7 @@ from ..common import IndentedBuffer
 from . import cutlass_utils
 from .cuda_kernel import CUDATemplateKernel
 from .cuda_template import CUTLASSTemplate
+<<<<<<< HEAD
 from .cutlass_python_evt import CutlassEVTCodegen, scaled_mm_evt
 from .cutlass_utils import (
     ACCUMULATOR_DTYPES,
@@ -46,6 +51,14 @@ from .cutlass_utils import (
 
 GemmOperation = Any
 EVTArgRenames = Any
+=======
+from .cutlass_presets import gen_cutlass_presets
+from .cutlass_python_evt import CutlassEVTCodegen, scaled_mm_evt
+from .cutlass_utils import torch_dtype_to_cutlass_type
+
+
+GemmOperation = Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 
@@ -564,6 +577,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         """
 
         ops = self.gen_ops()
+<<<<<<< HEAD
 
         # pre-computation
         layout_repr: str = str(layout)
@@ -601,6 +615,21 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
                 [node.get_layout() for node in input_nodes],
                 [node.get_stride() for node in input_nodes],
             )
+=======
+        for name, op in ops:
+            for swizzle in inductor_cuda_config.cutlass_max_profiling_swizzle_options:
+                description = f"{name} swizzle={swizzle}"
+                self.maybe_append_choice(
+                    choices, description=description, op=op, swizzle=swizzle
+                )
+
+        if len(ops) == 0:
+            input_layouts = [node.get_layout() for node in input_nodes]
+            input_strides = [node.get_stride() for node in input_nodes]
+            output_layout = layout
+            warning_msg = f"No suitable Cutlass GEMM configs found, fallbacks used ( {len(ops)=}, {output_layout=}, {input_layouts=}, {input_strides=} )"  # noqa: B950
+            log.warning(warning_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug(
             "Added %d Cutlass gemm configs.",
             len(ops),
@@ -688,6 +717,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         return CUTLASSGemmTemplate.cutlass_layout(torch_layout) == cutlass_layout
 
     @staticmethod
+<<<<<<< HEAD
     def set_layout(tensor_desc: "TensorDescription", torch_layout: ir.Layout) -> None:  # type: ignore[name-defined]  # noqa: F821
         """
         Helper method: Sets the layout of a given tensor description to match the given torch layout
@@ -697,6 +727,8 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         tensor_desc.layout = CUTLASSGemmTemplate.cutlass_layout(torch_layout)
 
     @staticmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set_alignment(torch_layout, op_element) -> bool:
         """
         Helper method to update the alignment of a given CUTLASS GEMM op operand's element.
@@ -837,6 +869,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
 
         return True
 
+<<<<<<< HEAD
     @classmethod
     def global_filter_ops(
         cls,
@@ -884,6 +917,8 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
 
         return ops
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def filter_op(
         self,
         op: "cutlass_library.gemm_op.GemmOperation",  # type: ignore[name-defined]  # noqa: F821
@@ -901,6 +936,19 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         have been mutated.
         """
 
+<<<<<<< HEAD
+=======
+        assert cutlass_utils.try_import_cutlass()
+        import cutlass_library.library as cutlass_lib  # type: ignore[import]
+
+        # Skip simt kernels
+        if (
+            op.tile_description.math_instruction.opcode_class
+            == cutlass_lib.OpcodeClass.Simt
+        ):
+            return None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if op.gemm_kind not in self._get_supported_ops():
             return None
 
@@ -915,6 +963,16 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         if not self._dtype_match(op):
             return None
 
+<<<<<<< HEAD
+=======
+        # Filter ops by input layouts.
+        if not (
+            self.layout_match(X.get_layout(), op.A.layout)
+            and self.layout_match(W.get_layout(), op.B.layout)
+        ):
+            return None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Filter ops by alignment.
         if not self._alignment_match(op):
             log.debug(
@@ -922,6 +980,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             )
             return None
 
+<<<<<<< HEAD
         # only use stream k for static shape
         if op.tile_scheduler.name == "StreamK":
             static_shape = PythonWrapperCodegen.statically_known_list_of_ints_or_none(
@@ -937,6 +996,11 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
         self.set_layout(op.A, X.get_layout())
         self.set_layout(op.B, W.get_layout())
 
+=======
+        # Update op.
+        op = copy.deepcopy(op)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Set output layout.
         op.D.layout = CUTLASSGemmTemplate.cutlass_layout(self.output_node.get_layout())
 
@@ -975,10 +1039,34 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             return None
 
         # Apply regex filters at the end when configuration name doesn't change anymore
+<<<<<<< HEAD
         if inductor_cuda_config.cutlass_op_allowlist_regex:
             if not re.search(
                 inductor_cuda_config.cutlass_op_allowlist_regex, op.configuration_name()
             ):
+=======
+        if (
+            inductor_cuda_config.cutlass_op_allowlist_regex
+            or inductor_cuda_config.cutlass_presets
+        ):
+            patterns = []
+            if inductor_cuda_config.cutlass_op_allowlist_regex:
+                patterns.append(inductor_cuda_config.cutlass_op_allowlist_regex)
+            if inductor_cuda_config.cutlass_presets:
+                presets = gen_cutlass_presets()
+                preset_nums = [
+                    int(x) for x in inductor_cuda_config.cutlass_presets.split(",")
+                ]
+                for preset_num in preset_nums:
+                    preset = presets.get(preset_num, {}).get(
+                        inductor_cuda_config.cutlass_instantiation_level, []
+                    )
+
+                    patterns.extend(preset)
+
+            pattern = "|".join(patterns)
+            if pattern and not re.search(pattern, op.configuration_name()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return None
         if inductor_cuda_config.cutlass_op_denylist_regex is not None:
             if re.search(
@@ -1006,8 +1094,12 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             log.debug("Using cached ops for %s", self.cache_key)
             return self.filtered_ops_cache[self.cache_key]
 
+<<<<<<< HEAD
         with dynamo_timed("CUTLASSGemmTemplate.maybe_fetch_ops"):
             maybe_ops = maybe_fetch_ops()
+=======
+        maybe_ops = maybe_fetch_ops()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if maybe_ops is None:
             log.debug("Cannot fetch ops from cache, generating ops from scratch")
             full_ops = cutlass_utils.gen_ops()
@@ -1016,8 +1108,11 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             log.debug("Using cached ops from cache")
             ops = maybe_ops
 
+<<<<<<< HEAD
         ops = self.global_filter_ops(ops)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res: dict[str, cutlass_gemm_op.GemmOperation] = {}
         start_time = time.time()
         for op in ops:
@@ -1150,10 +1245,13 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
                 op = self.swap_XW(op)
                 should_swap_xw = True
 
+<<<<<<< HEAD
         name_to_buffer = {node.get_name(): node for node in self.input_nodes}
         # handle the fake output buffer during lowering
         name_to_buffer[Y.get_name()] = Y  # type: ignore[assignment]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if epilogue_nodes or is_scaled_mm:
             if epilogue_nodes:
                 (
@@ -1165,6 +1263,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
                     Y.get_name(), epilogue_nodes, V.kernel.removed_buffers
                 )
 
+<<<<<<< HEAD
                 # TODO: mlazos remove this by returning buffer metadata from
                 # ir_to_evt_python code
                 for name, buf in (
@@ -1174,6 +1273,14 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
                         name_to_buffer[name] = buf  # type: ignore[assignment]
 
                 D_output_name = var_name_to_buffer_name["D"]
+=======
+                D_output_name = var_name_to_buffer_name["D"]
+                name_to_buffer = V.graph.name_to_buffer | V.graph.graph_inputs
+                for name in V.graph.constants.keys():
+                    name_to_buffer[name] = V.graph.add_tensor_constant(
+                        V.graph.constants[name], name
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 D_output_buffer = name_to_buffer[D_output_name]
                 Y = D_output_buffer  # type: ignore[assignment]
                 # Interestingly, I don't think the rest of the layout matters here since we
@@ -1214,11 +1321,18 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             )
             assert acc_dtype, "Could not determine accumulator dtype"
 
+<<<<<<< HEAD
             evt_name, evt_args, evt_code, evt_arg_renames = self._render_evt(
                 op,
                 evt_py_code,
                 var_name_to_buffer_name,
                 name_to_buffer,
+=======
+            evt_name, evt_args, evt_code = self._render_evt(
+                op,
+                evt_py_code,
+                var_name_to_buffer_name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Y.get_dtype(),
                 acc_dtype,
             )
@@ -1231,9 +1345,12 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
                 Y,
                 *extra_inputs,
             ]
+<<<<<<< HEAD
             input_names = [evt_arg_renames.get(name) for name in input_names]
             output_names = [evt_arg_renames.get(name) for name in output_names]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             names_str = ",".join(
                 ["X", "W", "Bias", *input_names, "Y", *output_names, *extra_names]
             )
@@ -1254,6 +1371,7 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
 
         instance_definition, instance_type = self._define_gemm_instance(op, evt_name)
 
+<<<<<<< HEAD
         options = {
             "alpha": self.alpha,
             "beta": self.beta,
@@ -1275,6 +1393,29 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             "op_conf_name": op.configuration_name(),
             "epilogue_visitor_tree": evt_code,
         }
+=======
+        options = dict(
+            alpha=self.alpha,
+            beta=self.beta,
+            X=X,
+            W=W,
+            Y=Y,
+            kernel_call_signature=kernel_call_signature,
+            Bias=Bias,
+            epilogue_template=epilogue_template,
+            argument_template=argument_template,
+            should_swap_xw=should_swap_xw,
+            template=self,
+            kernel=kernel,
+            instance_definition=instance_definition,
+            instance_type=instance_type,
+            input_reorder=self.input_reorder,
+            epilogue_args=evt_args,
+            test_call_statement=test_call_statement,
+            op_conf_name=op.configuration_name(),
+            epilogue_visitor_tree=evt_code,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         options.update(dict(zip(extra_names, extra_inputs)))
         res = self._template_from_string(self._get_template()).render(**options)
         if inductor_cuda_config.generate_test_runner and not is_dynamic(X, W, Y, Bias):
@@ -1310,17 +1451,27 @@ class CUTLASSGemmTemplate(CUTLASSTemplate, ABC):
             f"(({arg_type}){arg_name}_data.get())"
             for arg_type, arg_name in zip(arg_types, arg_names)
         ]
+<<<<<<< HEAD
         return f"{kernel.kernel_name}({', '.join(arguments)}, M, N, K, B, lda, ldb, ldc, ldd, 0, 0, 0, swizzle, workspace_size_ptr, (uint8_t*)workspace_data.get(), 0);"  # noqa: B950
+=======
+        return f"{kernel.kernel_name}({', '.join(arguments)}, M, N, K, B, lda, ldb, ldc, ldd, swizzle, workspace_size_ptr, (uint8_t*)workspace_data.get(), 0);"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _render_evt(
         self,
         op: GemmOperation,
         evt_py_code: str,
         buffer_renames: dict[str, str],
+<<<<<<< HEAD
         name_to_buffer: dict[str, Buffer],
         output_dtype: torch.dtype,
         accumulator_dtype: torch.dtype,
     ) -> tuple[str, str, str, EVTArgRenames]:  # type: ignore[name-defined]  # noqa: F821
+=======
+        output_dtype: torch.dtype,
+        accumulator_dtype: torch.dtype,
+    ) -> tuple[str, str, str]:  # type: ignore[name-defined]  # noqa: F821
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError("_render_evt in CUTLASSGemmTemplate not implemented")
 
 
@@ -1479,6 +1630,7 @@ class CUTLASS3xGemmTemplate(CUTLASSGemmTemplate):
         op: GemmOperation,
         evt_py_code: str,
         var_name_to_buffer_name: dict[str, str],
+<<<<<<< HEAD
         name_to_buffer: dict[str, Buffer],
         output_dtype: torch.dtype,
         accumulator_dtype: torch.dtype,
@@ -1488,12 +1640,35 @@ class CUTLASS3xGemmTemplate(CUTLASSGemmTemplate):
         acc_dtype = torch_dtype_to_cutlass_type(accumulator_dtype)
         output_dtype = torch_dtype_to_cutlass_type(output_dtype)
 
+=======
+        output_dtype: torch.dtype,
+        accumulator_dtype: torch.dtype,
+    ) -> tuple[str, str, str]:  # type: ignore[name-defined]  # noqa: F821
+        from .cutlass_lib_extensions.evt_extensions import create_example_tensors, trace
+
+        name_to_buffer = V.graph.name_to_buffer | V.graph.graph_inputs
+
+        for name in V.graph.constants.keys():
+            name_to_buffer[name] = V.graph.add_tensor_constant(
+                V.graph.constants[name], name
+            )
+
+        # handle the fake output buffer during lowering
+        name_to_buffer[self.output_node.get_name()] = self.output_node  # type: ignore[assignment]
+
+        acc_dtype = torch_dtype_to_cutlass_type(accumulator_dtype)
+        output_dtype = torch_dtype_to_cutlass_type(output_dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         examples = create_example_tensors(
             var_name_to_buffer_name,
             name_to_buffer,  # type: ignore[arg-type]
             V.graph.sizevars.size_hint,
         )
+<<<<<<< HEAD
         evt_name, evt_args, evt_code, arg_renames = trace(
+=======
+        evt_name, evt_args, evt_code = trace(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             evt_py_code,
             examples,
             acc_dtype,
@@ -1508,7 +1683,10 @@ class CUTLASS3xGemmTemplate(CUTLASSGemmTemplate):
             evt_name,
             evt_args,
             evt_code,
+<<<<<<< HEAD
             arg_renames,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _shape_match(
@@ -1656,6 +1834,7 @@ class CUTLASS3xGemmTemplate(CUTLASSGemmTemplate):
         tensors. This operation also implies the M and N dimensions of Bias and GEMM output to be swapped
         before the function call.
         """
+<<<<<<< HEAD
         options = {
             "alpha": alpha,
             "beta": beta,
@@ -1669,6 +1848,21 @@ class CUTLASS3xGemmTemplate(CUTLASSGemmTemplate):
             "N": "N",
             "epilogue_args": epilogue_args,
         }
+=======
+        options = dict(
+            alpha=alpha,
+            beta=beta,
+            X=X,
+            W=W,
+            Y=Y,
+            Bias=Bias,
+            template=self,
+            kernel=kernel,
+            M="M",
+            N="N",
+            epilogue_args=epilogue_args,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert epilogue_template is not None
 
         if should_swap_xw:
@@ -1947,6 +2141,7 @@ class CUTLASS2xGemmTemplate(CUTLASSGemmTemplate):
         tensors. This operation also implies the M and N dimensions of Bias and GEMM output to be swapped
         before the function call.
         """
+<<<<<<< HEAD
         options = {
             "instance_type": instance_type,
             "alpha": alpha,
@@ -1962,6 +2157,23 @@ class CUTLASS2xGemmTemplate(CUTLASSGemmTemplate):
             "N": "N",
             "epilogue_args": epilogue_args,
         }
+=======
+        options = dict(
+            instance_type=instance_type,
+            alpha=alpha,
+            beta=beta,
+            X=X,
+            W=W,
+            Y=Y,
+            Bias=Bias,
+            Meta=Meta,
+            template=self,
+            kernel=kernel,
+            M="M",
+            N="N",
+            epilogue_args=epilogue_args,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if epilogue_template is None:
             arguments = self._template_from_string(argument_template).render(

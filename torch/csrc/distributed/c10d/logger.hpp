@@ -153,7 +153,11 @@ class TORCH_API C10dLogger {
   virtual ~C10dLogger() = default;
   virtual void log(const C10dLoggingData& data);
   static C10dLogger* getLogger();
+<<<<<<< HEAD
   static void registerLogger(std::unique_ptr<C10dLogger> /*logger*/);
+=======
+  static void registerLogger(std::unique_ptr<C10dLogger>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  protected:
   // singletion, hide constructor from the public

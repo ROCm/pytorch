@@ -517,6 +517,7 @@ TEST(BasicTest, BasicStdTestCPU) {
   t3.join();
   t4.join();
 }
+<<<<<<< HEAD
 
 TEST(BasicTest, TestForBlobResizeCPU) {
   // Checks that for_blob can correctly create tensors with non-empty offset and resize them
@@ -535,3 +536,5 @@ TEST(BasicTest, TestForBlobStridesResizeCPU) {
   auto te = *at::expand_size(t, {3, 3});
   ASSERT_EQ(te[1][1].item<int32_t>(), 5);
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

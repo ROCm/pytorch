@@ -9,7 +9,10 @@
 #include <ATen/cuda/CUDAContext.h>
 
 using namespace at;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(TestDlconvertor, TestDlconvertorCUDA) {
   manual_seed(123);
 
@@ -51,6 +54,7 @@ TEST(TestDlconvertor, TestDlconvertorCUDAHIP) {
 
   ASSERT_TRUE(a.equal(b));
 }
+<<<<<<< HEAD
 
 TEST(TestDlconvertorVersioned, TestDlconvertorCUDA) {
   manual_seed(123);
@@ -93,3 +97,5 @@ TEST(TestDlconvertorVersioned, TestDlconvertorCUDAHIP) {
 
   ASSERT_TRUE(a.equal(b));
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

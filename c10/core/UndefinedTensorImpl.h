@@ -32,7 +32,11 @@ struct C10_API UndefinedTensorImpl final : public TensorImpl {
   void set_storage_offset(int64_t offset) override;
 
  protected:
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous_custom(MemoryFormat format) const override;
+=======
+  bool is_contiguous_custom(MemoryFormat format) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   IntArrayRef strides_custom() const override;
   SymIntArrayRef sym_strides_custom() const override;
 

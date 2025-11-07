@@ -11,8 +11,15 @@ void check_single_result(
     const at::TensorBase& value,
     const at::TensorBase& result,
     const std::string& hook_name) {
+<<<<<<< HEAD
   TORCH_CHECK(
       value.defined(), "can't replace a empty gradient with a non-empty value");
+=======
+  if (!value.defined()) {
+    throw std::runtime_error(
+        "can't replace a empty gradient with a non-empty value");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   torch::autograd::check_variable_result(value, result, hook_name);
 }
 } // namespace

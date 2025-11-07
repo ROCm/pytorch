@@ -91,7 +91,10 @@ class Independent(Distribution, Generic[D]):
         return self.base_dist.has_enumerate_support
 
     @constraints.dependent_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         result = self.base_dist.support
         if self.reinterpreted_batch_ndims:

@@ -3,8 +3,12 @@ import json
 import os
 import tempfile
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._inductor.test_case
@@ -13,7 +17,11 @@ from torch import _dynamo as torchdynamo
 from torch._inductor import config
 from torch.profiler import ProfilerActivity
 from torch.testing._internal.common_utils import TemporaryFileName
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON, IS_BIG_GPU
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA, IS_BIG_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.torch_version import TorchVersion
 from torch.utils._triton import has_triton
 
@@ -314,5 +322,9 @@ class DynamoProfilerTests(torch._inductor.test_case.TestCase):
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON:
+=======
+    if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

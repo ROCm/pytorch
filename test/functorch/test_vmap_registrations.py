@@ -208,7 +208,10 @@ xfail_not_implemented = {
     "aten::subtract_.Scalar",
     "aten::subtract_.Tensor",
     "aten::svd.U",
+<<<<<<< HEAD
     "aten::sym_is_contiguous",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "aten::sym_size.int",
     "aten::sym_stride.int",
     "aten::sym_numel",

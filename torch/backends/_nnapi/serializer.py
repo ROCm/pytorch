@@ -201,7 +201,11 @@ class DimOrder(enum.Enum):
 
 
 class Operand(NamedTuple):
+<<<<<<< HEAD
     """Representation of an NNAPI operand."""
+=======
+    """Represenation of an NNAPI operand."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NNAPI operand type.  One of NNAPI_OperandCode.
     # TODO: Make this an enum.
@@ -414,7 +418,10 @@ class _NnapiSerializer:
             )  # noqa: TRY002
         return Operand(
             shape=tuple(tensor.shape),
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             op_type=op_type,
             dim_order=dim_order,
             scale=scale,
@@ -1735,13 +1742,19 @@ class _NnapiSerializer:
         for dim in (2, 3):  # h, w indices
             if image_oper.shape[dim] == 0:
                 if size_ctype.kind() != "NoneType":
+<<<<<<< HEAD
                     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.compute_operand_shape(out_id, dim, size_arg[dim - 2])
                 elif scale_ctype.kind() != "NoneType":
                     self.compute_operand_shape(
                         out_id,
                         dim,
+<<<<<<< HEAD
                         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         f"int({scale_arg[dim - 2]} * {flex_name(image_id, dim)})",
                     )
                 else:

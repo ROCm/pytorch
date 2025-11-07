@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import itertools
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.ao.nn.intrinsic as nni
 import torch.nn as nn
@@ -286,7 +290,11 @@ def get_fuser_method_new(
     op_patterns = _get_valid_patterns(op_pattern)
     fuser_method = None
     for op_pattern in op_patterns:
+<<<<<<< HEAD
         fuser_method = fuser_method_mapping.get(op_pattern)
+=======
+        fuser_method = fuser_method_mapping.get(op_pattern, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if fuser_method is not None:
             break
     assert fuser_method is not None, f"did not find fuser method for: {op_pattern} "

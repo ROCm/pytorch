@@ -10,7 +10,10 @@ inline void gemm_internal_ck(CUDABLAS_GEMM_ARGTYPES(Dtype)) {
   static_assert(false&&sizeof(Dtype),"at::cuda::blas_gemm_internal_ck: not implemented");
 }
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 void gemm_internal_ck<double>(CUDABLAS_GEMM_ARGTYPES(double));
 template <>
@@ -19,7 +22,11 @@ template <>
 void gemm_internal_ck<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half));
 template <>
 void gemm_internal_ck<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16));
+<<<<<<< HEAD
 #endif
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 } // namespace at::native

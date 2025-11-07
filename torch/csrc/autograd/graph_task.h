@@ -122,7 +122,11 @@ struct GraphTask : std::enable_shared_from_this<GraphTask> {
 
   // Note: this field is not ready to be used until the proper
   // `thread_locals_.set_grad_mode()` call in the constructor.
+<<<<<<< HEAD
   at::ThreadLocalState thread_locals_;
+=======
+  at::ThreadLocalState thread_locals_ = at::ThreadLocalState();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::unordered_set<c10::Stream> leaf_streams;
 

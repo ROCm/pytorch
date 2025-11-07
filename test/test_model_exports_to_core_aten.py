@@ -27,7 +27,13 @@ class TestQuantizePT2EModels(TestCase):
         m = m.eval()
         input_shape = (1, 3, 224, 224)
         example_inputs = (torch.randn(input_shape),)
+<<<<<<< HEAD
         m = torch.export.export(m, copy.deepcopy(example_inputs), strict=True).module()
+=======
+        m = torch.export.export_for_training(
+            m, copy.deepcopy(example_inputs), strict=True
+        ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m(*example_inputs)
         m = export.export(m, copy.deepcopy(example_inputs))
         ops = _get_ops_list(m.graph_module)

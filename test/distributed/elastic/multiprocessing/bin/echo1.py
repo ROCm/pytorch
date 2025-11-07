@@ -23,6 +23,11 @@ if __name__ == "__main__":
         print(f"exit {exitcode} from {rank}", file=sys.stderr)
         sys.exit(exitcode)
     else:
+<<<<<<< HEAD
         for msg in args.msg.split(","):
             print(f"{msg} stdout from {rank}")
             print(f"{msg} stderr from {rank}", file=sys.stderr)
+=======
+        print(f"{args.msg} stdout from {rank}")
+        print(f"{args.msg} stderr from {rank}", file=sys.stderr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

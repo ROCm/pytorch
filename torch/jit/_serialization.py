@@ -166,6 +166,7 @@ def load(f, map_location=None, _extra_files=None, _restore_shapes=False):
     cu = torch._C.CompilationUnit()
     if isinstance(f, (str, os.PathLike)):
         cpp_module = torch._C.import_ir_module(
+<<<<<<< HEAD
             cu,
             os.fspath(f),
             map_location,
@@ -182,6 +183,13 @@ def load(f, map_location=None, _extra_files=None, _restore_shapes=False):
             _extra_files,
             # pyrefly: ignore [bad-argument-count]
             _restore_shapes,
+=======
+            cu, os.fspath(f), map_location, _extra_files, _restore_shapes
+        )  # type: ignore[call-arg]
+    else:
+        cpp_module = torch._C.import_ir_module_from_buffer(
+            cu, f.read(), map_location, _extra_files, _restore_shapes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )  # type: ignore[call-arg]
 
     # TODO: Pretty sure this approach loses ConstSequential status and such

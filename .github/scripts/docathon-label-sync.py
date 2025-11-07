@@ -39,9 +39,13 @@ def main() -> None:
     pull_request_label_names = [label.name for label in pull_request_labels]
     issue_label_names = [label.name for label in issue_labels]
     labels_to_add = [
+<<<<<<< HEAD
         label
         for label in issue_label_names
         if label not in pull_request_label_names and label != "actionable"
+=======
+        label for label in issue_label_names if label not in pull_request_label_names
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
     if not labels_to_add:
         print("The pull request already has the same labels.")

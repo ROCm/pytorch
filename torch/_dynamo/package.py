@@ -8,19 +8,26 @@ be provided about cache hit for a specific compiled model. Users can load the co
 from a different process or host.
 """
 
+<<<<<<< HEAD
 import abc
 import ast
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import contextlib
 import dataclasses
 import functools
 import hashlib
 import importlib
+<<<<<<< HEAD
 import inspect
 import json
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import os
 import pickle
 import platform
+<<<<<<< HEAD
 import shutil
 import sys
 import types
@@ -35,15 +42,31 @@ from torch._dynamo.graph_utils import _graph_device_type
 
 from .bytecode_transformation import get_code_keys
 from .utils import counters, dynamo_timed, increment_frame
+=======
+import sys
+import types
+from collections.abc import Generator
+from typing import Any, NewType, Optional
+
+import torch
+import torch._inductor.package
+from torch._dynamo.precompile_context import PrecompileCacheArtifact, PrecompileContext
+from torch.compiler._cache import CacheArtifactFactory
+
+from .bytecode_transformation import get_code_keys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from .guards import GuardManagerWrapper, GuardsState
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass(frozen=True)
 class SerializedCode:
     co_argcount: int
@@ -102,6 +125,7 @@ class _GuardedCodeCacheEntry:
     dynamo_code: SerializedCode
 
 
+<<<<<<< HEAD
 def load_guards_state(guards_state: bytes) -> Any:
     try:
         import torch.distributed.fsdp._fully_shard._fully_shard as _fully_shard
@@ -129,10 +153,13 @@ def load_guard_manager(
     ).guard_manager
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _BackendId = NewType("_BackendId", str)  # __compiled_fn
 _FunctionId = NewType("_FunctionId", str)  # __resume_at
 
 
+<<<<<<< HEAD
 @dataclasses.dataclass(frozen=True)
 class InlinedSource:
     module: str
@@ -170,6 +197,8 @@ class SourceInfo:
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class _DynamoCodeCacheEntry:
     """
@@ -185,11 +214,14 @@ class _DynamoCodeCacheEntry:
       4. A list of guarded code that eval frame dispatches to.
       5. A list of imported module objects unioned from all compiled branches.
       6. A list of "backends" (compiled fx graph) unioned from all compield branches.
+<<<<<<< HEAD
       7. A string path used to access the original code object users defined.
          A code object can be accessed by "{python_module}.{function_name}.{code_source}" .
       8. A boolean flag indicating whether the function is installed to global scope.
       9. A boolean flag indicating whether the function has a compile id.
       10. Whether or not this code entry was bypassed
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     python_code: SerializedCode
@@ -198,6 +230,7 @@ class _DynamoCodeCacheEntry:
     guarded_codes: list[_GuardedCodeCacheEntry]
     import_sources: dict[str, str]
     backend_ids: list[_BackendId]
+<<<<<<< HEAD
     code_source: Optional[str]
     install_to_global: bool
     has_compile_id: bool = False
@@ -402,21 +435,29 @@ class SystemInfo:
                     f"Compile package was created with different GPU: "
                     f"cached={self.gpu_name}, current={other.gpu_name}"
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclasses.dataclass
 class _DynamoCacheEntry:
     codes: list[_DynamoCodeCacheEntry]
+<<<<<<< HEAD
     source_info: SourceInfo
     device_type: str
     system_info: SystemInfo = dataclasses.field(default_factory=SystemInfo.current)
     fn_name: Optional[str] = None
     fn_first_lineno: Optional[str] = None
+=======
+    python_version: str = platform.python_version()
+    torch_version: str = torch.__version__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def backend_ids(self) -> set[_BackendId]:
         return {backend_id for code in self.codes for backend_id in code.backend_ids}
 
+<<<<<<< HEAD
     def check_versions(self) -> None:
         """Check if the current system is compatible with the system used to create this cache entry."""
         current_system_info = SystemInfo.current()
@@ -545,6 +586,17 @@ def _compile_frame_context(
             yield
 
     return _ctx()
+=======
+
+@CacheArtifactFactory.register
+class _DynamoCacheArtifact(PrecompileCacheArtifact[_DynamoCacheEntry]):
+    @staticmethod
+    def type() -> str:
+        return "precompile_dynamo"
+
+    def after_deserialization(self) -> _DynamoCacheEntry:
+        return pickle.loads(self.content)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CompilePackage:
@@ -560,17 +612,22 @@ class CompilePackage:
         updates with compiled functions and resume functions.
     """
 
+<<<<<<< HEAD
     def __init__(
         self,
         fn: Optional[Callable[..., Any]],
         dynamo: Optional[_DynamoCacheEntry] = None,
         ignore_inlined_sources: bool = False,
     ) -> None:
+=======
+    def __init__(self, fn: Any, dynamo: Optional[_DynamoCacheEntry] = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._innermost_fn = None
         self._codes: dict[types.CodeType, _DynamoCodeCacheEntry] = {}
 
         self._current_entry: Optional[_DynamoCodeCacheEntry] = None
         self._installed_globals: dict[types.ModuleType, list[str]] = {}
+<<<<<<< HEAD
         # device_type that model compiled with.
         self._device_type = "cpu"
 
@@ -616,6 +673,33 @@ class CompilePackage:
 
             main, *codes = dynamo.codes
             # pyrefly: ignore [bad-assignment]
+=======
+
+        # For debugging/testing purpose only.
+        self._cached_backends: dict[_BackendId, Any] = {}
+
+        self._initialize(fn, dynamo)
+        self.uninstall()
+        self.validate()
+
+    def _initialize(self, fn: Any, dynamo: Optional[_DynamoCacheEntry] = None) -> None:
+        from .eval_frame import innermost_fn
+
+        self._innermost_fn = innermost_fn(fn)
+        assert self._innermost_fn is not None
+        if dynamo is not None:
+            assert isinstance(dynamo, _DynamoCacheEntry)
+            if dynamo.python_version != platform.python_version():
+                raise RuntimeError(
+                    f"Compile package was created with a different Python version: {dynamo.python_version}"
+                )
+            if dynamo.torch_version != torch.__version__:
+                raise RuntimeError(
+                    f"Compile package was created with a different PyTorch version: {dynamo.torch_version}"
+                )
+
+            main, *codes = dynamo.codes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._codes = {self._innermost_fn.__code__: main}
             for code in codes:
                 self._codes[SerializedCode.to_code_object(code.python_code)] = code
@@ -623,16 +707,23 @@ class CompilePackage:
             self._add_function(
                 self._innermost_fn.__code__, self._innermost_fn.__module__
             )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         self._initialized = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _add_function(
         self,
         python_code: types.CodeType,
         python_module: str,
+<<<<<<< HEAD
         function_name: Optional[_FunctionId] = None,
         code_source: Optional[str] = None,
         install_to_global: bool = False,
+=======
+        name: Optional[_FunctionId] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         if python_code not in self._codes:
             code = _DynamoCodeCacheEntry(
@@ -642,18 +733,27 @@ class CompilePackage:
                 guarded_codes=[],
                 import_sources={},
                 backend_ids=[],
+<<<<<<< HEAD
                 code_source=code_source,
                 install_to_global=install_to_global,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self._codes[python_code] = code
         else:
             code = self._codes[python_code]
             assert code.python_module == python_module
+<<<<<<< HEAD
             assert code.install_to_global == install_to_global
             assert code.code_source == code_source
 
         if function_name is not None:
             code.function_names.append(function_name)
+=======
+
+        if name is not None:
+            code.function_names.append(name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def cached_backends(self) -> dict[_BackendId, Any]:
@@ -662,6 +762,7 @@ class CompilePackage:
     @functools.cached_property
     def source_id(self) -> str:
         assert self._innermost_fn is not None
+<<<<<<< HEAD
         return CompilePackage.source_id_from_fn(self._innermost_fn)
 
     def _add_user_function(self, code: types.CodeType) -> None:
@@ -675,22 +776,34 @@ class CompilePackage:
             function_name=_FunctionId(function_name),
             code_source=code_source,
         )
+=======
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(self._innermost_fn.__qualname__.encode())
+        sha256_hash.update(str(self._innermost_fn.__code__.co_firstlineno).encode())
+        return sha256_hash.hexdigest()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @contextlib.contextmanager
     def code_context(self, code: types.CodeType) -> Generator[None, None, None]:
         assert self._current_entry is None
 
+<<<<<<< HEAD
         # Sometimes user code cannot be inlined in dynamo resulting in extra user code
         # being compiled. We should record these as when they are actually invoked.
         if code not in self._codes:
             self._add_user_function(code)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         entry = self._codes[code]
         self._current_entry = entry
         try:
             yield
         finally:
+<<<<<<< HEAD
             entry.has_compile_id = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._current_entry = None
 
     def add_guarded_code(
@@ -699,14 +812,18 @@ class CompilePackage:
         dynamo_code: types.CodeType,
     ) -> None:
         assert self._current_entry is not None
+<<<<<<< HEAD
         if self._current_entry.bypassed:
             return
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         guarded_code_entry = _GuardedCodeCacheEntry(
             guards_state=guards_state,
             dynamo_code=SerializedCode.from_code_object(dynamo_code),
         )
         self._current_entry.guarded_codes.append(guarded_code_entry)
 
+<<<<<<< HEAD
     def add_inlined_source(self, sources: list[types.CodeType]) -> None:
         assert self._current_entry is not None
         if self._current_entry.bypassed:
@@ -723,10 +840,13 @@ class CompilePackage:
         assert self._current_entry is not None
         self._current_entry.bypassed = True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def add_resume_function(
         self,
         python_code: types.CodeType,
         python_module: str,
+<<<<<<< HEAD
         function_name: Optional[str],
     ) -> None:
         self._add_function(
@@ -736,6 +856,13 @@ class CompilePackage:
             install_to_global=True,
         )
         self._resume_codes.add(python_code)
+=======
+        name: Optional[str],
+    ) -> None:
+        self._add_function(
+            python_code, python_module, _FunctionId(name) if name else None
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def add_import_source(self, alias: str, module_name: str) -> None:
         assert self._current_entry is not None
@@ -752,7 +879,10 @@ class CompilePackage:
     def validate(self) -> None:
         assert self._current_entry is None
         assert self._innermost_fn is not None
+<<<<<<< HEAD
         assert self._initialized
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert next(iter(self._codes)) is self._innermost_fn.__code__
 
     def _install_global(self, module: types.ModuleType, name: str, value: Any) -> None:
@@ -767,7 +897,10 @@ class CompilePackage:
             for name in names:
                 module.__dict__.pop(name)
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._installed_globals = {}
 
         _reset_precompile_entries(self._innermost_fn.__code__)
@@ -781,6 +914,7 @@ class CompilePackage:
         """
         from torch._C._dynamo.eval_frame import _load_precompile_entry
 
+<<<<<<< HEAD
         from .output_graph import get_builtins_dict
 
         self.uninstall()
@@ -942,12 +1076,93 @@ class DynamoStore(abc.ABC):
         )
 
         backend_content: _Backends = {}
+=======
+        self.uninstall()
+
+        for code, entry in self._codes.items():
+            module = sys.modules[entry.python_module]
+            for alias, module_name in entry.import_sources.items():
+                self._install_global(
+                    module, alias, importlib.import_module(module_name)
+                )
+            for function_name in entry.function_names:
+                fn = types.FunctionType(code, module.__dict__, function_name)
+                self._install_global(module, function_name, fn)
+            for backend_id in entry.backend_ids:
+                if backend_id not in backends:
+                    raise RuntimeError(
+                        f"Backend {backend_id} is not found in the given backends"
+                    )
+                backend = backends[backend_id]
+                self._install_global(
+                    module,
+                    backend_id,
+                    torch._dynamo.disable(backend),
+                )
+
+        for code, entry in self._codes.items():
+            for guarded_code in entry.guarded_codes:
+                guards_state = pickle.loads(guarded_code.guards_state)
+                assert isinstance(guards_state, torch._dynamo.guards.GuardsState)
+                check_fn_manager = torch._dynamo.guards.CheckFunctionManager(
+                    code,
+                    guards_state.output_graph,
+                    guards_serialization_mode="load",
+                    shape_code_parts=guards_state.shape_code_parts,
+                )
+                _load_precompile_entry(
+                    code,
+                    check_fn_manager.guard_manager,
+                    SerializedCode.to_code_object(guarded_code.dynamo_code),
+                )
+
+    def cache_entry(self) -> _DynamoCacheEntry:
+        self.validate()
+        return _DynamoCacheEntry(codes=list(self._codes.values()))
+
+
+@CacheArtifactFactory.register
+class EagerCacheArtifact(PrecompileCacheArtifact[Any]):
+    @staticmethod
+    def type() -> str:
+        return "precompile_eager"
+
+    def after_deserialization(self) -> Any:
+        return pickle.loads(self.content)
+
+
+class DynamoStore:
+    """
+    A DynamoStore tracks active CompilePackages, and provides methods to store and retrieve them.
+    """
+
+    def record_package(self, package: CompilePackage) -> None:
+        """Records a package to PrecompileContext, so that it can be serialized later."""
+        cache_entry = package.cache_entry()
+        pickled_result = pickle.dumps(cache_entry)
+        PrecompileContext.record_artifact(
+            _DynamoCacheArtifact.type(), key=package.source_id, content=pickled_result
+        )
+
+    def record_eager_backend(self, backend_id: _BackendId, backend: Any) -> None:
+        """Records eager fx graphs to PrecompileContext for testing purposes."""
+        pickled_result = pickle.dumps(backend)
+        PrecompileContext.record_artifact(
+            EagerCacheArtifact.type(), key=backend_id, content=pickled_result
+        )
+
+    def save_package(self, package: CompilePackage, path: str) -> None:
+        """Saves a package to a given path. Grabs backends from PrecompileContext."""
+        backend_content = {}
+        cache_entry = package.cache_entry()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for backend_id in cache_entry.backend_ids:
             serialized_backend = PrecompileContext.serialize_artifact_by_key(backend_id)
             if serialized_backend is None:
                 raise RuntimeError(
                     f"Backend {backend_id} is not found in the given backends"
                 )
+<<<<<<< HEAD
             assert isinstance(serialized_backend, BackendCacheArtifact)
             backend_content[backend_id] = serialized_backend
 
@@ -1155,3 +1370,29 @@ def cache_dir() -> str:
 
 
 DynamoCache = DiskDynamoCache(os.path.join(cache_dir(), "dynamo"))
+=======
+            backend_content[backend_id] = serialized_backend
+        try:
+            with open(os.path.join(path, "dynamo"), "wb") as dynamo_path:
+                pickle.dump(cache_entry, dynamo_path)
+            with open(os.path.join(path, "backends"), "wb") as backend_path:
+                pickle.dump(backend_content, backend_path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to save package to {path}: {e}") from e
+
+    def load_package(
+        self, fn: Any, path: str
+    ) -> tuple[CompilePackage, dict[_BackendId, Any]]:
+        """Loads a package from a given path and returns it plus a list of deserialized backends"""
+        try:
+            with open(os.path.join(path, "dynamo"), "rb") as dynamo_path:
+                cache_entry = pickle.load(dynamo_path)
+            with open(os.path.join(path, "backends"), "rb") as backend_path:
+                backend_content = pickle.load(backend_path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load package from path {path}: {e}") from e
+        for backend_id, backend in backend_content.items():
+            backend_content[backend_id] = backend.after_deserialization()
+        package = CompilePackage(fn, cache_entry)
+        return package, backend_content
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -14,7 +14,10 @@
 #include <hipblaslt/hipblaslt.h>
 #include <hipblaslt/hipblaslt-ext.hpp>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define TORCH_HIPBLASLT_CHECK(EXPR)               \
   do {                                            \
     hipblasStatus_t __err = EXPR;                 \
@@ -216,6 +219,7 @@ float GetBetaFromParams(const ScaledGemmParams<T>* params) {
 }
 
 template <typename T>
+<<<<<<< HEAD
 ScalingType GetAScalingTypeFromParams(const GemmParams<T>* params) {
   return ScalingType::TensorWise;
 }
@@ -253,6 +257,25 @@ ScalingType GetAScalingTypeFromParams(const ScaledGemmParams<T>* params) {
 template <typename T>
 ScalingType GetBScalingTypeFromParams(const ScaledGemmParams<T>* params) {
   return params->b_scaling_type;
+=======
+bool GetUseRowwiseFromParams(const GemmParams<T>* params) {
+  return false;
+}
+
+template <typename T>
+bool GetUseRowwiseFromParams(const GemmAndBiasParams<T>* params) {
+  return false;
+}
+
+template <typename T>
+bool GetUseRowwiseFromParams(const GemmStridedBatchedParams<T>* params) {
+  return false;
+}
+
+template <typename T>
+bool GetUseRowwiseFromParams(const ScaledGemmParams<T>* params) {
+  return params->use_rowwise;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename T>
@@ -507,7 +530,11 @@ class HipblasltGemmOp : public Callable<ParamsT> {
       }
 
       hipblasComputeType_t computeType = HIPBLAS_COMPUTE_32F;
+<<<<<<< HEAD
       if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32) {
+=======
+      if (at::globalContext().allowTF32CuBLAS()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         computeType = HIPBLAS_COMPUTE_32F_FAST_TF32;
       }
       HipBlasLtMatmulDescriptor matmul(computeType, HIP_R_32F);
@@ -519,6 +546,7 @@ class HipblasltGemmOp : public Callable<ParamsT> {
       const void* mat2_scale_ptr = GetBScalePointerFromParams<CT>(params);
       const void* result_scale_ptr = GetDScalePointerFromParams<CT>(params);
       if (mat1_scale_ptr && mat2_scale_ptr) {
+<<<<<<< HEAD
         hipblasLtMatmulDescAttributes_t a_scale_ptr_desc = HIPBLASLT_MATMUL_DESC_A_SCALE_POINTER;
         hipblasLtMatmulDescAttributes_t b_scale_ptr_desc = HIPBLASLT_MATMUL_DESC_B_SCALE_POINTER;
         if (GetAScalingTypeFromParams<CT>(params) == ScalingType::RowWise) {
@@ -537,6 +565,25 @@ class HipblasltGemmOp : public Callable<ParamsT> {
         }
         matmul.setAttribute(a_scale_ptr_desc, mat1_scale_ptr);
         matmul.setAttribute(b_scale_ptr_desc, mat2_scale_ptr);
+=======
+#ifdef HIPBLASLT_VEC_EXT
+        if (GetUseRowwiseFromParams<CT>(params)) {
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_A_SCALE_POINTER_VEC_EXT, mat1_scale_ptr);
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_B_SCALE_POINTER_VEC_EXT, mat2_scale_ptr);
+        }
+        else
+#endif
+        {
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_A_SCALE_POINTER, mat1_scale_ptr);
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_B_SCALE_POINTER, mat2_scale_ptr);
+        }
+#ifdef HIPBLASLT_OUTER_VEC
+        if (GetUseRowwiseFromParams<CT>(params)) {
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_A_SCALE_MODE, HIPBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F);
+          matmul.setAttribute(HIPBLASLT_MATMUL_DESC_B_SCALE_MODE, HIPBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F);
+        }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       if (result_scale_ptr) {
         matmul.setAttribute(HIPBLASLT_MATMUL_DESC_D_SCALE_POINTER, result_scale_ptr);

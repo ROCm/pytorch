@@ -60,7 +60,10 @@ def _device_constructors():
 # NB: This is directly called from C++ in torch/csrc/Device.cpp
 class DeviceContext(TorchFunctionMode):
     def __init__(self, device):
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = torch.device(device)
 
     def __enter__(self):
@@ -83,6 +86,7 @@ class DeviceContext(TorchFunctionMode):
         CURRENT_DEVICE = self.old_device
         cur_stack = []
         # Invariant: there should only be one DeviceContext on the stack at any time
+<<<<<<< HEAD
         # (At the bottom), pop all modes until we hit the bottom, assert it's a DeviceContext
         # or else someone else has popped it!
         for _ in range(_len_torch_function_stack() - 1):
@@ -91,14 +95,25 @@ class DeviceContext(TorchFunctionMode):
                 raise AssertionError(
                     "Found nested DeviceContext on the mode stack where none expected"
                 )
+=======
+        # (At the bottom), pop all mdoes until we hit the bottom, assert it's a DeviceContext
+        # or else someone else has popped it!
+        for _ in range(_len_torch_function_stack() - 1):
+            mode = _pop_mode()
+            assert not isinstance(mode, DeviceContext)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cur_stack.append(mode)
 
         if _len_torch_function_stack() > 0:
             mode = _pop_mode()
+<<<<<<< HEAD
             if not isinstance(mode, DeviceContext):
                 raise AssertionError(
                     "Expected a DeviceContext at the bottom of the mode stack"
                 )
+=======
+            assert isinstance(mode, DeviceContext)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for mode in reversed(cur_stack):
             _push_mode(mode)

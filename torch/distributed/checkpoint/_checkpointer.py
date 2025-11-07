@@ -83,15 +83,22 @@ class _Checkpointer:
         Returns:
             Future: A future holding the resultant Metadata object from `save`.
         """
+<<<<<<< HEAD
         response = saver.async_save(
+=======
+        return saver.async_save(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             state_dict,
             storage_writer=self.storage_writer,
             process_group=self.process_group,
             planner=self.save_planner,
         )
+<<<<<<< HEAD
         if not isinstance(response, Future):
             raise AssertionError("response should be a Future instance")
         return response
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def load(self, state_dict: dict[str, Any]) -> None:
         """Calls :py:meth: `torch.distributed.state_dict_loader.load`. Utilizing values passed during initialization."""

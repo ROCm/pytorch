@@ -1,10 +1,17 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 import functools
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import itertools
 import logging
 import types
 from collections.abc import Sequence
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -14,9 +21,13 @@ from torch.fx.experimental.optimization import (
     matches_module_pattern,
     replace_node_module,
 )
+<<<<<<< HEAD
 from torch.fx.passes.graph_transform_observer import (
     GraphTransformObserver as GraphTransformObserverBase,
 )
+=======
+from torch.fx.passes.graph_transform_observer import GraphTransformObserver
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.passes.shape_prop import ShapeProp
 from torch.nn import functional as F
 from torch.nn.utils.fusion import fuse_conv_bn_eval, fuse_conv_bn_weights
@@ -25,7 +36,11 @@ from .. import config
 from ..fx_utils import matches_module_function_pattern
 from ..pattern_matcher import (
     init_once_fakemode,
+<<<<<<< HEAD
     PatternMatcherPass as PatternMatcherPassBase,
+=======
+    PatternMatcherPass,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stable_topological_sort,
 )
 from ..utils import is_cpu_device, pass_execution_and_save
@@ -34,6 +49,7 @@ from .misc_patterns import numpy_compat_normalization
 from .split_cat import PRE_GRAD_PATTERNS
 
 
+<<<<<<< HEAD
 PatternMatcherPass = functools.partial(
     PatternMatcherPassBase, subsystem="pre_grad_passes"
 )
@@ -41,6 +57,8 @@ GraphTransformObserver = functools.partial(
     GraphTransformObserverBase, subsystem="pre_grad_passes"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 
 efficient_conv_bn_eval_pass = PatternMatcherPass(
@@ -174,7 +192,11 @@ def lazy_init():
 
 
 def _get_pass_name_func(p):
+<<<<<<< HEAD
     if isinstance(p, PatternMatcherPassBase):
+=======
+    if isinstance(p, PatternMatcherPass):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_name = p.pass_name
         pass_func = p.apply
     elif isinstance(p, types.FunctionType):
@@ -190,8 +212,13 @@ def _get_pass_name_func(p):
 def _run_pre_dispatch_passes(
     gm: torch.fx.GraphModule,
     example_inputs: Sequence[object] = (),
+<<<<<<< HEAD
     add_passes: str | None = None,
     remove_passes: str | None = None,
+=======
+    add_passes: Optional[str] = None,
+    remove_passes: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     # order matters
     default_pass_list = [
@@ -277,8 +304,13 @@ def _run_pre_dispatch_passes(
 def pre_grad_passes(
     gm: torch.fx.GraphModule,
     example_inputs: Sequence[object] = (),
+<<<<<<< HEAD
     add_passes: str | None = None,
     remove_passes: str | None = None,
+=======
+    add_passes: Optional[str] = None,
+    remove_passes: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.fx.GraphModule:
     """
     Apply passes on the input FX graph using Torch IR.
@@ -338,9 +370,14 @@ def pre_grad_passes(
             efficient_conv_bn_eval_pass.apply(gm.graph)  # type: ignore[arg-type]
 
     if config.pre_grad_custom_pass is not None:
+<<<<<<< HEAD
         GraphTransformObserver(gm, "pre_grad_custom_pass").apply_graph_pass(
             config.pre_grad_custom_pass
         )
+=======
+        with GraphTransformObserver(gm, "pre_grad_custom_pass"):
+            config.pre_grad_custom_pass(gm.graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stable_topological_sort(gm.graph)
 
     from .quantization import quant_lift_up
@@ -508,7 +545,10 @@ def fuse_conv_bn(gm: torch.fx.GraphModule, inplace=False) -> torch.fx.GraphModul
                 conv = conv_bn_fusion.conv_module
                 bn = conv_bn_fusion.bn_module
 
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fused_conv = fuse_conv_bn_eval(conv, bn)
                 for bn_node in bn_nodes:
                     replace_node_module(bn_node.args[0], modules, fused_conv)
@@ -596,11 +636,16 @@ def fuse_conv_bn(gm: torch.fx.GraphModule, inplace=False) -> torch.fx.GraphModul
                 fused_conv.weight, fused_conv.bias = fuse_conv_bn_weights(
                     fused_conv.weight,
                     fused_conv.bias,
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
                     bn_running_mean,
                     # pyrefly: ignore [bad-argument-type]
                     bn_running_var,
                     # pyrefly: ignore [bad-argument-type]
+=======
+                    bn_running_mean,
+                    bn_running_var,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     bn_eps,
                     bn_weight,
                     bn_bias,
@@ -618,7 +663,11 @@ def fuse_conv_bn(gm: torch.fx.GraphModule, inplace=False) -> torch.fx.GraphModul
 class NormalizedLinearNode:
     def __init__(self, node: torch.fx.Node) -> None:
         assert node.op == "call_function"
+<<<<<<< HEAD
         assert node.target is torch.nn.functional.linear
+=======
+        assert node.target in [torch.nn.functional.linear]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.node: torch.fx.Node = node
 
     def get_input(self) -> torch.fx.Node:
@@ -637,7 +686,11 @@ class NormalizedLinearNode:
         if len(self.node.args) > 2:
             return self.node.args[2]  # type: ignore[return-value]
         else:
+<<<<<<< HEAD
             return self.node.kwargs.get("bias", None)  # type: ignore[return-value]
+=======
+            return self.node.kwargs["bias"] if "bias" in self.node.kwargs else None  # type: ignore[return-value]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class NormalizedMatmulNode:
@@ -762,7 +815,11 @@ def linear_permute_fusion(module: torch.fx.GraphModule) -> torch.fx.GraphModule:
 # ---->
 # Y2 = (W * X^T + bias.unsqueeze(-1))^T
 def linear_transpose(
+<<<<<<< HEAD
     input: torch.Tensor, weight: torch.Tensor, bias: torch.Tensor | None
+=======
+    input: torch.Tensor, weight: torch.Tensor, bias: Optional[torch.Tensor]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.Tensor:
     if bias is None:
         return torch.matmul(weight, input.transpose(-1, -2))
@@ -859,7 +916,11 @@ def permute_matmul_fusion(module: torch.fx.GraphModule) -> torch.fx.GraphModule:
 # ---->
 # Y2 = X1.transpose(-1, -2) * W1^T + bias1
 def transpose_linear(
+<<<<<<< HEAD
     input: torch.Tensor, weight: torch.Tensor, bias: torch.Tensor | None
+=======
+    input: torch.Tensor, weight: torch.Tensor, bias: Optional[torch.Tensor]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.Tensor:
     if bias is None:
         return torch.matmul(input.transpose(-1, -2), weight.t())

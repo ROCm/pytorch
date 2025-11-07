@@ -1,16 +1,25 @@
 # mypy: allow-untyped-defs
 import functools
 import itertools
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any
 
 import torch
 import torch._prims_common as utils
+=======
+from typing import Any, Callable
+
+import torch
+import torch._prims_common as utils
+import torch._subclasses.functional_tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.utils._pytree as pytree
 from torch._C import DispatchKey
 from torch._higher_order_ops.utils import (
     _maybe_compile_and_run_fn,
     _maybe_run_with_interpreter,
+<<<<<<< HEAD
     check_input_alias_and_mutation_return_outputs,
     check_meta_consistency,
     create_bw_fn,
@@ -21,6 +30,12 @@ from torch._higher_order_ops.utils import (
     save_tensors_and_symints_for_backward,
     saved_tensors_and_symints,
     split_into_chunks,
+=======
+    autograd_not_implemented,
+    check_meta_consistency,
+    first_slice_copy,
+    reenter_make_fx,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unique_graph_id,
     validate_subgraph_args_types,
 )
@@ -37,9 +52,15 @@ aten = torch._ops.ops.aten
 
 
 def wrap_combine_fn_flat(*args, combine_fn, spec, num_leaves):
+<<<<<<< HEAD
     assert len(args) == 2 * num_leaves, (
         f"Combin_fn received wrong number of arguments, expected {2 * num_leaves}, but got {len(args)}"
     )
+=======
+    assert (
+        len(args) == 2 * num_leaves
+    ), f"Combin_fn received wrong number of arguments, expected {2 * num_leaves}, but got {len(args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     lhs = pytree.tree_unflatten(args[:num_leaves], spec)
     rhs = pytree.tree_unflatten(args[num_leaves:], spec)
     return combine_fn(lhs, rhs)
@@ -57,7 +78,10 @@ def _interleave(a, b, dim=0):
 
     stacked = torch.stack([a, b], dim=dim + 1)
     interleaved = torch.flatten(stacked, start_dim=dim, end_dim=dim + 1)
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if b_trunc:
         # TODO: find torch alternative for slice_along dim for torch.jit.script to work
         interleaved = aten.slice(interleaved, dim, 0, b.shape[dim] + a.shape[dim] - 1)
@@ -86,9 +110,15 @@ class AssociativeScanOp(HigherOrderOperator):
         # the additional_inputs being a list. See https://github.com/pytorch/pytorch/issues/145785
         # Once this issue is resolved, the assertion should only allow tuples
         # and the tuple cast should be removed
+<<<<<<< HEAD
         assert isinstance(additional_inputs, (tuple, list)), (
             "additional_inputs must be a tuple."
         )
+=======
+        assert isinstance(
+            additional_inputs, (tuple, list)
+        ), "additional_inputs must be a tuple."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         additional_inputs = (
             tuple(additional_inputs)
             if isinstance(additional_inputs, list)
@@ -97,6 +127,7 @@ class AssociativeScanOp(HigherOrderOperator):
         validate_subgraph_args_types(additional_inputs)
         return super().__call__(combine_fn, xs, additional_inputs)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def gen_schema(self, combine_fn, xs, additional_inputs):
         from torch._higher_order_ops.schema import HopSchemaGenerator
@@ -140,6 +171,8 @@ class AssociativeScanOp(HigherOrderOperator):
         schema_gen.add_schema_tree_spec(combine_fn, xs, additional_inputs)
         return schema_gen.gen_schema()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 associative_scan_op = AssociativeScanOp()
 
@@ -184,6 +217,7 @@ def associative_scan(
         def add(x: torch.Tensor, y: torch.Tensor):
             return x + y
 
+<<<<<<< HEAD
 
         cumsum = associative_scan(add, x, dim)
 
@@ -191,6 +225,11 @@ def associative_scan(
     # TODO: Support lifted arguments in inductor for associative_scan
     # TODO: Support autograd for cases with lifted arguments for combine_mode=pointwise
 
+=======
+        cumsum = associative_scan(add, x, dim)
+
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # The reason we flatten xs before calling into dynamo is that
     # we want to create a consistent input ordering for combine_fn
     # and we also want to the input ordering matches the output ordering.
@@ -199,18 +238,30 @@ def associative_scan(
     def _validate_input(cfn, lxs, d, r, cm):
         # Basic arguments check
         if not callable(cfn):
+<<<<<<< HEAD
             raise ValueError(f"Combine_fn must be a callable, but got {cfn}")
+=======
+            raise ValueError("Combine_fn must be a callable, but got {cfn}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(d, int):
             raise ValueError("Dim must be an int, but got " + str(type(d)))
         if not isinstance(r, bool):
             raise RuntimeError("Reverse must be a bool, but got " + str(type(r)))
         if cm not in ["pointwise", "generic"]:
             raise ValueError(
+<<<<<<< HEAD
                 f"Combine_mode must either 'pointwise' or 'generic', but got {cm}"
             )
         if cm == "pointwise" and not all(l.device.type in ("cuda", "xpu") for l in lxs):
             raise ValueError(
                 "For combine_mode='pointwise', all input tensors need to be on CUDA or XPU"
+=======
+                "Combine_mode must either 'pointwise' or 'generic', but got {cm}"
+            )
+        if cm == "pointwise" and not all(l.device.type == "cuda" for l in lxs):
+            raise ValueError(
+                "For combine_mode='pointwise', all input tensors need to be on CUDA"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # Checks for xs
@@ -242,6 +293,12 @@ def associative_scan(
     if reverse:
         leaves_xs = [torch.flip(elem, [0]) for elem in leaves_xs]
 
+<<<<<<< HEAD
+=======
+    # TODO: Support Autograd
+    # TODO: Unify handling of pytrees for control flow ops, such as cond, while_loop, etc.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if combine_mode == "generic":
         # The generic_associative_scan implementation calls the combine_fn with a `batch` along the scan dimension
         # For example, consider:
@@ -428,9 +485,15 @@ def trace_associative_scan(
 
     assert outputs is not None
     outputs = pytree.tree_leaves(outputs)
+<<<<<<< HEAD
     assert len(outputs) == len(xs), (
         f"expected combine_fn to return {len(xs)} results but got {len(outputs)}"
     )
+=======
+    assert len(outputs) == len(
+        xs
+    ), f"expected combine_fn to return {len(xs)} results but got {len(outputs)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     xs_fake_tensors: list[torch.Tensor | torch.SymInt | int] = [
         first_slice_copy(x) for x in xs
@@ -465,6 +528,7 @@ def associative_scan_op_dense(combine_fn, xs, additional_inputs):
     return generic_associative_scan(combine_fn, xs, additional_inputs=additional_inputs)
 
 
+<<<<<<< HEAD
 class AssociativeScanAutogradOp(torch.autograd.Function):
     r""" associative_scan
         Example::
@@ -838,6 +902,11 @@ def associative_scan_autograd(combine_fn, xs, additional_inputs):
         *(tuple(xs) + tuple(additional_inputs)),
     )
     return (*flat_out,)
+=======
+associative_scan_op.py_autograd_impl(
+    autograd_not_implemented(associative_scan_op, deferred_error=True)
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @associative_scan_op.py_impl(ProxyTorchDispatchMode)

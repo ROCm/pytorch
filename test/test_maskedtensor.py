@@ -236,6 +236,7 @@ class TestBasics(TestCase):
             _compare_mt_t(sparse_mt, data)
             _compare_mt_t(mt.grad, data.grad)
 
+<<<<<<< HEAD
     def test_to_device(self, device):
         for sample in _generate_sample_data(device=device):
             data = sample.input
@@ -262,6 +263,8 @@ class TestBasics(TestCase):
             self.assertEqual(mt_dtype.get_mask().dtype, torch.bool)
             self.assertEqual(mt_dtype.get_data().dtype, new_dtype)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_to_dense(self, device):
         samples = _generate_sample_data(
             device=device,

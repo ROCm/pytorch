@@ -131,7 +131,11 @@ class TestPassManager(TestCase):
 
     def test_topological_sort(self):
         """
+<<<<<<< HEAD
         Tests that passes are correctly ordered based on constraints.
+=======
+        Tests that passes are correctly ordered based on contraints.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         def pass0(x):

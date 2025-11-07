@@ -245,7 +245,11 @@ int64_t get_nnz(const Tensor& nestedtensor) {
     //     this is because needs_broadcast indicates that the batch_size is 1
     //     and hence there is only 1 value for seq_len
     // (2) The cum_seq_lens are given by [0, {*}_t.size(1), 2 * {*}_t.size(1),
+<<<<<<< HEAD
     // ..., output_batch_size * {*}_t.size(1)] (3) Nnz_{*} is given by
+=======
+    // ..., outut_batch_size * {*}_t.size(1)] (3) Nnz_{*} is given by
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // output_batch_size * {*}_t.size(1);
 
     int64_t max_seqlen_batch_q = 0, Nnz_q = 0;

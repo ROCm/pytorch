@@ -505,7 +505,12 @@ class TestHistogramOptimBinNums(TestCase):
                 assert_equal(
                     len(a),
                     numbins,
+<<<<<<< HEAD
                     err_msg=f"For the {estimator} estimator with datasize of {testlen}",
+=======
+                    err_msg=f"For the {estimator} estimator "
+                    f"with datasize of {testlen}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
     def test_small(self):
@@ -551,7 +556,12 @@ class TestHistogramOptimBinNums(TestCase):
                 assert_equal(
                     len(a),
                     expbins,
+<<<<<<< HEAD
                     err_msg=f"For the {estimator} estimator with datasize of {testlen}",
+=======
+                    err_msg=f"For the {estimator} estimator "
+                    f"with datasize of {testlen}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
     def test_incorrect_methods(self):

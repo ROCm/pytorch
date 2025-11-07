@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 import contextlib
+<<<<<<< HEAD
 import functools
 from collections.abc import Callable
 from typing import Any, Union
+=======
+from typing import Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -11,11 +15,15 @@ from torch._higher_order_ops.utils import (
     _maybe_run_with_interpreter,
     _set_compilation_env,
     autograd_not_implemented,
+<<<<<<< HEAD
     check_input_alias_and_mutation_return_outputs,
     check_meta_consistency,
     fill_none_with_masks,
     filter_with_masks,
     materialize_as_graph,
+=======
+    check_meta_consistency,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reenter_make_fx,
     validate_subgraph_args_types,
 )
@@ -23,7 +31,10 @@ from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx.experimental.proxy_tensor import (
     _temp_remove_metadata_torch_function_mode,
+<<<<<<< HEAD
     disable_proxy_modes_tracing,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ProxyTorchDispatchMode,
     track_tensor_tree,
 )
@@ -54,6 +65,7 @@ class WhileLoopOp(HigherOrderOperator):
         validate_subgraph_args_types(additional_inputs)
         return super().__call__(cond_fn, body_fn, carried_inputs, additional_inputs)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def gen_schema(self, cond_fn, body_fn, carried_inputs, additional_inputs):
         from torch._higher_order_ops.schema import HopSchemaGenerator
@@ -124,6 +136,8 @@ class WhileLoopOp(HigherOrderOperator):
         )
         return schema_gen.gen_schema()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 while_loop_op = WhileLoopOp()
 
@@ -184,9 +198,15 @@ def while_loop(cond_fn, body_fn, carried_inputs):
 
         - body_fn and cond_fn must not in-place mutate the carried_inputs. A clone before the mutation is required.
 
+<<<<<<< HEAD
         - body_fn and cond_fn must not mutate python variables (e.g. list/dict) created outside of the body_fn.
 
         - body_fn and cond_fn's output cannot alias any of the inputs. A clone is required.
+=======
+        - body_fn and cond_fn must not mutate python varialbles (e.g. list/dict) created outside of the body_fn.
+
+        - body_fn and cond_fn's output cannot aliase any of the inputs. A clone is required.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. warning::
         Temporal Limitations:
@@ -247,9 +267,13 @@ def while_loop(cond_fn, body_fn, carried_inputs):
         with _temp_remove_metadata_torch_function_mode() as metadata_mode:
             with _temp_remove_metadata_torch_function_mode() as metadata_mode:
                 if metadata_mode:
+<<<<<<< HEAD
                     backend: Union[str, Callable[..., Any]] = (
                         make_eager_backend_with_torch_function_mode(metadata_mode)
                     )
+=======
+                    backend = make_eager_backend_with_torch_function_mode(metadata_mode)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     backend = "eager"
                 return torch.compile(
@@ -258,9 +282,13 @@ def while_loop(cond_fn, body_fn, carried_inputs):
 
 
 @while_loop_op.py_impl(DispatchKey.CompositeExplicitAutograd)
+<<<<<<< HEAD
 def while_loop_dense(
     cond_fn, body_fn, carried_inputs, additional_inputs, stack_output=False
 ):
+=======
+def while_loop_dense(cond_fn, body_fn, carried_inputs, additional_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     carried_vals = carried_inputs
 
     def _validate_cond_output(pred):
@@ -280,6 +308,7 @@ def while_loop_dense(
             f"carried_inputs must be a tuple or list but got {type(carried_inputs)}"
         )
 
+<<<<<<< HEAD
     # Check condition and set up flag
     should_loop = cond_fn(*carried_vals, *additional_inputs)
     _validate_cond_output(should_loop)
@@ -333,6 +362,24 @@ def while_loop_autograd(cond_fn, body_fn, operands, additional_inputs):
         *operands,
         *additional_inputs,
     )
+=======
+    while pred := cond_fn(*carried_vals, *additional_inputs):
+        _validate_cond_output(pred)
+        out = body_fn(*carried_vals, *additional_inputs)
+        assert isinstance(
+            out, tuple
+        ), f"body_fn should return a tuple but got {type(out)}"
+        assert len(out) == len(
+            carried_inputs
+        ), "body_fn should return the same number of elements as carried_inputs"
+        carried_vals = out
+    return carried_vals
+
+
+while_loop_op.py_autograd_impl(
+    autograd_not_implemented(while_loop_op, deferred_error=True)
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _find_or_create_fake_mode() -> FakeTensorMode:
@@ -348,9 +395,15 @@ def _find_or_create_fake_mode() -> FakeTensorMode:
 def _create_unbacked_symint(
     fake_mode: FakeTensorMode, ignore_fresh_unbacked_symbols: bool
 ) -> torch.SymInt:
+<<<<<<< HEAD
     assert fake_mode is not None and fake_mode.shape_env is not None, (
         "Must provide a fake_mode with shape_env."
     )
+=======
+    assert (
+        fake_mode is not None and fake_mode.shape_env is not None
+    ), "Must provide a fake_mode with shape_env."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ctx = (
         contextlib.nullcontext()
         if not ignore_fresh_unbacked_symbols
@@ -361,6 +414,7 @@ def _create_unbacked_symint(
 
 
 @while_loop_op.py_impl(ProxyTorchDispatchMode)
+<<<<<<< HEAD
 def while_loop_tracing(
     mode,
     cond_fn,
@@ -373,6 +427,11 @@ def while_loop_tracing(
 
     def _trace_while_loop(
         proxy_mode, op, cond_fn, body_fn, carried_inputs, additional_inputs
+=======
+def while_loop_tracing(mode, cond_fn, body_fn, carried_inputs, additional_inputs):
+    def _trace_while_loop(
+        proxy_mode, while_loop_op, cond_fn, body_fn, carried_inputs, additional_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # NOTE [unspecialize int carry with unbacked symints]
         # When we support int carry, we'll also need to support int output of body_fn because.
@@ -406,12 +465,18 @@ def while_loop_tracing(
         #   For this reason, we treat int, symint outputs in the same way:
         #   - they can match against any of int, symint carry
         #   - we unspecialize them with new unbacked symints in fake while_loop
+<<<<<<< HEAD
         #   Similarly, we could do some analysis to refine the output ranges but it's easier to start with
         #   fresh unbacked symints. One surprising case can be: an input unbacked symint is constrained by
+=======
+        #   Similarly, we could do some analysis to refine the output ranges but it's eaiser to start with
+        #   fresh unbacked symints. One suprising case can be: an input unbacked symint is constrained by
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #   users to be >= 0 (either before while_loop or inside body_fn) and it increments by 1 in each
         #   iteration. Ideally, we should know that the final output is >= 0 but we didn't constrain the
         #   unbacked symint output of subgraph as of today because this requires a smart range analysis.
         fake_mode: FakeTensorMode = _find_or_create_fake_mode()
+<<<<<<< HEAD
 
         def _unspecialize_carried_inputs(x):
             if isinstance(x, (int, torch.SymInt)):
@@ -455,6 +520,26 @@ def while_loop_tracing(
         next_name = None
         i = 0
         # pyrefly: ignore [bad-assignment]
+=======
+        unspecialized_carried_inputs = pytree.tree_map_only(
+            (int, torch.SymInt),
+            # For temporarily created unbacked symints, we don't need to bind them to any proxy
+            lambda _: _create_unbacked_symint(
+                fake_mode, ignore_fresh_unbacked_symbols=True
+            ),
+            carried_inputs,
+        )
+
+        cond_graph = reenter_make_fx(cond_fn)(
+            *unspecialized_carried_inputs, *additional_inputs
+        )
+        body_graph = reenter_make_fx(body_fn)(
+            *unspecialized_carried_inputs, *additional_inputs
+        )
+
+        next_name = None
+        i = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while not next_name:
             candidate = f"while_loop_cond_graph_{i}"
             if hasattr(proxy_mode.tracer.root, candidate):
@@ -473,10 +558,17 @@ def while_loop_tracing(
         proxy_args = pytree.tree_map(proxy_mode.tracer.unwrap_proxy, args)
 
         out_proxy = proxy_mode.tracer.create_proxy(
+<<<<<<< HEAD
             "call_function", op, proxy_args, {}, name=op._name
         )
 
         out = op(
+=======
+            "call_function", while_loop_op, proxy_args, {}, name="while_loop"
+        )
+
+        out = while_loop_op(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cond_graph, body_graph, unspecialized_carried_inputs, additional_inputs
         )
         return track_tensor_tree(
@@ -484,18 +576,26 @@ def while_loop_tracing(
         )
 
     return _trace_while_loop(
+<<<<<<< HEAD
         mode,
         op,
         cond_fn,
         body_fn,
         carried_inputs,
         additional_inputs,
+=======
+        mode, while_loop_op, cond_fn, body_fn, carried_inputs, additional_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
 @while_loop_op.py_impl(FakeTensorMode)
 def while_loop_fake_tensor_mode(
+<<<<<<< HEAD
     mode, cond_fn, body_fn, carried_inputs, additional_inputs, stack_output=False
+=======
+    mode, cond_fn, body_fn, carried_inputs, additional_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     with mode:
         # NOTE: [Handling unback symints in subgraph of while_loop]
@@ -540,6 +640,7 @@ def while_loop_fake_tensor_mode(
                 "body_output",
                 include_contiguity=False,
             )
+<<<<<<< HEAD
 
         if stack_output:
             n_iter = _create_unbacked_symint(mode, ignore_fresh_unbacked_symbols=False)
@@ -560,6 +661,8 @@ def while_loop_fake_tensor_mode(
                 fake_outputs,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # See NOTE [unspecialize int carry with unbacked symints]
         return pytree.tree_map_only(
             (int, torch.SymInt),
@@ -573,6 +676,7 @@ def while_loop_fake_tensor_mode(
 
 
 @while_loop_op.py_functionalize_impl
+<<<<<<< HEAD
 def while_loop_func(
     ctx, cond_fn, body_fn, carried_inputs, additional_inputs, stack_output=False
 ):
@@ -580,6 +684,11 @@ def while_loop_func(
 
     op = while_loop_stack_output_op if stack_output else while_loop_op
 
+=======
+def while_loop_func(ctx, cond_fn, body_fn, carried_inputs, additional_inputs):
+    from torch._higher_order_ops.utils import _check_alias_and_mutation
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unwrapped_carried_inputs = ctx.unwrap_tensors(carried_inputs)
     unwrapped_additional_inputs = ctx.unwrap_tensors(additional_inputs)
     unwrapped_inputs = unwrapped_carried_inputs + unwrapped_additional_inputs
@@ -592,13 +701,18 @@ def while_loop_func(
             (body_fn, "body_fn"),
         ]:
             _check_alias_and_mutation(fn, unwrapped_inputs, fn_name, pre_dispatch)
+<<<<<<< HEAD
         ret = op(
+=======
+        ret = while_loop_op(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             functional_cond_fn,
             functional_body_fn,
             unwrapped_carried_inputs,
             unwrapped_additional_inputs,
         )
         return ctx.wrap_tensors(ret)
+<<<<<<< HEAD
 
 
 class WhileLoopStackOutputOp(HigherOrderOperator):
@@ -926,3 +1040,5 @@ while_loop_stack_output_op.py_functionalize_impl(
 while_loop_stack_output_op.py_autograd_impl(
     autograd_not_implemented(while_loop_stack_output_op, deferred_error=True)
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

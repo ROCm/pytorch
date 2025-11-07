@@ -54,7 +54,11 @@ struct LoadBoolOp {
 auto wrap_input_iterator(const bool *data) {
   // See NOTE [Loading boolean values]
   LoadBoolOp op;
+<<<<<<< HEAD
   return ATEN_CUB_TRANSFORM_ITERATOR(bool, LoadBoolOp, const uint8_t*, int)(
+=======
+  return NO_ROCM(at_cuda_detail)::cub::TransformInputIterator<bool, LoadBoolOp, const uint8_t*, int>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       reinterpret_cast<const uint8_t*>(data), op);
 }
 
@@ -259,10 +263,17 @@ struct UniqueCub<bool> {
 
     const bool* self_data = self.const_data_ptr<bool>();
     MapNumberOfTrueValues op;
+<<<<<<< HEAD
     ATEN_CUB_TRANSFORM_ITERATOR(int, MapNumberOfTrueValues, const uint8_t*, int)
         data_iter(reinterpret_cast<const uint8_t*>(self_data), op);
     at::cuda::cub::reduce(data_iter, tmp_num_true.get(), num_inp,
                           NO_ROCM(::cuda)::std::plus<>{}, 0);
+=======
+    NO_ROCM(at_cuda_detail)::cub::TransformInputIterator<int, MapNumberOfTrueValues, const uint8_t*, int>
+        data_iter(reinterpret_cast<const uint8_t*>(self_data), op);
+    at::cuda::cub::reduce(data_iter, tmp_num_true.get(), num_inp,
+                          NO_ROCM(at_cuda_detail)::cub::Sum{}, 0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto options = self.options();
     output = at::empty({2}, self.options());

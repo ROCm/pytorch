@@ -131,7 +131,10 @@ class VmapInterpreter(FuncTorchInterpreter):
         self._cdata = cdata
 
     @cached_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _cptr(self):
         return CVmapInterpreterPtr(self._cdata)
 
@@ -171,7 +174,10 @@ class GradInterpreter(FuncTorchInterpreter):
         self._cdata = cdata
 
     @cached_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _cptr(self):
         return CGradInterpreterPtr(self._cdata)
 
@@ -209,7 +215,10 @@ class JvpInterpreter(FuncTorchInterpreter):
         self._cdata = cdata
 
     @cached_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _cptr(self):
         return CJvpInterpreterPtr(self._cdata)
 
@@ -246,7 +255,10 @@ class FunctionalizeInterpreter(FuncTorchInterpreter):
         self._cdata = cdata
 
     @cached_property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _cptr(self):
         return CFunctionalizeInterpreterPtr(self._cdata)
 

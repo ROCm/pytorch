@@ -4,6 +4,7 @@
 # mypy: disable-error-code=attr-defined
 from __future__ import annotations
 
+<<<<<<< HEAD
 import io
 import logging
 import warnings
@@ -13,6 +14,15 @@ from typing import Any, TYPE_CHECKING
 import torch
 from torch.onnx import _constants as onnx_constants
 from torch.onnx._internal._lazy_import import onnx, onnxscript_apis, onnxscript_ir as ir
+=======
+import logging
+import warnings
+from collections.abc import Mapping, Sequence
+from typing import Any, Callable, TYPE_CHECKING
+
+import torch
+from torch.onnx._internal._lazy_import import onnxscript_apis, onnxscript_ir as ir
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.onnx._internal.exporter import (
     _constants,
     _core,
@@ -52,7 +62,11 @@ def export_compat(
     verbose: bool | None = None,
     input_names: Sequence[str] | None = None,
     output_names: Sequence[str] | None = None,
+<<<<<<< HEAD
     opset_version: int | None = onnx_constants.ONNX_DEFAULT_OPSET,
+=======
+    opset_version: int | None = _constants.TORCHLIB_OPSET,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     custom_translation_table: dict[Callable, Callable | Sequence[Callable]]
     | None = None,
     dynamic_axes: Mapping[str, Mapping[int, str]]
@@ -62,7 +76,11 @@ def export_compat(
     keep_initializers_as_inputs: bool = False,
     external_data: bool = True,
     report: bool = False,
+<<<<<<< HEAD
     optimize: bool = True,
+=======
+    optimize: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     verify: bool = False,
     profile: bool = False,
     dump_exported_program: bool = False,
@@ -72,6 +90,7 @@ def export_compat(
     legacy_export_kwargs: dict[str, Any] | None = None,
 ) -> _onnx_program.ONNXProgram:
     if opset_version is None:
+<<<<<<< HEAD
         opset_version = onnx_constants.ONNX_DEFAULT_OPSET
 
     if isinstance(model, torch.nn.Module):
@@ -84,6 +103,9 @@ def export_compat(
                 UserWarning,
                 stacklevel=2,
             )
+=======
+        opset_version = _constants.TORCHLIB_OPSET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(model, torch.export.ExportedProgram):
         # We know the model is already exported program, so the args, kwargs, and dynamic_shapes
@@ -120,6 +142,7 @@ def export_compat(
     dynamic_shapes_with_export_dim, need_axis_mapping = (
         _dynamic_shapes.convert_str_to_export_dim(dynamic_shapes)
     )
+<<<<<<< HEAD
 
     if opset_version < _constants.TORCHLIB_OPSET:
         logger.warning(
@@ -141,6 +164,9 @@ def export_compat(
     registry = _registration.ONNXRegistry().from_torchlib(
         opset_version=registry_opset_version
     )
+=======
+    registry = _registration.ONNXRegistry().from_torchlib(opset_version=opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if custom_translation_table is not None:
         for torch_op, onnx_ops in custom_translation_table.items():
             # TODO(justinchuby): Support complex inputs with annotations
@@ -223,6 +249,7 @@ def export_compat(
         onnx_program.optimize()
 
     if f is not None:
+<<<<<<< HEAD
         if isinstance(f, io.BytesIO):
             # For legacy export compatibility, we allow f to be a BytesIO object.
             # This is not explicitly supported but we may need to maintain the
@@ -241,5 +268,13 @@ def export_compat(
                 keep_initializers_as_inputs=keep_initializers_as_inputs,
                 external_data=external_data,
             )
+=======
+        onnx_program.save(
+            f,
+            include_initializers=export_params,
+            keep_initializers_as_inputs=keep_initializers_as_inputs,
+            external_data=external_data,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return onnx_program

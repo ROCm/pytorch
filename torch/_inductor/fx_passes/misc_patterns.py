@@ -44,6 +44,7 @@ def _misc_patterns_init():
         )
 
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         randperm_index_add_pattern,
         # pyrefly: ignore [bad-argument-type]
@@ -52,6 +53,12 @@ def _misc_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        randperm_index_add_pattern,
+        randperm_index_add_replacement,
+        [torch.empty(4, 8, device=device), torch.empty(2, 8, device=device)],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [post_grad_patterns, joint_graph_patterns],
     )
 
@@ -64,6 +71,7 @@ def _misc_patterns_init():
         return torch.ops.aten._unsafe_index(x, (index,)), index
 
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         randperm_index_pattern,
         # pyrefly: ignore [bad-argument-type]
@@ -72,6 +80,12 @@ def _misc_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        randperm_index_pattern,
+        randperm_index_replacement,
+        [torch.empty(4, 8, device=device)],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [post_grad_patterns, joint_graph_patterns],
         scalar_workaround={"slice_shape": 42},
     )

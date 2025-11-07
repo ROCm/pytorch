@@ -44,8 +44,11 @@ class _AsyncCheckpointRequest:
     checkpoint_request_id: _CheckpointRequestIdentifier
     storage_writer: Optional[StorageWriter] = None
     planner: Optional[SavePlanner] = None
+<<<<<<< HEAD
     no_dist: bool = False
     use_collectives: bool = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass(init=False)
@@ -109,6 +112,7 @@ class _AsyncCheckpointProcess:
         # Wait for the checkpoint background process to initialize.
         # Using default GLOO init timeout.
         response = self._wait_for_response(timeout=1800)
+<<<<<<< HEAD
         if not response == _CheckpointSaveProcessControlOpts.INIT_COMPLETE:
             raise AssertionError(f"Expected INIT_COMPLETE response, got {response}")
 
@@ -124,6 +128,15 @@ class _AsyncCheckpointProcess:
                         "Checkpoint background process is still alive after termination request. Sending SIGTERM."
                     )
                     self._save_process.terminate()
+=======
+        assert response == _CheckpointSaveProcessControlOpts.INIT_COMPLETE
+
+    def __del__(self) -> None:
+        if self._save_process.is_alive():
+            logger.info("Terminating the checkpoint background process...")
+            self._send(_CheckpointSaveProcessControlOpts.TERMINATE)
+            self._save_process.join()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _send(self, data: Any) -> None:
         self._process_pipe.send(data)
@@ -160,8 +173,11 @@ class _AsyncCheckpointProcess:
         checkpoint_id: Union[str, os.PathLike, None] = None,
         storage_writer: Optional[StorageWriter] = None,
         planner: Optional[SavePlanner] = None,
+<<<<<<< HEAD
         no_dist: bool = False,
         use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Metadata:
         # Create a unique identifier to locate requests/responses
         # from the checkpoint daemon process.
@@ -171,6 +187,7 @@ class _AsyncCheckpointProcess:
             checkpoint_request_id=checkpoint_request_id,
             storage_writer=storage_writer,
             planner=planner,
+<<<<<<< HEAD
             no_dist=no_dist,
             use_collectives=use_collectives,
         )
@@ -178,6 +195,12 @@ class _AsyncCheckpointProcess:
         result = self._wait_for_response()
         if not isinstance(result, Metadata):
             raise AssertionError(f"Expected Metadata response, got {type(result)}")
+=======
+        )
+        self._send(async_cp_request)
+        result = self._wait_for_response()
+        assert isinstance(result, Metadata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return result
 
     @staticmethod
@@ -187,8 +210,11 @@ class _AsyncCheckpointProcess:
         checkpoint_request_id: _CheckpointRequestIdentifier,
         storage_writer: Optional[StorageWriter] = None,
         planner: Optional[SavePlanner] = None,
+<<<<<<< HEAD
         no_dist: bool = False,
         use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Metadata:
         from torch.distributed.checkpoint.state_dict_saver import save
 
@@ -197,8 +223,11 @@ class _AsyncCheckpointProcess:
             checkpoint_id=checkpoint_request_id.checkpoint_id,
             storage_writer=storage_writer,
             planner=planner,
+<<<<<<< HEAD
             no_dist=no_dist,
             use_collectives=use_collectives,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return metadata
 
@@ -207,8 +236,11 @@ class _AsyncCheckpointProcess:
         pg_init_info: _ProcessGroupInitInfo,
         parent_conn,
     ) -> None:
+<<<<<<< HEAD
         # Phase 1: Process Group Initialization
         # Only needs to execute once during the lifetime of the checkpoint background process.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             _init_logger(pg_init_info.global_rank)
 
@@ -229,6 +261,7 @@ class _AsyncCheckpointProcess:
 
             logger.info("Checkpoint background process is running...")
             parent_conn.send(_CheckpointSaveProcessControlOpts.INIT_COMPLETE)
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
             logger.error(
                 f"Checkpoint background process failed during initialization: {e}"  # noqa: G004
@@ -238,6 +271,10 @@ class _AsyncCheckpointProcess:
 
         # Phase 2: Serving Loop
         try:
+=======
+
+            # Serving loop.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             while True:
                 logger.info("Waiting for checkpoint save request...")
                 obj = parent_conn.recv()
@@ -247,14 +284,19 @@ class _AsyncCheckpointProcess:
                 ):
                     logger.info("Terminating the checkpoint background process.")
                     return
+<<<<<<< HEAD
                 if not isinstance(obj, _AsyncCheckpointRequest):
                     raise AssertionError(
                         f"Expected _AsyncCheckpointRequest, got {type(obj)}"
                     )
+=======
+                assert isinstance(obj, _AsyncCheckpointRequest)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 logger.info(
                     f"Received async checkpoint request with id={obj.checkpoint_request_id.checkpoint_id}"  # noqa: G004
                 )
 
+<<<<<<< HEAD
                 try:
                     response = _AsyncCheckpointProcess._execute_save(
                         obj.staged_state_dict,
@@ -274,6 +316,24 @@ class _AsyncCheckpointProcess:
                     )
                     parent_conn.send(e)
                     # Continue serving loop - don't exit process
+=======
+                response = _AsyncCheckpointProcess._execute_save(
+                    obj.staged_state_dict,
+                    checkpoint_request_id=obj.checkpoint_request_id,
+                    storage_writer=obj.storage_writer,
+                    planner=obj.planner,
+                )
+                parent_conn.send(response)
+                logger.info(
+                    f"Submitted checkpoint save request for checkpoint_id={obj.checkpoint_request_id}"  # noqa: G004
+                )
+        except BaseException as e:
+            logger.error(
+                f"Checkpoint background process encountered an exception: {e}"  # noqa: G004
+            )
+            parent_conn.send(e)
+            raise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         finally:
             logger.info("Checkpoint background process is shutting down...")
             dist.destroy_process_group()
@@ -291,11 +351,16 @@ class _ProcessBasedAsyncCheckpointExecutor(_AsyncCheckpointExecutor):
     def _execute_save_impl(
         *,
         pg_init_info: Optional[_ProcessGroupInitInfo],
+<<<<<<< HEAD
         staging_future_or_state_dict: Union[Future[STATE_DICT_TYPE], STATE_DICT_TYPE],
+=======
+        staged_state_dict: STATE_DICT_TYPE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         checkpoint_id: Union[str, os.PathLike, None] = None,
         storage_writer: Optional[StorageWriter] = None,
         planner: Optional[SavePlanner] = None,
         process_group: Optional[dist.ProcessGroup] = None,
+<<<<<<< HEAD
         no_dist: bool = False,
         use_collectives: bool = True,
     ) -> Metadata:
@@ -305,6 +370,12 @@ class _ProcessBasedAsyncCheckpointExecutor(_AsyncCheckpointExecutor):
                 raise AssertionError(
                     "pg_init_info must not be None when _CHECKPOINT_PROCESS is None"
                 )
+=======
+    ) -> Metadata:
+        global _CHECKPOINT_PROCESS
+        if _CHECKPOINT_PROCESS is None:
+            assert pg_init_info is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ckpt_kwargs = {}
             if (ckpt_id := getattr(storage_writer, "checkpoint_id", None)) is not None:
                 ckpt_kwargs["checkpoint_id"] = ckpt_id
@@ -313,11 +384,15 @@ class _ProcessBasedAsyncCheckpointExecutor(_AsyncCheckpointExecutor):
             @_dcp_method_logger(**ckpt_kwargs)
             def create_checkpoint_daemon_process() -> None:
                 global _CHECKPOINT_PROCESS
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _CHECKPOINT_PROCESS = _AsyncCheckpointProcess(pg_init_info=pg_init_info)
 
             create_checkpoint_daemon_process()
 
+<<<<<<< HEAD
         if _CHECKPOINT_PROCESS is None:
             raise AssertionError(
                 "_CHECKPOINT_PROCESS must not be None after initialization"
@@ -327,25 +402,38 @@ class _ProcessBasedAsyncCheckpointExecutor(_AsyncCheckpointExecutor):
             if isinstance(staging_future_or_state_dict, Future)
             else staging_future_or_state_dict
         )
+=======
+        assert _CHECKPOINT_PROCESS is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _CHECKPOINT_PROCESS.save(
             staged_state_dict=staged_state_dict,
             checkpoint_id=checkpoint_id,
             storage_writer=storage_writer,
             planner=planner,
+<<<<<<< HEAD
             no_dist=no_dist,
             use_collectives=use_collectives,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def execute_save(
         self,
+<<<<<<< HEAD
         staging_future_or_state_dict: Union[Future[STATE_DICT_TYPE], STATE_DICT_TYPE],
+=======
+        staged_state_dict: STATE_DICT_TYPE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *,
         checkpoint_id: Union[str, os.PathLike, None] = None,
         storage_writer: Optional[StorageWriter] = None,
         planner: Optional[SavePlanner] = None,
         process_group: Optional[dist.ProcessGroup] = None,
+<<<<<<< HEAD
         no_dist: bool = False,
         use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Future:
         """
         NOTE:
@@ -372,12 +460,19 @@ class _ProcessBasedAsyncCheckpointExecutor(_AsyncCheckpointExecutor):
         f: Future = self._executor.submit(
             self._execute_save_impl,
             pg_init_info=pg_init_info,
+<<<<<<< HEAD
             staging_future_or_state_dict=staging_future_or_state_dict,
             checkpoint_id=checkpoint_id,
             storage_writer=storage_writer,
             planner=planner,
             no_dist=no_dist,
             use_collectives=use_collectives,
+=======
+            staged_state_dict=staged_state_dict,
+            checkpoint_id=checkpoint_id,
+            storage_writer=storage_writer,
+            planner=planner,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         f.add_done_callback(lambda f: self._executor.shutdown(wait=False))
 

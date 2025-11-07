@@ -157,8 +157,12 @@ class Table:
             trim_significant_figures: bool,
             highlight_warnings: bool
     ):
+<<<<<<< HEAD
         if len({r.label for r in results}) != 1:
             raise AssertionError("All results must share the same label")
+=======
+        assert len({r.label for r in results}) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.results = results
         self._colorize = colorize
@@ -281,7 +285,11 @@ class Compare:
     https://pytorch.org/tutorials/recipes/recipes/benchmark.html
 
     Args:
+<<<<<<< HEAD
         results: List of Measurement to display.
+=======
+        results: List of Measurment to display.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     def __init__(self, results: list[common.Measurement]):
         self._results: list[common.Measurement] = []

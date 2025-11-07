@@ -106,7 +106,13 @@ kernel void polygamma(
       constant int64_t& order [[buffer(2)]],                                  \
       uint id [[thread_position_in_grid]]);
 
+<<<<<<< HEAD
 INSTANTIATE_GAMMA_KERNELS(bfloat, bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_GAMMA_KERNELS(bfloat, bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 INSTANTIATE_GAMMA_KERNELS(half, half);
 INSTANTIATE_GAMMA_KERNELS(float, float);
 INSTANTIATE_GAMMA_KERNELS(bool, float);

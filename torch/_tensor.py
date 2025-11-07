@@ -2,6 +2,7 @@
 import copyreg
 import enum
 import functools
+<<<<<<< HEAD
 import itertools
 import warnings
 from collections import OrderedDict
@@ -10,6 +11,13 @@ from copy import deepcopy
 from numbers import Number
 from typing import Any, cast, Concatenate, Optional, TypeVar, Union
 from typing_extensions import ParamSpec
+=======
+import warnings
+from collections import OrderedDict
+from copy import deepcopy
+from numbers import Number
+from typing import Any, Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._C as _C
@@ -30,6 +38,7 @@ from torch.overrides import (
 )
 
 
+<<<<<<< HEAD
 _P = ParamSpec("_P")
 _TensorLike = TypeVar("_TensorLike", bound=_C.TensorBase)
 
@@ -45,6 +54,18 @@ def _handle_torch_function_and_wrap_type_error_to_not_implemented(
             if has_torch_function(sargs):
                 return handle_torch_function(wrapped, sargs, *sargs, **kwargs)
             return f(self, *args, **kwargs)
+=======
+def _handle_torch_function_and_wrap_type_error_to_not_implemented(f):
+    assigned = functools.WRAPPER_ASSIGNMENTS
+
+    @functools.wraps(f, assigned=assigned)
+    def wrapped(*args, **kwargs):
+        try:
+            # See https://github.com/pytorch/pytorch/issues/75462
+            if has_torch_function(args):
+                return handle_torch_function(wrapped, args, *args, **kwargs)
+            return f(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except TypeError:
             return NotImplemented
 
@@ -332,7 +353,11 @@ class Tensor(torch._C.TensorBase):
             torch.serialization._serialization_tls.materialize_fake_tensors
         )
 
+<<<<<<< HEAD
         if self.device.type in ["xla", "maia", "mtia"] or (
+=======
+        if self.device.type in ["xla", "maia"] or (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             not torch._C._has_storage(self)
             and self.device.type == torch._C._get_privateuse1_backend_name()
         ):
@@ -345,13 +370,48 @@ class Tensor(torch._C.TensorBase):
                 torch._utils._rebuild_device_tensor_from_cpu_tensor,
                 (cpu_tensor, self.dtype, str(self.device), self.requires_grad),
             )
+<<<<<<< HEAD
+=======
+        # Legacy comment that does not hold anymore.
+        # Note: Numpy array is chosen to be the rebuild component for XLA, MTIA, MAIA Tensors.
+        # We considered a few options:
+        # 1. CPU tensor can't be used here.
+        #    Otherwise in torch.load CPU storage is reconstructed with randomly
+        #    initialized data, moved onto backend device, and then storage is updated
+        #    to the serialized content. This works perfectly for CPU/CUDA but not these backends;
+        #    their tensors are disconnected with storage so they don't get the update.
+        # 2. Python list is not a good fit due to performance reason.
+        #    `tolist()` converts every single element in the tensor into python objects
+        #    and serialize them one by one.
+        if self.device.type in ["mtia"]:
+            # Convert BFloat16 tesors to Float32 before conversion to numpy, as numpy doesn't
+            # support BFloat16. The rebuild tensor from numpy takes in the original self.dtype,
+            # this would reconstruct the BFloat16 tensor from numpy.
+            if skip_data:
+                raise RuntimeError(
+                    "Cannot serialize tensors on backends with no storage under skip_data context manager"
+                )
+            numpy_tensor = (
+                self.cpu().numpy()
+                if self.dtype != torch.bfloat16
+                else self.cpu().to(torch.float32).numpy()
+            )
+            return (
+                torch._utils._rebuild_device_tensor_from_numpy,
+                (numpy_tensor, self.dtype, str(self.device), self.requires_grad),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.device.type == "meta":
             # NB: This implementation BREAKS storage sharing.  Current
             # hypothesis is that no one cares for meta tensors.
             if skip_data:
                 warnings.warn(
+<<<<<<< HEAD
                     "Serializing tensors on the meta device under skip_data context manager is a no-op",
                     stacklevel=2,
+=======
+                    "Serializing tensors on the meta device under skip_data context manager is a no-op"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             arg_meta = (
                 self.dtype,
@@ -552,7 +612,10 @@ class Tensor(torch._C.TensorBase):
             raise RuntimeError("__setstate__ can be only called on leaf Tensors")
         if len(state) == 4:
             # legacy serialization of Tensor
+<<<<<<< HEAD
             # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.set_(*state)
             return
         elif len(state) == 5:
@@ -630,6 +693,7 @@ class Tensor(torch._C.TensorBase):
             self, gradient, retain_graph, create_graph, inputs=inputs
         )
 
+<<<<<<< HEAD
     def index(self, positions, dims):
         """
         Index a regular tensor by binding specified positions to dims.
@@ -658,6 +722,8 @@ class Tensor(torch._C.TensorBase):
 
         return index(self, positions, dims)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def register_hook(self, hook):
         r"""Registers a backward hook.
 
@@ -759,10 +825,14 @@ class Tensor(torch._C.TensorBase):
                 "post accumulate grad hooks cannot be registered on non-leaf tensors"
             )
         if self._post_accumulate_grad_hooks is None:
+<<<<<<< HEAD
             self._post_accumulate_grad_hooks: dict[Any, Any] = (
                 # pyrefly: ignore [bad-assignment]
                 OrderedDict()
             )
+=======
+            self._post_accumulate_grad_hooks: dict[Any, Any] = OrderedDict()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from torch.utils.hooks import RemovableHandle
 
@@ -1034,7 +1104,11 @@ class Tensor(torch._C.TensorBase):
     def resize(self, *sizes):
         if has_torch_function_unary(self):
             return handle_torch_function(Tensor.resize, (self,), self, *sizes)
+<<<<<<< HEAD
         warnings.warn("non-inplace resize is deprecated", stacklevel=2)
+=======
+        warnings.warn("non-inplace resize is deprecated")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.autograd._functions import Resize
 
         return Resize.apply(self, sizes)
@@ -1042,7 +1116,11 @@ class Tensor(torch._C.TensorBase):
     def resize_as(self, tensor):
         if has_torch_function_variadic(self, tensor):
             return handle_torch_function(Tensor.resize_as, (self, tensor), self, tensor)
+<<<<<<< HEAD
         warnings.warn("non-inplace resize_as is deprecated", stacklevel=2)
+=======
+        warnings.warn("non-inplace resize_as is deprecated")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.autograd._functions import Resize
 
         return Resize.apply(self, tensor.size())
@@ -1062,12 +1140,16 @@ class Tensor(torch._C.TensorBase):
         if isinstance(split_size, (int, torch.SymInt)):
             return torch._VF.split(self, split_size, dim)  # type: ignore[attr-defined]
         else:
+<<<<<<< HEAD
             return torch._VF.split_with_sizes(
                 self,
                 # pyrefly: ignore [bad-argument-type]
                 split_size,
                 dim,
             )
+=======
+            return torch._VF.split_with_sizes(self, split_size, dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def unique(self, sorted=True, return_inverse=False, return_counts=False, dim=None):
         r"""Returns the unique elements of the input tensor.
@@ -1111,17 +1193,28 @@ class Tensor(torch._C.TensorBase):
         )
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
+<<<<<<< HEAD
     def __rsub__(self, other: Union["Tensor", int, float, bool, complex]) -> "Tensor":
         return _C._VariableFunctions.rsub(self, other)
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
     def __rdiv__(self, other: Union["Tensor", int, float, bool, complex]) -> "Tensor":
+=======
+    def __rsub__(self, other):
+        return _C._VariableFunctions.rsub(self, other)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __rdiv__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.reciprocal() * other
 
     __rtruediv__ = __rdiv__
     __itruediv__ = _C.TensorBase.__idiv__
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __pow__ = cast(
         Callable[
             ["torch._C.TensorBase", Union["Tensor", int, float, bool, complex]],
@@ -1131,13 +1224,20 @@ class Tensor(torch._C.TensorBase):
             _C.TensorBase.pow
         ),
     )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __ipow__ = _handle_torch_function_and_wrap_type_error_to_not_implemented(
         _C.TensorBase.pow_
     )
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
+<<<<<<< HEAD
     def __rmod__(self, other: Union["Tensor", int, float, bool, complex]) -> "Tensor":
+=======
+    def __rmod__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.remainder(other, self)
 
     def __format__(self, format_spec):
@@ -1150,6 +1250,7 @@ class Tensor(torch._C.TensorBase):
         return object.__format__(self, format_spec)
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
+<<<<<<< HEAD
     def __rpow__(self, other: Union["Tensor", int, float, bool, complex]) -> "Tensor":
         return torch.pow(other, self)
 
@@ -1177,6 +1278,29 @@ class Tensor(torch._C.TensorBase):
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
     def __rmatmul__(self, other: "Tensor") -> "Tensor":
+=======
+    def __rpow__(self, other):
+        return torch.pow(other, self)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __floordiv__(self, other):
+        return torch.floor_divide(self, other)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __rfloordiv__(self, other):
+        return torch.floor_divide(other, self)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __rlshift__(self, other):
+        return torch.bitwise_left_shift(other, self)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __rrshift__(self, other):
+        return torch.bitwise_right_shift(other, self)
+
+    @_handle_torch_function_and_wrap_type_error_to_not_implemented
+    def __rmatmul__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.matmul(other, self)
 
     __pos__ = _C.TensorBase.positive
@@ -1347,7 +1471,11 @@ class Tensor(torch._C.TensorBase):
 
         return self._typed_storage()._get_legacy_storage_class()
 
+<<<<<<< HEAD
     def refine_names(self, *names):  # pyrefly: ignore  # bad-override
+=======
+    def refine_names(self, *names):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Refines the dimension names of :attr:`self` according to :attr:`names`.
 
         Refining is a special case of renaming that "lifts" unnamed dimensions.
@@ -1391,7 +1519,11 @@ class Tensor(torch._C.TensorBase):
         names = resolve_ellipsis(names, self.names, "refine_names")
         return super().refine_names(names)
 
+<<<<<<< HEAD
     def align_to(self, *names):  # pyrefly: ignore  # bad-override
+=======
+    def align_to(self, *names):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Permutes the dimensions of the :attr:`self` tensor to match the order
         specified in :attr:`names`, adding size-one dims for any new names.
 
@@ -1626,19 +1758,30 @@ class Tensor(torch._C.TensorBase):
               If any two dimensions have the same stride, swapping these dimensions won't
               change how data is accessed, leading to multiple correct dimension orders.
             """
+<<<<<<< HEAD
             from torch.fx.experimental.symbolic_shapes import guard_or_false
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             sizes = tensor.size()
             strides = tensor.stride()
 
             # Check if there are any duplicate strides
             has_duplicate_strides = any(
+<<<<<<< HEAD
                 guard_or_false(earlier == later)
                 for earlier, later in itertools.pairwise(strides)
             )
 
             # Check if there are any singleton dimensions
             has_singleton_dims = any(guard_or_false(size == 1) for size in sizes)
+=======
+                earlier == later for earlier, later in zip(strides, strides[1:])
+            )
+
+            # Check if there are any singleton dimensions
+            has_singleton_dims = any(size == 1 for size in sizes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return has_duplicate_strides or has_singleton_dims
 
@@ -1658,6 +1801,7 @@ class Tensor(torch._C.TensorBase):
 
         import torch._prims_common as utils
 
+<<<<<<< HEAD
         out_perm, raise_ambiguity = (
             utils.compute_elementwise_output_logical_to_physical_perm(
                 self, ambiguity_check=ambiguity_check
@@ -1666,6 +1810,9 @@ class Tensor(torch._C.TensorBase):
         if raise_ambiguity:
             raise RuntimeError("The tensor does not have unique dim order.")
         return tuple(out_perm)
+=======
+        return tuple(utils.compute_elementwise_output_logical_to_physical_perm(self))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _update_names(self, names, inplace):
         if has_torch_function_unary(self):
@@ -1709,6 +1856,7 @@ class Tensor(torch._C.TensorBase):
 
     __torch_dispatch__ = _C._disabled_torch_dispatch_impl
 
+<<<<<<< HEAD
     def __dlpack__(
         self,
         *,
@@ -1717,6 +1865,9 @@ class Tensor(torch._C.TensorBase):
         dl_device: Optional[tuple[enum.IntEnum, int]] = None,
         copy: Optional[bool] = None,
     ):
+=======
+    def __dlpack__(self, stream=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Creates a DLpack `capsule https://data-apis.org/array-api/latest/design_topics/data_interchange.html#data-interchange`_
         of the current tensor to be exported to other libraries.
@@ -1727,6 +1878,7 @@ class Tensor(torch._C.TensorBase):
 
         Args:
             stream (integer or None): An optional Python integer representing a
+<<<<<<< HEAD
                 pointer to a CUDA stream. The current stream is synchronized with
                 this stream before the capsule is created, and since the capsule
                 shares its storage with the tensor this make it safe to access from
@@ -1757,11 +1909,23 @@ class Tensor(torch._C.TensorBase):
                 "copy": copy,
             }
             return handle_torch_function(Tensor.__dlpack__, (self,), *args, **kwargs)
+=======
+            pointer to a CUDA stream. The current stream is synchronized with
+            this stream before the capsule is created, and since the capsule
+            shares its storage with the tensor this make it safe to access from
+            both streams.  If None or -1 is passed then no synchronization is performed.
+            If 1 (on CUDA) or 0 (on ROCM) then the default stream is used for
+            synchronization.
+        """
+        if has_torch_function_unary(self):
+            return handle_torch_function(Tensor.__dlpack__, (self,), self, stream)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # DLPack capsules can't capture all of PyTorch's semantics,
         # so we prohibit exporting tensors that would lose their properties like
         # requires_grad and having the conjugate bit set.
         if self.requires_grad:
+<<<<<<< HEAD
             raise BufferError(
                 "Can't export tensors that require gradient, use tensor.detach()"
             )
@@ -1782,10 +1946,23 @@ class Tensor(torch._C.TensorBase):
                 f"Current device: {torch.cuda.current_device()}."
             )
 
+=======
+            raise RuntimeError(
+                "Can't export tensors that require gradient, use tensor.detach()"
+            )
+        if self.is_conj():
+            raise RuntimeError("Can't export tensors with the conjugate bit set")
+        if self.layout != torch.strided:
+            raise RuntimeError(
+                "Can't export tensors with layout other than torch.strided"
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if stream is not None and type(stream) is not int:
             # Stream pointers in CUDA/ROCm are uniquely numbered and can
             # be retrieved from their integer value.
             raise TypeError("stream must be ``int`` or ``none``")
+<<<<<<< HEAD
         elif self.device.type == "cuda" and stream != -1:
             # NB: This logic handles the special case values for default
             # streams and must be kept in sync with from_dlpack in
@@ -1815,6 +1992,25 @@ class Tensor(torch._C.TensorBase):
         elif self.device.type == "cpu":
             assert stream is None or stream == -1, "stream should be None on cpu."
 
+=======
+        elif stream is not None and stream != -1:
+            if self.device.type == "cuda":
+                # NB: This logic handles the special case values for default
+                # streams and must be kept in sync with from_dlpack in
+                # torch/utils/dlpack.py
+                if stream == 1 and torch.version.hip is None:
+                    stream = torch.cuda.default_stream()
+                elif stream == 0 and torch.version.hip is not None:
+                    stream = torch.cuda.default_stream()
+                else:
+                    stream = torch.cuda.ExternalStream(stream)
+                # Only synchronize on different streams
+                sync_stream = torch.cuda.current_stream()
+                if stream != sync_stream:
+                    event = torch.cuda.Event()
+                    event.record(sync_stream)
+                    stream.wait_event(event)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.device.type == "xla":
             import torch_xla
             import torch_xla.utils.dlpack as xla_dlpack
@@ -1826,6 +2022,7 @@ class Tensor(torch._C.TensorBase):
                 raise RuntimeError(
                     "Can't export to dlpack an XLA tensor that is not on CUDA."
                 )
+<<<<<<< HEAD
 
             # Does not support DLPack 1.0, yet.
             return xla_dlpack.to_dlpack(self)
@@ -1835,6 +2032,10 @@ class Tensor(torch._C.TensorBase):
             return _C._to_dlpack(self, dl_device=dl_device, copy=copy)
 
         return _C._to_dlpack_versioned(self, dl_device=dl_device, copy=copy)
+=======
+            return xla_dlpack.to_dlpack(self)
+        return torch.to_dlpack(self)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __dlpack_device__(self) -> tuple[enum.IntEnum, int]:
         if has_torch_function_unary(self):
@@ -1848,9 +2049,15 @@ class Tensor(torch._C.TensorBase):
         if torch_device_type == "cuda" and torch.version.hip is not None:
             device_type = DLDeviceType.kDLROCM
         elif torch_device_type == "cpu" and self.is_pinned():
+<<<<<<< HEAD
             device_type = DLDeviceType.kDLCUDAHost
         elif torch_device_type == "cuda":
             device_type = DLDeviceType.kDLCUDA
+=======
+            device_type = DLDeviceType.kDLCPUPinned
+        elif torch_device_type == "cuda":
+            device_type = DLDeviceType.kDLGPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif torch_device_type == "cpu":
             device_type = DLDeviceType.kDLCPU
         elif torch_device_type == "xpu":
@@ -1866,9 +2073,13 @@ class Tensor(torch._C.TensorBase):
             ):
                 raise ValueError(f"Unknown device type {torch_device_type} for Dlpack")
 
+<<<<<<< HEAD
             device_type = DLDeviceType.kDLCUDA
         elif torch_device_type == "mps":
             device_type = DLDeviceType.kDLMetal
+=======
+            device_type = DLDeviceType.kDLGPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise ValueError(f"Unknown device type {torch_device_type} for Dlpack")
         return (device_type, idx)

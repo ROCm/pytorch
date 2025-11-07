@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
 import contextlib
+<<<<<<< HEAD
 from typing import Any, Union
+=======
+from typing import Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -126,6 +130,7 @@ class cuFFTPlanCacheManager:
 
 
 class cuBLASModule:
+<<<<<<< HEAD
     @staticmethod
     def _parse_reduction_setting(value: Any, attr_name: str) -> tuple[bool, bool]:
         def _ensure_bool(obj: Any, which: str) -> bool:
@@ -151,10 +156,13 @@ class cuBLASModule:
             f"{attr_name} expects a bool or a tuple/list of bools, but got {type(value)!r}"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __getattr__(self, name):
         if name == "allow_tf32":
             return torch._C._get_cublas_allow_tf32()
         elif name == "allow_fp16_reduced_precision_reduction":
+<<<<<<< HEAD
             allow_reduced_precision, _ = (
                 torch._C._get_cublas_allow_fp16_reduced_precision_reduction()
             )
@@ -178,12 +186,20 @@ class cuBLASModule:
             return torch._C._get_cublas_allow_fp16_accumulation()
         elif name == "fp32_precision":
             return torch._C._get_fp32_precision_getter("cuda", "matmul")
+=======
+            return torch._C._get_cublas_allow_fp16_reduced_precision_reduction()
+        elif name == "allow_bf16_reduced_precision_reduction":
+            return torch._C._get_cublas_allow_bf16_reduced_precision_reduction()
+        elif name == "allow_fp16_accumulation":
+            return torch._C._get_cublas_allow_fp16_accumulation()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise AttributeError("Unknown attribute " + name)
 
     def __setattr__(self, name, value):
         if name == "allow_tf32":
             return torch._C._set_cublas_allow_tf32(value)
         elif name == "allow_fp16_reduced_precision_reduction":
+<<<<<<< HEAD
             allow_reduced_precision, allow_splitk = self._parse_reduction_setting(
                 value, "allow_fp16_reduced_precision_reduction"
             )
@@ -203,6 +219,13 @@ class cuBLASModule:
             return torch._C._set_cublas_allow_fp16_accumulation(value)
         elif name == "fp32_precision":
             return torch._C._set_fp32_precision_setter("cuda", "matmul", value)
+=======
+            return torch._C._set_cublas_allow_fp16_reduced_precision_reduction(value)
+        elif name == "allow_bf16_reduced_precision_reduction":
+            return torch._C._set_cublas_allow_bf16_reduced_precision_reduction(value)
+        elif name == "allow_fp16_accumulation":
+            return torch._C._set_cublas_allow_fp16_accumulation(value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise AttributeError("Unknown attribute " + name)
 
 
@@ -215,7 +238,11 @@ _LinalgBackends_str = ", ".join(_LinalgBackends.keys())
 
 
 def preferred_linalg_library(
+<<<<<<< HEAD
     backend: Union[None, str, torch._C._LinalgBackend] = None,
+=======
+    backend: Union[None, str, torch._C._LinalgBackend] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch._C._LinalgBackend:
     r"""
     Override the heuristic PyTorch uses to choose between cuSOLVER and MAGMA for CUDA linear algebra operations.
@@ -263,7 +290,11 @@ def preferred_linalg_library(
     elif isinstance(backend, str):
         if backend not in _LinalgBackends:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Unknown input value. Choose from: {_LinalgBackends_str}."
+=======
+                "Unknown input value. " f"Choose from: {_LinalgBackends_str}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         torch._C._set_linalg_preferred_backend(_LinalgBackends[backend])
     elif isinstance(backend, torch._C._LinalgBackend):
@@ -286,7 +317,11 @@ _BlasBackends_str = ", ".join(_BlasBackends.keys())
 
 
 def preferred_blas_library(
+<<<<<<< HEAD
     backend: Union[None, str, torch._C._BlasBackend] = None,
+=======
+    backend: Union[None, str, torch._C._BlasBackend] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch._C._BlasBackend:
     r"""
     Override the library PyTorch uses for BLAS operations. Choose between cuBLAS, cuBLASLt, and CK [ROCm-only].
@@ -318,7 +353,11 @@ def preferred_blas_library(
     elif isinstance(backend, str):
         if backend not in _BlasBackends:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Unknown input value. Choose from: {_BlasBackends_str}."
+=======
+                "Unknown input value. " f"Choose from: {_BlasBackends_str}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         torch._C._set_blas_preferred_backend(_BlasBackends[backend])
     elif isinstance(backend, torch._C._BlasBackend):
@@ -341,13 +380,21 @@ from torch._C import _SDPAParams as SDPAParams, _SDPBackend as SDPBackend
 
 
 def preferred_rocm_fa_library(
+<<<<<<< HEAD
     backend: Union[None, str, torch._C._ROCmFABackend] = None,
+=======
+    backend: Union[None, str, torch._C._ROCmFABackend] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch._C._ROCmFABackend:
     r"""
     [ROCm-only]
     Override the backend PyTorch uses in ROCm environments for Flash Attention. Choose between AOTriton and CK
 
+<<<<<<< HEAD
     .. warning:: This flag is experimental and subject to change.
+=======
+    .. warning:: This flag is experimeental and subject to change.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     When Flash Attention is enabled and desired, PyTorch defaults to using AOTriton as the backend.
     This flag (a :class:`str`) allows users to override this backend to use composable_kernel
@@ -369,13 +416,21 @@ def preferred_rocm_fa_library(
     elif isinstance(backend, str):
         if backend not in _ROCmFABackends:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Unknown input value. Choose from: {_ROCmFABackends_str}."
+=======
+                "Unknown input value. " f"Choose from: {_ROCmFABackends_str}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         torch._C._set_rocm_fa_preferred_backend(_ROCmFABackends[backend])
     elif isinstance(backend, torch._C._ROCmFABackend):
         torch._C._set_rocm_fa_preferred_backend(backend)
     else:
+<<<<<<< HEAD
         raise ValueError(f"Unknown input value. Choose from: {_ROCmFABackends_str}.")
+=======
+        raise ValueError("Unknown input value. " f"Choose from: {_ROCmFABackends_str}.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return torch._C._get_rocm_fa_preferred_backend()
 

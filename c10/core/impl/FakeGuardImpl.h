@@ -19,7 +19,11 @@ template <DeviceType T>
 struct FakeGuardImpl final : public DeviceGuardImplInterface {
   static constexpr DeviceType static_type = T;
   // Runtime device type is not used
+<<<<<<< HEAD
   FakeGuardImpl(DeviceType /*unused*/) {}
+=======
+  FakeGuardImpl(DeviceType) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   FakeGuardImpl() = default;
   DeviceType type() const override {
     return T;

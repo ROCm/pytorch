@@ -106,6 +106,7 @@ SparseTensor _coalesce_sparse_cuda(const SparseTensor& self) {
     values = values.contiguous();
     int64_t stride = c10::multiply_integers(values.sizes().slice(1));
     int warp_size = at::cuda::warp_size();
+<<<<<<< HEAD
 #ifdef USE_ROCM
     const int64_t BATCHING_SEGMENT = 4096;
     int64_t nsegments = ceil_div(newNnz, (int64_t) SZ);
@@ -134,6 +135,10 @@ SparseTensor _coalesce_sparse_cuda(const SparseTensor& self) {
         C10_CUDA_KERNEL_LAUNCH_CHECK();
       });
 #else
+=======
+    dim3 grid(ceil_div(newNnz, (int64_t) SZ), ceil_div(stride, (int64_t) warp_size*SZ));
+    dim3 block(warp_size, SZ);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND4(
       at::ScalarType::ComplexHalf, at::ScalarType::Half, at::ScalarType::BFloat16, at::ScalarType::Bool,
       values.scalar_type(), "coalesce_sparse_cuda", [&] {
@@ -149,7 +154,10 @@ SparseTensor _coalesce_sparse_cuda(const SparseTensor& self) {
         );
         C10_CUDA_KERNEL_LAUNCH_CHECK();
       });
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 // this grid-strided version is slower but probably more flexible

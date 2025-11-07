@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_set.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -315,6 +318,7 @@ class _TestJointOps:
             self.assertEqual(self.thetype(it), data - self.thetype((drop,)))
 
     def test_deepcopy(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Tracer:
                 def __init__(self, value):
@@ -323,6 +327,15 @@ class _TestJointOps:
                     return self.value
                 def __deepcopy__(self, memo=None):
                     return Tracer(self.value + 1)
+=======
+        class Tracer:
+            def __init__(self, value):
+                self.value = value
+            def __hash__(self):
+                return self.value
+            def __deepcopy__(self, memo=None):
+                return Tracer(self.value + 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t = Tracer(10)
         s = self.thetype([t])
         dup = copy.deepcopy(s)
@@ -334,9 +347,14 @@ class _TestJointOps:
 
     def test_gc(self):
         # Create a nest of cycles to exercise overall ref count check
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class A:
                 pass
+=======
+        class A:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         s = set(A() for i in range(1000))
         for elem in s:
             elem.cycle = s
@@ -345,10 +363,16 @@ class _TestJointOps:
 
     def test_subclass_with_custom_hash(self):
         # Bug #1257731
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class H(self.thetype):
                 def __hash__(self):
                     return int(id(self) & 0x7fffffff)
+=======
+        class H(self.thetype):
+            def __hash__(self):
+                return int(id(self) & 0x7fffffff)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         s=H()
         f=set()
         f.add(s)
@@ -399,9 +423,14 @@ class _TestJointOps:
 
     def test_container_iterator(self):
         # Bug #3680: tp_traverse was not implemented for set iterator object
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C(object):
                 pass
+=======
+        class C(object):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         obj = C()
         ref = weakref.ref(obj)
         container = set([obj, 1])
@@ -658,6 +687,7 @@ class TestSet(_TestJointOps, __TestCase):
         self.assertRaises(ReferenceError, str, p)
 
     def test_rich_compare(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class TestRichSetCompare:
                 def __gt__(self, some_set):
@@ -672,6 +702,21 @@ class TestSet(_TestJointOps, __TestCase):
                 def __le__(self, some_set):
                     self.le_called = True
                     return False
+=======
+        class TestRichSetCompare:
+            def __gt__(self, some_set):
+                self.gt_called = True
+                return False
+            def __lt__(self, some_set):
+                self.lt_called = True
+                return False
+            def __ge__(self, some_set):
+                self.ge_called = True
+                return False
+            def __le__(self, some_set):
+                self.le_called = True
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # This first tries the builtin rich set comparison, which doesn't know
         # how to handle the custom object. Upon returning NotImplemented, the
@@ -703,31 +748,51 @@ class TestSetSubclass(TestSet):
     basetype = set
 
     def test_keywords_in_subclass(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass(set):
                 pass
+=======
+        class subclass(set):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass([1, 2])
         self.assertIs(type(u), subclass)
         self.assertEqual(set(u), {1, 2})
         with self.assertRaises(TypeError):
             subclass(sequence=())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_init(set):
                 def __init__(self, arg, newarg=None):
                     super().__init__(arg)
                     self.newarg = newarg
+=======
+        class subclass_with_init(set):
+            def __init__(self, arg, newarg=None):
+                super().__init__(arg)
+                self.newarg = newarg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_init([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_init)
         self.assertEqual(set(u), {1, 2})
         self.assertEqual(u.newarg, 3)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_new(set):
                 def __new__(cls, arg, newarg=None):
                     self = super().__new__(cls, arg)
                     self.newarg = newarg
                     return self
+=======
+        class subclass_with_new(set):
+            def __new__(cls, arg, newarg=None):
+                self = super().__new__(cls, arg)
+                self.newarg = newarg
+                return self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_new([1, 2])
         self.assertIs(type(u), subclass_with_new)
         self.assertEqual(set(u), {1, 2})
@@ -818,30 +883,49 @@ class TestFrozenSetSubclass(TestFrozenSet):
     basetype = frozenset
 
     def test_keywords_in_subclass(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass(frozenset):
                 pass
+=======
+        class subclass(frozenset):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass([1, 2])
         self.assertIs(type(u), subclass)
         self.assertEqual(set(u), {1, 2})
         with self.assertRaises(TypeError):
             subclass(sequence=())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_init(frozenset):
                 def __init__(self, arg, newarg=None):
                     self.newarg = newarg
+=======
+        class subclass_with_init(frozenset):
+            def __init__(self, arg, newarg=None):
+                self.newarg = newarg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_init([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_init)
         self.assertEqual(set(u), {1, 2})
         self.assertEqual(u.newarg, 3)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_new(frozenset):
                 def __new__(cls, arg, newarg=None):
                     self = super().__new__(cls, arg)
                     self.newarg = newarg
                     return self
+=======
+        class subclass_with_new(frozenset):
+            def __new__(cls, arg, newarg=None):
+                self = super().__new__(cls, arg)
+                self.newarg = newarg
+                return self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_new([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_new)
         self.assertEqual(set(u), {1, 2})
@@ -1907,6 +1991,7 @@ class TestWeirdBugs(__TestCase):
         list(si)
 
     def test_merge_and_mutate(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __hash__(self):
@@ -1914,6 +1999,14 @@ class TestWeirdBugs(__TestCase):
                 def __eq__(self, o):
                     other.clear()
                     return False
+=======
+        class X:
+            def __hash__(self):
+                return hash(0)
+            def __eq__(self, o):
+                other.clear()
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         other = set()
         other = {X() for i in range(10)}
@@ -1928,6 +2021,7 @@ class _TestOperationsMutating:
     constructor2 = None
 
     def make_sets_of_bad_objects(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Bad:
                 def __eq__(self, other):
@@ -1940,6 +2034,19 @@ class _TestOperationsMutating:
                     return bool(randrange(2))
                 def __hash__(self):
                     return randrange(2)
+=======
+        class Bad:
+            def __eq__(self, other):
+                if not enabled:
+                    return False
+                if randrange(20) == 0:
+                    set1.clear()
+                if randrange(20) == 0:
+                    set2.clear()
+                return bool(randrange(2))
+            def __hash__(self):
+                return randrange(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Don't behave poorly during construction.
         enabled = False
         set1 = self.constructor1(Bad() for _ in range(randrange(50)))

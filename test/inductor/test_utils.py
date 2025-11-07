@@ -1,11 +1,15 @@
 # Owner(s): ["module: inductor"]
 
+<<<<<<< HEAD
 import unittest
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from sympy import Symbol, sympify
 
 import torch
 from torch._inductor.fx_utils import count_flops_fx, countable_fx
+<<<<<<< HEAD
 from torch._inductor.utils import get_device_tflops, sympy_str, sympy_subs
 from torch._inductor.virtualized import V
 from torch.testing._internal.common_device_type import (
@@ -13,6 +17,11 @@ from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
 )
 from torch.testing._internal.common_utils import run_tests, TestCase
+=======
+from torch._inductor.test_case import run_tests, TestCase
+from torch._inductor.utils import sympy_str, sympy_subs
+from torch._inductor.virtualized import V
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestUtils(TestCase):
@@ -65,7 +74,11 @@ class TestUtils(TestCase):
         result = sympy_subs(expr, {Symbol("x", integer=False): Symbol("y")})
         self.assertEqual(result.name, "x")
 
+<<<<<<< HEAD
         # replaced can't be string
+=======
+        # replaced cant be string
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertRaises(AssertionError, sympy_subs, expr, {"x": "y"})
 
         # replaced can be an expression
@@ -74,7 +87,11 @@ class TestUtils(TestCase):
         self.assertEqual(expr.is_integer, None)
         self.assertEqual(expr.is_nonnegative, None)
         # replace abs(x) with y
+<<<<<<< HEAD
         # propagate abs(x) sympy properties.
+=======
+        # propagte abs(x) sympy properties.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = sympy_subs(expr, {expr: Symbol("y")})
         self.assertEqual(result.name, "y")
         self.assertEqual(result.is_integer, None)
@@ -131,6 +148,7 @@ class TestUtils(TestCase):
                 (
                     torch.ops.aten.convolution,
                     (
+<<<<<<< HEAD
                         torch.Tensor(2, 2, 3),
                         torch.Tensor(2, 2, 2),
                         torch.Tensor(2),
@@ -139,6 +157,16 @@ class TestUtils(TestCase):
                         (1,),
                         True,
                         (0,),
+=======
+                        torch.Tensor(2, 3, 3),
+                        torch.Tensor(2, 2, 2),
+                        torch.Tensor(2),
+                        (1, 1),
+                        (0, 0),
+                        (1, 1),
+                        True,
+                        (0, 0),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         1,
                     ),
                     {},
@@ -194,6 +222,7 @@ class TestUtils(TestCase):
                     countable_fx(fx_node_2), f"Expected false {f}: {fx_node_2}"
                 )
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.cuda.is_available(), "skip if no device")
     @dtypes(torch.float16, torch.bfloat16, torch.float32)
     def test_get_device_tflops(self, dtype):
@@ -202,6 +231,8 @@ class TestUtils(TestCase):
 
 
 instantiate_device_type_tests(TestUtils, globals(), allow_xpu=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

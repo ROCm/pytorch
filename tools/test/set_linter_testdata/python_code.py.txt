@@ -30,9 +30,12 @@ class A:
 
 set = A().set
 
+<<<<<<< HEAD
 # An f string as in https://github.com/pytorch/pytorch/issues/159056
 f_string = f" {h:{w}} "
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Braced sets
 
 set1 = {1}

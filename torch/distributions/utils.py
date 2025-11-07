@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from functools import update_wrapper
 from typing import Any, Final, Generic, Optional, overload, TypeVar, Union
+=======
+from collections.abc import Sequence
+from functools import update_wrapper
+from typing import Any, Callable, Final, Generic, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F

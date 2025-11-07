@@ -23,9 +23,15 @@ def transitive_get(key, d):
     return key
 
 
+<<<<<<< HEAD
 def raises(err, lamda):  # codespell:ignore lamda
     try:
         lamda()  # codespell:ignore lamda
+=======
+def raises(err, lamda):
+    try:
+        lamda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
     except err:
         return True
@@ -60,7 +66,11 @@ def _toposort(edges):
             incoming_edges[m].remove(n)
             if not incoming_edges[m]:
                 S.add(m)
+<<<<<<< HEAD
     if any(incoming_edges.get(v) for v in edges):
+=======
+    if any(incoming_edges.get(v, None) for v in edges):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise ValueError("Input has cycles")
     return L
 

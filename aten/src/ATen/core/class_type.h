@@ -148,7 +148,11 @@ struct TORCH_API ClassType : public NamedType {
 
   void checkNotExist(const std::string& name, const std::string& what) const;
 
+<<<<<<< HEAD
   // Attributes are stored in a specific slot at runtime for efficiency.
+=======
+  // Attributes are stored in a specific slot at runtime for effiency.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // When emitting instructions we specify the slot so that attribute access is
   // a constant lookup
   std::optional<size_t> findAttributeSlot(const std::string& name) const {
@@ -412,7 +416,11 @@ struct TORCH_API ClassType : public NamedType {
   // Holds method attributes
   std::weak_ptr<CompilationUnit> compilation_unit_;
 
+<<<<<<< HEAD
   // Holds all attributes, attribute details are found on ClassAttribute
+=======
+  // Holds all atrributes, attribute details are found on ClassAttribute
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<ClassAttribute> attributes_;
   // Construct mirroring attributes_, only around due to the fact that `containedTypes()` method returns an ArrayRef.
   // Never fill this without using the appropriate provideNewClassAttribute method

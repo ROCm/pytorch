@@ -107,6 +107,7 @@ void TuningResultsManager::AddImpl(const std::string& op_signature,
 }
 
 void TuningResultsManager::Add(const std::string& op_signature, const std::string& params_signature, ResultEntry best) {
+<<<<<<< HEAD
   bool is_new = false;
   ResultEntry inserted = ResultEntry::Null();
 
@@ -131,6 +132,16 @@ void TuningResultsManager::Add(const std::string& op_signature, const std::strin
     }
   }
 
+=======
+  std::scoped_lock l{lock_};
+
+  auto it = results_.find(op_signature);
+  if (it == results_.end()) {
+    it = results_.insert({op_signature, {}}).first;
+  }
+
+  AddImpl(op_signature, params_signature, std::move(best), it->second);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void TuningResultsManager::RecordUntuned( std::ofstream& untuned_file, const std::string& op_signature,
@@ -166,6 +177,7 @@ void TuningResultsManager::RecordUntuned( std::ofstream& untuned_file, const std
   }
 }
 
+<<<<<<< HEAD
 void TuningResultsManager::InitRealtimeAppend(const std::string& filename, const std::unordered_map<std::string, std::string>& validators) {
   std::scoped_lock fl{realtime_file_mutex_};
 
@@ -237,6 +249,8 @@ void TuningResultsManager::CloseRealtimeAppend() {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void TuningResultsManager::Delete(const std::string& op_signature, const std::string& params_signature) {
   std::scoped_lock l{lock_};
 
@@ -307,6 +321,7 @@ TuningResultsValidator::TuningResultsValidator() {
       []() { return GetPyTorchVersion(); },
       [this](auto&& k) { return ValidatePyTorchVersion(std::forward<decltype(k)>(k)); });
 #ifdef USE_ROCM
+<<<<<<< HEAD
   // hip
   {
     // HIP version is more accurate than ROCm version.  User's environment could be a stock
@@ -318,6 +333,21 @@ TuningResultsValidator::TuningResultsValidator() {
        [hip_version](auto&& k) {
         TUNABLE_LOG1("HIP_VERSION validation: expect ", k, " to match ", hip_version);
         return hip_version == k ? OK : FAIL;
+=======
+  // rocm
+  {
+#ifdef _WIN32
+    std::string rocm_version = HIP_VERSION_BUILD_NAME;
+#else
+    std::string rocm_version = ROCM_BUILD_INFO;
+#endif
+    RegisterValidator(
+       "ROCM_VERSION",
+       [rocm_version]() { return rocm_version; },
+       [rocm_version](auto&& k) {
+        TUNABLE_LOG1("ROCM_VERSION validation: expect ", k, " to match ", rocm_version);
+        return rocm_version == k ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       });
   }
   // gfx arch
@@ -483,6 +513,10 @@ TuningContext::TuningContext() :
     tuning_enable_{true},
     record_untuned_enable_{false},
     manager_initialized_{false},
+<<<<<<< HEAD
+=======
+    write_file_on_exit_{true},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     numerics_check_enable_{false},
     max_tuning_duration_ms_{30},
     max_tuning_iterations_{100},
@@ -490,6 +524,11 @@ TuningContext::TuningContext() :
     max_warmup_iterations_{0},
     icache_flush_{true},
     rotating_buffer_size_{-1},
+<<<<<<< HEAD
+=======
+    filename_{},
+    untuned_file_{},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     results_count_from_input_file_{0},
     is_shutting_down_{false}
 {
@@ -503,8 +542,25 @@ TuningContext::~TuningContext() {
     // but doesn't do any computation itself.
     return;
   }
+<<<<<<< HEAD
   TUNABLE_LOG1("Closing File");
   GetTuningResultsManager().CloseRealtimeAppend(); // Since, we do instant logging by default now.
+=======
+  auto filename = GetFilename();
+  if (IsTunableOpEnabled() && IsTuningEnabled() && !filename.empty() && write_file_on_exit_) {
+    if (results_count_from_input_file_ < GetTuningResultsManager().GetSize()) {
+      if (results_count_from_input_file_ > 0) {
+        TUNABLE_LOG1("additional tuning results available, rewriting file ", filename);
+      }
+      else {
+        TUNABLE_LOG1("writing file ", filename);
+      }
+      if (!WriteFile(filename)) {
+        TUNABLE_LOG1("failed to write file ", filename);
+      }
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (untuned_file_.good()) {
     untuned_file_.close();
@@ -580,16 +636,27 @@ std::ofstream& TuningContext::GetUntunedFile(){
       filename.append(device);
     }
 
+<<<<<<< HEAD
     untuned_file_ = std::ofstream(filename, std::ios::out | std::ios::app);
+=======
+    untuned_file_ = std::ofstream(filename, std::ios::out | std::ios::trunc);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return untuned_file_;
 }
 
+<<<<<<< HEAD
+=======
+void TuningContext::WriteFileOnExit(bool value) {
+  write_file_on_exit_ = value;
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void TuningContext::EnableNumericsCheck(bool value) {
   numerics_check_enable_ = value;
 }
 
+<<<<<<< HEAD
 NumericalCheckConfig TuningContext::GetNumericalCheckConfig() const {
   const auto env_opt = c10::utils::get_env("PYTORCH_TUNABLEOP_NUMERICAL_CHECK");
 
@@ -633,6 +700,14 @@ void TuningContext::SetNumericalCheckConfig(bool enabled, double atol, double rt
 bool TuningContext::IsNumericsCheckEnabled() const {
   const auto cfg = GetNumericalCheckConfig();
   return cfg.enabled || numerics_check_enable_;
+=======
+bool TuningContext::IsNumericsCheckEnabled() const {
+  const auto env = c10::utils::get_env("PYTORCH_TUNABLEOP_NUMERICAL_CHECK");
+  if (env == "1") {
+    return true;
+  }
+  return numerics_check_enable_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void TuningContext::SetMaxTuningDurationMs(int max_duration_ms) {
@@ -742,6 +817,14 @@ TuningResultsManager& TuningContext::GetTuningResultsManager() {
     auto filename = GetFilename();
     if (!filename.empty() && !IsRecordUntunedEnabled()) {
       ReadFile(filename);
+<<<<<<< HEAD
+=======
+      // attempt immediately to open file for writing to catch errors early
+      std::ofstream file(filename, std::ios::out | std::ios::app);
+      if (!file.good()) {
+        TORCH_WARN("failed to open file '", filename, "' for writing; your tuning results will not be saved");
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   });
   return manager_;
@@ -847,6 +930,30 @@ bool TuningContext::ReadFile(const std::string& filename_) {
   return true;
 }
 
+<<<<<<< HEAD
+=======
+bool TuningContext::WriteFile(const std::string& filename_) {
+  std::string filename = filename_.empty() ? GetFilename() : filename_;
+  std::ofstream file(filename, std::ios::out | std::ios::trunc);
+  if (!file.good()) {
+    TUNABLE_LOG1("error opening tuning results file for writing ", filename);
+    return false;
+  }
+  auto validators = GetTuningResultsValidator().GetAllValidators();
+  for (const auto& [key, val] : validators) {
+    file << "Validator," << key << "," << val << std::endl;
+  }
+  auto results = GetTuningResultsManager().Dump();
+  for (const auto& [op_sig, kernelmap] : results) {
+    for (const auto& [param_sig, result] : kernelmap) {
+      file << op_sig << "," << param_sig << "," << result << std::endl;
+    }
+  }
+  file.close();
+  return true;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 
 struct MaybeDelete {

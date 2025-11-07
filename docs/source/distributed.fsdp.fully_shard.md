@@ -123,7 +123,10 @@ The frontend API is `fully_shard` that can be called on a `module`:
 .. autoclass:: CPUOffloadPolicy
     :members:
 ```
+<<<<<<< HEAD
 
 ```{eval-rst}
 .. autofunction:: share_comm_ctx
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -335,8 +335,11 @@ std::tuple<Tensor, Tensor> choose_qparams_optimized(
     const int64_t n_bins,
     const double ratio,
     int64_t bit_width) {
+<<<<<<< HEAD
   const float* input_row = input_tensor.const_data_ptr<float>();
   TORCH_CHECK_VALUE(input_row != nullptr, "input tensor is empty and has no data");
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (numel < 0 || numel > input_tensor.numel()) {
     TORCH_CHECK(false, "numel is out of the bound of input tensor");
@@ -344,7 +347,11 @@ std::tuple<Tensor, Tensor> choose_qparams_optimized(
 
   TORCH_CHECK(numel <= input_tensor.numel(), "numel ", numel,
       " greater than input_tensor.numel() ", input_tensor.numel());
+<<<<<<< HEAD
 
+=======
+  const float* input_row = input_tensor.const_data_ptr<float>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   float xmin = *std::min_element(input_row, input_row + numel);
   float xmax = *std::max_element(input_row, input_row + numel);
   float n_bins_float = static_cast<float>(n_bins);

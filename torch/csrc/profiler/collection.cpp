@@ -172,7 +172,11 @@ bool InputOutputEncoder::isSupportedScalarList(
   return true;
 }
 
+<<<<<<< HEAD
 // This function returns a lambda which is a custom-iterator-like getter.
+=======
+// This function returns a lambda which is is a custom-iterator-like getter.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Each invocation of the lambda returns input values for one op.
 //
 // io_type is used to filter the ivalues between 'Shapes' and 'Concrete Args'.
@@ -396,10 +400,14 @@ std::unique_ptr<KinetoObserverContext> ThreadLocalSubqueue::begin_op(
   }
 
   event->start_time_ = c10::getApproximateTime();
+<<<<<<< HEAD
   event->allow_tf32_cublas_ =
       at::globalContext().float32Precision(
           at::Float32Backend::CUDA, at::Float32Op::MATMUL) ==
       at::Float32Precision::TF32;
+=======
+  event->allow_tf32_cublas_ = at::globalContext().allowTF32CuBLAS();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!config_.experimental_config.performance_events.empty()) {
     const size_t n = config_.experimental_config.performance_events.size();
     event->counters_ = std::make_unique<perf_counters_t>(n, 0);
@@ -615,7 +623,10 @@ std::string Result::name() const {
       ATTRIBUTE(OutOfMemory, std::string("[OutOfMemory]")),
       ATTRIBUTE(PyCall, toString(e)),
       ATTRIBUTE(PyCCall, std::string(e.function_name_.str())),
+<<<<<<< HEAD
       ATTRIBUTE(PythonGC, std::string("Python GC")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       [](const auto& e) -> std::string { return e.name_; }));
 }
 
@@ -634,7 +645,10 @@ libkineto::ActivityType Result::kinetoType() const {
       ATTRIBUTE(OutOfMemory, libkineto::ActivityType::CPU_INSTANT_EVENT),
       ATTRIBUTE(PyCall, libkineto::ActivityType::PYTHON_FUNCTION),
       ATTRIBUTE(PyCCall, libkineto::ActivityType::PYTHON_FUNCTION),
+<<<<<<< HEAD
       ATTRIBUTE(PythonGC, libkineto::ActivityType::PYTHON_FUNCTION),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ATTRIBUTE(Kineto, e.activity_type_)));
 }
 
@@ -654,7 +668,10 @@ int64_t Result::endTimeNS() const {
       ATTRIBUTE(Allocation, start_time_ns_),
       ATTRIBUTE(OutOfMemory, start_time_ns_),
       ATTRIBUTE(Kineto, start_time_ns_ + e.duration_ns_),
+<<<<<<< HEAD
       ATTRIBUTE(PythonGC, start_time_ns_ + e.duration_ns_),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       [&](const auto& e) -> int64_t { return e.end_time_ns_; }));
 
   // In rare cases we're willing to tolerate ops which are missing an end time
@@ -705,9 +722,12 @@ RecordQueue::RecordQueue(
       activities_{std::move(activities)} {
   if (tracePython()) {
     python_tracer_ = python_tracer::PythonTracerBase::make(this);
+<<<<<<< HEAD
     if (getPythonGcEvents()) {
       python_tracer_->register_gc_callback();
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -715,10 +735,13 @@ bool RecordQueue::tracePython() const {
   return config_.with_stack && activities_.count(ActivityType::CPU);
 }
 
+<<<<<<< HEAD
 bool RecordQueue::getPythonGcEvents() const {
   return config_.experimental_config.record_python_gc_info;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ThreadLocalSubqueue* RecordQueue::getSubqueue() {
   // In the most common case, a thread will want to write to the same sub-queue
   // that it wrote to last call. The only time that isn't true is if:
@@ -963,9 +986,14 @@ class TransferEvents {
  public:
   TransferEvents(
       std::vector<std::shared_ptr<Result>>& results,
+<<<<<<< HEAD
       trace_ptr_t& trace,
       const ProfilerConfig& config)
       : results_{results}, config_{config} {
+=======
+      trace_ptr_t& trace)
+      : results_{results} {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto* trace_activities_ptr = trace->get()->activities();
     TORCH_INTERNAL_ASSERT(trace_activities_ptr != nullptr);
     trace_activities_ = *trace_activities_ptr;
@@ -1029,12 +1057,15 @@ class TransferEvents {
     }
   }
 
+<<<<<<< HEAD
   bool isHiddenEvent(const itrace_t* activity) const {
     TORCH_INTERNAL_ASSERT(activity != nullptr);
     // Kineto uses "hidden" metadata to mark events that should be hidden.
     return activity->getMetadataValue("hidden") == "1";
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::shared_ptr<Result> resultFromActivity(const itrace_t* activity) {
     TORCH_INTERNAL_ASSERT(activity != nullptr);
 
@@ -1055,7 +1086,11 @@ class TransferEvents {
             {/*id=*/static_cast<uint32_t>(activity->flowId()),
              /*type=*/static_cast<uint32_t>(activity->flowType()),
              /*start=*/activity->flowStart()}});
+<<<<<<< HEAD
     event->hidden_ = isHiddenEvent(activity);
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // NB: It's tempting to set `event->kineto_activity_`; however we can only
     // guarantee that the events we passed to Kineto are of type
     // `GenericTraceActivity`. Others may derive from ITraceActivity and thus
@@ -1095,6 +1130,7 @@ class TransferEvents {
   void extractEventsFromTrace() {
     for (const auto* activity : trace_activities_) {
       auto e = toResult(activity);
+<<<<<<< HEAD
       if (e) {
         if (config_.experimental_config.expose_kineto_event_metadata) {
           e->visit(c10::overloaded(
@@ -1114,6 +1150,15 @@ class TransferEvents {
               },
               [](auto&) { TORCH_INTERNAL_ASSERT(false); }));
         }
+=======
+      const auto* linked_activity = activity->linkedActivity();
+      if (e && linked_activity) {
+        e->visit(c10::overloaded(
+            [&](ExtraFields<EventType::Kineto>& i) {
+              i.linked_activity_ = toResult(linked_activity);
+            },
+            [](auto&) { TORCH_INTERNAL_ASSERT(false); }));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -1190,7 +1235,10 @@ class TransferEvents {
   static constexpr long long unmatchedIndex = -1;
   static constexpr auto noTID = std::numeric_limits<uint64_t>::max();
   std::reference_wrapper<std::vector<std::shared_ptr<Result>>> results_;
+<<<<<<< HEAD
   const ProfilerConfig& config_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<const itrace_t*> trace_activities_;
   ska::flat_hash_map<const itrace_t*, std::shared_ptr<Result>> kineto_events_;
 };
@@ -1198,7 +1246,11 @@ class TransferEvents {
 class TransferEvents {
  public:
   template <class... Args>
+<<<<<<< HEAD
   TransferEvents(Args&&... /*unused*/) {}
+=======
+  TransferEvents(Args&&...) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 #endif
 
@@ -1217,7 +1269,11 @@ trace_ptr_t addKinetoEvents(
 
   auto trace = std::make_unique<ActivityTraceWrapper>(stopTrace());
   TORCH_INTERNAL_ASSERT(trace || !kKinetoAvailable);
+<<<<<<< HEAD
   TransferEvents transfer{results, trace, config};
+=======
+  TransferEvents transfer{results, trace};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return trace;
 }
 
@@ -1514,6 +1570,7 @@ RecordQueue::getRecords(
     queue.allocations_.clear();
     materialize(queue.ooms_);
 
+<<<<<<< HEAD
     std::optional<int64_t> pending_start;
     for (auto& e : queue.pythongc_) {
       if (e.first.find("start") != std::string::npos) {
@@ -1539,6 +1596,8 @@ RecordQueue::getRecords(
       }
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto& i : queue.py_calls_) {
       python_enters.push_back(
           {i.first, queue.tid(), queue.kineto_info(), converter(i.second)});

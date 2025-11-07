@@ -3,6 +3,7 @@
 import torch
 from torch.testing import make_tensor
 from torch.testing._internal.common_device_type import (
+<<<<<<< HEAD
     deviceCountAtLeast,
     dtypes,
     dtypesIfMPS,
@@ -26,6 +27,18 @@ from torch.testing._internal.common_utils import (
     TestCase,
 )
 from torch.utils.dlpack import DLDeviceType, from_dlpack, to_dlpack
+=======
+    dtypes,
+    instantiate_device_type_tests,
+    onlyCUDA,
+    onlyNativeDeviceTypes,
+    skipCUDAIfRocm,
+    skipMeta,
+)
+from torch.testing._internal.common_dtype import all_types_and_complex_and
+from torch.testing._internal.common_utils import IS_JETSON, run_tests, TestCase
+from torch.utils.dlpack import from_dlpack, to_dlpack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Wraps a tensor, exposing only DLPack methods:
@@ -60,7 +73,10 @@ class TestTorchDlPack(TestCase):
             torch.uint64,
         )
     )
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool, torch.cfloat, torch.chalf))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dlpack_capsule_conversion(self, device, dtype):
         x = make_tensor((5,), dtype=dtype, device=device)
         z = from_dlpack(to_dlpack(x))
@@ -78,7 +94,10 @@ class TestTorchDlPack(TestCase):
             torch.uint64,
         )
     )
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool, torch.cfloat, torch.chalf))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dlpack_protocol_conversion(self, device, dtype):
         x = make_tensor((5,), dtype=dtype, device=device)
         z = from_dlpack(x)
@@ -87,13 +106,29 @@ class TestTorchDlPack(TestCase):
     @skipMeta
     @onlyNativeDeviceTypes
     def test_dlpack_shared_storage(self, device):
+<<<<<<< HEAD
         dtype = torch.bfloat16 if device.startswith("mps") else torch.float64
         x = make_tensor((5,), dtype=dtype, device=device)
+=======
+        x = make_tensor((5,), dtype=torch.float64, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         z = from_dlpack(to_dlpack(x))
         z[0] = z[0] + 20.0
         self.assertEqual(z, x)
 
+<<<<<<< HEAD
     def _dlpack_conversion_with_streams(self, stream, x):
+=======
+    @skipMeta
+    @onlyCUDA
+    @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+    def test_dlpack_conversion_with_streams(self, device, dtype):
+        # Create a stream where the tensor will reside
+        stream = torch.cuda.Stream()
+        with torch.cuda.stream(stream):
+            # Do an operation in the actual stream
+            x = make_tensor((5,), dtype=dtype, device=device) + 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # DLPack protocol helps establish a correct stream order
         # (hence data dependency) at the exchange boundary.
         # DLPack manages this synchronization for us, so we don't need to
@@ -106,6 +141,7 @@ class TestTorchDlPack(TestCase):
         with torch.cuda.stream(stream):
             z = from_dlpack(x)
         stream.synchronize()
+<<<<<<< HEAD
         return z
 
     @skipMeta
@@ -139,6 +175,11 @@ class TestTorchDlPack(TestCase):
         self.assertEqual(z.view(torch.uint8), x.view(torch.uint8))
 
     @skipMeta
+=======
+        self.assertEqual(z, x)
+
+    @skipMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(
         *all_types_and_complex_and(
@@ -150,14 +191,20 @@ class TestTorchDlPack(TestCase):
             torch.uint64,
         )
     )
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool, torch.cfloat, torch.chalf))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_from_dlpack(self, device, dtype):
         x = make_tensor((5,), dtype=dtype, device=device)
         y = torch.from_dlpack(x)
         self.assertEqual(x, y)
 
     @skipMeta
+<<<<<<< HEAD
     @skipIfMPS  # MPS crashes with noncontiguous now
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(
         *all_types_and_complex_and(
@@ -204,12 +251,17 @@ class TestTorchDlPack(TestCase):
         # in the current stream to make sure that it was correctly populated.
         with torch.cuda.stream(stream_a):
             x = make_tensor((5,), dtype=dtype, device=device) + 1
+<<<<<<< HEAD
             z = torch.from_dlpack(x.__dlpack__(stream=stream_b.cuda_stream))
+=======
+            z = torch.from_dlpack(x.__dlpack__(stream_b.cuda_stream))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             stream_a.synchronize()
         stream_b.synchronize()
         self.assertEqual(z, x)
 
     @skipMeta
+<<<<<<< HEAD
     @onlyCUDA
     @dtypes(
         torch.float8_e5m2,
@@ -231,6 +283,8 @@ class TestTorchDlPack(TestCase):
         self.assertEqual(z.view(torch.uint8), x.view(torch.uint8))
 
     @skipMeta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(
         *all_types_and_complex_and(
@@ -242,7 +296,10 @@ class TestTorchDlPack(TestCase):
             torch.uint64,
         )
     )
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool, torch.cfloat, torch.chalf))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_from_dlpack_dtype(self, device, dtype):
         x = make_tensor((5,), dtype=dtype, device=device)
         y = torch.from_dlpack(x)
@@ -263,7 +320,11 @@ class TestTorchDlPack(TestCase):
                     assert stream == 1
                 else:
                     assert stream == 0
+<<<<<<< HEAD
                 capsule = self.tensor.__dlpack__(stream=stream)
+=======
+                capsule = self.tensor.__dlpack__(stream)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return capsule
 
         # CUDA-based tests runs on non-default streams
@@ -286,7 +347,11 @@ class TestTorchDlPack(TestCase):
             x = torch.zeros(1, device=device)
             torch.cuda._sleep(2**20)
             self.assertTrue(torch.cuda.default_stream().query())
+<<<<<<< HEAD
             x.__dlpack__(stream=1)
+=======
+            x.__dlpack__(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # check that the default stream has work (a pending cudaStreamWaitEvent)
         self.assertFalse(torch.cuda.default_stream().query())
 
@@ -298,6 +363,7 @@ class TestTorchDlPack(TestCase):
             x = make_tensor((5,), dtype=dtype, device=device)
             x.__dlpack__(stream=object())
 
+<<<<<<< HEAD
     @skipMeta
     @onlyCUDA
     @skipCUDAIfRocm
@@ -354,25 +420,39 @@ class TestTorchDlPack(TestCase):
             with torch.device(dev1):
                 x.__dlpack__()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: add interchange tests once NumPy 1.22 (dlpack support) is required
     @skipMeta
     def test_dlpack_export_requires_grad(self):
         x = torch.zeros(10, dtype=torch.float32, requires_grad=True)
+<<<<<<< HEAD
         with self.assertRaisesRegex(BufferError, r"require gradient"):
+=======
+        with self.assertRaisesRegex(RuntimeError, r"require gradient"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x.__dlpack__()
 
     @skipMeta
     def test_dlpack_export_is_conj(self):
         x = torch.tensor([-1 + 1j, -2 + 2j, 3 - 3j])
         y = torch.conj(x)
+<<<<<<< HEAD
         with self.assertRaisesRegex(BufferError, r"conjugate bit"):
+=======
+        with self.assertRaisesRegex(RuntimeError, r"conjugate bit"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y.__dlpack__()
 
     @skipMeta
     def test_dlpack_export_non_strided(self):
         x = torch.sparse_coo_tensor([[0]], [1], size=(1,))
         y = torch.conj(x)
+<<<<<<< HEAD
         with self.assertRaisesRegex(BufferError, r"strided"):
+=======
+        with self.assertRaisesRegex(RuntimeError, r"strided"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y.__dlpack__()
 
     @skipMeta
@@ -383,8 +463,13 @@ class TestTorchDlPack(TestCase):
         self.assertEqual(y.stride(), (3,))
         z = from_dlpack(y)
         self.assertEqual(z.shape, (1,))
+<<<<<<< HEAD
         # Stride normalization has been removed, strides should be preserved
         self.assertEqual(z.stride(), (3,))
+=======
+        # gh-83069, make sure __dlpack__ normalizes strides
+        self.assertEqual(z.stride(), (1,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipMeta
     @onlyNativeDeviceTypes
@@ -399,6 +484,7 @@ class TestTorchDlPack(TestCase):
         new_tensor = torch.tensor(wrap)
         self.assertEqual(tensor, new_tensor)
 
+<<<<<<< HEAD
     @skipMeta
     @skipIfTorchDynamo("__dlpack__ doesn't work with dynamo")
     @onlyNativeDeviceTypes
@@ -536,6 +622,10 @@ class TestTorchDlPack(TestCase):
 
 
 instantiate_device_type_tests(TestTorchDlPack, globals(), allow_mps=True)
+=======
+
+instantiate_device_type_tests(TestTorchDlPack, globals())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

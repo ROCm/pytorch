@@ -132,6 +132,7 @@ std::ostream& operator<<(std::ostream& o, const uint128& b) {
   int div_base_log = 0;
   switch (flags & std::ios::basefield) {
     case std::ios::hex:
+<<<<<<< HEAD
       div = static_cast<uint64_t>(0x1000000000000000u); // 16^15
       div_base_log = 15;
       break;
@@ -141,6 +142,17 @@ std::ostream& operator<<(std::ostream& o, const uint128& b) {
       break;
     default: // std::ios::dec
       div = static_cast<uint64_t>(10000000000000000000u); // 10^19
+=======
+      div = (uint64_t)0x1000000000000000u; // 16^15
+      div_base_log = 15;
+      break;
+    case std::ios::oct:
+      div = (uint64_t)01000000000000000000000u; // 8^21
+      div_base_log = 21;
+      break;
+    default: // std::ios::dec
+      div = (uint64_t)10000000000000000000u; // 10^19
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       div_base_log = 19;
       break;
   }

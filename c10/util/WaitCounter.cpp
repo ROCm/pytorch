@@ -49,7 +49,11 @@ class DynamicBackendWrapper : public WaitCounterBackendIf {
 
   void stop(std::chrono::steady_clock::time_point now, intptr_t ctx) noexcept
       override {
+<<<<<<< HEAD
     impl_.stop(
+=======
+    return impl_.stop(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         impl_.self,
         std::chrono::duration_cast<std::chrono::microseconds>(
             now.time_since_epoch())
@@ -162,6 +166,10 @@ WaitCounterHandle::WaitGuard WaitCounterHandle::start() {
 }
 
 void WaitCounterHandle::stop(const SmallVector<intptr_t>& ctxs) {
+<<<<<<< HEAD
   impl_.stop(ctxs);
+=======
+  return impl_.stop(ctxs);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 } // namespace c10::monitor

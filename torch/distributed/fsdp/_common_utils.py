@@ -7,11 +7,19 @@ import logging
 import traceback
 import warnings
 import weakref
+<<<<<<< HEAD
 from collections.abc import Callable, Generator, Iterable
 from enum import auto, Enum
 from functools import partial
 from itertools import chain
 from typing import Any, cast, no_type_check, Optional, TYPE_CHECKING
+=======
+from collections.abc import Generator, Iterable
+from enum import auto, Enum
+from functools import partial
+from itertools import chain
+from typing import Any, Callable, cast, no_type_check, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -65,7 +73,10 @@ class _FSDPDeviceHandle:
         if backend is None:
             try:
                 self.__backend = getattr(torch, device.type)
+<<<<<<< HEAD
                 # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.__device = device
             except AttributeError as exc:
                 raise AttributeError(
@@ -203,10 +214,16 @@ def _module_handle(state: _FSDPState, module: nn.Module) -> Optional["FlatParamH
         # handles, meaning no entry in `_fully_sharded_module_to_handles`
         if state._handle is None:
             return None
+<<<<<<< HEAD
         if module not in state._fully_sharded_module_to_handle:
             raise AssertionError(
                 f"Expects a fully sharded module but got {module} on rank {state.rank}"
             )
+=======
+        assert module in state._fully_sharded_module_to_handle, (
+            f"Expects a fully sharded module but got {module} on rank {state.rank}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return state._fully_sharded_module_to_handle[module]
     else:
         # NOTE: This assumes `module` is a `FullyShardedDataParallel` instance.
@@ -259,10 +276,16 @@ def _named_parameters_with_duplicates(
     This API is required as some modules overwrite `named_parameters()` but do not support
     `remove_duplicate`.
     """
+<<<<<<< HEAD
     if "remove_duplicate" in kwargs:
         raise AssertionError(
             "_named_parameters_with_duplicates cannot be used with `remove_duplicate` argument."
         )
+=======
+    assert "remove_duplicate" not in kwargs, (
+        "_named_parameters_with_duplicates cannot be used with `remove_duplicate` argument."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     kwargs["remove_duplicate"] = False
     try:
         ret = list(module.named_parameters(**kwargs))
@@ -336,8 +359,12 @@ def _get_param_to_fqns(
                     warnings.warn(
                         "FlatParameter is being traversed more than once. "
                         "This case should only happen when using "
+<<<<<<< HEAD
                         "DistributedModelParallel with FullyShardedDataParallel.",
                         stacklevel=2,
+=======
+                        "DistributedModelParallel with FullyShardedDataParallel."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     param_to_fqns[param] = global_fqns
                 elif not dedup_shared_params:

@@ -48,7 +48,11 @@ using ExtraFilesMap = std::unordered_map<std::string, std::string>;
 // shared_ptr overload of this function.
 //
 // If should_copy_tensor_memory is true, then the returned module will NOT have
+<<<<<<< HEAD
 // references to `data`, so `data` can be freed immediately.
+=======
+// refences to `data`, so `data` can be freed immediately.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //
 // If should_copy_tensor_memory is false, then returned module will have tensors
 // that points inside of `data`; the caller will need to make sure that `data`
@@ -93,7 +97,11 @@ TORCH_API mobile::Module parse_and_initialize_mobile_module_for_jit(
 //
 // This function does steps 1+2+3 described above.
 //
+<<<<<<< HEAD
 // We need to have this as a convenience because Python API will need to wrap
+=======
+// We need to have this as a convienience because Python API will need to wrap
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // this. C++ clients should use one of the versions of
 // parse_and_initialize_mobile_module() so they can manage the raw data more
 // directly.
@@ -110,7 +118,11 @@ TORCH_API mobile::ModuleInfo get_module_info_from_flatbuffer(
     char* flatbuffer_content);
 
 // The methods below are less efficient because it need to read the stream in
+<<<<<<< HEAD
 // its entirety to a buffer
+=======
+// its entirity to a buffer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API mobile::Module load_mobile_module_from_stream_with_copy(
     std::istream& in,
     std::optional<at::Device> device = std::nullopt,
@@ -121,6 +133,16 @@ TORCH_API mobile::Module parse_flatbuffer_no_object(
     size_t size,
     std::optional<at::Device> device);
 
+<<<<<<< HEAD
+=======
+TORCH_API mobile::Module parse_and_initialize_mobile_module(
+    void* data,
+    size_t,
+    std::optional<at::Device>,
+    ExtraFilesMap* extra_files,
+    bool should_copy_tensor_memory);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // no op, TODO(qihan) delete
 TORCH_API bool register_flatbuffer_loader();
 

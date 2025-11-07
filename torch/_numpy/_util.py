@@ -1,6 +1,11 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Assorted utilities, which do not need anything other then torch and stdlib."""
+=======
+"""Assorted utilities, which do not need anything other then torch and stdlib.
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import operator
 
@@ -88,7 +93,11 @@ def normalize_axis_tuple(axis, ndim, argname=None, allow_duplicate=False):
         except TypeError:
             pass
     # Going via an iterator directly is slower than via list comprehension.
+<<<<<<< HEAD
     axis = tuple(normalize_axis_index(ax, ndim, argname) for ax in axis)
+=======
+    axis = tuple([normalize_axis_index(ax, ndim, argname) for ax in axis])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not allow_duplicate and len(set(map(int, axis))) != len(axis):
         if argname:
             raise ValueError(f"repeated axis in `{argname}` argument")
@@ -204,7 +213,11 @@ def _coerce_to_tensor(obj, dtype=None, copy=False, ndmin=0):
 
     Notes
     -----
+<<<<<<< HEAD
     This is almost a "tensor_like" coercive function. Does not handle wrapper
+=======
+    This is almost a "tensor_like" coersion function. Does not handle wrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ndarrays (those should be handled in the ndarray-aware layer prior to
     invoking this function).
     """

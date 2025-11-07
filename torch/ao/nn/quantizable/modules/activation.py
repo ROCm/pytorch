@@ -116,7 +116,11 @@ class MultiheadAttention(nn.MultiheadAttention):
 
     @classmethod
     def from_float(cls, other):
+<<<<<<< HEAD
         assert type(other) is cls._FLOAT_MODULE
+=======
+        assert type(other) == cls._FLOAT_MODULE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert hasattr(other, "qconfig"), "The float module must have 'qconfig'"
         # Setting the dropout to 0.0!
         observed = cls(
@@ -170,11 +174,16 @@ class MultiheadAttention(nn.MultiheadAttention):
             observed.linear_K.weight = nn.Parameter(other.k_proj_weight)
             observed.linear_V.weight = nn.Parameter(other.v_proj_weight)
             if other.in_proj_bias is None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 observed.linear_Q.bias = None
                 # pyrefly: ignore [bad-assignment]
                 observed.linear_K.bias = None
                 # pyrefly: ignore [bad-assignment]
+=======
+                observed.linear_Q.bias = None
+                observed.linear_K.bias = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 observed.linear_V.bias = None
             else:
                 observed.linear_Q.bias = nn.Parameter(
@@ -217,7 +226,11 @@ class MultiheadAttention(nn.MultiheadAttention):
             fp.bias_v = nn.Parameter(self.bias_v.dequantize())
 
         # Set the linear weights
+<<<<<<< HEAD
         # Note: Because the linear layers are quantized, mypy does not know how
+=======
+        # Note: Because the linear layers are quantized, mypy does not nkow how
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # to deal with them -- might need to ignore the typing checks.
         # for the type: ignore[has-type], see https://github.com/pytorch/pytorch/issues/58969
         w, b = self.out_proj._weight_bias()  # type: ignore[operator, has-type]
@@ -237,7 +250,10 @@ class MultiheadAttention(nn.MultiheadAttention):
             _end = _start + fp.embed_dim
             fp.in_proj_weight[_start:_end, :] = wQ
             if fp.in_proj_bias is not None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert all(bQ == 0)
                 fp.in_proj_bias[_start:_end] = bQ
 
@@ -245,14 +261,20 @@ class MultiheadAttention(nn.MultiheadAttention):
             _end = _start + fp.embed_dim
             fp.in_proj_weight[_start:_end, :] = wK
             if fp.in_proj_bias is not None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert all(bK == 0)
                 fp.in_proj_bias[_start:_end] = bK
 
             _start = _end
             fp.in_proj_weight[_start:, :] = wV
             if fp.in_proj_bias is not None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert all(bV == 0)
                 fp.in_proj_bias[_start:] = bV
         else:
@@ -260,11 +282,16 @@ class MultiheadAttention(nn.MultiheadAttention):
             fp.k_proj_weight = nn.Parameter(wK)
             fp.v_proj_weight = nn.Parameter(wV)
             if fp.in_proj_bias is None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 self.linear_Q.bias = None
                 # pyrefly: ignore [bad-assignment]
                 self.linear_K.bias = None
                 # pyrefly: ignore [bad-assignment]
+=======
+                self.linear_Q.bias = None
+                self.linear_K.bias = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.linear_V.bias = None
             else:
                 fp.in_proj_bias[0 : fp.embed_dim] = bQ
@@ -472,7 +499,10 @@ class MultiheadAttention(nn.MultiheadAttention):
             assert static_v.size(2) == head_dim
             v = static_v
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         src_len = k.size(1)
 
         if key_padding_mask is not None:
@@ -481,6 +511,7 @@ class MultiheadAttention(nn.MultiheadAttention):
 
         if self.add_zero_attn:
             src_len += 1
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             k_zeros = torch.zeros((k.size(0), 1) + k.size()[2:])
             # pyrefly: ignore [missing-attribute]
@@ -510,6 +541,19 @@ class MultiheadAttention(nn.MultiheadAttention):
                     v.dtype,
                 )
             # pyrefly: ignore [no-matching-overload]
+=======
+            k_zeros = torch.zeros((k.size(0), 1) + k.size()[2:])
+            if k.is_quantized:
+                k_zeros = torch.quantize_per_tensor(
+                    k_zeros, k.q_scale(), k.q_zero_point(), k.dtype
+                )
+            k = torch.cat([k, k_zeros], dim=1)
+            v_zeros = torch.zeros((v.size(0), 1) + k.size()[2:])
+            if v.is_quantized:
+                v_zeros = torch.quantize_per_tensor(
+                    v_zeros, v.q_scale(), v.q_zero_point(), v.dtype
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             v = torch.cat([v, v_zeros], dim=1)
 
             if attn_mask is not None:

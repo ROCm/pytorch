@@ -2,8 +2,12 @@
 import torch
 from torch.utils._pytree import tree_map, tree_flatten, tree_unflatten
 from .module_tracker import ModuleTracker
+<<<<<<< HEAD
 from typing import Any, Optional, Union, TypeVar
 from collections.abc import Callable
+=======
+from typing import Any, Optional, Union, TypeVar, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterator
 from typing_extensions import ParamSpec
 from collections import defaultdict
@@ -62,8 +66,12 @@ def mm_flop(a_shape, b_shape, *args, out_shape=None, **kwargs) -> int:
     # Inputs contains the shapes of two matrices.
     m, k = a_shape
     k2, n = b_shape
+<<<<<<< HEAD
     if k != k2:
         raise AssertionError(f"matmul: inner dimensions must match (k == k2), got {k} and {k2}")
+=======
+    assert k == k2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB(chilli): Should be 2 * k - 1 technically for FLOPs.
     return m * n * 2 * k
 
@@ -79,10 +87,15 @@ def bmm_flop(a_shape, b_shape, out_shape=None, **kwargs) -> int:
     # Inputs contains the shapes of two tensor.
     b, m, k = a_shape
     b2, k2, n = b_shape
+<<<<<<< HEAD
     if b != b2:
         raise AssertionError(f"bmm: batch dimensions must match (b == b2), got {b} and {b2}")
     if k != k2:
         raise AssertionError(f"bmm: inner dimensions must match (k == k2), got {k} and {k2}")
+=======
+    assert b == b2
+    assert k == k2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB(chilli): Should be 2 * k - 1 technically for FLOPs.
     flop = b * m * n * 2 * k
     return flop
@@ -131,6 +144,10 @@ def conv_flop_count(
     Returns:
         int: the number of flops
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     batch_size = x_shape[0]
     conv_shape = (x_shape if transposed else out_shape)[2:]
     c_out, c_in, *filter_size = w_shape
@@ -149,10 +166,16 @@ def conv_flop_count(
     flop = prod(conv_shape) * prod(filter_size) * batch_size * c_out * c_in * 2
     return flop
 
+<<<<<<< HEAD
 @register_flop_formula([aten.convolution, aten._convolution, aten.cudnn_convolution, aten._slow_conv2d_forward])
 def conv_flop(x_shape, w_shape, _bias, _stride, _padding, _dilation, transposed, *args, out_shape=None, **kwargs) -> int:
     """Count flops for convolution."""
     # pyrefly: ignore [bad-argument-type]
+=======
+@register_flop_formula([aten.convolution, aten._convolution])
+def conv_flop(x_shape, w_shape, _bias, _stride, _padding, _dilation, transposed, *args, out_shape=None, **kwargs) -> int:
+    """Count flops for convolution."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return conv_flop_count(x_shape, w_shape, out_shape, transposed=transposed)
 
 
@@ -269,8 +292,12 @@ def sdpa_flop_count(query_shape, key_shape, value_shape):
     b, h, s_q, d_q = query_shape
     _b2, _h2, s_k, _d2 = key_shape
     _b3, _h3, _s3, d_v = value_shape
+<<<<<<< HEAD
     if not b == _b2 == _b3 or not h == _h2 == _h3 or not d_q == _d2 or not s_k == _s3 or not d_q == _d2:
         raise AssertionError("sdpa_flop_count: query/key/value shapes are incompatible")
+=======
+    assert b == _b2 == _b3 and h == _h2 == _h3 and d_q == _d2 and s_k == _s3 and d_q == _d2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     total_flops = 0
     # q: [b, h, s_q, d_q] @ k: [b, h, d_q, s_k] -> scores: [b, h, s_q, s_k]
     total_flops += bmm_flop((b * h, s_q, d_q), (b * h, d_q, s_k))
@@ -324,6 +351,7 @@ def _unpack_flash_attention_nested_shapes(
         # In comparison, non-Nested inputs have shape (batch, heads, sequence len, dimension)
         # To deal with this, we convert to a shape of (batch, heads, max_seq_len, dimension)
         # So the flops calculation in this case is an overestimate of the actual flops.
+<<<<<<< HEAD
         if len(key.shape) != 3:
             raise AssertionError("sdpa_flop_count: expected key.shape to be 3-dimensional")
         if len(value.shape) != 3:
@@ -339,6 +367,17 @@ def _unpack_flash_attention_nested_shapes(
             raise AssertionError("sdpa_flop_count: cum_seq_k must not be None")
         if cum_seq_q.shape != cum_seq_k.shape:
             raise AssertionError("sdpa_flop_count: cum_seq_q and cum_seq_k must have the same shape")
+=======
+        assert len(key.shape) == 3
+        assert len(value.shape) == 3
+        assert grad_out is None or grad_out.shape == query.shape
+        _, h_q, d_q = query.shape
+        _, h_k, d_k = key.shape
+        _, h_v, d_v = value.shape
+        assert cum_seq_q is not None
+        assert cum_seq_k is not None
+        assert cum_seq_q.shape == cum_seq_k.shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         seq_q_lengths = _offsets_to_lengths(cum_seq_q, max_q)
         seq_k_lengths = _offsets_to_lengths(cum_seq_k, max_k)
         for (seq_q_len, seq_k_len) in zip(seq_q_lengths, seq_k_lengths):
@@ -378,6 +417,7 @@ def _unpack_efficient_attention_nested_shapes(
         # In comparison, non-Nested inputs have shape (batch, heads, sequence len, dimension)
         # To deal with this, we convert to a shape of (batch, heads, max_seq_len, dimension)
         # So the flops calculation in this case is an overestimate of the actual flops.
+<<<<<<< HEAD
         if len(key.shape) != 4:
             raise AssertionError("_unpack_efficient_attention_nested_shapes: expected key.shape to be 4-dimensional")
         if len(value.shape) != 4:
@@ -394,6 +434,17 @@ def _unpack_efficient_attention_nested_shapes(
         if cu_seqlens_q.shape != cu_seqlens_k.shape:
             raise AssertionError("_unpack_efficient_attention_nested_shapes: "
                                  "cu_seqlens_q and cu_seqlens_k must have the same shape")
+=======
+        assert len(key.shape) == 4
+        assert len(value.shape) == 4
+        assert grad_out is None or grad_out.shape == query.shape
+        _, _, h_q, d_q = query.shape
+        _, _, h_k, d_k = key.shape
+        _, _, h_v, d_v = value.shape
+        assert cu_seqlens_q is not None
+        assert cu_seqlens_k is not None
+        assert cu_seqlens_q.shape == cu_seqlens_k.shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         seqlens_q = _offsets_to_lengths(cu_seqlens_q, max_seqlen_q)
         seqlens_k = _offsets_to_lengths(cu_seqlens_k, max_seqlen_k)
         for len_q, len_k in zip(seqlens_q, seqlens_k):
@@ -477,10 +528,15 @@ def sdpa_backward_flop_count(grad_out_shape, query_shape, key_shape, value_shape
     _b2, _h2, s_k, _d2 = key_shape
     _b3, _h3, _s3, d_v = value_shape
     _b4, _h4, _s4, _d4 = grad_out_shape
+<<<<<<< HEAD
     if not b == _b2 == _b3 == _b4 or not h == _h2 == _h3 == _h4 or not d_q == _d2:
         raise AssertionError("sdpa_backward_flop_count: batch/heads/dimension mismatch among tensors")
     if not d_v == _d4 or not s_k == _s3 or not s_q == _s4:
         raise AssertionError("sdpa_backward_flop_count: grad_out/value/key/query shapes are incompatible")
+=======
+    assert b == _b2 == _b3 == _b4 and h == _h2 == _h3 == _h4 and d_q == _d2
+    assert d_v == _d4 and s_k == _s3 and s_q == _s4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     total_flops = 0
     # Step 1: We recompute the scores matrix.
     # q: [b, h, s_q, d_q] @ k: [b, h, d_q, s_k] -> scores: [b, h, s_q, s_k]
@@ -581,8 +637,11 @@ flop_registry = {
     aten._scaled_mm: _scaled_mm_flop,
     aten.convolution: conv_flop,
     aten._convolution: conv_flop,
+<<<<<<< HEAD
     aten.cudnn_convolution: conv_flop,
     aten._slow_conv2d_forward: conv_flop,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten.convolution_backward: conv_backward_flop,
     aten._scaled_dot_product_efficient_attention: sdpa_flop,
     aten._scaled_dot_product_flash_attention: sdpa_flop,
@@ -696,9 +755,13 @@ class FlopCounterMode:
         if depth is None:
             depth = 999999
 
+<<<<<<< HEAD
 
         import tabulate
 
+=======
+        import tabulate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tabulate.PRESERVE_WHITESPACE = True
         header = ["Module", "FLOP", "% Total"]
         values = []
@@ -761,8 +824,12 @@ class FlopCounterMode:
         return self
 
     def __exit__(self, *args):
+<<<<<<< HEAD
         if self.mode is None:
             raise AssertionError("Internal error: FlopCounter.__exit__ called but mode is None")
+=======
+        assert self.mode is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = self.mode.__exit__(*args)
         self.mode = None  # break cycles
         self.mod_tracker.__exit__()
@@ -779,6 +846,7 @@ class FlopCounterMode:
 
         return out
 
+<<<<<<< HEAD
 class _FlopCounterMode(TorchDispatchMode):
     supports_higher_order_operators = True
 
@@ -854,12 +922,23 @@ class _FlopCounterMode(TorchDispatchMode):
             # output with the same structure.
             return true_out
 
+=======
+
+class _FlopCounterMode(TorchDispatchMode):
+    def __init__(self, counter: FlopCounterMode):
+        self.counter = counter
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         kwargs = kwargs if kwargs else {}
 
         # Skip ops from non-standard dispatch_sizes_strides_policy such as NJT
+<<<<<<< HEAD
         if func in {torch.ops.aten.sym_is_contiguous.default,
                     torch.ops.aten.is_contiguous.default,
+=======
+        if func in {torch.ops.aten.is_contiguous.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.ops.aten.is_contiguous.memory_format,
                     torch.ops.aten.is_strides_like_format.default,
                     torch.ops.aten.is_non_overlapping_and_dense.default,
@@ -876,9 +955,12 @@ class _FlopCounterMode(TorchDispatchMode):
 
             return NotImplemented
 
+<<<<<<< HEAD
         if isinstance(func, torch._ops.HigherOrderOperator):
             return self._handle_higher_order_ops(func, types, args, kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # If we don't have func in flop_registry, see if it can decompose
         if func not in self.counter.flop_registry and func is not torch.ops.prim.device.default:
             with self:

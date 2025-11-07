@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 import platform
+<<<<<<< HEAD
 import subprocess
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .optional_submodules import checkout_nccl
 from .setup_helpers.cmake import CMake, USE_NINJA
@@ -88,8 +91,12 @@ def build_pytorch(
 ) -> None:
     my_env = _create_build_env()
     if (
+<<<<<<< HEAD
         not check_negative_env_flag("USE_DISTRIBUTED")
         and not check_negative_env_flag("USE_CUDA")
+=======
+        not check_negative_env_flag("USE_CUDA")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and not check_negative_env_flag("USE_NCCL")
         and not check_env_flag("USE_SYSTEM_NCCL")
     ):
@@ -100,6 +107,7 @@ def build_pytorch(
     )
     if cmake_only:
         return
+<<<<<<< HEAD
     build_custom_step = os.getenv("BUILD_CUSTOM_STEP")
     if build_custom_step:
         try:
@@ -116,4 +124,6 @@ def build_pytorch(
             print("Output (stdout and stderr):")
             print(e.output)
             raise
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cmake.build(my_env)

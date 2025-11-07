@@ -1,9 +1,14 @@
 # mypy: allow-untyped-defs
 import functools
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import auto, Enum
 from typing import Any, no_type_check, Optional
+=======
+from enum import auto, Enum
+from typing import Any, Callable, no_type_check, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -103,8 +108,12 @@ def _is_fsdp_root(state: _FSDPState, module: nn.Module) -> bool:
     """
     # Force a lazy initialization to determine the FSDP root
     _lazy_init(state, module)
+<<<<<<< HEAD
     if state._is_root is None:
         raise AssertionError("Expected _is_root to be set after lazy init")
+=======
+    assert state._is_root is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return state._is_root
 
 
@@ -241,10 +250,15 @@ def _init_streams(
     Initializes CUDA streams for overlapping communication, computation, and
     data transfers. The streams should be shared across FSDP instances.
     """
+<<<<<<< HEAD
     if not state._is_root:
         raise AssertionError("Expected state to be root")
     if not state._device_handle.is_available():
         raise AssertionError("Expected device handle to be available")
+=======
+    assert state._is_root
+    assert state._device_handle.is_available()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses_hybrid_sharding = any(
         fsdp_state.sharding_strategy in HYBRID_SHARDING_STRATEGIES
         for fsdp_state in state._all_fsdp_states
@@ -1462,8 +1476,12 @@ def _register_post_backward_hook(
             "register the post-backward hook",
         )
         acc_grad = temp_flat_param.grad_fn.next_functions[0][0]  # type: ignore[union-attr]
+<<<<<<< HEAD
         if acc_grad is None:
             raise AssertionError("Expected acc_grad to be set")
+=======
+        assert acc_grad is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hook_handle = acc_grad.register_hook(
             functools.partial(_post_backward_hook, state, handle)
         )
@@ -1505,8 +1523,12 @@ def _register_post_backward_reshard_only_hook(
         inp_tensors = [
             obj for obj in args_flat if torch.is_tensor(obj) and obj.requires_grad
         ]
+<<<<<<< HEAD
     if inp_tensors is None:
         raise AssertionError("Expected inp_tensors to be set")
+=======
+    assert inp_tensors is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     hook_handle = register_multi_grad_hook(
         inp_tensors, functools.partial(_post_backward_reshard_only_hook, state, handle)
     )
@@ -1604,10 +1626,14 @@ def _get_buffers_and_dtypes_for_computation(
                 continue
             buffers.append(buffer)
             buffer_dtypes.append(fsdp_state.mixed_precision.buffer_dtype)
+<<<<<<< HEAD
     if len(buffers) != len(buffer_dtypes):
         raise AssertionError(
             f"Expected buffers and buffer_dtypes to have the same length, got {len(buffers)} and {len(buffer_dtypes)}"
         )
+=======
+    assert len(buffers) == len(buffer_dtypes), f"{len(buffers)} {len(buffer_dtypes)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return buffers, buffer_dtypes
 
 

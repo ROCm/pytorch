@@ -70,6 +70,7 @@ void run_cudnn_SDP_bprop(
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset);
 
+<<<<<<< HEAD
 void run_cudnn_SDP_bprop_nestedtensor(
     int64_t b,
     int64_t h_q,
@@ -97,4 +98,6 @@ void run_cudnn_SDP_bprop_nestedtensor(
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

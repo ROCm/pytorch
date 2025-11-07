@@ -106,7 +106,10 @@ def _resize_fft_input(
         if x_sizes[dims[i]] < sizes[i]:
             must_copy = True
             pad_idx = len(pad_amount) - 2 * dims[i] - 1
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pad_amount[pad_idx] = sizes[i] - x_sizes[dims[i]]
 
         if x_sizes[dims[i]] > sizes[i]:
@@ -314,8 +317,12 @@ def _canonicalize_fft_shape_and_dim_args(
 
         # Translate any -1 values in shape to the default length
         ret_shape = tuple(
+<<<<<<< HEAD
             s if s != -1 else input_sizes[d]
             for (s, d) in zip(shape, ret_dims)  # type: ignore[possibly-undefined]
+=======
+            s if s != -1 else input_sizes[d] for (s, d) in zip(shape, ret_dims)  # type: ignore[possibly-undefined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     elif dim is None:
         # No shape, no dim

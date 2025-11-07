@@ -164,7 +164,11 @@ class TestLazyTensor(JitTestCase):
             if mark_step:
                 torch._lazy.mark_step()
 
+<<<<<<< HEAD
             # y and x should continue to be aliased after the mark_step call.
+=======
+            # y and x should contiue to be aliased after the mark_step call.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y.add_(1)
             return x
 

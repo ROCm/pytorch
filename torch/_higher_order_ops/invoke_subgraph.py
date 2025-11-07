@@ -1,9 +1,17 @@
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 import contextlib
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+
+import contextlib
+from contextlib import nullcontext
+from dataclasses import dataclass, field
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -36,10 +44,13 @@ from torch.fx.graph_module import GraphModule
 from torch.fx.passes.runtime_assert import insert_deferred_runtime_asserts
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 invoke_subgraph_counter = 0
 
 
@@ -49,7 +60,11 @@ invoke_subgraph_counter = 0
 @dataclass
 class OutputMetadata:
     num_fw_outs: Optional[int] = None
+<<<<<<< HEAD
     indexes_with_symint: set[int] = field(default_factory=set)
+=======
+    indexes_with_none: set[int] = field(default_factory=set)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     indexes_with_no_grad: set[int] = field(default_factory=set)
 
 
@@ -73,6 +88,7 @@ class InvokeSubgraphHOP(HigherOrderOperator):
         identifier: Optional[str],
         *operands,
     ):
+<<<<<<< HEAD
         assert identifier is None or isinstance(identifier, str), (
             "identifier must be a None or a string"
         )
@@ -87,6 +103,18 @@ class InvokeSubgraphHOP(HigherOrderOperator):
         return super().__call__(subgraph, identifier, *operands)
 
     # pyrefly: ignore [bad-override]
+=======
+        assert identifier is None or isinstance(
+            identifier, str
+        ), "identifier must be a None or a string"
+
+        assert all(
+            isinstance(o, (torch.Tensor, int, torch.SymInt)) for o in operands
+        ), f"invoke_subgraph operands must be a list of tensors/ints/SymInts {operands}"
+
+        return super().__call__(subgraph, identifier, *operands)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def gen_schema(self, subgraph, identifier, *operands):
         from torch._higher_order_ops.schema import HopSchemaGenerator
         from torch._higher_order_ops.utils import (
@@ -94,7 +122,15 @@ class InvokeSubgraphHOP(HigherOrderOperator):
             materialize_as_graph,
         )
 
+<<<<<<< HEAD
         gm: torch.fx.GraphModule = materialize_as_graph(subgraph, operands)
+=======
+        gm: torch.fx.GraphModule = (
+            subgraph
+            if isinstance(subgraph, torch.fx.GraphModule)
+            else materialize_as_graph(subgraph, operands)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         schema_gen = HopSchemaGenerator(self)
         schema_gen.add_arg("subgraph", gm)
@@ -105,7 +141,11 @@ class InvokeSubgraphHOP(HigherOrderOperator):
             _,
             mutated_inputs,
             outputs,
+<<<<<<< HEAD
         ) = check_input_alias_and_mutation_return_outputs(gm)
+=======
+        ) = check_input_alias_and_mutation_return_outputs(gm, operands)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for idx, arg in enumerate(operands):
             schema_gen.add_arg(f"arg{idx}", arg, is_mutated=idx in mutated_inputs)
         for out in outputs:
@@ -131,6 +171,7 @@ def invoke_subgraph_placeholder(func, *args, **kwargs):
         def _invoke_subgraph_placeholder_wrapper(func, args):
             return invoke_subgraph_placeholder(func, *args)
 
+<<<<<<< HEAD
         with (
             _set_compilation_env(),
             torch._dynamo.utils.disable_cache_limit(),
@@ -141,6 +182,12 @@ def invoke_subgraph_placeholder(func, *args, **kwargs):
                     backend: Union[str, Callable[..., Any]] = (
                         make_eager_backend_with_torch_function_mode(metadata_mode)
                     )
+=======
+        with _set_compilation_env(), torch._dynamo.utils.disable_cache_limit(), _temp_remove_pre_dispatch_torch_function_mode():
+            with _temp_remove_metadata_torch_function_mode() as metadata_mode:
+                if metadata_mode:
+                    backend = make_eager_backend_with_torch_function_mode(metadata_mode)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     backend = "eager"
 
@@ -259,8 +306,13 @@ def create_fw_bw_graph(subgraph, operands, grad_outputs=None):
 
             output_metadata.num_fw_outs = num_fw_outs
             for idx, fw_out in enumerate(fw_outs):
+<<<<<<< HEAD
                 if isinstance(fw_out, torch.SymInt):
                     output_metadata.indexes_with_symint.add(idx)
+=======
+                if fw_out is None:
+                    output_metadata.indexes_with_none.add(idx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elif not fw_out.requires_grad:
                     output_metadata.indexes_with_no_grad.add(idx)
 
@@ -332,8 +384,13 @@ def get_output_metadata(subgraph, *operands):
 
             output_metadata.num_fw_outs = num_fw_outs
             for idx, fw_out in enumerate(fw_outs):
+<<<<<<< HEAD
                 if isinstance(fw_out, torch.SymInt):
                     output_metadata.indexes_with_symint.add(idx)
+=======
+                if fw_out is None:
+                    output_metadata.indexes_with_none.add(idx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elif not fw_out.requires_grad:
                     output_metadata.indexes_with_no_grad.add(idx)
             return output_metadata
@@ -402,7 +459,10 @@ class InvokeSubgraphAutogradOp(torch.autograd.Function):
     """
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(
         ctx,
         subgraph,
@@ -430,10 +490,17 @@ class InvokeSubgraphAutogradOp(torch.autograd.Function):
                 *operands,
             )
 
+<<<<<<< HEAD
         # Check that int (coming from symint) is at expected indexes.
         for idx, o in enumerate(out):
             if isinstance(o, int):
                 assert idx in output_metadata.indexes_with_symint
+=======
+        # Check that None is at expected indexes.
+        for idx, o in enumerate(out):
+            if o is None:
+                assert idx in output_metadata.indexes_with_none
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return out
 
@@ -454,7 +521,11 @@ class InvokeSubgraphAutogradOp(torch.autograd.Function):
         filtered_grad_outs = []
         for idx, o in enumerate(grad_outs):
             if o is None:
+<<<<<<< HEAD
                 assert idx in output_metadata.indexes_with_symint
+=======
+                assert idx in output_metadata.indexes_with_none
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif idx in output_metadata.indexes_with_no_grad:
                 # Deliberately skip over the grad_outs which we know should be
                 # None because the corresponding fwd_out does not require_grad.
@@ -472,14 +543,20 @@ class InvokeSubgraphAutogradOp(torch.autograd.Function):
         from torch._subclasses.fake_tensor import extract_tensor_metadata
 
         fake_mode = detect_fake_mode(primals + filtered_grad_outs)
+<<<<<<< HEAD
         assert fake_mode is not None, "fake_mode should be enabled for HOPs"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state = _CacheKeyState(fake_mode.shape_env)
 
         tangent_metadata: list[object] = []
         for tangent in filtered_grad_outs:
             metadata = extract_tensor_metadata(tangent)
             metadata._flatten_into(tangent_metadata, fake_mode, state)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tangent_metadata = tuple(tangent_metadata)
 
         # bw_graph is a joint graph with signature (*primals_and_tangents) and
@@ -569,9 +646,15 @@ def _(ctx, subgraph, identifier, *operands):
         # We call auto_functionalized_v2 to support input mutation of invoke_subgraph.
         # See NOTE [Support input mutation of hops] for the overall design.
         #
+<<<<<<< HEAD
         # invoke_subgraph is special because of its identifier based caching mechanism.
         # In invoke_subgraph's functionalization key implementation, we create a new
         # identifier because the subgraph is replaced by FunctionWithNoFreeVars in a
+=======
+        # invoke_subgraph is special because of its identifier based caching machanism.
+        # In invoke_subgraph's functionalization key implementation, we create a new
+        # identifer because the subgraph is replaced by FunctionWithNoFreeVars in a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # functional + epilogue form.
         assert isinstance(identifier, str), identifier
         return do_auto_functionalize_v2(
@@ -616,7 +699,10 @@ def _(proxy_mode: ProxyTorchDispatchMode, subgraph, identifier, *operands):
         from torch._guards import detect_fake_mode
 
         fake_mode = detect_fake_mode(operands)
+<<<<<<< HEAD
         assert fake_mode is not None and fake_mode.shape_env is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         insert_deferred_runtime_asserts(
             graph,
             fake_mode.shape_env,
@@ -645,7 +731,11 @@ def _(proxy_mode: ProxyTorchDispatchMode, subgraph, identifier, *operands):
             # with a previously cached identifier, the corresponding graph module might not
             # exist as a submodule in the new tracer's root. Therefore, we register it as a submodule below.
             #
+<<<<<<< HEAD
             # The alternative is to give a new identifier when we re-trace the invoke_subgraph but this will increase
+=======
+            # The alternative is to give a new identifer when we re-trace the invoke_subgraph but this will increase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # the compilatoin time, which defeats the purpose of caching.
             registered_before = False
             for (

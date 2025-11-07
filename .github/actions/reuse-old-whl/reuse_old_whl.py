@@ -264,7 +264,11 @@ def unzip_artifact_and_replace_files() -> None:
         change_content_to_new_version(f"artifacts/dist/{old_stem}/torch/version.py")
 
         for file in Path(f"artifacts/dist/{old_stem}").glob(
+<<<<<<< HEAD
             "*.dist-info/*",
+=======
+            "*.dist-info/**",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             change_content_to_new_version(file)
 
@@ -304,7 +308,12 @@ def unzip_artifact_and_replace_files() -> None:
 
 
 def set_output() -> None:
+<<<<<<< HEAD
     print("Setting output reuse=true")
+=======
+    # Disable for now so we can monitor first
+    # pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if os.getenv("GITHUB_OUTPUT"):
         with open(str(os.getenv("GITHUB_OUTPUT")), "a") as env:
             print("reuse=true", file=env)

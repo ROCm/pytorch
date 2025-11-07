@@ -96,13 +96,19 @@ class DefaultScaledGemmOp : public Callable<ScaledGemmParams<T>> {
           params->lda,
           params->a_dtype,
           params->a_scale_dtype,
+<<<<<<< HEAD
           params->a_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           params->b,
           params->b_scale_ptr,
           params->ldb,
           params->b_dtype,
           params->b_scale_dtype,
+<<<<<<< HEAD
           params->b_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           params->bias_ptr,
           params->bias_dtype,
           params->c,
@@ -110,7 +116,11 @@ class DefaultScaledGemmOp : public Callable<ScaledGemmParams<T>> {
           params->ldc,
           params->c_dtype,
           params->use_fast_accum,
+<<<<<<< HEAD
           std::nullopt /* alpha */);
+=======
+          params->use_rowwise);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return OK;
     }
 };

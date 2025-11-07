@@ -38,9 +38,13 @@ class Vectorized<double> {
   static constexpr size_type size() {
     return VECTOR_WIDTH / sizeof(double);
   }
+<<<<<<< HEAD
   Vectorized() {
     values = svdup_n_f64(0);
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(svfloat64_t v) : values(v) {}
   Vectorized(double val) {
     values = svdup_n_f64(val);
@@ -251,9 +255,12 @@ class Vectorized<double> {
   Vectorized<double> exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<double> fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<double> fmod(const Vectorized<double>& q) const {USE_SLEEF(
       { return Vectorized<double>(Sleef_fmoddx_sve(values, q)); },
       {
@@ -587,6 +594,7 @@ Vectorized<double> inline fmadd(
   return svmad_f64_x(ptrue, a, b, c);
 }
 
+<<<<<<< HEAD
 template <>
 Vectorized<double> inline fnmadd(
     const Vectorized<double>& a,
@@ -611,6 +619,8 @@ Vectorized<double> inline fnmsub(
   return svnmad_f64_x(ptrue, a, b, c);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // defined(CPU_CAPABILITY_SVE)
 
 } // namespace CPU_CAPABILITY

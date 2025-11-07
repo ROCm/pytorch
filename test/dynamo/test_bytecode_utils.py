@@ -80,7 +80,11 @@ def fn():
         self.assertEqual(fn.__code__.co_lnotab, result[1].co_lnotab)
 
     @unittest.skipIf(
+<<<<<<< HEAD
         sys.version_info >= (3, 11),
+=======
+        sys.version_info < (3, 10) or sys.version_info >= (3, 11),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "linetable test for Python 3.10",
     )
     def test_linetable_310_writer(self):
@@ -95,6 +99,22 @@ def fn():
         result = bytecode_transformation.assemble(inst, fn.__code__.co_firstlineno)
         self.assertTrue(result[1] == fn.__code__.co_linetable)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info >= (3, 10), "use lnotab when python < 3.10")
+    def test_lnotab_writer(self):
+        def fn():
+            a = 10
+            b = 20
+            c = a + b
+            f = "lnotab_writer"
+            return f"Test if {f} generates correct co_lnotab: {c}"
+
+        inst = dis.get_instructions(fn)
+        result = bytecode_transformation.assemble(inst, fn.__code__.co_firstlineno)
+        self.assertTrue(result[1] == fn.__code__.co_lnotab)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_if_tensor_is_none(self):
         """
         Python 3.11 adds new jump instructions that check if
@@ -271,7 +291,11 @@ def fn():
         def nothing(*args):
             pass
 
+<<<<<<< HEAD
         code, _ = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+=======
+        code = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(code.co_exceptiontable, fn.__code__.co_exceptiontable)
 
     @skipIfNotPy311
@@ -287,7 +311,11 @@ def fn():
         def nothing(*args):
             pass
 
+<<<<<<< HEAD
         code, _ = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+=======
+        code = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(code.co_exceptiontable, fn.__code__.co_exceptiontable)
 
     @skipIfNotPy311
@@ -487,7 +515,10 @@ def fn():
                 self.assertIn("JUMP", i1.opname)
                 self.assertIs(i1.target, insts[-1])
 
+<<<<<<< HEAD
     @unittest.skipIf(sys.version_info >= (3, 14), "3.14+ removed RETURN_CONST")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfNotPy312
     def test_bytecode_from_template_noreturn_const(self):
         # Test 3.12+ RETURN_CONST
@@ -532,6 +563,7 @@ def fn():
 
         self.assertEqual(fn(torch.ones(3)), torch.ones(3) + 1)
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/160471
     def test_extended_args_starts_line(self):
         # NOTE: need to LOAD_CONST i before LOAD_FAST x
@@ -562,6 +594,8 @@ def fn():
 
         bytecode_transformation.transform_code_object(fn.__code__, transformations)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class BytecodeHookTests(torch._dynamo.test_case.TestCase):
     def test_bytecode_hook(self):

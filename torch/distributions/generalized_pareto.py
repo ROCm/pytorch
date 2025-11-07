@@ -35,7 +35,10 @@ class GeneralizedPareto(Distribution):
         concentration (float or Tensor): Concentration parameter of the distribution
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "loc": constraints.real,
         "scale": constraints.positive,
@@ -131,7 +134,10 @@ class GeneralizedPareto(Distribution):
         concentration = self.concentration
         valid = concentration < 0.5
         safe_conc = torch.where(valid, concentration, 0.25)
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = self.scale**2 / ((1 - safe_conc) ** 2 * (1 - 2 * safe_conc))
         return torch.where(valid, result, nan)
 
@@ -144,7 +150,10 @@ class GeneralizedPareto(Distribution):
         return self.loc
 
     @constraints.dependent_property(is_discrete=False, event_dim=0)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         lower = self.loc
         upper = torch.where(

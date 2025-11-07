@@ -12,9 +12,12 @@ def define_targets(rules):
             "//torchgen",
         ],
     )
+<<<<<<< HEAD
 
     rules.filegroup(
         name = "deprecated_yaml",
         srcs = ["deprecated.yaml"],
         visibility = ["//:__subpackages__"],
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

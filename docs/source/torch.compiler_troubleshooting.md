@@ -192,8 +192,11 @@ For more information on dynamic shapes, see [The dynamic shapes manual](https://
 
 ## Logging Tools
 
+<<<<<<< HEAD
 (tlparse-torch-trace)=
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ### tlparse / TORCH_TRACE
 
 `tlparse` / `TORCH_TRACE` are a pair of tools that produce compilation reports that look like this:
@@ -254,8 +257,11 @@ Here are some insights you can gain from a `tlparse`:
   For example, you can look at the high-level generated FX graph or the generated Triton code.
 - Is there relevant information for a particular frame? You can find these in `compilation_metrics`.
 
+<<<<<<< HEAD
 (torch-logs)=
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ### TORCH_LOGS
 
 You can use the `TORCH_LOGS` environment variable to selectively enable parts of the `torch.compile` stack to log.

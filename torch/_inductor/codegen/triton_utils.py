@@ -71,8 +71,11 @@ def signature_of(arg: KernelArgType, *, size_dtype: Optional[str]) -> str:
             return "constexpr"
         elif isinstance(arg.expr, (float, sympy.Float)):
             return "fp32"
+<<<<<<< HEAD
         elif isinstance(arg.expr, bool):
             return "i1"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # if this is a integer
         if size_dtype == "tl.int32":
@@ -83,7 +86,11 @@ def signature_of(arg: KernelArgType, *, size_dtype: Optional[str]) -> str:
             # no hint: we'll see if we know that this is a 32-bit int, and guard if possible.
             int_max = torch.iinfo(torch.int32).max
             if expr_fits_within_32bit(arg.expr):
+<<<<<<< HEAD
                 V.graph.sizevars.check_leq(arg.expr, int_max)
+=======
+                V.graph.sizevars.guard_leq(arg.expr, int_max)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return "i32"
             else:
                 return "i64"
@@ -256,5 +263,8 @@ def config_of(
 
     equal_to_1 = equal_1_arg_indices(args, indices=indices)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return AttrsDescriptorWrapper(divisible_by_16, equal_to_1)

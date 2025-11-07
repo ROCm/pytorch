@@ -1,12 +1,18 @@
 import functools
+<<<<<<< HEAD
 import logging
 import math
 from enum import IntEnum
 from typing import Optional
+=======
+import math
+from enum import IntEnum
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch.fx.operator_schemas import normalize_function
 
 from . import ir
@@ -17,11 +23,22 @@ from .virtualized import V
 log = logging.getLogger(__name__)
 
 
+=======
+
+from . import ir
+from .utils import get_dtype_size, sympy_product
+from .virtualized import V
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class NCCL_COLL(IntEnum):
     ALL_REDUCE = 0
     ALL_GATHER = 1
     REDUCE_SCATTER = 2
+<<<<<<< HEAD
     ALL_TO_ALL = 3
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class NVIDIA_GPU_TYPE(IntEnum):
@@ -44,7 +61,15 @@ def get_gpu_type() -> NVIDIA_GPU_TYPE:
         return NVIDIA_GPU_TYPE.AMPERE
 
 
+<<<<<<< HEAD
 def get_collective_type_from_kernel_name(kernel_name: str) -> NCCL_COLL:
+=======
+def get_collective_type(node: ir.IRNode) -> NCCL_COLL:
+    if not isinstance(node, ir._CollectiveKernel):
+        raise ValueError(f"node is not a collective kernel: {node}")
+
+    kernel_name = node.python_kernel_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert kernel_name is not None
     if "all_reduce" in kernel_name:
         return NCCL_COLL.ALL_REDUCE
@@ -52,12 +77,16 @@ def get_collective_type_from_kernel_name(kernel_name: str) -> NCCL_COLL:
         return NCCL_COLL.ALL_GATHER
     elif "reduce_scatter" in kernel_name:
         return NCCL_COLL.REDUCE_SCATTER
+<<<<<<< HEAD
     elif "torch.ops._dtensor.shard_dim_alltoall.default" in kernel_name:
         return NCCL_COLL.ALL_TO_ALL
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         raise ValueError(f"Unsupported collective kernel: {kernel_name}")
 
 
+<<<<<<< HEAD
 def get_collective_type(node: ir.IRNode) -> NCCL_COLL:
     if not isinstance(node, ir._CollectiveKernel):
         raise ValueError(f"node is not a collective kernel: {node}")
@@ -67,6 +96,8 @@ def get_collective_type(node: ir.IRNode) -> NCCL_COLL:
     return get_collective_type_from_kernel_name(name)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_collective_input_size_bytes(node: ir.IRNode) -> int:
     sz_bytes = 0
     for inp in node.inputs:  # type: ignore[attr-defined]
@@ -81,7 +112,11 @@ def get_collective_input_size_bytes(node: ir.IRNode) -> int:
 
 
 def get_collective_group_size(node: ir.IRNode) -> int:
+<<<<<<< HEAD
     if isinstance(node, ir._CollectiveKernel) and not isinstance(node, ir._WaitKernel):
+=======
+    if type(node) == ir._CollectiveKernel:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.distributed.distributed_c10d import _get_group_size_by_name
 
         return _get_group_size_by_name(node.constant_args[-1])
@@ -172,6 +207,7 @@ llMaxBws = [
 ]
 
 
+<<<<<<< HEAD
 def estimate_nccl_collective_runtime_nccl_estimator(snode) -> Optional[float]:  # type: ignore[no-untyped-def]
     kernel = snode.node
     assert kernel is not None
@@ -221,6 +257,11 @@ def estimate_nccl_collective_runtime_impl(
 ) -> float:
     """
     Returns estimated NCCL collective runtime in milliseconds (ms).
+=======
+def estimate_nccl_collective_runtime(node: ir.IRNode) -> float:
+    """
+    Returns estimated NCCL collective runtime in nanoseconds (ns).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     The following heuristics are copied from https://github.com/NVIDIA/nccl/blob/master/src/graph/tuning.cc.
     We aim to estimate the runtime as accurately as possible.
@@ -231,12 +272,20 @@ def estimate_nccl_collective_runtime_impl(
     - 8 gpus per node  # TODO: Need to find a way to get accurate "gpus per node" and "# nodes" info.
     - collective is one of: allreduce, reducescatter, allgather
     """
+<<<<<<< HEAD
+=======
+    tensor_storage_size_bytes = get_collective_input_size_bytes(node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Convert bytes to GB
     tensor_storage_size_GB = tensor_storage_size_bytes / 1024 / 1024 / 1024
 
     # Currently assumes each node has 8 gpus. And when >1 node is used, assumes each node uses all 8 gpus.
     # TODO: Need to find a way to get accurate "gpus per node" and "# nodes" info.
     num_gpus_per_node = 8
+<<<<<<< HEAD
+=======
+    group_size = get_collective_group_size(node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nNodes = math.ceil(group_size / num_gpus_per_node)
     nRanks = group_size  # this is total # of gpus globally that participate in this collective op
 
@@ -246,6 +295,10 @@ def estimate_nccl_collective_runtime_impl(
     # Assumes ring algorithm
     nccl_algo = NCCL_ALGO.RING
     nccl_proto = NCCL_PROTO.LL
+<<<<<<< HEAD
+=======
+    coll = get_collective_type(node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # =============== bandwidth computation ===============
     # First compute bandwidth in GB/s; then at the end, convert it to GB/ns
@@ -277,8 +330,11 @@ def estimate_nccl_collective_runtime_impl(
 
     if coll == NCCL_COLL.ALL_REDUCE:
         nsteps = 2 * (nRanks - 1)
+<<<<<<< HEAD
     elif coll == NCCL_COLL.ALL_TO_ALL:
         nsteps = 2 * (nRanks - 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif coll in (NCCL_COLL.REDUCE_SCATTER, NCCL_COLL.ALL_GATHER):
         nsteps = nRanks - 1
 
@@ -296,7 +352,11 @@ def estimate_nccl_collective_runtime_impl(
             nInterSteps = 2 * nNodes
         else:
             nInterSteps = 0
+<<<<<<< HEAD
     elif coll in (NCCL_COLL.REDUCE_SCATTER, NCCL_COLL.ALL_GATHER, NCCL_COLL.ALL_TO_ALL):
+=======
+    elif coll in (NCCL_COLL.REDUCE_SCATTER, NCCL_COLL.ALL_GATHER):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nInterSteps = nNodes - 1
 
     # First compute latency in us; then at the end, convert it to ns
@@ -315,14 +375,19 @@ def estimate_nccl_collective_runtime_impl(
 
     # =============== final result ===============
     transport_ns = tensor_storage_size_GB / bandwidth_GB_per_ns
+<<<<<<< HEAD
     ns = transport_ns + latency_ns
     ms = ns / 1e6
     return ms
+=======
+    return transport_ns + latency_ns
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 ################################################################################################################
 # The above code and constants are adapted from https://github.com/NVIDIA/nccl/blob/master/src/graph/tuning.cc #
 ################################################################################################################
+<<<<<<< HEAD
 
 
 def estimate_nccl_collective_runtime(node: ir.IRNode) -> float:
@@ -395,3 +460,5 @@ def estimate_nccl_collective_runtime_from_fx_node(
     return estimate_nccl_collective_runtime_impl(
         tensor_storage_size_bytes, group_size, coll
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -27,9 +27,15 @@ import contextlib
 import functools
 import types
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from functools import wraps
 from typing import Any, Optional, TypeVar
+=======
+from collections.abc import Iterable
+from functools import wraps
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -249,8 +255,11 @@ def get_ignored_functions() -> set[Callable]:
         torch.nn.functional.has_torch_function_unary,
         torch.nn.functional.has_torch_function_variadic,
         torch.nn.functional.handle_torch_function,
+<<<<<<< HEAD
         torch.nn.functional.scaled_grouped_mm,
         torch.nn.functional.scaled_mm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.nn.functional.sigmoid,
         torch.nn.functional.hardsigmoid,
         torch.nn.functional.tanh,
@@ -364,7 +373,10 @@ def get_ignored_functions() -> set[Callable]:
         Tensor._view_func,
         Tensor._view_func_unsafe,
         Tensor._rev_view_func_unsafe,
+<<<<<<< HEAD
         Tensor._dtensor__new__,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Tensor._make_wrapper_subclass,
         Tensor._python_dispatch.__get__,
         Tensor._has_symbolic_sizes_strides.__get__,
@@ -612,8 +624,13 @@ def get_testing_overrides() -> dict[Callable, Callable]:
         torch.fused_moving_avg_obs_fake_quant: (
             lambda x, observer_on, fake_quant_on, averaging_const, running_min, running_max, scale, zero_point, quant_min, quant_max, ch_axis, per_row_fake_quant=False, symmetric_quant=False: -1  # noqa: B950
         ),
+<<<<<<< HEAD
         torch.fbgemm_linear_fp16_weight: lambda input, packed_weight, bias, output: -1,
         torch.fbgemm_linear_fp16_weight_fp32_activation: lambda input, packed_weight, bias, output: -1,
+=======
+        torch.fbgemm_linear_fp16_weight: lambda input, packed_weight, bias: -1,
+        torch.fbgemm_linear_fp16_weight_fp32_activation: lambda input, packed_weight, bias: -1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.fbgemm_linear_int8_weight: lambda input, weight, packed, col_offsets, weight_scale, weight_zero_point, bias: -1,  # noqa: B950
         torch.fbgemm_linear_int8_weight_fp32_activation: (
             lambda input, weight, packed, col_offsets, weight_scale, weight_zero_point, bias: -1
@@ -678,7 +695,10 @@ def get_testing_overrides() -> dict[Callable, Callable]:
         torch.gt: lambda input, other, out=None: -1,
         torch.greater: lambda input, other, out=None: -1,
         torch.hardshrink: lambda input, lambd=0.5: -1,
+<<<<<<< HEAD
         torch.hash_tensor: lambda input, dim=None, keepdim=False, mode=0, out=None: -1,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.heaviside: lambda input, values, out=None: -1,
         torch.hinge_embedding_loss: lambda input, target, margin=1.0, size_average=None, reduce=None, reduction="mean": -1,  # noqa: B950
         torch.histc: lambda input, bins=100, min=0, max=0, out=None: -1,
@@ -824,7 +844,10 @@ def get_testing_overrides() -> dict[Callable, Callable]:
         torch._native_batch_norm_legit: lambda input, weight, bias, training, momentum, eps: -1,
         torch.native_dropout: lambda input, p, train: -1,
         torch.native_layer_norm: lambda input, normalized_shape, weight=None, bias=None, eps=1e-05: -1,
+<<<<<<< HEAD
         torch._fused_rms_norm: lambda input, normalized_shape, weight=None, eps=1e-05: -1,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.native_group_norm: lambda input, weight, bias, N, C, HxW, group, eps: -1,
         torch.native_norm: lambda input, p=2, dim=None, keepdim=False, dtype=None: -1,
         torch.native_channel_shuffle: lambda input, groups: -1,
@@ -1353,7 +1376,10 @@ def get_testing_overrides() -> dict[Callable, Callable]:
         Tensor._grad.__get__: lambda self: -1,
         Tensor._grad_fn.__get__: lambda self: -1,
         Tensor.grad_fn.__get__: lambda self: -1,
+<<<<<<< HEAD
         Tensor.grad_dtype.__get__: lambda self: -1,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Tensor._version.__get__: lambda self: -1,
         Tensor._autocast_to_reduced_precision: lambda self, cuda_enabled, cpu_enabled, cuda_dtype, cpu_dtype: -1,
         Tensor._autocast_to_full_precision: lambda self, cuda_enabled, cpu_enabled: -1,
@@ -1517,9 +1543,14 @@ def get_testing_overrides() -> dict[Callable, Callable]:
         Tensor.view: lambda self, shape: -1,
         Tensor.view_as: lambda self, other: -1,
         Tensor.zero_: lambda self: -1,
+<<<<<<< HEAD
         Tensor.__dlpack__: lambda self, stream=None, max_version=None, dl_device=None, copy=None: -1,
         Tensor.__dlpack_device__: lambda self: -1,
         Tensor.index: lambda self, a, b: -1,
+=======
+        Tensor.__dlpack__: lambda self, stream=None: -1,
+        Tensor.__dlpack_device__: lambda self: -1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.linalg.lstsq: lambda self, b, cond=None, driver=None: -1,
     }  # fmt: skip
 
@@ -1747,7 +1778,10 @@ def handle_torch_function(
                 "Defining your `__torch_function__ as a plain method is deprecated and "
                 "will be an error in future, please define it as a classmethod.",
                 DeprecationWarning,
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # Use `public_api` instead of `implementation` so __torch_function__
@@ -2011,7 +2045,11 @@ def is_tensor_like(inp):
 class TorchFunctionMode:
     """
     A ``TorchFunctionMode`` allows you to override the meaning of all
+<<<<<<< HEAD
     ``__torch_function__`` overridable functions within a dynamic scope,
+=======
+    ``__torch_function__`` overrideable functions within a dynamic scope,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     without having to actually create a tensor subclass or manually
     monkey-patch functions in the PyTorch API.  Some common situations
     where you should use a mode:
@@ -2058,8 +2096,12 @@ class TorchFunctionMode:
     @classmethod
     def push(cls, *args, **kwargs):
         warnings.warn(
+<<<<<<< HEAD
             "`Mode.push()` is no longer necessary and can be replaced with just `with Mode()`",
             stacklevel=2,
+=======
+            "`Mode.push()` is no longer necessary and can be replaced with just `with Mode()`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         instance = cls(*args, **kwargs)
         return instance

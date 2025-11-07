@@ -367,7 +367,11 @@ class DeepSpeech(nn.Module):
         """
         seq_len = input_length
         for m in self.conv.modules():
+<<<<<<< HEAD
             if type(m) is nn.modules.conv.Conv2d:
+=======
+            if type(m) == nn.modules.conv.Conv2d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 seq_len = (
                     seq_len
                     + 2 * m.padding[1]

@@ -12,8 +12,13 @@ import pprint
 import sys
 import unittest
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from typing import Any, Optional, TypeVar
+=======
+from collections.abc import Collection, Iterable, Mapping, Sequence
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import error_reproduction
 import numpy as np
@@ -246,7 +251,11 @@ def duplicate_opinfo_for_prims(
             new_opinfo = copy.deepcopy(opinfo)
             new_opinfo.name = new_name
             new_opinfo.op = getattr(torch.ops.prims, prims_name)
+<<<<<<< HEAD
             opinfos.append(new_opinfo)  # noqa: B909
+=======
+            opinfos.append(new_opinfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
     raise RuntimeError(f"OpInfo '{name}' not found in the database.")
 
@@ -592,6 +601,10 @@ def graph_executor(
                 proto = onnxscript_function.to_function_proto()
                 ir_function = ir.serde.deserialize_function(proto)
             onnx_model.functions[identifier] = ir_function
+<<<<<<< HEAD
+=======
+        _ir_passes.add_torchlib_common_imports(onnx_model, opset_version=opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _ir_passes.add_opset_imports(onnx_model)
         # Make sure the model is valid
         model_proto = ir.to_proto(onnx_model)

@@ -3,7 +3,10 @@
 
 import torch
 import math
+<<<<<<< HEAD
 from typing import Union
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization import (
     FakeQuantize,
     MovingAverageMinMaxObserver,
@@ -30,7 +33,11 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 import torch.testing._internal.hypothesis_utils as hu
 hu.assert_deadline_disabled()
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_WITH_ROCM
+=======
+from torch.testing._internal.common_cuda import TEST_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import TestCase, skipIfTorchDynamo
 
 # Reference method for fake quantize
@@ -51,11 +58,16 @@ def _fake_quantize_per_tensor_affine_grad_reference(dY, X, scale, zero_point, qu
     return res.to(dtype)
 
 # Reference method for the gradients of the fake quantize operator
+<<<<<<< HEAD
 def _fake_quantize_learnable_per_tensor_affine_grad_reference(dY, X, scale, zero_point, quant_min, quant_max, device, dtype):
+=======
+def _fake_quantize_learnable_per_tensor_affine_grad_reference(dY, X, scale, zero_point, quant_min, quant_max, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""This method references the following literatures for back propagation on scale and zero point.
     - https://arxiv.org/pdf/1902.08153.pdf
     - https://arxiv.org/pdf/1903.08066.pdf
     """
+<<<<<<< HEAD
 
     if dtype is torch.bfloat16:
         dY = dY.to(dtype=torch.float32)
@@ -63,6 +75,8 @@ def _fake_quantize_learnable_per_tensor_affine_grad_reference(dY, X, scale, zero
         scale = scale.to(dtype=torch.float32)
         zero_point = zero_point.to(dtype=torch.float32)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     zero_point_rounded = int((zero_point + 0.5).clamp(quant_min, quant_max).item())
     Xq = torch.round(X * (1.0 / scale) + zero_point_rounded)
 
@@ -94,12 +108,15 @@ def _fake_quantize_learnable_per_tensor_affine_grad_reference(dY, X, scale, zero
 
     grad_scale = (grad_scale * dY).sum().unsqueeze(dim=0)
     grad_zp = (grad_zp * dY).sum().unsqueeze(dim=0)
+<<<<<<< HEAD
 
     if dtype is torch.bfloat16:
         grad_X = grad_X.to(torch.bfloat16)
         grad_scale = grad_scale.to(torch.bfloat16)
         grad_zp = grad_zp.to(torch.bfloat16)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return grad_X, grad_scale, grad_zp
 
 
@@ -109,17 +126,24 @@ def _quantize_per_tensor(x, scale, zero_point, quant_min, quant_max):
 
 # Reference method for the per channel gradients of the learnable fake quantize operator
 def _fake_quantize_learnable_per_channel_affine_grad_reference(
+<<<<<<< HEAD
         dY, X, per_channel_scale, per_channel_zero_point, axis, quant_min, quant_max, device, dtype):
+=======
+        dY, X, per_channel_scale, per_channel_zero_point, axis, quant_min, quant_max, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""This method references the following literatures for back propagation on scale and zero point.
     - https://arxiv.org/pdf/1902.08153.pdf
     - https://arxiv.org/pdf/1903.08066.pdf
     """
+<<<<<<< HEAD
     if dtype is torch.bfloat16:
         dY = dY.to(dtype=torch.float32)
         X = X.to(dtype=torch.float32)
         per_channel_scale = per_channel_scale.to(dtype=torch.float32)
         per_channel_zero_point = per_channel_zero_point.to(dtype=torch.float32)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     per_channel_zero_point = ((per_channel_zero_point.detach() + 0.5).clamp(quant_min, quant_max)).type(torch.int32)
     grad_X = _fake_quantize_per_channel_affine_grad_reference(
         dY, X, per_channel_scale, per_channel_zero_point, axis, quant_min, quant_max).to(device)
@@ -171,6 +195,7 @@ def _fake_quantize_learnable_per_channel_affine_grad_reference(
 
         grad_scale[i] = grad_scale_i
         grad_zero_point[i] = grad_zp_i
+<<<<<<< HEAD
 
     # if dtype is torch.bfloat16, we downcast before returning the gradients to mimic autograd's downcasting
     if dtype is torch.bfloat16:
@@ -178,10 +203,13 @@ def _fake_quantize_learnable_per_channel_affine_grad_reference(
         grad_scale = grad_scale.to(torch.bfloat16)
         grad_zero_point = grad_zero_point.to(torch.bfloat16)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return grad_X, grad_scale, grad_zero_point
 
 def _get_tensor_min_max(
         X: torch.Tensor,
+<<<<<<< HEAD
         running_min: Union[float, torch.Tensor] = float("inf"),
         running_max: Union[float, torch.Tensor] = float("-inf"),
         averaging_const: float = 0.01,
@@ -201,6 +229,20 @@ def _get_tensor_min_max(
         max_val_tensor = running_max + averaging_const_tensor * (max_val_tensor - running_max)
 
     return min_val_tensor.item(), max_val_tensor.item()
+=======
+        running_min: float = float("inf"),
+        running_max: float = float("-inf"),
+        averaging_const: float = 0.01) -> tuple[float, float]:
+    min_val = X.min().to(dtype=torch.float32).item()
+    max_val = X.max().to(dtype=torch.float32).item()
+
+    if not math.isinf(running_min):
+        min_val = running_min + averaging_const * (min_val - running_min)
+    if not math.isinf(running_max):
+        max_val = running_max + averaging_const * (max_val - running_max)
+
+    return min_val, max_val
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _get_per_row_min_max(
         x: torch.Tensor,
@@ -480,7 +522,11 @@ class TestFakeQuantizeOps(TestCase):
         self._test_learnable_forward_per_tensor(
             X, 'cuda', scale_base, zero_point_base)
 
+<<<<<<< HEAD
     def _test_learnable_backward_per_tensor(self, X, device, scale_base, zero_point_base, dtype=torch.float32):
+=======
+    def _test_learnable_backward_per_tensor(self, X, device, scale_base, zero_point_base):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Tests the backward method with additional backprop support for scale and zero point.
         """
         X_base = torch.tensor(X).to(device)
@@ -488,7 +534,11 @@ class TestFakeQuantizeOps(TestCase):
         for n_bits in (4, 8):
             quant_min, quant_max = 0, 2 ** n_bits - 1
 
+<<<<<<< HEAD
             X = X_base.clone().to(device)
+=======
+            X = X_base.clone().float().to(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             X.requires_grad_()
             scale_base = scale_base.to(device)
             zero_point_base = zero_point_base.to(device)
@@ -501,7 +551,11 @@ class TestFakeQuantizeOps(TestCase):
                     X, scale, zero_point, quant_min, quant_max, grad_factor).to(device)
                 dout = torch.rand_like(X, dtype=torch.float).to(device)
                 dX, dScale, dZeroPoint = _fake_quantize_learnable_per_tensor_affine_grad_reference(
+<<<<<<< HEAD
                     dout, X, scale, zero_point, quant_min, quant_max, device, dtype)
+=======
+                    dout, X, scale, zero_point, quant_min, quant_max, device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Y_prime.backward(dout)
 
                 expected_dX = dX.to(device).detach()
@@ -538,6 +592,7 @@ class TestFakeQuantizeOps(TestCase):
         self._test_learnable_backward_per_tensor(
             X, 'cpu', scale_base, zero_point_base)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
     def test_learnable_backward_per_tensor_cuda(self):
         # setting seed to avoid increasing tolerance due to cases where
@@ -552,6 +607,19 @@ class TestFakeQuantizeOps(TestCase):
             zero_point_base = torch.normal(mean=0, std=128, size=(1,)).to(dtype=dtype)
             self._test_learnable_backward_per_tensor(
                 X_base, 'cuda', scale_base, zero_point_base, dtype)
+=======
+    @given(X=hu.tensor(shapes=hu.array_shapes(1, 5,),
+                       elements=hu.floats(-1e3, 1e3, allow_nan=False, allow_infinity=False),
+                       qparams=hu.qparams(dtypes=torch.quint8)))
+    @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
+    def test_learnable_backward_per_tensor_cuda(self, X):
+        torch.random.manual_seed(NP_RANDOM_SEED)
+        X, (_, _, _) = X
+        scale_base = torch.normal(mean=0, std=1, size=(1,)).clamp(1e-4, 100)
+        zero_point_base = torch.normal(mean=0, std=128, size=(1,))
+        self._test_learnable_backward_per_tensor(
+            X, 'cuda', scale_base, zero_point_base)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @given(device=st.sampled_from(['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']),
            X=hu.tensor(shapes=hu.array_shapes(1, 5,),
@@ -628,7 +696,11 @@ class TestFakeQuantizeOps(TestCase):
             # Output of fake quant is not identical to input
             Y = fq_module(X)
             self.assertNotEqual(Y, X)
+<<<<<<< HEAD
             if type(fq_module) is _LearnableFakeQuantize:
+=======
+            if type(fq_module) == _LearnableFakeQuantize:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fq_module.toggle_fake_quant(False)
             else:
                 torch.ao.quantization.disable_fake_quant(fq_module)
@@ -642,7 +714,11 @@ class TestFakeQuantizeOps(TestCase):
             scale = fq_module.scale.detach().clone()
             zero_point = fq_module.zero_point.detach().clone()
 
+<<<<<<< HEAD
             if type(fq_module) is _LearnableFakeQuantize:
+=======
+            if type(fq_module) == _LearnableFakeQuantize:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fq_module.toggle_observer_update(False)
                 fq_module.toggle_fake_quant(True)
             else:
@@ -654,7 +730,11 @@ class TestFakeQuantizeOps(TestCase):
             # Observer is disabled, scale and zero-point do not change
             self.assertEqual(fq_module.scale, scale)
             self.assertEqual(fq_module.zero_point, zero_point)
+<<<<<<< HEAD
             if type(fq_module) is _LearnableFakeQuantize:
+=======
+            if type(fq_module) == _LearnableFakeQuantize:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fq_module.toggle_observer_update(True)
             else:
                 torch.ao.quantization.enable_observer(fq_module)
@@ -753,7 +833,11 @@ class TestFakeQuantizeOps(TestCase):
                 X.cpu(), scale.cpu(), zero_point.cpu(), axis, quant_min, quant_max)
             Y_prime = torch.fake_quantize_per_channel_affine(
                 X, scale, zero_point, axis, quant_min, quant_max)
+<<<<<<< HEAD
             torch.testing.assert_close(Y, Y_prime.cpu(), rtol=tolerance, atol=tolerance)
+=======
+            torch.testing.assert_allclose(Y, Y_prime.cpu(), rtol=tolerance, atol=tolerance)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertTrue(Y.dtype == float_type)
 
     def test_forward_per_channel_cachemask_cpu(self):
@@ -852,6 +936,7 @@ class TestFakeQuantizeOps(TestCase):
         self._test_learnable_forward_per_channel(
             X_base, 'cpu', scale_base, zero_point_base, axis)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
     def test_learnable_forward_per_channel_cuda(self):
         torch.random.manual_seed(NP_RANDOM_SEED)
@@ -866,6 +951,23 @@ class TestFakeQuantizeOps(TestCase):
 
             self._test_learnable_forward_per_channel(
                 X_base, 'cuda', scale_base, zero_point_base, axis)
+=======
+    @given(X=hu.per_channel_tensor(shapes=hu.array_shapes(1, 5,),
+                                   qparams=hu.qparams(dtypes=torch.quint8)))
+    @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
+    @unittest.skip(
+        "this is broken without changes to any relevant code, "
+        "we need to remove hypothesis testing in CI")
+    def test_learnable_forward_per_channel_cuda(self, X):
+        torch.random.manual_seed(NP_RANDOM_SEED)
+        X, (_, _, axis, _) = X
+        X_base = torch.tensor(X).to('cuda')
+        channel_size = X_base.size(axis)
+        scale_base = torch.normal(mean=0, std=1, size=(channel_size,)).clamp(1e-4, 100)
+        zero_point_base = torch.normal(mean=0, std=128, size=(channel_size,))
+        self._test_learnable_forward_per_channel(
+            X_base, 'cuda', scale_base, zero_point_base, axis)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @given(device=st.sampled_from(['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']),
            X=hu.per_channel_tensor(shapes=hu.array_shapes(1, 5,),
@@ -929,7 +1031,11 @@ class TestFakeQuantizeOps(TestCase):
     def test_backward_per_channel_cachemask_cuda(self):
         self._test_backward_per_channel_cachemask_impl('cuda')
 
+<<<<<<< HEAD
     def _test_learnable_backward_per_channel(self, X_base, device, scale_base, zero_point_base, axis, dtype=torch.float32):
+=======
+    def _test_learnable_backward_per_channel(self, X_base, device, scale_base, zero_point_base, axis):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Tests the backward path of the learnable FakeQuantizePerTensorAffine op.
         """
         for n_bits in (4, 8):
@@ -951,7 +1057,11 @@ class TestFakeQuantizeOps(TestCase):
 
                 dout = torch.rand(X_curr.shape, dtype=torch.float).to(device)
                 dX, dScale, dZeroPoint = _fake_quantize_learnable_per_channel_affine_grad_reference(
+<<<<<<< HEAD
                     dout, X_curr, scale_curr, zero_point_curr, axis, quant_min, quant_max, device, dtype)
+=======
+                    dout, X_curr, scale_curr, zero_point_curr, axis, quant_min, quant_max, device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Y_prime.backward(dout)
 
                 dX_expected = dX.to(device).detach()
@@ -960,11 +1070,15 @@ class TestFakeQuantizeOps(TestCase):
                 dScale_actual = scale_curr.to(device).grad.detach()
                 dZeroPoint_expected = dZeroPoint.to(device).detach()
                 dZeroPoint_actual = zero_point_curr.to(device).grad.detach()
+<<<<<<< HEAD
 
                 # increasing tolerance for bf16 due to differences in python's x.to(torch.bfloat16) and cpp's x.to(at::kBFloat16)
                 # for example, -0.16749558 gets downcast to -1.68 (after applying grad_factor) in python
                 # in CPP, -1.6752 gets downcast to -1.67
                 tolerance = 1e-2 if dtype is torch.bfloat16 else 1e-4
+=======
+                tolerance = 1e-4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 self.assertTrue(
                     torch.allclose(dX_expected, dX_actual, rtol=tolerance, atol=tolerance),
@@ -994,6 +1108,7 @@ class TestFakeQuantizeOps(TestCase):
         self._test_learnable_backward_per_channel(
             X_base, 'cpu', scale_base, zero_point_base, axis)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
     def test_learnable_backward_per_channel_cuda(self):
         torch.random.manual_seed(NP_RANDOM_SEED)
@@ -1009,6 +1124,22 @@ class TestFakeQuantizeOps(TestCase):
             self._test_learnable_backward_per_channel(
                 X_base, 'cuda', scale_base, zero_point_base, axis, dtype
             )
+=======
+    @given(X=hu.per_channel_tensor(shapes=hu.array_shapes(2, 5,),
+                                   qparams=hu.qparams(dtypes=torch.quint8)))
+    @unittest.skipIf(not TEST_CUDA, "No gpu is not available.")
+    @unittest.skip(
+        "this is broken without changes to any relevant code, "
+        "we need to remove hypothesis testing in CI")
+    def test_learnable_backward_per_channel_cuda(self, X):
+        torch.random.manual_seed(NP_RANDOM_SEED)
+        X, (scale, zero_point, axis, torch_type) = X
+        X_base = torch.tensor(X).to('cuda')
+        scale_base = to_tensor(scale, 'cuda')
+        zero_point_base = to_tensor(zero_point, 'cuda')
+        self._test_learnable_backward_per_channel(
+            X_base, 'cuda', scale_base, zero_point_base, axis)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_numerical_consistency_per_tensor(self):
         self._test_numerical_consistency('per_tensor')
@@ -1079,6 +1210,7 @@ class TestFakeQuantizeOps(TestCase):
                     input, scale, zero_point, axis, quant_min, quant_max
                 )
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
     @unittest.skipIf(TEST_WITH_ROCM, "Not a suitable test for ROCM")
     @given(dtype=st.sampled_from([torch.float, torch.float64, torch.half, torch.bfloat16]),
@@ -1102,10 +1234,19 @@ class TestFusedObsFakeQuant(TestCase):
            symmetric_quant=st.booleans(), use_bool=st.booleans())
     @settings(deadline=None)
     def test_fused_obs_fake_quant_moving_avg(self, device, sampled_dtype, symmetric_quant, use_bool) -> None:
+=======
+
+class TestFusedObsFakeQuant(TestCase):
+    @given(device=st.sampled_from(['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']),
+           symmetric_quant=st.booleans(), use_bool=st.booleans())
+    @settings(deadline=None)
+    def test_fused_obs_fake_quant_moving_avg(self, device, symmetric_quant, use_bool) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Tests the case where we call the fused_obs_fake_quant op multiple times
         and update the running_min and max of the activation tensors.
         """
+<<<<<<< HEAD
         if device == "cpu":
             sampled_dtype = "fp32"
         dtype = {'bf16' : torch.bfloat16, 'fp16' : torch.half, 'fp32' : torch.float32}[sampled_dtype]
@@ -1114,6 +1255,12 @@ class TestFusedObsFakeQuant(TestCase):
         in_running_min_op = torch.tensor(float("inf"), dtype=dtype, device=device)
         in_running_max_ref = out_running_max_ref = torch.tensor(float("-inf"), dtype=dtype)
         in_running_max_op = torch.tensor(float("-inf"), dtype=dtype, device=device)
+=======
+        in_running_min_ref = out_running_min_ref = float("inf")
+        in_running_min_op = torch.tensor(float("inf"), device=device)
+        in_running_max_ref = out_running_max_ref = float("-inf")
+        in_running_max_op = torch.tensor(float("-inf"), device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         avg_const = 0.01
         scale = torch.tensor([1.0], device=device)
         zero_point = torch.tensor([0], dtype=torch.int, device=device)
@@ -1126,7 +1273,12 @@ class TestFusedObsFakeQuant(TestCase):
                 observer_on = True if use_bool else 1
             if i > 4:
                 fake_quant_on = True if use_bool else 1
+<<<<<<< HEAD
             x = torch.randn(5, 5, dtype=dtype, device=device)
+=======
+
+            x = torch.randn(5, 5, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = pt_op(
                 x,
                 torch.tensor(observer_on, device=device),
@@ -1151,7 +1303,10 @@ class TestFusedObsFakeQuant(TestCase):
                     running_min=in_running_min_ref,
                     running_max=in_running_max_ref,
                     averaging_const=0.01,
+<<<<<<< HEAD
                     dtype=dtype,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             if fake_quant_on:
@@ -1174,7 +1329,11 @@ class TestFusedObsFakeQuant(TestCase):
             torch.testing.assert_close(out, x_in)
 
         # Test empty input works
+<<<<<<< HEAD
         x = torch.empty(0, 5, dtype=dtype, device=device)
+=======
+        x = torch.empty(0, 5, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out = pt_op(
             x,
             torch.tensor(1, device=device),

@@ -54,8 +54,12 @@ def dedup_save_plans(
         for plan_idx in plan_indices - {select_plan_idx}:
             plan_to_item_indices[plan_idx].discard(write_item_idx)
     # Sanity check
+<<<<<<< HEAD
     if len(all_plans) != len(plan_to_item_indices):
         raise AssertionError("len(all_plans) != len(plan_to_item_indices)")
+=======
+    assert len(all_plans) == len(plan_to_item_indices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Create new plans with the updated write items post deduplication
     return [
         dataclasses.replace(

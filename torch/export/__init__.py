@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logging
 import os
 import warnings
@@ -34,6 +35,63 @@ __all__ = [
     "ShapesCollection",
     "unflatten",
     "UnflattenedModule",
+=======
+import builtins
+import copy
+import dataclasses
+import inspect
+import os
+import sys
+import typing
+import warnings
+import zipfile
+from collections.abc import Iterator
+from enum import auto, Enum
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+
+import torch
+import torch.utils._pytree as pytree
+from torch.fx._compatibility import compatibility
+from torch.fx.passes.infra.pass_base import PassResult
+from torch.fx.passes.infra.pass_manager import PassManager
+from torch.types import FileLike
+from torch.utils._pytree import (
+    FlattenFunc,
+    FromDumpableContextFn,
+    ToDumpableContextFn,
+    UnflattenFunc,
+)
+
+
+if TYPE_CHECKING:
+    # Import the following modules during type checking to enable code intelligence features,
+    # Do not import unconditionally, as they import sympy and importing sympy is very slow
+    from torch._ops import OpOverload
+    from torch.fx.experimental.symbolic_shapes import StrictMinMaxConstraint
+
+
+__all__ = [
+    "Constraint",
+    "Dim",
+    "ExportBackwardSignature",
+    "ExportGraphSignature",
+    "ExportedProgram",
+    "CustomDecompTable",
+    "ModuleCallEntry",
+    "ModuleCallSignature",
+    "default_decompositions",
+    "dims",
+    "export",
+    "export_for_training",
+    "load",
+    "register_dataclass",
+    "save",
+    "unflatten",
+    "FlatArgsAdapter",
+    "UnflattenedModule",
+    "AdditionalInputs",
+    "draft_export",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 # To make sure export specific custom ops are loaded
@@ -53,6 +111,7 @@ from .unflatten import FlatArgsAdapter, unflatten, UnflattenedModule
 
 PassType = Callable[[torch.fx.GraphModule], Optional[PassResult]]
 
+<<<<<<< HEAD
 log: logging.Logger = logging.getLogger(__name__)
 
 
@@ -70,6 +129,17 @@ def export_for_training(
     strict: bool = False,
     preserve_module_call_signature: tuple[str, ...] = (),
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+
+def export_for_training(
+    mod: torch.nn.Module,
+    args: tuple[Any, ...],
+    kwargs: Optional[dict[str, Any]] = None,
+    *,
+    dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    strict: bool = False,
+    preserve_module_call_signature: tuple[str, ...] = (),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> ExportedProgram:
     """
     :func:`export_for_training` takes any nn.Module along with example inputs, and produces a traced graph representing
@@ -158,19 +228,30 @@ def export_for_training(
         dynamic_shapes,
         strict=strict,
         preserve_module_call_signature=preserve_module_call_signature,
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
 def export(
     mod: torch.nn.Module,
     args: tuple[Any, ...],
+<<<<<<< HEAD
     kwargs: Optional[Mapping[str, Any]] = None,
     *,
     dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any, ...], list[Any]]] = None,
     strict: bool = False,
     preserve_module_call_signature: tuple[str, ...] = (),
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+    kwargs: Optional[dict[str, Any]] = None,
+    *,
+    dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    strict: bool = False,
+    preserve_module_call_signature: tuple[str, ...] = (),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> ExportedProgram:
     """
     :func:`export` takes any nn.Module along with example inputs, and produces a traced graph representing
@@ -282,7 +363,10 @@ def export(
             strict=strict,
             preserve_module_call_signature=preserve_module_call_signature,
             pre_dispatch=True,
+<<<<<<< HEAD
             prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     except Exception as e:
         draft_export_msg = (
@@ -448,7 +532,10 @@ def load(
             expected_opset_version=expected_opset_version,
         )
     except RuntimeError:
+<<<<<<< HEAD
         log.warning("Ran into the following error when deserializing", exc_info=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pt2_contents = PT2ArchiveContents({}, {}, {})
 
     if len(pt2_contents.exported_programs) > 0 or len(pt2_contents.extra_files) > 0:
@@ -458,6 +545,7 @@ def load(
         return pt2_contents.exported_programs["model"]
 
     # TODO: For backward compatibility, we support loading a zip file from 2.7. Delete this path in 2.9(?)
+<<<<<<< HEAD
     with zipfile.ZipFile(f, "r") as zipf:
         if "version" not in zipf.namelist():
             raise RuntimeError(
@@ -470,6 +558,12 @@ def load(
             "deprecated. Please generate a new pt2 saved file."
         )
 
+=======
+    warnings.warn(
+        "This version of file is deprecated. Please generate a new pt2 saved file."
+    )
+    with zipfile.ZipFile(f, "r") as zipf:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Check the version
         version = zipf.read("version").decode().split(".")
         from torch._export.serde.schema import (
@@ -500,10 +594,17 @@ def load(
             if file_info.filename == "serialized_exported_program.json":
                 serialized_exported_program = file_content
             elif file_info.filename == "serialized_state_dict.json":
+<<<<<<< HEAD
                 warnings.warn("This version of file is deprecated", stacklevel=2)
                 serialized_state_dict = file_content
             elif file_info.filename == "serialized_constants.json":
                 warnings.warn("This version of file is deprecated", stacklevel=2)
+=======
+                warnings.warn("This version of file is deprecated")
+                serialized_state_dict = file_content
+            elif file_info.filename == "serialized_constants.json":
+                warnings.warn("This version of file is deprecated")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 serialized_constants = file_content
             elif file_info.filename == "serialized_state_dict.pt":
                 serialized_state_dict = file_content
@@ -535,12 +636,20 @@ def load(
 def draft_export(
     mod: torch.nn.Module,
     args: tuple[Any, ...],
+<<<<<<< HEAD
     kwargs: Optional[Mapping[str, Any]] = None,
     *,
     dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any, ...], list[Any]]] = None,
     preserve_module_call_signature: tuple[str, ...] = (),
     strict: bool = False,
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+    kwargs: Optional[dict[str, Any]] = None,
+    *,
+    dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    preserve_module_call_signature: tuple[str, ...] = (),
+    strict: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> ExportedProgram:
     """
     A version of torch.export.export which is designed to consistently produce
@@ -556,7 +665,10 @@ def draft_export(
         dynamic_shapes=dynamic_shapes,
         preserve_module_call_signature=preserve_module_call_signature,
         strict=strict,
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 

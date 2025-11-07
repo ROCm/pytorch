@@ -1,4 +1,5 @@
 # Owner(s): ["oncall: distributed"]
+<<<<<<< HEAD
 import logging
 from typing import Any
 
@@ -19,6 +20,13 @@ from torch.distributed.checkpoint.planner import (
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.tensor import distribute_tensor, DTensor, Replicate, Shard, zeros
 from torch.distributed.tensor._shards_wrapper import LocalShardsWrapper
+=======
+import torch
+import torch.distributed.checkpoint as dist_cp
+from torch.distributed.checkpoint._extension import ZStandard
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import distribute_tensor, Replicate, Shard, zeros
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -36,9 +44,12 @@ from torch.testing._internal.distributed.checkpoint_utils import (
 )
 
 
+<<<<<<< HEAD
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CHECKPOINT_DIR = "checkpoint"
 
 ONE_D_PLACEMENTS = [
@@ -278,7 +289,11 @@ class TestDTensorReshardMeshChange(DTensorTestBase):
         """
         Test dtensor checkpoint resharding with dtensor containing empty shards.
         """
+<<<<<<< HEAD
         tensor = torch.rand(1).to(self.device_type)
+=======
+        tensor = torch.rand(1).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh = init_device_mesh(self.device_type, (self.world_size,))
         dtensor = distribute_tensor(tensor, mesh, [Shard(0)])
         ref_state_dict = {"dtensor": dtensor}
@@ -288,7 +303,11 @@ class TestDTensorReshardMeshChange(DTensorTestBase):
             storage_writer=dist_cp.FileSystemWriter(path=self.temp_dir),
         )
 
+<<<<<<< HEAD
         tensor = torch.rand(1).to(self.device_type)
+=======
+        tensor = torch.rand(1).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh_2 = init_device_mesh(self.device_type, (2, self.world_size // 2))
         dtensor = distribute_tensor(tensor, mesh_2, [Shard(0), Shard(0)])
         state_dict = {"dtensor": dtensor}
@@ -297,6 +316,7 @@ class TestDTensorReshardMeshChange(DTensorTestBase):
             storage_reader=dist_cp.FileSystemReader(self.temp_dir),
         )
 
+<<<<<<< HEAD
     @with_comms
     @with_temp_dir
     @skip_if_lt_x_gpu(2)
@@ -585,6 +605,11 @@ class TestCheckpointableReshard(DTensorTestBase):
         )
         assert torch.equal(loading_local_tensor, expected_loaded_local_val_tensor)
         dist.barrier()
+=======
+    # TODO: Add a assertEqual for ref_state_dict["dtensor"].full_tensor()
+    # and state_dict["dtensor"].full_tensor() after we fix the size mismatch
+    # issue for un-even sharding dtensor.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: Add dtensor resharding test when world size changes.

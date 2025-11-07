@@ -21,7 +21,11 @@ except ImportError:
 
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
+=======
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if not c10d.is_available():
     print("c10d not available, skipping tests", file=sys.stderr)

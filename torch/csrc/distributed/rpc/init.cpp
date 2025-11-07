@@ -79,8 +79,11 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
   module.attr("_DEFAULT_RPC_TIMEOUT_SEC") = py::cast(kDefaultRpcTimeoutSeconds);
   module.attr("_UNSET_RPC_TIMEOUT") = py::cast(kUnsetRpcTimeout);
   module.attr("_DEFAULT_INIT_METHOD") = py::cast(kDefaultInitMethod);
+<<<<<<< HEAD
   module.attr("_DEFAULT_NUM_WORKER_THREADS") =
       py::cast(kDefaultNumWorkerThreads);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto workerInfo =
       shared_ptr_class_<WorkerInfo>(
@@ -149,6 +152,7 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
               py::call_guard<py::gil_scoped_release>())
           .def(
               "get_worker_info",
+<<<<<<< HEAD
               static_cast<const WorkerInfo& (RpcAgent::*)(void) const>(
                   &RpcAgent::getWorkerInfo),
               py::call_guard<py::gil_scoped_release>())
@@ -156,6 +160,15 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
               "get_worker_info",
               static_cast<const WorkerInfo& (RpcAgent::*)(const std::string&)
                               const>(&RpcAgent::getWorkerInfo),
+=======
+              (const WorkerInfo& (RpcAgent::*)(void) const) &
+                  RpcAgent::getWorkerInfo,
+              py::call_guard<py::gil_scoped_release>())
+          .def(
+              "get_worker_info",
+              (const WorkerInfo& (RpcAgent::*)(const std::string&) const) &
+                  RpcAgent::getWorkerInfo,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "get_worker_infos",
@@ -570,6 +583,12 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
           R"(All devices used by the local agent.)")
       .def("_set_device_map", &TensorPipeRpcBackendOptions::setDeviceMap);
 
+<<<<<<< HEAD
+=======
+  module.attr("_DEFAULT_NUM_WORKER_THREADS") =
+      py::cast(kDefaultNumWorkerThreads);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   shared_ptr_class_<TensorPipeAgent>(module, "TensorPipeAgent", rpcAgent)
       .def(
           py::init(
@@ -611,6 +630,7 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
           py::call_guard<py::gil_scoped_release>())
       .def(
           "get_worker_info",
+<<<<<<< HEAD
           static_cast<const WorkerInfo& (TensorPipeAgent::*)(void) const>(
               &RpcAgent::getWorkerInfo),
           py::call_guard<py::gil_scoped_release>())
@@ -633,6 +653,30 @@ PyObject* rpc_init(PyObject* _unused, PyObject* noargs) {
           "_get_device_map",
           static_cast<DeviceMap (TensorPipeAgent::*)(const WorkerInfo& dst)
                           const>(&TensorPipeAgent::getDeviceMap),
+=======
+          (const WorkerInfo& (TensorPipeAgent::*)(void) const) &
+              RpcAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_info",
+          (const WorkerInfo& (TensorPipeAgent::*)(const std::string&) const) &
+              TensorPipeAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_info",
+          (const WorkerInfo& (TensorPipeAgent::*)(worker_id_t id) const) &
+              TensorPipeAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_infos",
+          (std::vector<WorkerInfo>(TensorPipeAgent::*)() const) &
+              TensorPipeAgent::getWorkerInfos,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "_get_device_map",
+          (DeviceMap(TensorPipeAgent::*)(const WorkerInfo& dst)
+               const)&TensorPipeAgent::getDeviceMap,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           py::call_guard<py::gil_scoped_release>())
       .def(
           "_get_backend_options",

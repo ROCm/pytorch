@@ -43,6 +43,7 @@ def _load_boolean_flag(
     return state
 
 
+<<<<<<< HEAD
 ENABLE_DRAFT_EXPORT: bool = _load_boolean_flag(
     "TORCH_ONNX_ENABLE_DRAFT_EXPORT",
     this_will="enable torch.export.draft_export as a strategy for capturing models",
@@ -51,5 +52,10 @@ ENABLE_DRAFT_EXPORT: bool = _load_boolean_flag(
 PREFER_DEFERRED_RUNTIME_ASSERTS_OVER_GUARDS: bool = _load_boolean_flag(
     "TORCH_ONNX_PREFER_DEFERRED_RUNTIME_ASSERTS_OVER_GUARDS",
     this_will="set prefer_deferred_runtime_asserts_over_guards when calling torch.export",
+=======
+PLACEHOLDER: bool = _load_boolean_flag(
+    "TORCH_ONNX_PLACEHOLDER",
+    this_will="do nothing",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default=True,
 )

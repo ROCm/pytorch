@@ -220,7 +220,11 @@ def validate_grad_inputs_dict(grad_inputs_dict, forward_op, args_info):
                     f"hold a list of gradients but got object of type "
                     f"{type(grad)}."
                 )
+<<<<<<< HEAD
             if len(grad) != len(arg_info):
+=======
+            if not len(grad) == len(arg_info):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 error(
                     f"for input '{name}' expected the grad_input dict to "
                     f"hold a list of {len(arg_info)} gradients but got "

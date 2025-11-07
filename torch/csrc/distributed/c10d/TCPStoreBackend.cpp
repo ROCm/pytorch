@@ -96,7 +96,11 @@ class TCPStoreMasterDaemon : public BackgroundThread {
   std::unordered_set<int> miscellaneousSockets_;
 
   Socket storeListenSocket_;
+<<<<<<< HEAD
   std::vector<Socket> sockets_;
+=======
+  std::vector<Socket> sockets_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef _WIN32
   const std::chrono::milliseconds checkTimeout_ = std::chrono::milliseconds{10};
   HANDLE ghStopEvent_{};

@@ -76,7 +76,10 @@
   - .github/ci_commit_pins/audio.txt
   - .github/ci_commit_pins/vision.txt
   - .github/ci_commit_pins/torchdynamo.txt
+<<<<<<< HEAD
   - .github/ci_commit_pins/vllm.txt
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   - .ci/docker/ci_commit_pins/triton.txt
   approved_by:
   - pytorchbot
@@ -131,6 +134,24 @@
   - Lint
   - pull
 
+<<<<<<< HEAD
+=======
+- name: Mobile
+  patterns:
+  - ios/**
+  - android/**
+  - test/mobile/**
+  approved_by:
+  - linbinyu
+  - IvanKobzarev
+  - dreiss
+  - raziel
+  mandatory_checks_name:
+  - EasyCLA
+  - Lint
+  - pull
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - name: PrimTorch
   patterns:
   - torch/_meta_registrations.py
@@ -370,7 +391,10 @@
   - leslie-fang-intel
   - jgong5
   - EikanWang
+<<<<<<< HEAD
   - CaoE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mandatory_checks_name:
   - EasyCLA
   - Lint
@@ -422,7 +446,10 @@
   approved_by:
   - leslie-fang-intel
   - jgong5
+<<<<<<< HEAD
   - CaoE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mandatory_checks_name:
   - EasyCLA
   - Lint
@@ -477,6 +504,7 @@
   - srossross
   - chillee
   - zou3519
+<<<<<<< HEAD
   - guilhermeleobas
   mandatory_checks_name:
   - EasyCLA
@@ -494,6 +522,8 @@
   - test/inductor_skips/**
   approved_by:
   - guilhermeleobas
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mandatory_checks_name:
   - EasyCLA
   - Lint
@@ -525,6 +555,7 @@
   - Lint
   - pull
 
+<<<<<<< HEAD
 - name: typechecking
   patterns:
   - 'pyrefly.toml'
@@ -560,6 +591,8 @@
   - Lint
   - pull
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - name: superuser
   patterns:
   - '*'

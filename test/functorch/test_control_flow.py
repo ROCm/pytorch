@@ -7,7 +7,11 @@ import torch
 import torch.utils._pytree as pytree
 from functorch.experimental import control_flow
 from functorch.experimental.control_flow import cond
+<<<<<<< HEAD
 from torch._dynamo.testing import EagerAndRecordGraphs, normalize_gm
+=======
+from torch._dynamo.testing import normalize_gm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.associative_scan import (
     _fake_associative_scan,
     associative_scan,
@@ -33,6 +37,10 @@ from torch.testing._internal.common_utils import (
     requires_cuda,
     run_tests,
     skipIfCrossRef,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     TEST_WITH_CROSSREF,
     TEST_WITH_TORCHDYNAMO,
@@ -143,7 +151,11 @@ def get_scan_combine_fn(name, associative=True, parameters=None):
         }
 
     def non_pointwise(x: torch.Tensor, y: torch.Tensor):
+<<<<<<< HEAD
         W = torch.arange(4, dtype=torch.float, device=x.device).view(2, 2)
+=======
+        W = torch.diag(torch.ones(2, device=x.device))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x @ W + y @ W
 
     def RNN(x: torch.Tensor, y: torch.Tensor):
@@ -394,6 +406,7 @@ def _while_loop_tests():
                 ([torch.randn(3, 3)], {"x": torch.randn(3, 3), "y": torch.randn(3, 3)}),
             ),
         ),
+<<<<<<< HEAD
         "int_carry": (int_carry, (torch.randn(2, 3),)),
         "pytree_int_carry": (
             pytree_int_carry,
@@ -402,6 +415,16 @@ def _while_loop_tests():
         "const_and_symint_output": (
             const_and_symint_output,
             (torch.randn(2, 3),),
+=======
+        "int_carry": (int_carry, (torch.randn(2, 3, requires_grad=True),)),
+        "pytree_int_carry": (
+            pytree_int_carry,
+            (torch.randn(2, 3, requires_grad=True),),
+        ),
+        "const_and_symint_output": (
+            const_and_symint_output,
+            (torch.randn(2, 3, requires_grad=True),),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
     }
 
@@ -736,7 +759,12 @@ def forward(self, pred_1, x_1):
     getitem_1 = cond_1[0];  getitem_1 = None
     getitem_2 = cond_1[1]
     getitem_3 = cond_1[2];  getitem_3 = None
+<<<<<<< HEAD
     getitem_4 = cond_1[3];  cond_1 = getitem_4 = None
+=======
+    getitem_4 = cond_1[3];  getitem_4 = None
+    getitem_5 = cond_1[4];  cond_1 = getitem_5 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (getitem_2,)""",  # noqa: B950
         )
 
@@ -852,7 +880,14 @@ def forward(self, pred_1, a_1, b_1, c_1):
     cond_1 = torch.ops.higher_order.cond(pred_1, true_graph_1, false_graph_1, (a_1, b_1, sym_size_int, sym_size_int_1, c_1, sym_size_int_2, ones_like));  pred_1 = true_graph_1 = false_graph_1 = a_1 = b_1 = sym_size_int = sym_size_int_1 = c_1 = sym_size_int_2 = ones_like = None
     getitem_1 = cond_1[0]
     getitem_2 = cond_1[1]
+<<<<<<< HEAD
     getitem_3 = cond_1[2];  cond_1 = getitem_3 = None
+=======
+    getitem_3 = cond_1[2];  getitem_3 = None
+    getitem_4 = cond_1[3];  getitem_4 = None
+    getitem_5 = cond_1[4];  getitem_5 = None
+    getitem_6 = cond_1[5];  cond_1 = getitem_6 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (getitem_1, getitem_2)""",  # noqa: B950
         )
         # Forward
@@ -869,10 +904,17 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1):
             """\
 def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1):
     add = torch.ops.aten.add.Tensor(arg0_1, arg1_1);  arg0_1 = arg1_1 = add = None
+<<<<<<< HEAD
     zeros_like = torch.ops.aten.zeros_like.default(arg4_1, pin_memory = False);  arg4_1 = None
     clone = torch.ops.aten.clone.default(arg6_1)
     clone_1 = torch.ops.aten.clone.default(arg6_1);  arg6_1 = None
     return [clone, clone_1, zeros_like]""",
+=======
+    clone = torch.ops.aten.clone.default(arg6_1)
+    clone_1 = torch.ops.aten.clone.default(arg6_1);  arg6_1 = None
+    zeros_like = torch.ops.aten.zeros_like.default(arg4_1, pin_memory = False);  arg4_1 = None
+    return [clone, clone_1, None, None, zeros_like, None]""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_cond_autograd_pytree_input(self):
@@ -1236,7 +1278,11 @@ def forward(self, pred_1, x_1):
         from torch.fx.passes.shape_prop import _extract_tensor_metadata, TensorMetadata
 
         # This is a helper function that extracts the metadata from the tensor and
+<<<<<<< HEAD
         # sets the requires_grad flag to false. This is needed as we compare the
+=======
+        # sets the requries_grad flag to false. This is needed as we compare the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # metadata of the operands and the gradients
         def _extract_tensor_metadata_except_requires_grad(arg):
             metadata = _extract_tensor_metadata(arg)
@@ -1297,11 +1343,21 @@ def forward(self, pred_1, x_1):
 
         return cond_outputs, cond_inputs
 
+<<<<<<< HEAD
+=======
+    # TODO: The compile_mode = `compile_dynamic_shape` raises the Error
+    # torch._inductor.exc.LoweringException: NotImplementedError: get_size() is not
+    # implemented by <class 'torch._inductor.ir.NoneAsConstantBuffer'>!
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfTorchDynamo("don't test compile on compile")
     @unittest.skipIf(not SM70OrLater, "triton")
     @unittest.skipIf(not torch.cuda.is_available(), "Test requires CUDA.")
     @parametrize("compile_mode", ["compile_dynamic_shape"])
     @parametrize("scalar", [False])
+<<<<<<< HEAD
+=======
+    @unittest.expectedFailure
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cond_autograd_zeros_unused_branch_complex_compile_fail(
         self, compile_mode, scalar
     ):
@@ -1400,6 +1456,10 @@ def forward(self, pred_1, x_1):
                 f, (torch.ones(3, 4, 5), torch.ones(4, 4, 5)), torch.ones(5)
             )
 
+<<<<<<< HEAD
+=======
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_map_illegal_outputs(self):
         def f(x, y):
             return x.item()
@@ -1830,6 +1890,7 @@ def forward(self, pred_1, x_1):
             ]
         )
 
+<<<<<<< HEAD
         init_clone = [i.clone() for i in init]
         init_clone2 = [i.clone() for i in init]
         elements_clone = [ele.clone() for ele in elements]
@@ -1838,17 +1899,31 @@ def forward(self, pred_1, x_1):
             get_scan_combine_fn("s5_operator", False),
             init_clone,
             elements_clone,
+=======
+        result = scan_fct(
+            get_scan_combine_fn("s5_operator", False),
+            init,
+            elements,
+            dim=0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             reverse=reverse,
         )
         expected_result = _fake_scan(
             get_scan_combine_fn("s5_operator", False),
+<<<<<<< HEAD
             init_clone2,
             elements_clone2,
+=======
+            init=init,
+            xs=elements,
+            dim=0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             reverse=reverse,
         )
         self.assertEqual(result, expected_result)
 
         if autograd:
+<<<<<<< HEAD
             result_flatten, _ = pytree.tree_flatten(result)
             result_exp_flatten, _ = pytree.tree_flatten(expected_result)
 
@@ -1861,6 +1936,23 @@ def forward(self, pred_1, x_1):
             )
             self.assertEqual(grads, expected_grads)
 
+=======
+            init_flatten, _ = pytree.tree_flatten(init)
+            elements_flatten, _ = pytree.tree_flatten(elements)
+
+            result_flatten, _ = pytree.tree_flatten(result)
+            result_exp_flatten, _ = pytree.tree_flatten(expected_result)
+            grad_out = [torch.ones_like(el) for el in result_exp_flatten]
+            expected_grads = torch.autograd.grad(
+                result_exp_flatten, (*init_flatten, *elements_flatten), grad_out
+            )
+            grads = torch.autograd.grad(
+                result_flatten, (*init_flatten, *elements_flatten), grad_out
+            )
+            self.assertEqual(grads, expected_grads)
+
+    @skipIfRocm(msg="Unsupported on ROCM yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("reverse", [False, True])
@@ -2002,11 +2094,21 @@ def forward(self, pred_1, x_1):
         if autograd:
             self.check_autograd(result, expected_result, (init, inp))
 
+<<<<<<< HEAD
     # TODO: Does not work because of the usage of vmap within associative_scan
     # The paT206899919 rameterization is commented out for the moment and the test is marked with expected fail
     # Fails with: AssertionError: scan is not an OpOverload
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
+=======
+    # TODO: Does not work because of the usage of vmap witin associative_scan
+    # The paT206899919 rameterization is commented out for the moment and the test is marked with expected fail
+    # Fails with: AssertionError: scan is not an OpOverload
+    @skipIfRocm(msg="Unsupported on ROCM yet")
+    @unittest.skipIf(not SM70OrLater, "triton")
+    @requires_cuda
+    @unittest.expectedFailure
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_scan_associative_scan(self):
         combine_mode = "generic"
         compile_mode_scan = "compile"
@@ -2733,6 +2835,11 @@ def forward(self, pred_1, x_1):
     @skipIfNoDynamoSupport
     @skipIfCrossRef  # Arg order changes with crossref
     def test_scan_pytree_output(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(3, 10, 2, device=torch.device("cpu"))
         init = torch.randn(1, 10, 2, device=torch.device("cpu"))
 
@@ -2757,7 +2864,13 @@ class GraphModule(torch.nn.Module):
         l_init_1_ = L_init_1_
         l_xs_ = L_xs_
 
+<<<<<<< HEAD
         flip: "f32[3, 10, 2]" = torch.flip(l_xs_, [0]);  l_xs_ = None
+=======
+        elem: "f32[3, 10, 2]" = torch.movedim(l_xs_, 0, 0);  l_xs_ = None
+
+        flip: "f32[3, 10, 2]" = torch.flip(elem, [0]);  elem = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         scan_combine_fn_0 = self.scan_combine_fn_0
         scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_0_, l_init_1_], [flip], []);  scan_combine_fn_0 = l_init_0_ = l_init_1_ = flip = None
@@ -2932,13 +3045,20 @@ class GraphModule(torch.nn.Module):
             if autograd:
                 result_flat = pytree.tree_leaves(result)
                 result_exp_flat = pytree.tree_leaves(result_exp)
+<<<<<<< HEAD
                 exp_grad_mask = [bool(r.requires_grad) for r in result_exp_flat]
+=======
+                exp_grad_mask = [
+                    True if r.requires_grad else False for r in result_exp_flat
+                ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.check_autograd(
                     [r for r, m in zip(result_flat, exp_grad_mask) if m],
                     [r for r, m in zip(result_exp_flat, exp_grad_mask) if m],
                     params,
                 )
 
+<<<<<<< HEAD
     @requires_cuda
     @skipIfTorchDynamo("not a dynamo test")
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -3102,6 +3222,8 @@ class GraphModule(torch.nn.Module):
                 compiled_loss,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("reverse", [False, True])
@@ -3439,6 +3561,11 @@ class GraphModule(torch.nn.Module):
     @skipIfNoDynamoSupport
     @skipIfCrossRef  # Arg order changes with crossref
     def test_scan_simple_graph(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(3, 10, 2, device=torch.device("cpu"))
         init = torch.randn(1, 10, 2, device=torch.device("cpu"))
 
@@ -3453,7 +3580,12 @@ class GraphModule(torch.nn.Module):
             gm.code.strip(),
             """\
 def forward(self, fct_1, init_1, xs_1):
+<<<<<<< HEAD
     flip = torch.ops.aten.flip.default(xs_1, [0])
+=======
+    permute = torch.ops.aten.permute.default(xs_1, [0, 1, 2])
+    flip = torch.ops.aten.flip.default(permute, [0]);  permute = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sym_size_int_1 = torch.ops.aten.sym_size.int(init_1, 1)
     sym_size_int_2 = torch.ops.aten.sym_size.int(init_1, 2)
     sym_size_int_3 = torch.ops.aten.sym_size.int(xs_1, 1)
@@ -3477,7 +3609,12 @@ def forward(self, fct_1, init_1, xs_1):
 def forward(self, L_init_ : torch.Tensor, L_xs_ : torch.Tensor):
     l_init_ = L_init_
     l_xs_ = L_xs_
+<<<<<<< HEAD
     flip = torch.flip(l_xs_, [0]);  l_xs_ = None
+=======
+    elem = torch.movedim(l_xs_, 0, 0);  l_xs_ = None
+    flip = torch.flip(elem, [0]);  elem = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scan_combine_fn_0 = self.scan_combine_fn_0
     scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_], [flip], []);  scan_combine_fn_0 = l_init_ = flip = None
     carry = scan[0]
@@ -3669,7 +3806,11 @@ class AssociativeScanModels:
                     # Check if val is a list and if it has the same length as combine_fn
                     # If so, then use the individual elements.
                     # If not, duplicate the first element.
+<<<<<<< HEAD
                     if type(val) is list and len(val) == chain_len:
+=======
+                    if type(val) == list and len(val) == chain_len:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         kwargs_el[key] = val[ind]
                     else:
                         kwargs_el[key] = val
@@ -3707,6 +3848,7 @@ class AssociativeScanTests(TestCase):
         torch._dynamo.reset()
         super().setUp()
 
+<<<<<<< HEAD
     def _check_autograd(self, result, result_exp, autograd_param):
         grad_param = [p for p in autograd_param if p.requires_grad]
 
@@ -3730,10 +3872,14 @@ class AssociativeScanTests(TestCase):
         self.assertEqual(grads, expected_grads, atol=6e-05, rtol=6e-06)
 
     def _run_test(self, model, model_fake, inputs, autograd_param=None):
+=======
+    def _run_test(self, model, model_fake, inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = model(inputs)
         result_exp = model_fake(inputs)
         self.assertEqual(result, result_exp)
 
+<<<<<<< HEAD
         if autograd_param is not None and any(
             par.requires_grad for par in autograd_param
         ):
@@ -3747,6 +3893,8 @@ class AssociativeScanTests(TestCase):
                 autograd_param,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Return the result of the functions under test for further investigations
         return result
 
@@ -3761,7 +3909,10 @@ class AssociativeScanTests(TestCase):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -3773,6 +3924,7 @@ class AssociativeScanTests(TestCase):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
             )
         ),
     )
@@ -3792,6 +3944,16 @@ class AssociativeScanTests(TestCase):
         self, combine_mode, reverse, compile_mode, device, autograd
     ):
         x = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+                or torch.version.hip
+            )
+        ),
+    )
+    def test_associative_scan_compile(
+        self, combine_mode, reverse, compile_mode, device
+    ):
+        x = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs = {
             "dim": 0,
             "reverse": reverse,
@@ -3803,7 +3965,10 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.Simple(**kwargs),
             model_fake=AssociativeScanModels.Simple(**kwargs_fake),
             inputs=x,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if not reverse:
@@ -3813,9 +3978,13 @@ class AssociativeScanTests(TestCase):
             self.assertEqual(results, results_torch)
 
         # Jax Examples
+<<<<<<< HEAD
         x = torch.arange(
             0, 4, device=device, dtype=torch.float32, requires_grad=autograd
         )
+=======
+        x = torch.arange(0, 4, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs = {
             "dim": 0,
             "reverse": reverse,
@@ -3828,6 +3997,7 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=x,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x,),
         )
 
@@ -3835,6 +4005,14 @@ class AssociativeScanTests(TestCase):
             results_torch = torch.tensor([0.0, 1.0, 3.0, 6.0], dtype=torch.float32)
         else:
             results_torch = torch.tensor([6.0, 6.0, 5.0, 3.0], dtype=torch.float32)
+=======
+        )
+
+        if not reverse:
+            results_torch = torch.tensor([0.0, 1.0, 3.0, 6.0], dtype=torch.int64)
+        else:
+            results_torch = torch.tensor([6.0, 6.0, 5.0, 3.0], dtype=torch.int64)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(result, results_torch)
 
@@ -3844,7 +4022,10 @@ class AssociativeScanTests(TestCase):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -3856,12 +4037,20 @@ class AssociativeScanTests(TestCase):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
             )
         ),
     )
     def test_associative_scan_dim(
         self, combine_mode, compile_mode, reverse, device, autograd
     ):
+=======
+                or torch.version.hip
+            )
+        ),
+    )
+    def test_associative_scan_dim(self, combine_mode, compile_mode, reverse, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import random
 
         random.seed(1234)
@@ -3872,7 +4061,11 @@ class AssociativeScanTests(TestCase):
             torch._dynamo.reset()
             shapes = [random.randint(1, 9) for _ in range(num_dim)]
             rnd_scan_dim = random.randint(0, num_dim - 1)
+<<<<<<< HEAD
             x = torch.randn(*shapes, device=device, requires_grad=autograd)
+=======
+            x = torch.randn(*shapes, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             kwargs = {
                 "dim": rnd_scan_dim,
@@ -3885,7 +4078,10 @@ class AssociativeScanTests(TestCase):
                 model=AssociativeScanModels.Simple(**kwargs),
                 model_fake=AssociativeScanModels.Simple(**kwargs_fake),
                 inputs=x,
+<<<<<<< HEAD
                 autograd_param=None if not autograd else (x,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             if not reverse:
@@ -3917,13 +4113,20 @@ class AssociativeScanTests(TestCase):
                 inputs=x,
             )
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm(msg="Unsupported on ROCM yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -3935,6 +4138,7 @@ class AssociativeScanTests(TestCase):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
             )
         ),
     )
@@ -3943,6 +4147,15 @@ class AssociativeScanTests(TestCase):
     ):
         x = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
         y = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
+=======
+                or torch.version.hip
+            )
+        ),
+    )
+    def test_associative_scan_tuple(self, compile_mode, combine_mode, reverse, device):
+        x = torch.randn(3, 2, 2, device=device)
+        y = torch.randn(3, 2, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inp = (x, y)
 
         kwargs = {
@@ -3957,12 +4170,16 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else inp,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
+<<<<<<< HEAD
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
     @parametrize("autograd", [False, True])
@@ -3970,6 +4187,15 @@ class AssociativeScanTests(TestCase):
         self, compile_mode, reverse, device, autograd
     ):
         x = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
+=======
+    @parametrize("combine_mode", ["pointwise", "generic"])
+    @parametrize("reverse", [False, True])
+    @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+    def test_associative_scan_expand_in_combine_fn(
+        self, compile_mode, combine_mode, reverse, device
+    ):
+        x = torch.randn(3, 2, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def combine_fn(x, y):
             return x * torch.sum(y, -1).expand(x.shape)
@@ -3986,7 +4212,10 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=x,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -3994,6 +4223,7 @@ class AssociativeScanTests(TestCase):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     def test_associative_scan_non_contiguous_tensor(
         self, compile_mode, reverse, device, autograd
@@ -4003,6 +4233,12 @@ class AssociativeScanTests(TestCase):
             .view(10, 3)
             .t()
         )
+=======
+    def test_associative_scan_non_contiguous_tensor(
+        self, compile_mode, reverse, device
+    ):
+        x = torch.arange(30, device=device).view(10, 3).t()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert not x.is_contiguous()
 
         kwargs = {
@@ -4017,7 +4253,10 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=x,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4026,7 +4265,10 @@ class AssociativeScanTests(TestCase):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -4038,15 +4280,27 @@ class AssociativeScanTests(TestCase):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
+=======
+                or torch.version.hip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ),
     )
     def test_associative_scan_complex_pytree(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
     ):
         x = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
         y = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
         z = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
+=======
+        self, compile_mode, combine_mode, reverse, device
+    ):
+        x = torch.randn(3, 2, 2, device=device)
+        y = torch.randn(3, 2, 2, device=device)
+        z = torch.randn(3, 2, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inp = {"i": x, "j": ([y], [{"o": z}])}
 
         kwargs = {
@@ -4061,13 +4315,21 @@ class AssociativeScanTests(TestCase):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x, y, z),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @skipIfTorchDynamo("don't test compile on compile")
     @skipIfNoDynamoSupport
     @skipIfCrossRef  # Arg order changes with crossref
     def test_associative_scan_pytree_output(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = (
             (
                 torch.randn(3, 10, 2, device=torch.device("cpu")),
@@ -4115,6 +4377,7 @@ class GraphModule(torch.nn.Module):
         child_4: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_4, 0, 1, None, 2)
         child_5: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_5, 0, 1, None, 2)
 
+<<<<<<< HEAD
         lazy_load_decompositions = torch._functorch.predispatch.lazy_load_decompositions();  lazy_load_decompositions = None
 
         _vmap_increment_nesting = torch._functorch.predispatch._vmap_increment_nesting(1, 'error');  _vmap_increment_nesting = None
@@ -4125,22 +4388,43 @@ class GraphModule(torch.nn.Module):
         _add_batch_dim_3: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_3, 0, 1);  child_3 = _add_batch_dim_3 = None
         _add_batch_dim_4: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_4, 0, 1);  child_4 = _add_batch_dim_4 = None
         _add_batch_dim_5: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_5, 0, 1);  child_5 = None
+=======
+        lazy_load_decompositions = torch._functorch.vmap.lazy_load_decompositions();  lazy_load_decompositions = None
+
+        _vmap_increment_nesting = torch._C._functorch._vmap_increment_nesting(1, 'error');  _vmap_increment_nesting = None
+
+        _add_batch_dim: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child, 0, 1);  child = None
+        _add_batch_dim_1: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_1, 0, 1);  child_1 = None
+        _add_batch_dim_2: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_2, 0, 1);  child_2 = _add_batch_dim_2 = None
+        _add_batch_dim_3: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_3, 0, 1);  child_3 = _add_batch_dim_3 = None
+        _add_batch_dim_4: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_4, 0, 1);  child_4 = _add_batch_dim_4 = None
+        _add_batch_dim_5: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_5, 0, 1);  child_5 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         a: "f32[10, 2]" = _add_batch_dim + _add_batch_dim_5;  _add_batch_dim = None
         b: "f32[10, 2]" = _add_batch_dim_1 - _add_batch_dim_5;  _add_batch_dim_1 = _add_batch_dim_5 = None
 
         child_6: "f32[10, 2]" = a - b
 
+<<<<<<< HEAD
         child_7: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(a, 1, 1, 0);  a = None
         child_8: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(b, 1, 1, 0);  b = None
         child_9: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(child_6, 1, 1, 0);  child_6 = None
 
         _vmap_decrement_nesting = torch._functorch.predispatch._vmap_decrement_nesting();  _vmap_decrement_nesting = None
+=======
+        child_7: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(a, 1, 1, 0);  a = None
+        child_8: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(b, 1, 1, 0);  b = None
+        child_9: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(child_6, 1, 1, 0);  child_6 = None
+
+        _vmap_decrement_nesting = torch._C._functorch._vmap_decrement_nesting();  _vmap_decrement_nesting = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         child_10: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_3, 0, 2, None, 2)
         child_11: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_4, 0, 2, None, 2)
         child_12: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_5, 0, 2, None, 2)
 
+<<<<<<< HEAD
         lazy_load_decompositions_1 = torch._functorch.predispatch.lazy_load_decompositions();  lazy_load_decompositions_1 = None
 
         _vmap_increment_nesting_1 = torch._functorch.predispatch._vmap_increment_nesting(1, 'error');  _vmap_increment_nesting_1 = None
@@ -4151,17 +4435,37 @@ class GraphModule(torch.nn.Module):
         _add_batch_dim_9: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_10, 0, 1);  child_10 = _add_batch_dim_9 = None
         _add_batch_dim_10: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_11, 0, 1);  child_11 = _add_batch_dim_10 = None
         _add_batch_dim_11: "f32[10, 2]" = torch._functorch.predispatch._add_batch_dim(child_12, 0, 1);  child_12 = None
+=======
+        lazy_load_decompositions_1 = torch._functorch.vmap.lazy_load_decompositions();  lazy_load_decompositions_1 = None
+
+        _vmap_increment_nesting_1 = torch._C._functorch._vmap_increment_nesting(1, 'error');  _vmap_increment_nesting_1 = None
+
+        _add_batch_dim_6: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_7, 0, 1)
+        _add_batch_dim_7: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_8, 0, 1)
+        _add_batch_dim_8: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_9, 0, 1);  _add_batch_dim_8 = None
+        _add_batch_dim_9: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_10, 0, 1);  child_10 = _add_batch_dim_9 = None
+        _add_batch_dim_10: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_11, 0, 1);  child_11 = _add_batch_dim_10 = None
+        _add_batch_dim_11: "f32[10, 2]" = torch._C._functorch._add_batch_dim(child_12, 0, 1);  child_12 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         a_1: "f32[10, 2]" = _add_batch_dim_6 + _add_batch_dim_11;  _add_batch_dim_6 = None
         b_1: "f32[10, 2]" = _add_batch_dim_7 - _add_batch_dim_11;  _add_batch_dim_7 = _add_batch_dim_11 = None
 
         child_13: "f32[10, 2]" = a_1 - b_1
 
+<<<<<<< HEAD
         child_14: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(a_1, 1, 1, 0);  a_1 = None
         child_15: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(b_1, 1, 1, 0);  b_1 = None
         child_16: "f32[1, 10, 2]" = torch._functorch.predispatch._remove_batch_dim(child_13, 1, 1, 0);  child_13 = None
 
         _vmap_decrement_nesting_1 = torch._functorch.predispatch._vmap_decrement_nesting();  _vmap_decrement_nesting_1 = None
+=======
+        child_14: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(a_1, 1, 1, 0);  a_1 = None
+        child_15: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(b_1, 1, 1, 0);  b_1 = None
+        child_16: "f32[1, 10, 2]" = torch._C._functorch._remove_batch_dim(child_13, 1, 1, 0);  child_13 = None
+
+        _vmap_decrement_nesting_1 = torch._C._functorch._vmap_decrement_nesting();  _vmap_decrement_nesting_1 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         slice_10: "f32[1, 10, 2]" = torch.ops.aten.slice(elem_3, 0, 0, 1);  elem_3 = None
         cat: "f32[2, 10, 2]" = torch.cat([slice_10, child_14], dim = 0);  slice_10 = child_14 = None
@@ -4211,7 +4515,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -4223,11 +4530,19 @@ class GraphModule(torch.nn.Module):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
+=======
+                or torch.version.hip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ),
     )
     def test_associative_scan_downstream_scan_matmul(
+<<<<<<< HEAD
         self, combine_mode, compile_mode, reverse, device, autograd
+=======
+        self, combine_mode, compile_mode, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def first_chain_fct(scan_fct, inp, **kwargs):
             o = scan_fct(get_scan_combine_fn("add", True), inp, **kwargs)
@@ -4237,7 +4552,11 @@ class GraphModule(torch.nn.Module):
             W = torch.ones(2, 5, device=device)
             return inp @ W
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs = {
             "dim": 1,
             "reverse": reverse,
@@ -4250,7 +4569,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.ChainFn(**kwargs),
             model_fake=AssociativeScanModels.ChainFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4259,7 +4581,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -4271,11 +4596,19 @@ class GraphModule(torch.nn.Module):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
+=======
+                or torch.version.hip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ),
     )
     def test_associative_scan_downstream_scan_scan(
+<<<<<<< HEAD
         self, combine_mode, compile_mode, reverse, device, autograd
+=======
+        self, combine_mode, compile_mode, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def first_chain_fct(scan_fct, inp, **kwargs):
             o1 = scan_fct(get_scan_combine_fn("add", True), inp, **kwargs)
@@ -4285,7 +4618,11 @@ class GraphModule(torch.nn.Module):
             o2 = scan_fct(get_scan_combine_fn("add", True), inp, **kwargs)
             return o2
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 1,
@@ -4299,7 +4636,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.ChainFn(**kwargs),
             model_fake=AssociativeScanModels.ChainFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4309,7 +4649,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("reverse_first", [False, True])
     @parametrize("same_direction", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -4321,6 +4664,7 @@ class GraphModule(torch.nn.Module):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
             )
         ),
     )
@@ -4338,6 +4682,14 @@ class GraphModule(torch.nn.Module):
         same_direction,
         device,
         autograd,
+=======
+                or torch.version.hip
+            )
+        ),
+    )
+    def test_associative_scan_downstream_scan_scan_different_dim(
+        self, combine_mode, compile_mode, reverse_first, same_direction, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         reverse_second = reverse_first if same_direction else not reverse_first
 
@@ -4349,7 +4701,11 @@ class GraphModule(torch.nn.Module):
             o2 = scan_fct(get_scan_combine_fn("add", True), inp, **kwargs)
             return o2
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": [1, 0],
@@ -4363,10 +4719,16 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.ChainFn(**kwargs),
             model_fake=AssociativeScanModels.ChainFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
         )
 
     # TODO: Does not work because of the usage of vmap within associative_scan
+=======
+        )
+
+    # TODO: Does not work because of the usage of vmap witin associative_scan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: Re-enable additional parameters again once this issues has been resolved
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
@@ -4422,9 +4784,14 @@ class GraphModule(torch.nn.Module):
     @parametrize("loop_type", ["for"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     def test_associative_scan_loop_in_combine_fn(
         self, compile_mode, loop_type, reverse, device, autograd
+=======
+    def test_associative_scan_loop_in_combine_fn(
+        self, compile_mode, loop_type, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def combine_fn(x, y):
             cnt = torch.zeros_like(y[0, :])
@@ -4449,7 +4816,11 @@ class GraphModule(torch.nn.Module):
                     cnt += torch.abs(y[ind])
             return x * cnt
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 1, device=device, requires_grad=autograd) * 2
+=======
+        inp = torch.randn(3, 10, 1, device=device) * 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4463,10 +4834,16 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
         )
 
     # TODO: Does not work because of the usage of vmap within associative_scan
+=======
+        )
+
+    # TODO: Does not work because of the usage of vmap witin associative_scan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: Re-enable additional parameters again once this issues has been resolved
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
@@ -4508,7 +4885,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of compile_mode=compile_dynamic_shape
     # as the current implementation does not support lifted arguments
     @decorateIf(
@@ -4516,16 +4896,27 @@ class GraphModule(torch.nn.Module):
         lambda params: (
             params["device"] == torch.device("cpu")
             or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
         ),
     )
     def test_associative_scan_cond_in_combine_fn(
         self, compile_mode, reverse, device, autograd
     ):
+=======
+            or torch.version.hip
+        ),
+    )
+    def test_associative_scan_cond_in_combine_fn(self, compile_mode, reverse, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def combine_fn(x, y):
             val = cond(torch.sum(y) > 0.0, lambda y: y.clone(), lambda y: 1.0 - y, (y,))
             return x * val
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 1, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 10, 1, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4539,10 +4930,16 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
         )
 
     # TODO: Does not work because of the usage of vmap within associative_scan
+=======
+        )
+
+    # TODO: Does not work because of the usage of vmap witin associative_scan
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: Re-enable additional parameters again once this issues has been resolved
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
@@ -4581,10 +4978,14 @@ class GraphModule(torch.nn.Module):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     def test_associative_scan_vmap_in_combine_fn(
         self, compile_mode, reverse, device, autograd
     ):
+=======
+    def test_associative_scan_vmap_in_combine_fn(self, compile_mode, reverse, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def combine_fn(x, y):
             def body(x):
                 return x**2
@@ -4593,7 +4994,11 @@ class GraphModule(torch.nn.Module):
             y_new = mapped_body(y)
             return x + y_new
 
+<<<<<<< HEAD
         inp = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4607,7 +5012,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4615,7 +5023,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("reverse", [False, True])
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of associative_scan and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     @decorateIf(
@@ -4623,9 +5034,15 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["device"] == torch.device("cpu")),
     )
     def test_associative_scan_non_pointwise_generic(
+<<<<<<< HEAD
         self, reverse, compile_mode, device, autograd
     ):
         x = torch.randn(3, 10, 2, device=device, requires_grad=autograd)
+=======
+        self, reverse, compile_mode, device
+    ):
+        x = torch.randn(3, 10, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4639,16 +5056,25 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=x,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (x,),
         )
 
+=======
+        )
+
+    @skipIfRocm(msg="Unsupported on ROCM yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combination of combine_mode=pointwise and device=cpu
     # as the current implementation of pointwise does only support CUDA device
     # Skipping the combination of combine_mode=pointwise and compile_mode=compile_dynamic_shape
@@ -4660,18 +5086,32 @@ class GraphModule(torch.nn.Module):
             and (
                 params["device"] == torch.device("cpu")
                 or params["compile_mode"] == "compile_dynamic_shape"
+<<<<<<< HEAD
+=======
+                or torch.version.hip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ),
     )
     def test_associative_scan_binary_operator(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
+=======
+        self, compile_mode, combine_mode, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         state_dim = 20
         timesteps = 10
         projected_inputs = torch.randn(
+<<<<<<< HEAD
             timesteps, state_dim, device=device, requires_grad=autograd
         )
         A = torch.randn(state_dim, device=device, requires_grad=autograd)
+=======
+            timesteps, state_dim, requires_grad=True, device=device
+        )
+        A = torch.randn(state_dim, requires_grad=True, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elements = (A.repeat((timesteps, 1)), projected_inputs)
 
         kwargs = {
@@ -4686,9 +5126,15 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=elements,
+<<<<<<< HEAD
             autograd_param=None if not autograd else elements,
         )
 
+=======
+        )
+
+    @skipIfRocm(msg="Unsupported on ROCM yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM70OrLater, "triton")
     @requires_cuda
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
@@ -4767,7 +5213,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combine_mode=pointwise
     # as the current implementation of associative_scan lowering
     # does not support lifted arguments
@@ -4776,9 +5225,15 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["combine_mode"] == "pointwise"),
     )
     def test_associative_scan_freevars_simple(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
     ):
         H = torch.rand(2, device=device, requires_grad=autograd)
+=======
+        self, compile_mode, combine_mode, reverse, device
+    ):
+        H = torch.rand(2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fct_freevars1(x: torch.Tensor, y: torch.Tensor):
             return x * H + y * 2
@@ -4786,13 +5241,22 @@ class GraphModule(torch.nn.Module):
         def fct_freevars2(x: torch.Tensor, y: torch.Tensor):
             return x * H + y * H
 
+<<<<<<< HEAD
         H1 = torch.rand(1, device=device, requires_grad=autograd)
         H2 = torch.rand(1, device=device, requires_grad=autograd)
+=======
+        H1 = torch.rand(1, device=device)
+        H2 = torch.rand(1, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fct_freevars3(x: torch.Tensor, y: torch.Tensor):
             return x * H1 + y * H2
 
+<<<<<<< HEAD
         inp = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 2, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for fct, param in [
             (fct_freevars1, (H,)),
@@ -4811,7 +5275,10 @@ class GraphModule(torch.nn.Module):
                 model=AssociativeScanModels.CombineFn(**kwargs),
                 model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
                 inputs=inp,
+<<<<<<< HEAD
                 autograd_param=None if not autograd else (inp, *param),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4820,7 +5287,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combine_mode=pointwise
     # as the current implementation of associative_scan lowering
     # does not support lifted arguments
@@ -4829,10 +5299,17 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["combine_mode"] == "pointwise"),
     )
     def test_associative_scan_freevars_nested(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
     ):
         H1 = torch.rand(4, 5, device=device, requires_grad=autograd)
         H2 = torch.rand(4, 1, device=device, requires_grad=autograd)
+=======
+        self, compile_mode, combine_mode, reverse, device
+    ):
+        H1 = torch.rand(4, 5, device=device)
+        H2 = torch.rand(4, 1, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fct_nested_outside(x: torch.Tensor, y: torch.Tensor):
             def inner(xi):
@@ -4848,10 +5325,19 @@ class GraphModule(torch.nn.Module):
             ret = inner(y)
             return x + ret * H1
 
+<<<<<<< HEAD
+=======
+        H1_i = torch.rand(4, 5, device=device)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Using random tensors in the `combine_fn` triggers the vmap randomness error:
         # RuntimeError: vmap: called random operation while in randomness error mode.
         # Please either use the 'same' or 'different' randomness flags on vmap or perform the randomness operation out of vmap
         def fct_nested_inside(x: torch.Tensor, y: torch.Tensor):
+<<<<<<< HEAD
+=======
+            # H2_i = torch.rand(4, 1, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             H2_i = torch.ones(4, 1, device=device) * 42
 
             def inner(xi):
@@ -4861,6 +5347,10 @@ class GraphModule(torch.nn.Module):
             return x + ret * H1
 
         def fct_nested_inside_fake(x: torch.Tensor, y: torch.Tensor):
+<<<<<<< HEAD
+=======
+            # H2_i = torch.rand(4, 1, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             H2_i = torch.ones(4, 1, device=device) * 42
 
             def inner(xi):
@@ -4869,11 +5359,19 @@ class GraphModule(torch.nn.Module):
             ret = inner(y)
             return x + ret * H1
 
+<<<<<<< HEAD
         inp = torch.randn(3, 4, 5, device=device, requires_grad=autograd)
 
         for fct, fct_fake, param in [
             (fct_nested_outside, fct_nested_outside_fake, (H1, H2)),
             (fct_nested_inside, fct_nested_inside_fake, ()),
+=======
+        inp = torch.randn(3, 4, 5, device=device)
+
+        for fct, fct_fake, param in [
+            (fct_nested_outside, fct_nested_outside_fake, (H1, H2)),
+            (fct_nested_inside, fct_nested_inside_fake, (H1_i,)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]:
             kwargs = {
                 "dim": 0,
@@ -4888,7 +5386,10 @@ class GraphModule(torch.nn.Module):
                 model=AssociativeScanModels.CombineFn(**kwargs),
                 model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
                 inputs=inp,
+<<<<<<< HEAD
                 autograd_param=None if not autograd else (inp, *param),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4897,7 +5398,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combine_mode=pointwise
     # as the current implementation of associative_scan lowering
     # does not support lifted arguments
@@ -4906,7 +5410,11 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["combine_mode"] == "pointwise"),
     )
     def test_associative_scan_freevars_fct(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
+=======
+        self, compile_mode, combine_mode, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def additional_fct_no_add_inp(x, y):
             return x * y
@@ -4915,7 +5423,11 @@ class GraphModule(torch.nn.Module):
             ret = additional_fct_no_add_inp(y, y)
             return x + ret
 
+<<<<<<< HEAD
         inp = torch.randn(3, 4, 5, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 4, 5, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4929,7 +5441,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4937,10 +5452,14 @@ class GraphModule(torch.nn.Module):
     @parametrize("compile_mode", ["none", "eager", "compile", "compile_dynamic_shape"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     def test_associative_scan_freevars_fct_generic(
         self, compile_mode, reverse, device, autograd
     ):
+=======
+    def test_associative_scan_freevars_fct_generic(self, compile_mode, reverse, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def additional_fct_no_add_inp(x, y):
             return x * y
 
@@ -4954,7 +5473,11 @@ class GraphModule(torch.nn.Module):
             ret = _fake_associative_scan(additional_fct_no_add_inp, y, 1)
             return x + ret
 
+<<<<<<< HEAD
         inp = torch.randn(3, 4, 5, device=device, requires_grad=autograd)
+=======
+        inp = torch.randn(3, 4, 5, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kwargs = {
             "dim": 0,
@@ -4969,7 +5492,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -4978,7 +5504,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combine_mode=pointwise
     # as the current implementation of associative_scan lowering
     # does not support lifted arguments
@@ -4987,7 +5516,11 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["combine_mode"] == "pointwise"),
     )
     def test_associative_scan_freevars_shape_check(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
+=======
+        self, compile_mode, combine_mode, reverse, device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         H = torch.eye(2, device=device, requires_grad=True)
 
@@ -5008,7 +5541,10 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (inp,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -5017,7 +5553,10 @@ class GraphModule(torch.nn.Module):
     @parametrize("reverse", [False, True])
     @parametrize("device", [torch.device("cpu"), torch.device("cuda")])
     @parametrize("combine_mode", ["pointwise", "generic"])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skipping the combine_mode=pointwise
     # as the current implementation of associative_scan lowering
     # does not support lifted arguments
@@ -5026,11 +5565,19 @@ class GraphModule(torch.nn.Module):
         lambda params: (params["combine_mode"] == "pointwise"),
     )
     def test_associative_scan_freevars_pytree(
+<<<<<<< HEAD
         self, compile_mode, combine_mode, reverse, device, autograd
     ):
         xf = torch.randn(2, 2, device=device, requires_grad=autograd)
         yf = torch.randn(2, 2, device=device, requires_grad=autograd)
         zf = torch.randn(2, 2, device=device, requires_grad=autograd)
+=======
+        self, compile_mode, combine_mode, reverse, device
+    ):
+        xf = torch.randn(2, 2, device=device, requires_grad=True)
+        yf = torch.randn(2, 2, device=device, requires_grad=True)
+        zf = torch.randn(2, 2, device=device, requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inpf = {"i": xf, "j": ([yf], [{"o": zf}])}
 
         def fct_pointwise(x, y):
@@ -5047,9 +5594,15 @@ class GraphModule(torch.nn.Module):
                 ),
             }
 
+<<<<<<< HEAD
         x = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
         y = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
         z = torch.randn(3, 2, 2, device=device, requires_grad=autograd)
+=======
+        x = torch.randn(3, 2, 2, device=device, requires_grad=True)
+        y = torch.randn(3, 2, 2, device=device, requires_grad=True)
+        z = torch.randn(3, 2, 2, device=device, requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inp = {"i": x, "j": ([y], [{"o": z}])}
 
         kwargs = {
@@ -5064,6 +5617,7 @@ class GraphModule(torch.nn.Module):
             model=AssociativeScanModels.CombineFn(**kwargs),
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
+<<<<<<< HEAD
             autograd_param=None if not autograd else (*pytree.tree_leaves(inp),),
         )
 
@@ -5174,6 +5728,8 @@ class GraphModule(torch.nn.Module):
             model_fake=AssociativeScanModels.CombineFn(**kwargs_fake),
             inputs=inp,
             autograd_param=inp[0:1],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(not SM70OrLater, "triton")
@@ -5341,10 +5897,14 @@ class TestControlFlowTraced(TestCase):
 
     def _check_export(self, fn, args, *, strict=False, dynamic_shapes=None):
         eg_out = fn(*args)
+<<<<<<< HEAD
         with torch._export.config.patch(use_new_tracer_experimental=True):
             ep = torch.export.export(
                 fn, args, strict=strict, dynamic_shapes=dynamic_shapes
             )
+=======
+        ep = torch.export.export(fn, args, strict=strict, dynamic_shapes=dynamic_shapes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ep_out = ep.module()(*args)
         self.assertEqual(eg_out, ep_out)
         return ep
@@ -5373,6 +5933,11 @@ class TestControlFlowTraced(TestCase):
     @skipIfTorchDynamo("Graph is not captured by backend if test with dynamo")
     @skipIfCrossRef  # Arg order changes with crossref
     def test_cond_simple_with_linear_compile_check_graph(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def true_fn(x):
             return x.sin()
 
@@ -5420,7 +5985,11 @@ class GraphModule(torch.nn.Module):
         return (getitem,)
 
     class cond_true_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, l_args_1_: "f32[4]", l_ctx_saved_tensors_0_: "f32[4]"):
+=======
+        def forward(self, l_args_1_, l_ctx_saved_tensors_0_):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             l_args_1__1 = l_args_1_
             l_ctx_saved_tensors_0__1 = l_ctx_saved_tensors_0_
 
@@ -5432,7 +6001,11 @@ class GraphModule(torch.nn.Module):
             return (mul,)
 
     class cond_false_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, l_args_1_: "f32[4]", l_ctx_saved_tensors_0_: "f32[4]"):
+=======
+        def forward(self, l_args_1_, l_ctx_saved_tensors_0_):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             l_args_1__1 = l_args_1_
             l_ctx_saved_tensors_0__1 = l_ctx_saved_tensors_0_
 
@@ -5517,6 +6090,11 @@ def forward(self, arg0_1, arg1_1, arg2_1):
 
     def test_while_loop_pytree_carry(self):
         fn, inp = WHILE_LOOP_TESTS["simple_with_pytree_carry"]
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend = EagerAndRecordGraphs()
         expected_res = fn(*inp)
         compiled_res = torch.compile(fn, backend=backend)(*inp)
@@ -5670,7 +6248,11 @@ def forward(self, arg0_1):
             )
 
     @parametrize("func_type", ["no", "cpp", "python", "functorch"])
+<<<<<<< HEAD
     # - "simple_with_linear" and "nested_with_linear" doesn't work because parameters and buffers
+=======
+    # - "simple_with_linear" and "nested_with_linear" doesn't work becaue parameters and buffers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #   are not inputs so they're not wrapped by functionalization and tracing.
     #
     # - make_fx tracing mode "real" fails for "int_carry", "pytree_int_carry" and "const_and_symint_output"
@@ -5706,9 +6288,16 @@ def forward(self, arg0_1):
     )
     def test_while_loop_tracing(self, while_loop_test):
         fn, inp = WHILE_LOOP_TESTS[while_loop_test]
+<<<<<<< HEAD
         allow_non_fake_inputs = while_loop_test in (
             "simple_with_linear",
             "nested_with_linear",
+=======
+        allow_non_fake_inputs = (
+            False
+            if while_loop_test not in ("simple_with_linear", "nested_with_linear")
+            else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self._check_tracing(fn, inp, allow_non_fake_inputs)
 
@@ -5722,12 +6311,18 @@ def forward(self, arg0_1):
     @skipIfCrossRef  # Arg order changes with cross ref
     def test_while_loop_simple_with_linear_compile_check_graph(self):
         fn, inp = WHILE_LOOP_TESTS["simple_with_linear"]
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend = EagerAndRecordGraphs()
         torch.compile(fn, backend=backend)(*inp)
         self.assertEqual(len(backend.graphs), 1)
         gm = backend.graphs[0]
         if torch._dynamo.config.inline_inbuilt_nn_modules:
             self.assertExpectedInline(
+<<<<<<< HEAD
                 normalize_gm(gm.print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
@@ -5757,6 +6352,71 @@ class GraphModule(torch.nn.Module):
             child_4: "f32[2, 2]" = torch._C._nn.linear(child_3, l_self_modules_linear_parameters_weight__body_fn, l_self_modules_linear_parameters_bias__body_fn);  child_3 = l_self_modules_linear_parameters_weight__body_fn = l_self_modules_linear_parameters_bias__body_fn = None
             return (child, child_4)
 """,  # noqa: B950
+=======
+                gm.code.strip(),
+                """\
+def forward(self, L_iter_ : torch.Tensor, L_x_ : torch.Tensor, L_self_buffers_dec_ : torch.Tensor, L_self_modules_linear_parameters_weight_ : torch.nn.parameter.Parameter, L_self_modules_linear_parameters_bias_ : torch.nn.parameter.Parameter):
+    l_iter_ = L_iter_
+    l_x_ = L_x_
+    l_self_buffers_dec_ = L_self_buffers_dec_
+    l_self_modules_linear_parameters_weight_ = L_self_modules_linear_parameters_weight_
+    l_self_modules_linear_parameters_bias_ = L_self_modules_linear_parameters_bias_
+    cond_fn_0 = self.cond_fn_0
+    body_fn_0 = self.body_fn_0
+    while_loop = torch.ops.higher_order.while_loop(cond_fn_0, body_fn_0, (l_iter_, l_x_), (l_self_buffers_dec_, l_self_modules_linear_parameters_bias_, l_self_modules_linear_parameters_weight_));  cond_fn_0 = body_fn_0 = l_iter_ = l_x_ = l_self_buffers_dec_ = l_self_modules_linear_parameters_bias_ = l_self_modules_linear_parameters_weight_ = None
+    getitem = while_loop[0]
+    getitem_1 = while_loop[1];  while_loop = None
+    return (getitem, getitem_1)""",  # noqa: B950
+            )
+            self.assertExpectedInline(
+                gm.cond_fn_0.code.strip(),
+                """\
+def forward(self, l_iter_ : torch.Tensor, l_x_ : torch.Tensor, l_self_buffers_dec__cond_fn, l_self_modules_linear_parameters_bias__body_fn, l_self_modules_linear_parameters_weight__body_fn):
+    sub = l_iter_ - l_self_buffers_dec__cond_fn;  l_iter_ = l_self_buffers_dec__cond_fn = None
+    gt = sub > 0;  sub = None
+    return gt""",  # noqa: B950
+            )
+            self.assertExpectedInline(
+                gm.body_fn_0.code.strip(),
+                """\
+def forward(self, l_iter_ : torch.Tensor, l_x_ : torch.Tensor, l_self_buffers_dec__cond_fn, l_self_modules_linear_parameters_bias__body_fn, l_self_modules_linear_parameters_weight__body_fn):
+    child = l_iter_ - 1;  l_iter_ = None
+    child_1 = torch._C._nn.linear(l_x_, l_self_modules_linear_parameters_weight__body_fn, l_self_modules_linear_parameters_bias__body_fn);  l_x_ = l_self_modules_linear_parameters_weight__body_fn = l_self_modules_linear_parameters_bias__body_fn = None
+    return (child, child_1)""",  # noqa: B950
+            )
+        else:
+            self.assertExpectedInline(
+                gm.code.strip(),
+                """\
+def forward(self, L_iter_ : torch.Tensor, L_x_ : torch.Tensor):
+    l_iter_ = L_iter_
+    l_x_ = L_x_
+    l__self___dec = self.L__self___dec
+    l__self___linear_weight = self.L__self___linear_weight
+    l__self___linear_bias = self.L__self___linear_bias
+    cond_fn_0 = self.cond_fn_0
+    body_fn_0 = self.body_fn_0
+    while_loop = torch.ops.higher_order.while_loop(cond_fn_0, body_fn_0, (l_iter_, l_x_), (l__self___dec, l__self___linear_bias, l__self___linear_weight));  cond_fn_0 = body_fn_0 = l_iter_ = l_x_ = l__self___dec = l__self___linear_bias = l__self___linear_weight = None
+    getitem = while_loop[0]
+    getitem_1 = while_loop[1];  while_loop = None
+    return (getitem, getitem_1)""",  # noqa: B950
+            )
+            self.assertExpectedInline(
+                gm.cond_fn_0.code.strip(),
+                """\
+def forward(self, l_iter_, l_x_, l__self___dec_cond_fn, l__self___linear_bias_body_fn, l__self___linear_weight_body_fn):
+    sub = l_iter_ - l__self___dec_cond_fn;  l_iter_ = l__self___dec_cond_fn = None
+    gt = sub > 0;  sub = None
+    return gt""",  # noqa: B950
+            )
+            self.assertExpectedInline(
+                gm.body_fn_0.code.strip(),
+                """\
+def forward(self, l_iter_, l_x_, l__self___dec_cond_fn, l__self___linear_bias_body_fn, l__self___linear_weight_body_fn):
+    child = l_iter_ - 1;  l_iter_ = None
+    child_1 = torch._C._nn.linear(l_x_, l__self___linear_weight_body_fn, l__self___linear_bias_body_fn);  l_x_ = l__self___linear_weight_body_fn = l__self___linear_bias_body_fn = None
+    return (child, child_1)""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def test_while_loop_nested2_traced(self):
@@ -6973,6 +7633,7 @@ def forward(self, arg0_1):
         res_compiled = torch.compile(f)(*example_inputs)
         self.assertEqual(res, res_compiled)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("Skip because we're testing export")
     def test_cond_autograd_backward_inp_out_aliasing(self):
         from torch._dynamo.testing import AotEagerAndRecordGraphs
@@ -7073,6 +7734,8 @@ class GraphModule(torch.nn.Module):
             )
         self.assertEqual(res, res_compiled)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_map_functionalized_elem_alias(self):
         def map_fn(x):
             x.view(x.shape)
@@ -7849,6 +8512,11 @@ def forward(self, arg0_1, arg1_1, arg2_1):
         ):
             out = torch.compile(Mod(), backend="inductor")(inp, tmp)
 
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend = EagerAndRecordGraphs()
         out = torch.compile(Mod(), backend=backend)(inp, tmp)
         self.assertExpectedInline(
@@ -7870,9 +8538,16 @@ def forward(self, l_inp_, l_tmp_):
         )
         self.assertEqual(out, f(inp, tmp))
 
+<<<<<<< HEAD
     @skipIfCrossRef  # Args get renamed to r in crossref mode
     @parametrize("requires_grad", [True, False])
     def test_cond_symint_operands(self, requires_grad):
+=======
+    @parametrize("requires_grad", [True, False])
+    def test_cond_symint_operands(self, requires_grad):
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend = EagerAndRecordGraphs()
 
         class Mod(torch.nn.Module):
@@ -8036,6 +8711,11 @@ def forward(self, s97 : torch.SymInt, L_a_ : torch.Tensor, L_b_ : torch.Tensor):
 
     @skipIfTorchDynamo("Graph is not captured by backend if test with dynamo")
     def test_scan_pytree_closure(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         param_buffer = ({"param": torch.randn(3, 3)}, (torch.randn(3),))
 
         def add(carry, x):
@@ -8063,8 +8743,14 @@ def forward(self, L_init_ : torch.Tensor, L_xs_ : torch.Tensor, L_add_closure_0_
     l_xs_ = L_xs_
     l_add_closure_0_cell_contents_0_param_ = L_add_closure_0_cell_contents_0_param_
     l_add_closure_0_cell_contents_1_0_ = L_add_closure_0_cell_contents_1_0_
+<<<<<<< HEAD
     scan_combine_fn_0 = self.scan_combine_fn_0
     scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_], [l_xs_], [l_add_closure_0_cell_contents_0_param_, l_add_closure_0_cell_contents_1_0_]);  scan_combine_fn_0 = l_init_ = l_xs_ = l_add_closure_0_cell_contents_0_param_ = l_add_closure_0_cell_contents_1_0_ = None
+=======
+    r = torch.movedim(l_xs_, 0, 0);  l_xs_ = None
+    scan_combine_fn_0 = self.scan_combine_fn_0
+    scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_], [r], [l_add_closure_0_cell_contents_0_param_, l_add_closure_0_cell_contents_1_0_]);  scan_combine_fn_0 = l_init_ = r = l_add_closure_0_cell_contents_0_param_ = l_add_closure_0_cell_contents_1_0_ = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     carry = scan[0]
     out = scan[1];  scan = None
     return (carry, out)""",  # noqa: B950
@@ -8078,8 +8764,14 @@ def forward(self, L_init_ : torch.Tensor, L_xs_ : torch.Tensor, L_add_closure_0_
     l_xs_ = L_xs_
     l_add_closure_0_cell_contents_0_param_ = L_add_closure_0_cell_contents_0_param_
     l_add_closure_0_cell_contents_1_0_ = L_add_closure_0_cell_contents_1_0_
+<<<<<<< HEAD
     scan_combine_fn_0 = self.scan_combine_fn_0
     scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_], [l_xs_], [l_add_closure_0_cell_contents_0_param_, l_add_closure_0_cell_contents_1_0_]);  scan_combine_fn_0 = l_init_ = l_xs_ = l_add_closure_0_cell_contents_0_param_ = l_add_closure_0_cell_contents_1_0_ = None
+=======
+    movedim = torch.movedim(l_xs_, 0, 0);  l_xs_ = None
+    scan_combine_fn_0 = self.scan_combine_fn_0
+    scan = torch.ops.higher_order.scan(scan_combine_fn_0, [l_init_], [movedim], [l_add_closure_0_cell_contents_0_param_, l_add_closure_0_cell_contents_1_0_]);  scan_combine_fn_0 = l_init_ = movedim = l_add_closure_0_cell_contents_0_param_ = l_add_closure_0_cell_contents_1_0_ = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     carry = scan[0]
     out = scan[1];  scan = None
     return (carry, out)""",  # noqa: B950
@@ -8087,6 +8779,7 @@ def forward(self, L_init_ : torch.Tensor, L_xs_ : torch.Tensor, L_add_closure_0_
         self.assertEqual(eager_out, exp_out)
         self.assertEqual(compiled_out, exp_out)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_scan_in_vmap_simple(self):
         x = torch.randn(3, 4, 4)
@@ -8343,6 +9036,15 @@ def forward(self, L_init_ : torch.Tensor, L_xs_ : torch.Tensor, L_add_closure_0_
 
     @skipIfTorchDynamo("Skip because we're testing export")
     @parametrize("strict", [True, False])
+=======
+    @skipIfTorchDynamo("Skip because we're testing export")
+    # TODO: we cannot turn on strict=True yet because torch._check for out_it > 0 is
+    # removed from the graph in dynamo and in non-strict export's graph capturing
+    # step, we re-run the traced graph module to get graph captured result.
+    # Since torch._check is removed from graph, we end up getting a data-dependent
+    # error when we call torch.ones(out_it * 2).
+    @parametrize("strict", [False])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("dynamic", [True, False])
     def test_while_loop_op_int_carry_export(self, strict, dynamic):
         m, args = WHILE_LOOP_TESTS["int_carry"]
@@ -8357,7 +9059,10 @@ class GraphModule(torch.nn.Module):
         x: "f32[s77, 3]";
 
         x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sym_size_int_1: "Sym(s77)" = torch.ops.aten.sym_size.int(x, 0)
 
         while_loop_cond_graph_0 = self.while_loop_cond_graph_0
@@ -8386,9 +9091,14 @@ class GraphModule(torch.nn.Module):
 
     class while_loop_cond_graph_0(torch.nn.Module):
         def forward(self, it_1: "Sym(u0)", x_1: "f32[s77, 3]"):
+<<<<<<< HEAD
             sym_size_int_1: "Sym(s77)" = torch.ops.aten.sym_size.int(x_1, 0);  x_1 = None
 
             lt: "Sym(u0 < s77)" = it_1 < sym_size_int_1;  it_1 = sym_size_int_1 = None
+=======
+            sym_size_int: "Sym(s77)" = torch.ops.aten.sym_size.int(x_1, 0);  x_1 = None
+            lt: "Sym(u0 < s77)" = it_1 < sym_size_int;  it_1 = sym_size_int = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return lt
 
     class while_loop_body_graph_0(torch.nn.Module):
@@ -8407,6 +9117,11 @@ class GraphModule(torch.nn.Module):
     @parametrize("dynamic", [True, False])
     @parametrize("backend", ["eager", "aot_eager"])
     def test_while_loop_op_int_carry_compile(self, dynamic, backend):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m, args = WHILE_LOOP_TESTS["int_carry"]
         if backend == "eager":
             backend = EagerAndRecordGraphs()
@@ -8428,6 +9143,7 @@ class GraphModule(torch.nn.Module):
         body_fn_0 = self.body_fn_0
         while_loop = torch.ops.higher_order.while_loop(cond_fn_0, body_fn_0, (0, l_x_), (s27, s77));  cond_fn_0 = body_fn_0 = l_x_ = s27 = None
 
+<<<<<<< HEAD
         getitem_4: "Sym(u2)" = while_loop[0]
 
         ge: "Sym(u2 >= 1)" = getitem_4 >= 1
@@ -8484,6 +9200,64 @@ class GraphModule(torch.nn.Module):
             copy_: "f32[s27]" = select.copy_(add);  select = add = copy_ = None
 
             add_1: "Sym(u1 + 1)" = unbacked_symint_0 + 1;  unbacked_symint_0 = None
+=======
+        getitem_4: "Sym(u1)" = while_loop[0]
+
+        ge: "Sym(u1 >= 1)" = getitem_4 >= 1
+        _assert_scalar_default = torch.ops.aten._assert_scalar.default(ge, "Runtime assertion failed for expression u1 >= 1 on node 'ge'");  ge = _assert_scalar_default = None
+
+        gt_1: "Sym(u1 > 0)" = getitem_4 > 0
+        _assert_scalar_default_1 = torch.ops.aten._assert_scalar.default(gt_1, "Runtime assertion failed for expression 0 < u1 on node 'gt_1'");  gt_1 = _assert_scalar_default_1 = None
+
+        out_x: "f32[s77, s27]" = while_loop[1];  while_loop = None
+
+        gt: "Sym(u1 > 0)" = getitem_4 > 0
+        _check = torch._check(gt);  gt = _check = None
+
+        add: "Sym(u1 + 1)" = getitem_4 + 1
+
+        add_1: "f32[s77, s27]" = getitem_4 + out_x;  out_x = None
+
+        lt: "Sym(u1 < s77)" = getitem_4 < s77;  s77 = None
+
+        mul: "Sym(2*u1)" = getitem_4 * 2;  getitem_4 = None
+        ones: "f32[2*u1]" = torch.ones(mul);  mul = None
+        return (add, add_1, lt, ones)
+
+    class cond_fn_0(torch.nn.Module):
+        def forward(self, unbacked_symint: "Sym(u0)", l_x_: "f32[s77, s27]", s27, s77):
+            s27_1 = s27
+            s77_1 = s77
+
+            size = l_x_.size();  l_x_ = None
+            getitem: "Sym(s77)" = size[0]
+            getitem_1: "Sym(s27)" = size[1];  size = getitem_1 = None
+            lt: "Sym(u0 < s77)" = unbacked_symint < getitem;  unbacked_symint = getitem = None
+            return lt
+
+    class body_fn_0(torch.nn.Module):
+        def forward(self, unbacked_symint: "Sym(u0)", l_x_: "f32[s77, s27]", s27, s77):
+            s27_1 = s27
+            s77_1 = s77
+
+            x_clone: "f32[s77, s27]" = l_x_.clone()
+
+            ge: "Sym(u0 >= 0)" = unbacked_symint >= 0
+            _check = torch._check(ge);  ge = _check = None
+
+            size = l_x_.size();  l_x_ = None
+            getitem: "Sym(s77)" = size[0]
+            getitem_1: "Sym(s27)" = size[1];  size = getitem_1 = None
+            lt: "Sym(u0 < s77)" = unbacked_symint < getitem;  getitem = None
+            _check_1 = torch._check(lt);  lt = _check_1 = None
+
+            select: "f32[s27]" = x_clone.select(0, unbacked_symint)
+            select_1: "f32[s27]" = x_clone.select(0, unbacked_symint)
+            add: "f32[s27]" = select_1 + unbacked_symint;  select_1 = None
+            copy_: "f32[s27]" = select.copy_(add);  select = add = copy_ = None
+
+            add_1: "Sym(u0 + 1)" = unbacked_symint + 1;  unbacked_symint = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (add_1, x_clone)
 """,  # noqa: B950
             )
@@ -8506,8 +9280,11 @@ class GraphModule(torch.nn.Module):
         t: "f32[2, 3]";
 
         t, = fx_pytree.tree_flatten_spec(([t], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(t);  _guards_fn = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sum_1: "f32[]" = torch.ops.aten.sum.default(t)
         _assert_tensor_metadata_default = torch.ops.aten._assert_tensor_metadata.default(sum_1, dtype = torch.float32, device = device(type='cpu'), layout = torch.strided);  _assert_tensor_metadata_default = None
         to: "i64[]" = torch.ops.aten.to.dtype(sum_1, torch.int64);  sum_1 = None
@@ -8568,6 +9345,11 @@ class GraphModule(torch.nn.Module):
     @parametrize("backend", ["eager", "aot_eager"])
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_while_loop_op_constant_and_symint_output_compile(self, dynamic, backend):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m, args = WHILE_LOOP_TESTS["const_and_symint_output"]
         if backend == "eager":
             backend = EagerAndRecordGraphs()
@@ -8589,6 +9371,7 @@ class GraphModule(torch.nn.Module):
         sum_1: "f32[]" = l_t_.sum()
         to: "i64[]" = sum_1.to(torch.int64);  sum_1 = None
         item: "Sym(u0)" = to.item();  to = None
+<<<<<<< HEAD
         sin: "f32[2, 3]" = l_t_.sin()
 
         cond_fn_0 = self.cond_fn_0
@@ -8613,6 +9396,32 @@ class GraphModule(torch.nn.Module):
         add_5: "Sym(u20 + 1)" = getitem_13 + 1
         add_6: "Sym(u21 + 1)" = getitem_14 + 1
         add_7: "f32[2, 3]" = child + 1
+=======
+        child: "f32[2, 3]" = l_t_.sin()
+
+        cond_fn_0 = self.cond_fn_0
+        body_fn_0 = self.body_fn_0
+        while_loop = torch.ops.higher_order.while_loop(cond_fn_0, body_fn_0, (2, 3, 1, 1, 1, 3, item, child), ());  cond_fn_0 = body_fn_0 = item = child = None
+
+        getitem_8: "Sym(u8)" = while_loop[0]
+        getitem_9: "Sym(u9)" = while_loop[1]
+        getitem_10: "Sym(u10)" = while_loop[2]
+        getitem_11: "Sym(u11)" = while_loop[3]
+        getitem_12: "Sym(u12)" = while_loop[4]
+        getitem_13: "Sym(u13)" = while_loop[5]
+        getitem_14: "Sym(u14)" = while_loop[6]
+
+        child_1: "f32[2, 3]" = while_loop[7];  while_loop = None
+
+        add: "Sym(u8 + 1)" = getitem_8 + 1
+        add_1: "Sym(u9 + 1)" = getitem_9 + 1
+        add_2: "Sym(u10 + 1)" = getitem_10 + 1
+        add_3: "Sym(u11 + 1)" = getitem_11 + 1
+        add_4: "Sym(u12 + 1)" = getitem_12 + 1
+        add_5: "Sym(u13 + 1)" = getitem_13 + 1
+        add_6: "Sym(u14 + 1)" = getitem_14 + 1
+        add_7: "f32[2, 3]" = child_1 + 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         add_8: "f32[2, 3]" = getitem_8 + l_t_;  getitem_8 = None
         add_9: "f32[2, 3]" = getitem_9 + l_t_;  getitem_9 = None
@@ -8621,7 +9430,11 @@ class GraphModule(torch.nn.Module):
         add_12: "f32[2, 3]" = getitem_12 + l_t_;  getitem_12 = None
         add_13: "f32[2, 3]" = getitem_13 + l_t_;  getitem_13 = None
         add_14: "f32[2, 3]" = getitem_14 + l_t_;  getitem_14 = None
+<<<<<<< HEAD
         add_15: "f32[2, 3]" = child + l_t_;  child = l_t_ = None
+=======
+        add_15: "f32[2, 3]" = child_1 + l_t_;  child_1 = l_t_ = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (add, add_1, add_2, add_3, add_4, add_5, add_6, add_7, add_8, add_9, add_10, add_11, add_12, add_13, add_14, add_15)
 
     class cond_fn_0(torch.nn.Module):
@@ -8633,10 +9446,17 @@ class GraphModule(torch.nn.Module):
             return lt
 
     class body_fn_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, unbacked_symint_6: "Sym(u8)", unbacked_symint_7: "Sym(u9)", unbacked_symint_8: "Sym(u10)", unbacked_symint_9: "Sym(u11)", unbacked_symint_10: "Sym(u12)", unbacked_symint_11: "Sym(u13)", unbacked_symint_12: "Sym(u14)", child_1: "f32[2, 3]"):
             add: "Sym(u14 + 1)" = unbacked_symint_12 + 1;  unbacked_symint_12 = None
             child: "f32[2, 3]" = child_1 + 1;  child_1 = None
             return (unbacked_symint_7, unbacked_symint_8, unbacked_symint_9, unbacked_symint_10, unbacked_symint_6, 0, add, child)
+=======
+        def forward(self, unbacked_symint: "Sym(u1)", unbacked_symint_0: "Sym(u2)", unbacked_symint_1: "Sym(u3)", unbacked_symint_2: "Sym(u4)", unbacked_symint_3: "Sym(u5)", unbacked_symint_4: "Sym(u6)", unbacked_symint_5: "Sym(u7)", child: "f32[2, 3]"):
+            add: "Sym(u7 + 1)" = unbacked_symint_5 + 1;  unbacked_symint_5 = None
+            child_1: "f32[2, 3]" = child + 1;  child = None
+            return (unbacked_symint_0, unbacked_symint_1, unbacked_symint_2, unbacked_symint_3, unbacked_symint, 0, add, child_1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,  # noqa: B950
             )
 
@@ -8647,12 +9467,17 @@ class GraphModule(torch.nn.Module):
         m, args = WHILE_LOOP_TESTS["pytree_int_carry"]
         dynamic_shapes = {"x": {0: torch.export.Dim("dim_x")}} if dynamic else None
         ep = self._check_export(m, args, strict=strict, dynamic_shapes=dynamic_shapes)
+<<<<<<< HEAD
         if strict and dynamic and not TEST_WITH_CROSSREF:
+=======
+        if strict and dynamic:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertExpectedInline(
                 normalize_gm(ep.module().print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
     def forward(self, x):
+<<<<<<< HEAD
         x: "f32[s6, 3]";
 
         x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
@@ -8660,11 +9485,20 @@ class GraphModule(torch.nn.Module):
         sym_size_int_1: "Sym(s6)" = torch.ops.aten.sym_size.int(x, 0)
 
         sin: "f32[s6, 3]" = torch.ops.aten.sin.default(x);  x = None
+=======
+        x: "f32[s77, 3]";
+
+        x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+        sym_size_int_1: "Sym(s77)" = torch.ops.aten.sym_size.int(x, 0)
+
+        sin: "f32[s77, 3]" = torch.ops.aten.sin.default(x);  x = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         while_loop_cond_graph_0 = self.while_loop_cond_graph_0
         while_loop_body_graph_0 = self.while_loop_body_graph_0
         while_loop = torch.ops.higher_order.while_loop(while_loop_cond_graph_0, while_loop_body_graph_0, (sym_size_int_1, 3, 2, 2, 3, sin), ());  while_loop_cond_graph_0 = while_loop_body_graph_0 = sym_size_int_1 = sin = None
 
+<<<<<<< HEAD
         getitem_6: "Sym(u10)" = while_loop[0]
         getitem_7: "Sym(u11)" = while_loop[1]
         getitem_8: "Sym(u12)" = while_loop[2]
@@ -8684,6 +9518,27 @@ class GraphModule(torch.nn.Module):
 
     class while_loop_cond_graph_0(torch.nn.Module):
         def forward(self, arg0_1: "Sym(u15)", arg1_1: "Sym(u16)", arg2_1: "Sym(u17)", arg3_1: "Sym(u18)", arg4_1: "Sym(u19)", arg5_1: "f32[s6, 3]"):
+=======
+        getitem_6: "Sym(u5)" = while_loop[0]
+        getitem_7: "Sym(u6)" = while_loop[1]
+        getitem_8: "Sym(u7)" = while_loop[2]
+        getitem_9: "Sym(u8)" = while_loop[3]
+        getitem_10: "Sym(u9)" = while_loop[4]
+
+        getitem_5: "f32[s77, 3]" = while_loop[5];  while_loop = None
+
+        add: "Sym(u7 + 1)" = getitem_8 + 1
+        add_1: "Sym(u8 + 1)" = getitem_9 + 1
+        add_2: "Sym(u9 + 1)" = getitem_10 + 1
+
+        add_3: "f32[s77, 3]" = torch.ops.aten.add.Tensor(getitem_5, getitem_8);  getitem_8 = None
+        add_4: "f32[s77, 3]" = torch.ops.aten.add.Tensor(getitem_5, getitem_9);  getitem_9 = None
+        add_5: "f32[s77, 3]" = torch.ops.aten.add.Tensor(getitem_5, getitem_10);  getitem_10 = None
+        return pytree.tree_unflatten((getitem_6, getitem_7, add, add_1, add_2, add_3, add_4, add_5, getitem_5), self._out_spec)
+
+    class while_loop_cond_graph_0(torch.nn.Module):
+        def forward(self, arg0_1: "Sym(u15)", arg1_1: "Sym(u16)", arg2_1: "Sym(u17)", arg3_1: "Sym(u18)", arg4_1: "Sym(u19)", arg5_1: "f32[s77, 3]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mul: "Sym(u17*u18)" = arg2_1 * arg3_1;  arg2_1 = arg3_1 = None
             mul_1: "Sym(u17*u18*u19)" = mul * arg4_1;  mul = arg4_1 = None
             mul_2: "Sym(u15*u16)" = arg0_1 * arg1_1;  arg0_1 = arg1_1 = None
@@ -8691,7 +9546,11 @@ class GraphModule(torch.nn.Module):
             return lt
 
     class while_loop_body_graph_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, arg0_1: "Sym(u15)", arg1_1: "Sym(u16)", arg2_1: "Sym(u17)", arg3_1: "Sym(u18)", arg4_1: "Sym(u19)", arg5_1: "f32[s6, 3]"):
+=======
+        def forward(self, arg0_1: "Sym(u15)", arg1_1: "Sym(u16)", arg2_1: "Sym(u17)", arg3_1: "Sym(u18)", arg4_1: "Sym(u19)", arg5_1: "f32[s77, 3]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             add: "Sym(u15 + 1)" = arg0_1 + 1;  arg0_1 = None
             add_1: "Sym(u16 + 1)" = arg1_1 + 1;  arg1_1 = None
 
@@ -8699,7 +9558,11 @@ class GraphModule(torch.nn.Module):
             add_3: "Sym(u18 + 1)" = arg3_1 + 1;  arg3_1 = None
             add_4: "Sym(u19 + 1)" = arg4_1 + 1;  arg4_1 = None
 
+<<<<<<< HEAD
             add_5: "f32[s6, 3]" = torch.ops.aten.add.Tensor(arg5_1, 1);  arg5_1 = None
+=======
+            add_5: "f32[s77, 3]" = torch.ops.aten.add.Tensor(arg5_1, 1);  arg5_1 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (add, add_1, add_2, add_3, add_4, add_5)
 """,  # noqa: B950
             )
@@ -8707,7 +9570,14 @@ class GraphModule(torch.nn.Module):
     @skipIfTorchDynamo("Graph is not captured correctly when test with dynamo")
     @parametrize("dynamic", [True, False])
     @parametrize("backend", ["eager", "aot_eager"])
+<<<<<<< HEAD
     def test_while_loop_op_pytree_int_carry_compile(self, dynamic, backend):
+=======
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_while_loop_op_pytree_int_carry_compile(self, dynamic, backend):
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m, args = WHILE_LOOP_TESTS["pytree_int_carry"]
         if backend == "eager":
             backend = EagerAndRecordGraphs()
@@ -8731,6 +9601,7 @@ class GraphModule(torch.nn.Module):
         body_fn_0 = self.body_fn_0
         while_loop = torch.ops.higher_order.while_loop(cond_fn_0, body_fn_0, (s77, s27, 2, 2, 3, child), (s27, s77));  cond_fn_0 = body_fn_0 = s77 = s27 = child = None
 
+<<<<<<< HEAD
         getitem_10: "Sym(u10)" = while_loop[0]
         getitem_11: "Sym(u11)" = while_loop[1]
         getitem_12: "Sym(u12)" = while_loop[2]
@@ -8742,6 +9613,19 @@ class GraphModule(torch.nn.Module):
         add: "Sym(u12 + 1)" = getitem_12 + 1
         add_1: "Sym(u13 + 1)" = getitem_13 + 1
         add_2: "Sym(u14 + 1)" = getitem_14 + 1
+=======
+        getitem_10: "Sym(u5)" = while_loop[0]
+        getitem_11: "Sym(u6)" = while_loop[1]
+        getitem_12: "Sym(u7)" = while_loop[2]
+        getitem_13: "Sym(u8)" = while_loop[3]
+        getitem_14: "Sym(u9)" = while_loop[4]
+
+        out_x: "f32[s77, s27]" = while_loop[5];  while_loop = None
+
+        add: "Sym(u7 + 1)" = getitem_12 + 1
+        add_1: "Sym(u8 + 1)" = getitem_13 + 1
+        add_2: "Sym(u9 + 1)" = getitem_14 + 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         add_3: "f32[s77, s27]" = getitem_12 + out_x;  getitem_12 = None
         add_4: "f32[s77, s27]" = getitem_13 + out_x;  getitem_13 = None
@@ -8749,7 +9633,11 @@ class GraphModule(torch.nn.Module):
         return (getitem_10, getitem_11, add, add_1, add_2, add_3, add_4, add_5, out_x)
 
     class cond_fn_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, unbacked_symint: "Sym(u0)", unbacked_symint_0: "Sym(u1)", unbacked_symint_1: "Sym(u2)", unbacked_symint_2: "Sym(u3)", unbacked_symint_3: "Sym(u4)", child_1: "f32[s77, s27]", s27: "Sym(s27)", s77: "Sym(s77)"):
+=======
+        def forward(self, unbacked_symint: "Sym(u0)", unbacked_symint_0: "Sym(u1)", unbacked_symint_1: "Sym(u2)", unbacked_symint_2: "Sym(u3)", unbacked_symint_3: "Sym(u4)", child: "f32[s77, s27]", s27, s77):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             s27_1 = s27
             s77_1 = s77
 
@@ -8760,6 +9648,7 @@ class GraphModule(torch.nn.Module):
             return lt
 
     class body_fn_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, unbacked_symint_4: "Sym(u5)", unbacked_symint_5: "Sym(u6)", unbacked_symint_6: "Sym(u7)", unbacked_symint_7: "Sym(u8)", unbacked_symint_8: "Sym(u9)", child_2: "f32[s77, s27]", s27: "Sym(s27)", s77: "Sym(s77)"):
             s27_1 = s27
             s77_1 = s77
@@ -8949,6 +9838,21 @@ class GraphModule(torch.nn.Module):
             add_10: "f32[3]" = torch.ops.aten.add.Tensor(view, arg2_1);  view = arg2_1 = None
             add_11: "f32[3, 3]" = torch.ops.aten.add.Tensor(t_4, arg3_1);  t_4 = arg3_1 = None
             return (add_9, add_8, add_10, add_11)
+=======
+        def forward(self, unbacked_symint: "Sym(u0)", unbacked_symint_0: "Sym(u1)", unbacked_symint_1: "Sym(u2)", unbacked_symint_2: "Sym(u3)", unbacked_symint_3: "Sym(u4)", child: "f32[s77, s27]", s27, s77):
+            s27_1 = s27
+            s77_1 = s77
+
+            add: "Sym(u0 + 1)" = unbacked_symint + 1;  unbacked_symint = None
+            add_1: "Sym(u1 + 1)" = unbacked_symint_0 + 1;  unbacked_symint_0 = None
+
+            add_2: "Sym(u2 + 1)" = unbacked_symint_1 + 1;  unbacked_symint_1 = None
+            add_3: "Sym(u3 + 1)" = unbacked_symint_2 + 1;  unbacked_symint_2 = None
+            add_4: "Sym(u4 + 1)" = unbacked_symint_3 + 1;  unbacked_symint_3 = None
+
+            child_1: "f32[s77, s27]" = child + 1;  child = None
+            return (add, add_1, add_2, add_3, add_4, child_1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,  # noqa: B950
             )
 
@@ -9020,6 +9924,11 @@ class GraphModule(torch.nn.Module):
 
     @skipIfTorchDynamo("Graph is not captured correctly when test with dynamo")
     def test_while_loop_unbacked_bindings(self):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m, args = WHILE_LOOP_TESTS["pytree_int_carry"]
         backend = EagerAndRecordGraphs()
         self._check_compile(m, args, dynamic=True, backend=backend)
@@ -9044,6 +9953,10 @@ class GraphModule(torch.nn.Module):
         return normalize_gm(non_strict_ep.module().print_readable(print_output=False))
 
     @skipIfTorchDynamo("Skip because dynamo cannot trace torch.export.")
+<<<<<<< HEAD
+=======
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cond_eager_run_with_item(self):
         class M(torch.nn.Module):
             def forward(self, a, b1, b2, c):
@@ -9074,8 +9987,11 @@ class GraphModule(torch.nn.Module):
         a: "b8[]"; b1: "i64[1]"; b2: "i64[1]"; c: "f32[10]";
 
         a, b1, b2, c, = fx_pytree.tree_flatten_spec(([a, b1, b2, c], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(a, b1, b2, c);  _guards_fn = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         true_graph_0 = self.true_graph_0
         false_graph_0 = self.false_graph_0
         cond = torch.ops.higher_order.cond(a, true_graph_0, false_graph_0, (c, b1, b2));  a = true_graph_0 = false_graph_0 = c = b1 = b2 = None
@@ -9100,6 +10016,7 @@ class GraphModule(torch.nn.Module):
 """,  # noqa: B950
         )
 
+<<<<<<< HEAD
     def test_cond_merge_graph_preserves_ph_meta(self):
         class M(torch.nn.Module):
             def forward(self, x, y, z):
@@ -9125,6 +10042,8 @@ class GraphModule(torch.nn.Module):
         for ph in subgm.graph.find_nodes(op="placeholder"):
             self.assertTrue("example_value" in ph.meta)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfTorchDynamo("Skip because dynamo cannot trace torch.export.")
     def test_cond_symint_closure(self):
         from torch.export import Dim
@@ -9158,7 +10077,10 @@ class GraphModule(torch.nn.Module):
         x: "f32[s68, 3]"; y: "f32[s17]"; z: "f32[s68, 3]";
 
         x, y, z, = fx_pytree.tree_flatten_spec(([x, y, z], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(x, y, z);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sym_size_int_4: "Sym(s17)" = torch.ops.aten.sym_size.int(y, 0);  y = None
         sym_size_int_5: "Sym(s68)" = torch.ops.aten.sym_size.int(z, 0)
 
@@ -9306,6 +10228,11 @@ class GraphModule(torch.nn.Module):
     @parametrize("dynamic", [True, False])
     @parametrize("backend", ["eager", "aot_eager"])
     def test_cond_mismatched_branch_output(self, dynamic, backend):
+<<<<<<< HEAD
+=======
+        from torch._dynamo.testing import EagerAndRecordGraphs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def forward(self, x, y, z):
                 a = y.shape[0]
@@ -9354,6 +10281,10 @@ class GraphModule(torch.nn.Module):
 
         getitem_5: "f32[u0, s94]" = cond[0]
         sym_size_int: "Sym(u0)" = torch.ops.aten.sym_size.int(getitem_5, 0);  getitem_5 = None
+<<<<<<< HEAD
+=======
+        _check_is_size = torch._check_is_size(sym_size_int);  _check_is_size = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ge: "Sym(u0 >= 0)" = sym_size_int >= 0;  sym_size_int = None
         _assert_scalar_default = torch.ops.aten._assert_scalar.default(ge, "Runtime assertion failed for expression u0 >= 0 on node 'ge'");  ge = _assert_scalar_default = None
@@ -9364,7 +10295,11 @@ class GraphModule(torch.nn.Module):
         return (sub,)
 
     class cond_true_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, l_x_: "f32[s17, s94]", s94: "Sym(s94)", s17_true_branch: "Sym(s17)", getitem_2_false_branch: "Sym(s17)", l_z__false_branch: "f32[s17, s94]"):
+=======
+        def forward(self, l_x_, s94, s17_true_branch, getitem_2_false_branch, l_z__false_branch):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             l_x__1 = l_x_
             s94_1 = s94
 
@@ -9374,7 +10309,11 @@ class GraphModule(torch.nn.Module):
             return (clone,)
 
     class cond_false_0(torch.nn.Module):
+<<<<<<< HEAD
         def forward(self, l_x_: "f32[s17, s94]", s94: "Sym(s94)", s17_true_branch: "Sym(s17)", getitem_2_false_branch: "Sym(s17)", l_z__false_branch: "f32[s17, s94]"):
+=======
+        def forward(self, l_x_, s94, s17_true_branch, getitem_2_false_branch, l_z__false_branch):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             l_x__1 = l_x_
             s94_1 = s94
 
@@ -9537,6 +10476,25 @@ class TestHopSchema(TestCase):
         self.assertEqual(schema2.parse(str(schema2)), schema2)
         self.assertEqual(schema3.parse(str(schema3)), schema3)
 
+<<<<<<< HEAD
+=======
+    def test_while_loop_schema_gen(self):
+        fn, inp = WHILE_LOOP_TESTS["simple_with_linear"]
+        graph = make_fx(fn)(*inp).graph
+        while_loop_node = next(
+            node
+            for node in graph.nodes
+            if node.op == "call_function"
+            and node.target is torch.ops.higher_order.while_loop
+        )
+        schema = torch._library.utils.hop_schema_from_fx_node(while_loop_node)
+        self.assertExpectedInline(
+            str(schema),
+            """while_loop(GraphModule cond_fn, GraphModule body_fn, Tensor[2] carried_inputs, Tensor[3] additional_inputs) -> Tensor[2]""",  # noqa: B950
+        )
+        self.assertEqual(schema.parse(str(schema)), schema)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_schema_tree_spec(self):
         schema_gen = HopSchemaGenerator(torch.ops.higher_order.cond)
         args = (torch.randn(3, 4), torch.randn(2, 3))
@@ -9553,6 +10511,7 @@ class TestHopSchema(TestCase):
             str(flat_schema), """cond(Tensor tuple_args0, Tensor tuple_args1) -> ()"""
         )
 
+<<<<<<< HEAD
     def test_cond_gen_schema_tensor_inputs(self):
         schema = torch.ops.higher_order.cond.gen_schema(
             torch.tensor(True),
@@ -9749,6 +10708,8 @@ class TestHopSchema(TestCase):
             """while_loop(Any cond_fn, Any body_fn, Tensor(a2!) carried_input0, Tensor(a3!) carried_input1, Tensor(a4!) carried_input2, Tensor(a5!) additional_input0) -> (Tensor, Tensor, Tensor)""",  # noqa: B950
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestHopSchema)
 instantiate_parametrized_tests(TestControlFlowTraced)

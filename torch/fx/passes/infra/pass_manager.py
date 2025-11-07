@@ -1,9 +1,15 @@
 # mypy: allow-untyped-defs
 import inspect
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import wraps
 from queue import Queue
+=======
+from functools import wraps
+from queue import Queue
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.nn as nn
 from torch.fx._compatibility import compatibility
@@ -31,7 +37,10 @@ def pass_result_wrapper(fn: Callable) -> Callable:
         wrapped_fn (Callable[Module, PassResult])
     """
     if fn is None:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
     @wraps(fn)
@@ -79,7 +88,11 @@ def _topological_sort_passes(
     if len(constraints) == 0:
         return passes
 
+<<<<<<< HEAD
     # Construct a graph mapping nodes to a list of their users
+=======
+    # Contruct a graph mapping nodes to a list of their users
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     graph: dict[Callable, list[Callable]] = {p: [] for p in passes}
     indegree_map: dict[Callable, int] = dict.fromkeys(passes, 0)
     candidates: Queue = Queue()

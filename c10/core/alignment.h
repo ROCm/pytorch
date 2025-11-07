@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstddef>
+<<<<<<< HEAD
 #include <new>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10 {
 
@@ -19,6 +22,7 @@ constexpr size_t gPagesize = 4096;
 // since the default thp pagesize is 2MB, enable thp only
 // for buffers of size 2MB or larger to avoid memory bloating
 constexpr size_t gAlloc_threshold_thp = static_cast<size_t>(2) * 1024 * 1024;
+<<<<<<< HEAD
 
 // Cache line size used to avoid false sharing between threads. Falls back to 64
 // bytes if C++17 feature is unavailable.
@@ -27,4 +31,6 @@ using std::hardware_destructive_interference_size;
 #else
 constexpr std::size_t hardware_destructive_interference_size = 64;
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10

@@ -210,7 +210,11 @@ class TestTyping(JitTestCase):
         li_1, li_2, li_3 = stuff4([True])
         li_3 = li_3[0]
         for li in [li_1, li_2, li_3]:
+<<<<<<< HEAD
             self.assertTrue(type(li[0]) is bool)
+=======
+            self.assertTrue(type(li[0]) == bool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_nested_list(self):
         def foo(z):

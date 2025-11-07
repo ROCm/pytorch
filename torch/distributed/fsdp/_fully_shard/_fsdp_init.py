@@ -220,7 +220,10 @@ def _move_states_to_device(
     the future.
     """
     # Follow the logic in `nn.Module._apply`
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for tensor in itertools.chain(params, buffers):
         if tensor.device == device or tensor.device.type == "meta":
             # Keep meta-device tensors on meta device for deferred init

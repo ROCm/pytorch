@@ -42,6 +42,16 @@ TORCH_API Tensor computeQuantizedConv2dPrepack(
     const std::optional<ScalarType>& outputType,
     at::Device device);
 
+<<<<<<< HEAD
+=======
+TORCH_API Tensor computeQuantizedConv1d(
+    const std::vector<ArgValue>& inputs,
+    const std::vector<ExprHandle>& outputShape,
+    const std::vector<ExprHandle>& outputStrides,
+    const std::optional<ScalarType>& outputType,
+    at::Device device);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API Tensor computeQuantizedConv2d(
     const std::vector<ArgValue>& inputs,
     const std::vector<ExprHandle>& outputShape,
@@ -145,5 +155,9 @@ TORCH_API Tensor computeQuantizedSigmoidExternalCall(
     const std::vector<ExprHandle>& outputShape,
     const std::vector<ExprHandle>& outputStrides,
     const std::optional<ScalarType>& outputType,
+<<<<<<< HEAD
     at::Device /*unused*/);
+=======
+    at::Device);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit::tensorexpr

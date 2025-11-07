@@ -17,7 +17,11 @@ from torch.ao.quantization.quantizer.x86_inductor_quantizer import (
     QUANT_ANNOTATION_KEY,
     X86InductorQuantizer,
 )
+<<<<<<< HEAD
 from torch.export import export
+=======
+from torch.export import export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_quantization import (
     NodeSpec as ns,
     QuantizationTestCase,
@@ -332,7 +336,11 @@ class TestHelperModules:
         ) -> None:
             super().__init__()
             self.linear = nn.Linear(4, 4, bias=use_bias)
+<<<<<<< HEAD
             if postop is nn.GELU:
+=======
+            if postop == nn.GELU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.postop = postop(approximate=post_op_algo)
             else:
                 self.postop = postop(inplace=inplace_postop)
@@ -668,7 +676,11 @@ class X86InductorQuantTestCase(QuantizationTestCase):
 
         # program capture
         m = copy.deepcopy(m_eager)
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # QAT Model failed to deepcopy
         export_model = m if is_qat else copy.deepcopy(m)
@@ -2344,7 +2356,11 @@ class TestQuantizePT2EX86Inductor(X86InductorQuantTestCase):
         )
         example_inputs = (torch.randn(2, 2),)
         m = M().eval()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         # Use a linear count instead of names because the names might change, but
         # the order should be the same.
@@ -2464,11 +2480,19 @@ class TestQuantizePT2EX86Inductor(X86InductorQuantTestCase):
             torch.ops.quantized_decomposed.dequantize_per_channel.default: 2,
         }
         node_list = [
+<<<<<<< HEAD
             # Q/DQ for first linear
             torch.ops.quantized_decomposed.quantize_per_tensor.default,
             torch.ops.quantized_decomposed.dequantize_per_tensor.default,
             torch.ops.aten.linear.default,
             # Q/DQ for second linear
+=======
+            # Q/DQ for first lienar
+            torch.ops.quantized_decomposed.quantize_per_tensor.default,
+            torch.ops.quantized_decomposed.dequantize_per_tensor.default,
+            torch.ops.aten.linear.default,
+            # Q/DQ for second lienar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.ops.quantized_decomposed.quantize_per_tensor.default,
             torch.ops.quantized_decomposed.dequantize_per_tensor.default,
             torch.ops.aten.linear.default,

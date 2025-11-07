@@ -112,7 +112,10 @@ fma = make_prim(
     "fma(Tensor a, Tensor b, Tensor c) -> Tensor",
     lambda a, b, c: (a * b) + c,
     doc="Fused multiply add: fma(a, b, c) -> (a * b) + c without rounding after the multiplication",
+<<<<<<< HEAD
     tags=(torch.Tag.pointwise,),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 prepare_softmax_online = make_prim(
     "prepare_softmax_online(Tensor a, int dim) -> (Tensor, Tensor)",

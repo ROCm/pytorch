@@ -4,7 +4,11 @@ import argparse
 import os
 from collections import namedtuple
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING
+=======
+from typing import Any, Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import yaml
 
@@ -26,7 +30,11 @@ from torchgen.yaml_utils import YamlLoader
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterable, Iterator, Sequence
+=======
+    from collections.abc import Iterable, Iterator, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

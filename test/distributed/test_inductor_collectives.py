@@ -2,7 +2,11 @@
 import datetime
 import functools
 import unittest
+<<<<<<< HEAD
 from collections import Counter
+=======
+from collections import defaultdict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 from unittest.mock import patch
 
@@ -10,7 +14,10 @@ import torch
 import torch._dynamo
 import torch._dynamo.logging
 import torch._dynamo.test_case
+<<<<<<< HEAD
 import torch.distributed as c10d
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # for some reason importing functional collectives after dynamo breaks collectives handling!
 import torch.distributed._functional_collectives as _functional_collectives
@@ -20,6 +27,7 @@ from torch._dynamo.utils import same
 from torch._inductor.comms import (
     _reorder_communication_preserving_peak_memory_internal,
     ReorderInfo,
+<<<<<<< HEAD
     sink_waits_iterative,
 )
 from torch._inductor.compile_fx import compile_fx as inductor_compile_fx
@@ -33,35 +41,66 @@ from torch._inductor.utils import fresh_inductor_cache, run_and_get_triton_code
 from torch.distributed.distributed_c10d import GroupMember
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.testing._internal.common_cuda import SM80OrLater
+=======
+)
+from torch._inductor.compile_fx import compile_fx as inductor_compile_fx
+from torch._inductor.scheduler import BaseSchedulerNode
+from torch._inductor.utils import run_and_get_triton_code
+from torch.distributed.distributed_c10d import GroupMember
+from torch.fx.experimental.proxy_tensor import make_fx
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import (
     _dynamo_dist_per_rank_init,
     DynamoDistributedMultiProcTestCase,
     DynamoDistributedSingleProcTestCase,
+<<<<<<< HEAD
     MultiProcessTestCase,
     requires_accelerator_dist_backend,
+=======
+    requires_nccl,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_if_lt_x_gpu,
 )
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
     skipIfRocm,
     skipIfXpu,
     TEST_XPU,
     xfailIf,
+=======
+    requires_cuda,
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.inductor_utils import HAS_GPU
 from torch.utils._python_dispatch import TorchDispatchMode
 
 
+<<<<<<< HEAD
 @requires_accelerator_dist_backend(["nccl", "xccl"])
+=======
+def _tolist_with_constrain_as_size(tensor):
+    lst = tensor.tolist()
+    for elem in lst:
+        torch._check_is_size(elem)
+    return lst
+
+
+@requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @instantiate_parametrized_tests
 class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
     """
     Run correctness checks in multi-proc runner, mark with minimum # GPUs to run under
     """
 
+<<<<<<< HEAD
     device = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_world_trs(self):
         return {
             "tag": "",
@@ -98,11 +137,16 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 example,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             t = torch.randn(4, 4, device=self.device)
             inputs = (
                 t if self.rank == 0 else torch.zeros(4, 4, device=self.device),
                 0,
             )
+=======
+            t = torch.randn(4, 4, device="cuda")
+            inputs = (t if self.rank == 0 else torch.zeros(4, 4, device="cuda"), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eager_out = example(*inputs)
             self.assertTrue(same(t, eager_out))
 
@@ -136,7 +180,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 matmul_cat_col,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 6
+=======
+            inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             eager_out = matmul_cat_col(*inputs)
             compiled_matmul_cat_col = compile(matmul_cat_col, inputs)
@@ -145,7 +193,10 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @skipIfRocm #Skip as flaky upstream as well, enable via https://github.com/ROCm/frameworks-internal/issues/13105
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_allreduce_inductor_cudagraph_trees(self):
         """
         Tests whether cudagraph trees support all_reduce from nccl
@@ -179,7 +230,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             for nelem in [1024, 2048, 4096]:
                 # CI (Tesla T4) does not support bfloat16 compilation natively,
                 # using float
+<<<<<<< HEAD
                 x = torch.randn(nelem, device=self.device, dtype=torch.float)
+=======
+                x = torch.randn(nelem, device="cuda", dtype=torch.float)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 golden_out = eager_func(x)
 
                 for _ in range(3):
@@ -217,8 +272,13 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 eager_func,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             eager_inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 4
             inductor_inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 2
+=======
+            eager_inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 4
+            inductor_inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             eager_out = inductor_func(eager_func(*eager_inputs), *inductor_inputs)
             compiled_inductor_func = compile(
@@ -256,8 +316,13 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 inductor_func,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             inductor_inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 4
             eager_inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 2
+=======
+            inductor_inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 4
+            eager_inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             eager_out = eager_func(inductor_func(*inductor_inputs), *eager_inputs)
             compiled_inductor_func = compile(inductor_func, inductor_inputs)
@@ -268,9 +333,13 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/intel/torch-xpu-ops/issues/1728
     @skipIfRocm
     @xfailIf(TEST_XPU)  # https://github.com/intel/torch-xpu-ops/issues/1728
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_eager_async_allreduce_inductor_wait(self):
         import torch.distributed as dist
         from torch._inductor.utils import run_and_get_code
@@ -293,7 +362,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             return y * y
 
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+<<<<<<< HEAD
             x = torch.ones(12800, 12800, device=self.device) + self.rank
+=======
+            x = torch.ones(12800, 12800, device="cuda") + self.rank
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(torch._C._distributed_c10d._get_work_registry_size(), 0)
 
             # NOTE: We run for 10 iterations each, to ensure that the GPU execution is way behind CPU
@@ -364,7 +437,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             return (e,)
 
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+<<<<<<< HEAD
             inputs = torch.ones(4, 4, device=self.device) + self.rank
+=======
+            inputs = torch.ones(4, 4, device="cuda") + self.rank
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compiled = torch.compile(func)
             out = compiled(inputs, **self.get_world_trs())
             correct = func(inputs, **self.get_world_trs())
@@ -381,8 +458,12 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
             inputs = (
                 # rank0: [0., 1.], rank1: [2., 3.]
+<<<<<<< HEAD
                 torch.arange(2, dtype=torch.float32, device=self.device)
                 + 2 * self.rank,
+=======
+                torch.arange(2, dtype=torch.float32, device="cuda") + 2 * self.rank,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 [1, 0],
             )
             compiled = torch.compile(func)
@@ -391,7 +472,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             self.assertTrue(same(out, correct))
 
             # rank0: [2., 3.], rank1: [0., 1.]
+<<<<<<< HEAD
             expected = torch.arange(2, dtype=torch.float32, device=self.device) + 2 * (
+=======
+            expected = torch.arange(2, dtype=torch.float32, device="cuda") + 2 * (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (self.rank - 1 + self.world_size) % self.world_size
             )
             self.assertEqual(out, expected)
@@ -414,15 +499,22 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 return out
 
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+<<<<<<< HEAD
             model = Model().to(self.device)
             model_compiled = torch.compile(model)
             inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device=self.device)
+=======
+            model = Model().cuda()
+            model_compiled = torch.compile(model)
+            inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = model_compiled(inp, self.world_size, **self.get_world_trs())
             correct = model(inp, self.world_size, **self.get_world_trs())
             self.assertTrue(same(out, correct))
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     def test_allgather_scalar_tensor_input(self):
         def func(tensor, world_size):
             tensor_list = [torch.empty_like(tensor) for _ in range(world_size)]
@@ -438,6 +530,8 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
 
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @skip_if_lt_x_gpu(2)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_allgather_contiguous_input(self):
         class Model(torch.nn.Module):
             def __init__(self, *args, **kwargs) -> None:
@@ -453,9 +547,15 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 return out
 
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+<<<<<<< HEAD
             model = Model().to(self.device)
             model_compiled = torch.compile(model)
             inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device=self.device)
+=======
+            model = Model().cuda()
+            model_compiled = torch.compile(model)
+            inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = model_compiled(inp, self.world_size, **self.get_world_trs())
             correct = model(inp, self.world_size, **self.get_world_trs())
             self.assertTrue(same(out, correct))
@@ -484,7 +584,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 example,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 2
+=======
+            inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             eager_out = example(*inputs)
             compiled_matmul_cat_col = compile(example, inputs)
@@ -511,7 +615,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 example,
                 **self.get_world_trs(),
             )
+<<<<<<< HEAD
             inputs = (torch.ones(4, 4, device=self.device) + self.rank,) * 2
+=======
+            inputs = (torch.ones(4, 4, device="cuda") + self.rank,) * 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             eager_out = example(*inputs)
             compiled_fn = compile(example, inputs)
@@ -531,8 +639,15 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             ranks,
             group_size,
         ):
+<<<<<<< HEAD
             input_split_sizes = input_split_sizes_tensor.tolist()
             output_split_sizes = output_split_sizes_tensor.tolist()
+=======
+            input_split_sizes = _tolist_with_constrain_as_size(input_split_sizes_tensor)
+            output_split_sizes = _tolist_with_constrain_as_size(
+                output_split_sizes_tensor
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a2a = torch.ops.c10d_functional.all_to_all_single(
                 inp,
                 output_split_sizes,
@@ -563,7 +678,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 dtype=torch.int64,
             )
             inputs = (
+<<<<<<< HEAD
                 torch.ones(int(row), 5, device=self.device) * (self.rank + 1),
+=======
+                torch.ones(int(row), 5, device="cuda") * (self.rank + 1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 input_split_sizes_tensor,
                 output_split_sizes_tensor,
             )
@@ -674,7 +793,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
         class TrackingMode(TorchDispatchMode):
             def __init__(self):
                 super().__init__()
+<<<<<<< HEAD
                 self.ops_counter = Counter()
+=======
+                self.ops_counter = defaultdict(int)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def __torch_dispatch__(self, func, types, args=(), kwargs=None):
                 if kwargs is None:
@@ -692,8 +815,15 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             ranks,
             group_size,
         ):
+<<<<<<< HEAD
             input_split_sizes = input_split_sizes_tensor.tolist()
             output_split_sizes = output_split_sizes_tensor.tolist()
+=======
+            input_split_sizes = _tolist_with_constrain_as_size(input_split_sizes_tensor)
+            output_split_sizes = _tolist_with_constrain_as_size(
+                output_split_sizes_tensor
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a2a = torch.ops.custom_ns.alltoall_autograd.default(
                 inp,
                 output_split_sizes,
@@ -730,7 +860,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 dtype=torch.int64,
             )
             inputs = (
+<<<<<<< HEAD
                 torch.ones(int(row), 5, device=self.device, requires_grad=True)
+=======
+                torch.ones(int(row), 5, device="cuda", requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 * (self.rank + 1),
                 input_split_sizes_tensor,
                 output_split_sizes_tensor,
@@ -793,7 +927,11 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
 
         with _dynamo_dist_per_rank_init(self.rank, self.world_size):
             inputs = (
+<<<<<<< HEAD
                 torch.ones(self.world_size, self.world_size, device=self.device)
+=======
+                torch.ones(self.world_size, self.world_size, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 * (self.rank + 1),
             )
             trs = self.get_world_trs()
@@ -817,11 +955,16 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
 
 
 @instantiate_parametrized_tests
+<<<<<<< HEAD
 @requires_accelerator_dist_backend(["nccl", "xccl"])
 @unittest.skipIf(
     not torch.accelerator.is_available(),
     "No accelerator is available",
 )
+=======
+@requires_nccl()
+@requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
     """
     Prefer single-proc test runner for basic tests as it is easier to work with.
@@ -844,12 +987,20 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             ar = torch.ops.c10d_functional.wait_tensor(ar)
             return ar
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         compiled = torch.compile(func)
         out = compiled(inputs, **self.get_world_trs())
         code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
+<<<<<<< HEAD
         # NOTE: Make sure we are not unnecessarily copying the outputs of
+=======
+        # NOTE: Make sure we are not unneccessarily copying the outputs of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # wait_tensors before they are returned from the graph.
         (
             FileCheck()
@@ -879,7 +1030,11 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             other = torch.ones_like(inp) + 22
             return ar, other
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
@@ -912,11 +1067,19 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             other = torch.ones_like(inp) + 22
             return ar, y, other
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
 
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
         # NOTE: Make sure we are not unnecessarily copying the outputs of
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+
+        compiled = torch.compile(func)
+        code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
+        # NOTE: Make sure we are not unneccessarily copying the outputs of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # wait_tensors before they are returned from the graph.
         (
             FileCheck()
@@ -953,7 +1116,11 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             ar = _functional_collectives.all_reduce(inp, "sum", "0")
             return ar
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         counter = CompileCounter()
         compiled = torch.compile(func, backend=counter)
         out = compiled(inputs)
@@ -964,13 +1131,20 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         self.assertEqual(counter.op_count, 2)
         self.assertTrue(same(out, correct))
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_trace_all_gather_tensor(self):
         def func(inp):
             ar = _functional_collectives.all_gather_tensor(inp, 0, "0")
             return ar
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         counter = CompileCounter()
         compiled = torch.compile(func, backend=counter)
         out = compiled(inputs)
@@ -981,7 +1155,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         self.assertEqual(counter.op_count, 2)
         self.assertTrue(same(out, correct))
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_trace_all_gather_tensor_pg(self):
         def func(inp, *, pg):
             ar = _functional_collectives.all_gather_tensor(inp, 0, pg)
@@ -998,7 +1175,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         self.assertEqual(counter.op_count, 2)
         self.assertTrue(same(out, correct))
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_rewrite_dist_all_gather(self):
         def func(inp, out, *, pg):
             torch.distributed.all_gather_into_tensor(
@@ -1024,7 +1204,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         assert counter.op_count == 3
         assert same(outputs, correct_outputs)
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_rewrite_dist_all_gather_list(self):
         def func(inp, out, *, pg):
             torch.distributed.all_gather(
@@ -1047,7 +1230,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         assert counter.frame_count == 1
         assert same(outputs, correct_outputs)
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_rewrite_dist_all_gather_args_match(self):
         # Duplicated most of the structure from test_dynamo_rewrite_dist_all_gather
         # except uses kwargs to ensure rewrite has matching arg names
@@ -1076,7 +1262,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         assert counter.op_count == 3
         assert same(outputs, correct_outputs)
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_rewrite_dist_reduce_scatter(self):
         def func(inp, out, *, pg):
             torch.distributed.reduce_scatter_tensor(
@@ -1244,7 +1433,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         input = torch.ones(2, device=self.device)
         compiled(input)
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_support_collective_op_with_async_op_False(self):
         def func(inp, out, *, pg):
             # user explicitly set the attribute `async_op` to False,
@@ -1304,13 +1496,20 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         assert counter.op_count == 1
         assert same(outputs, correct_outputs)
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_trace_reduce_scatter_tensor(self):
         def func(inp):
             ar = _functional_collectives.reduce_scatter_tensor(inp, "sum", 0, "0")
             return ar
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         counter = CompileCounter()
         compiled = torch.compile(func, backend=counter)
         out = compiled(inputs)
@@ -1321,7 +1520,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         self.assertEqual(counter.op_count, 2)
         self.assertTrue(same(out, correct))
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_trace_allgather_coalesced(self):
         def func(inp, *, tag, ranks, group_size):
             ar = torch.ops.c10d_functional.all_gather_into_tensor_coalesced(
@@ -1329,10 +1531,14 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             )
             return ar
 
+<<<<<<< HEAD
         inputs = [
             torch.ones(4, 4, device=self.device),
             torch.ones(6, 6, device=self.device),
         ]
+=======
+        inputs = [torch.ones(4, 4, device="cuda"), torch.ones(6, 6, device="cuda")]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         counter = CompileCounter()
         compiled = torch.compile(func, backend=counter)
         out = compiled(inputs, **self.get_world_trs())
@@ -1352,7 +1558,11 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             ar = _functional_collectives.all_reduce(inp, "sum", "0")
             return ar
 
+<<<<<<< HEAD
         input = torch.ones(4, 4, device=self.device, requires_grad=True)
+=======
+        input = torch.ones(4, 4, device="cuda", requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = torch.compile(
             func, backend="aot_eager"
         )  # inductor bug with single-op allreduce graph
@@ -1370,7 +1580,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         out = torch.ops.c10d_functional.all_reduce(x, "sum", **self.get_world_trs())
         self.assertEqual(x.size(), out.size())
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @torch._inductor.config.patch({"debug": True, "triton.descriptive_names": False})
     def test_inductor_all_gather_coalesced(self):
@@ -1390,11 +1603,19 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             other = torch.ones_like(inp) + 22
             return ar0, y, other, ar1
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
 
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
         # NOTE: Make sure we are not unnecessarily copying the outputs of
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+
+        compiled = torch.compile(func)
+        code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
+        # NOTE: Make sure we are not unneccessarily copying the outputs of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # wait_tensors before they are returned from the graph.
         (
             FileCheck()
@@ -1417,7 +1638,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         correct = func(inputs, **self.get_world_trs())
         assert same(out, correct), f"{out} va {correct}"
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @torch._inductor.config.patch({"debug": True, "triton.descriptive_names": False})
     def test_inductor_reduce_scatter_coalesced(self):
@@ -1437,12 +1661,20 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             other = torch.ones_like(inp) + 22
             return ar0, y, other, ar1
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         compiled = torch.compile(func)
         code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
         # NOTE: The first return value should be the output of the first wait_tensor.
+<<<<<<< HEAD
         # We want to make sure no unnecessary copy is made.
+=======
+        # We want to make sure no unneccessary copy is made.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             FileCheck()
             .check("buf0 = empty_strided")
@@ -1464,7 +1696,10 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         correct = func(inputs, **self.get_world_trs())
         assert same(out, correct), f"{out} va {correct}"
 
+<<<<<<< HEAD
     @skipIfXpu  # https://github.com/intel/torch-xpu-ops/issues/1581
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     def test_reorder_peak_memory(self):
         """
@@ -1486,7 +1721,11 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             other = torch.ones_like(inp) + 22
             return ar0, y, other, ar1
 
+<<<<<<< HEAD
         inputs = torch.ones(4, 4, device=self.device)
+=======
+        inputs = torch.ones(4, 4, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # get stats directly from the internal helper without affecting the real pass's signature
         node_stats: Optional[dict[BaseSchedulerNode, ReorderInfo]] = None
@@ -1514,7 +1753,11 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
             compiled = torch.compile(func)
             code = run_and_get_triton_code(compiled, inputs, **self.get_world_trs())
         # NOTE: The first return value should be the output of the first wait_tensor.
+<<<<<<< HEAD
         # We want to make sure no unnecessary copy is made.
+=======
+        # We want to make sure no unneccessary copy is made.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             FileCheck()
             .check("buf0 = empty_strided")
@@ -1542,6 +1785,7 @@ class TestCollectivesInductor(DynamoDistributedSingleProcTestCase):
         self.assertEqual(len(node_stats), 1)
         for stats in node_stats.values():
             self.assertEqual(stats.initial_exposed, 0)
+<<<<<<< HEAD
             self.assertEqual(stats.limiting_factor, "None")
             self.assertEqual(stats.moves, 0)
 
@@ -2198,6 +2442,11 @@ class TestSyncDecisionCrossRanks(MultiProcessTestCase):
         saved_values = _sync_decision_cross_ranks(test_graph, saved_values)
         self.assertEqual(saved_values, [wt1])
 
+=======
+            self.assertEqual(stats.limiting_factor, "data dependency")
+            self.assertEqual(stats.moves, 0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

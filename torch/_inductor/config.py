@@ -40,7 +40,11 @@ def bundle_triton_into_fx_graph_cache_default() -> Optional[bool]:
 
 
 def static_cuda_launcher_default() -> bool:
+<<<<<<< HEAD
     STATIC_CUDA_LAUNCHER_VERSION = 2
+=======
+    STATIC_CUDA_LAUNCHER_VERSION = 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if "TORCHINDUCTOR_USE_STATIC_CUDA_LAUNCHER" in os.environ:
         return os.environ.get("TORCHINDUCTOR_USE_STATIC_CUDA_LAUNCHER") == "1"
@@ -81,24 +85,33 @@ disable_progress = True
 # Whether to enable printing the source code for each future
 verbose_progress = False
 
+<<<<<<< HEAD
 # Configurable compile worker logging path for subproc_pool
 worker_log_path = (
     "/logs/dedicated_log_torch_compile_worker_rank" if is_fbcode() else None
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # precompilation timeout
 precompilation_timeout_seconds: int = 60 * 60
 
 # use fx aot graph codegen cache
 fx_graph_cache: bool = Config(
     justknob="pytorch/remote_cache:enable_local_fx_graph_cache",
+<<<<<<< HEAD
     env_name_default="TORCHINDUCTOR_FX_GRAPH_CACHE_DEFAULT",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     env_name_force="TORCHINDUCTOR_FX_GRAPH_CACHE",
     default=True,
 )
 
+<<<<<<< HEAD
 remote_gemm_autotune_cache: bool = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # use remote fx aot graph codegen cache
 # False: Disables the cache
 # True: Enables the cache
@@ -146,8 +159,17 @@ autotune_remote_cache: Optional[bool] = autotune_remote_cache_default()
 # None: Not set -- Off for OSS, JustKnobs based for internal
 bundled_autotune_remote_cache: Optional[bool] = bundled_autotune_remote_cache_default()
 
+<<<<<<< HEAD
 # See torch.compiler.config.force_disable_caches
 force_disable_caches: bool = Config(alias="torch.compiler.config.force_disable_caches")
+=======
+# Force disabled all inductor level caching -- This will override any other caching flag
+force_disable_caches: bool = Config(
+    justknob="pytorch/remote_cache:force_disable_caches",
+    env_name_force="TORCHINDUCTOR_FORCE_DISABLE_CACHES",
+    default=False,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Unsafe way to skip dynamic shape guards to get faster cache load
 unsafe_skip_cache_dynamic_shape_guards: bool = False
@@ -188,8 +210,11 @@ cpp_wrapper_build_separate: bool = (
     os.environ.get("TORCHINDUCTOR_CPP_WRAPPER_BUILD_SEPARATE", "0") == "1"
 )
 
+<<<<<<< HEAD
 fx_wrapper: bool = os.environ.get("TORCHINDUCTOR_FX_WRAPPER", "0") == "1"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Controls automatic precompiling of common include files for codecache.CppCodeCache
 # (i.e. for cpp_wrapper mode and for cpp kernels on CPU).  AOTI header precompiling is
 # controlled by a separate flag.
@@ -206,9 +231,12 @@ static_weight_shapes = True
 # put correctness assertions in generated code
 size_asserts = os.environ.get("TORCHINDUCTOR_SIZE_ASSERTS", "1") == "1"
 nan_asserts = os.environ.get("TORCHINDUCTOR_NAN_ASSERTS") == "1"
+<<<<<<< HEAD
 runtime_triton_nan_asserts = (
     os.environ.get("TORCHINDUCTOR_RUNTIME_TRITON_NAN_ASSERTS") == "1"
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 scalar_asserts = os.environ.get("TORCHINDUCTOR_SCALAR_ASSERTS", "1") == "1"
 
 # Disable by default in fbcode
@@ -270,12 +298,18 @@ b2b_gemm_pass = False
 post_grad_custom_pre_pass: torch._inductor.custom_graph_pass.CustomGraphPassType = None
 post_grad_custom_post_pass: torch._inductor.custom_graph_pass.CustomGraphPassType = None
 
+<<<<<<< HEAD
 # Allow users to pass in custom partition function
 custom_partitioner_fn: torch._inductor.custom_graph_pass.CustomPartitionerFnType = None
 
 # Registers a custom joint graph pass.
 joint_custom_pre_pass: torch._inductor.custom_graph_pass.CustomGraphPassType = None
 joint_custom_post_pass: torch._inductor.custom_graph_pass.CustomGraphPassType = None
+=======
+# Registers a custom joint graph pass.
+joint_custom_pre_pass: Optional[Callable[[torch.fx.Graph], None]] = None
+joint_custom_post_pass: Optional[Callable[[torch.fx.Graph], None]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Registers a custom pregrad pass. Note that the pre-grad IR is 1.
 # non-functional, 2. non-normalized, and 3. prone to change. Ideally we should
@@ -395,6 +429,7 @@ reorder_prefetch_limit: Optional[int] = None
 
 # enable operator reordering for peak memory optimization
 reorder_for_peak_memory = True
+<<<<<<< HEAD
 reorder_for_peak_memory_debug = False
 
 # In some cases, when all the nodes that can be scheduled are quite large,
@@ -424,13 +459,18 @@ bucket_reduce_scatters_fx: Literal["none", "all"] = "none"
 bucket_reduce_scatters_fx_bucket_size_determinator: Optional[Callable[[int], int]] = (
     None
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # runtime estimation function for ops
 # for built-in estimation function, pass in "default"; for user-defined estimation function, pass in the function handle
 estimate_op_runtime = "default"
 
+<<<<<<< HEAD
 runtime_estimations_mms_benchmark: bool = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # unit: GB/s, uni-directional P2P bandwidth per card
 # default value is NVLink
 intra_node_bw = 300
@@ -458,6 +498,7 @@ max_autotune_pointwise = os.environ.get("TORCHINDUCTOR_MAX_AUTOTUNE_POINTWISE") 
 # enable slow autotuning passes to select gemm algorithms
 max_autotune_gemm = os.environ.get("TORCHINDUCTOR_MAX_AUTOTUNE_GEMM") == "1"
 
+<<<<<<< HEAD
 # Modifies the number of autotuning choices displayed, set to None for all
 autotune_num_choices_displayed: Optional[int] = 10
 
@@ -485,11 +526,22 @@ graph_partition: bool = (
 
 # whether template autotuning should allow flexible layouts if possible (e.g. only extern choices)
 max_autotune_allow_flexible_layouts: bool = False
+=======
+# disable decomposek autotune choice for gemm
+disable_decompose_k = os.environ.get("TORCHINDUCTOR_DISABLE_DECOMPOSE_K") == "1"
+
+# Modifies the number of autotuning choices displayed, set to None for all
+autotune_num_choices_displayed: Optional[int] = 10
+
+# enable inductor graph partition to allow multiple inductor graphs for the same dynamo graph
+graph_partition = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # force cublas and triton to use the same precision; cublas supports TF32 for matmul operations
 # when m, n, k are multiples of 16, 16, 8, whereas triton supports TF32 for matmul operations
 # for any combinations of m, n, k, regardless of their alignment. setting this flag will ensure
 # that triton does not use TF32 wherever cublas would not use TF32
+<<<<<<< HEAD
 # DEPRECATED. cuBLAS no longer has the above alignment requirements. will remove in the future.
 force_same_precision: bool = Config(
     justknob="pytorch/compiler:force_same_precision",
@@ -505,11 +557,22 @@ multi_kernel_hints: list[int] = []
 
 # Specify candidate backends for gemm autotune.
 # Possible choices are combinations of: ATen, Triton, CUTLASS, CK, CKTILE, CPP.
+=======
+force_same_precision = (
+    True if is_fbcode() else os.environ.get("TORCHINDUCTOR_FORCE_SAME_PRECISION") == "1"
+)
+
+# Specify candidate backends for gemm autotune.
+# Possible choices are combinations of: ATen, Triton, CUTLASS, CK, CPP.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # ATen: default Pytorch ATen kernels.
 # Triton: Triton templates defined in torch inductor (AMD and NVidia GPUs).
 # CUTLASS: Cutlass templates and kernels (NVidia GPUs only).
 # CK: Composable Kernel templates and kernels (AMD Instinct GPUs only).
+<<<<<<< HEAD
 # CKTILE: Composable Kernel templates and kernels, new API (AMD Instinct GPUs only).
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # CPP: CPP templates and kernels for CPU.
 max_autotune_gemm_backends = os.environ.get(
     "TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_BACKENDS", "ATEN,TRITON,CPP"
@@ -545,8 +608,13 @@ autotune_fallback_to_aten = False
 # that can appear in the input shapes (e.g., in autotuning)
 unbacked_symint_fallback = 8192
 
+<<<<<<< HEAD
 # DEPRECATED. This setting is ignored.
 search_autotune_cache = False
+=======
+# enable searching global and local cache regardless of `max_autotune`
+search_autotune_cache = os.environ.get("TORCHINDUCTOR_SEARCH_AUTOTUNE_CACHE") == "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 save_args = os.environ.get("TORCHINDUCTOR_SAVE_ARGS") == "1"
 
@@ -582,11 +650,14 @@ autoheuristic_collect = os.environ.get("TORCHINDUCTOR_AUTOHEURISTIC_COLLECT", ""
 # Specify a list of comma separated optimizations to use learned heuristics for
 autoheuristic_use = os.environ.get("TORCHINDUCTOR_AUTOHEURISTIC_USE", "mixed_mm")
 
+<<<<<<< HEAD
 # If set to 1, will run a JIT post compile hook if one is set.
 run_jit_post_compile_hook = (
     os.environ.get("TORCHINDUCTOR_RUN_JIT_POST_COMPILE_HOOK", "0") == "1"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def run_autoheuristic(name: str) -> bool:
     return collect_autoheuristic(name) or use_autoheuristic(name)
@@ -632,16 +703,22 @@ realize_opcount_threshold = 30
 
 # Threshold to prevent excessive accumulation of ops in one buffer during lowering
 realize_acc_reads_threshold = 8
+<<<<<<< HEAD
 realize_acc_reads_size_threshold: Optional[int] = (
     None  # TODO(xuanzh): harden this to make it non optional
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # fallback to eager for random/dropout, this is slow but useful for debugging
 fallback_random = False
 
+<<<<<<< HEAD
 # fallback embedding_bag_byte_unpack to eager
 fallback_embedding_bag_byte_unpack = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # automatically create fallbacks when encountering an unhandled op
 implicit_fallbacks = True
 assume_unaligned_fallback_output = (
@@ -657,10 +734,14 @@ debug_fusion: bool = os.environ.get("TORCHINDUCTOR_DEBUG_FUSION") == "1"
 benchmark_fusion: bool = os.environ.get("TORCHINDUCTOR_BENCHMARK_FUSION") == "1"
 enabled_metric_tables = os.environ.get("TORCHINDUCTOR_ENABLED_METRIC_TABLES", "")
 loop_ordering_after_fusion: bool = (
+<<<<<<< HEAD
     os.environ.get(
         "TORCHINDUCTOR_LOOP_ORDERING_AFTER_FUSION", "0" if is_fbcode() else "1"
     )
     == "1"
+=======
+    os.environ.get("TORCHINDUCTOR_LOOP_ORDERING_AFTER_FUSION", "0") == "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 # If fusing two nodes only save less then score_fusion_memory_threshold memory,
@@ -688,10 +769,13 @@ max_fusion_size = 64
 # how many nodes to attempt pairwise fusion with in a buffer group
 max_fusion_buffer_group_pairwise_attempts = 64
 
+<<<<<<< HEAD
 # maximum number of unique input/output buffers allowed in fused kernels.
 # The check is disabled if set to None.
 max_fusion_unique_io_buffers: Optional[int] = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # max number of inputs to generate cat as a pointwise op with masked loads
 max_pointwise_cat_inputs = 8
 
@@ -713,11 +797,15 @@ conv_1x1_as_mm = False
 #   split_reductions: uses multiple kernels to gain more parallelism
 #   triton.cooperative_reductions: uses cross thread-block synchronization to gain more parallelism
 # enabling both of these will implicitly disable split_reductions
+<<<<<<< HEAD
 split_reductions = os.getenv("TORCHINDUCTOR_SPLIT_REDUCTIONS", "1") == "1"
 
 # A deterministic mode that skips any on device benchmarking in Inductor
 # if we know they affect numerics.  WARNING: Expect perf hit in this mode.
 deterministic = os.getenv("TORCHINDUCTOR_DETERMINISTIC") == "1"
+=======
+split_reductions = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # When we do split reduction, this number control the minimum value for
 # num_split. Too small num_split make the split reduction less efficient.
@@ -752,9 +840,13 @@ combo_kernels_autotune = 1
 # for all except for foreach, 2 - enable for all
 combo_kernel_allow_mixed_sizes = 1
 # Enable dynamic shapes for foreach kernels
+<<<<<<< HEAD
 combo_kernel_foreach_dynamic_shapes = True
 # Maximum number of arguments (read/write buffers) allowed in a combo kernel
 combo_kernel_max_num_args = 250
+=======
+combo_kernel_foreach_dynamic_shapes = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # constant folding on the joint graph
 joint_graph_constant_folding = True
@@ -774,6 +866,7 @@ emulate_precision_casts = (
     os.environ.get("TORCHINDUCTOR_EMULATE_PRECISION_CASTS", "0") == "1"
 )
 
+<<<<<<< HEAD
 # x / y in Triton is lowered to div.full which is approx
 # PyTorch eager uses the equivalent of Triton's div_rn, which can
 # come at a performance penalty
@@ -781,6 +874,8 @@ emulate_divison_rounding = (
     os.environ.get("TORCHINDUCTOR_EMULATE_DIVISION_ROUNDING", "0") == "1"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # warnings intended for PyTorch developers, disable for point releases
 is_nightly_or_source = "dev" in torch.__version__ or "git" in torch.__version__
 developer_warnings = is_fbcode() or is_nightly_or_source
@@ -816,10 +911,13 @@ def decide_worker_start_method() -> str:
 
 worker_start_method: str = decide_worker_start_method()
 
+<<<<<<< HEAD
 # Threshold to decide if a kernel has small memory access in bytes
 # Default value is 16 MB which is arbitrarily selected.
 small_memory_access_threshold: int = 16777216
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Whether to log from subprocess workers that are launched.
 worker_suppress_logging: bool = Config(
     justknob="pytorch/compiler:worker_suppress_logging",
@@ -827,12 +925,15 @@ worker_suppress_logging: bool = Config(
     default=True,
 )
 
+<<<<<<< HEAD
 # Log per-operation runtime estimates for TLParse analysis.
 log_tlparse: bool = Config(
     env_name_force="LOG_TLPARSE",
     default=False,
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Flags to turn on all_reduce fusion. These 2 flags should be automatically turned
 # on by DDP and should not be set by the users.
 _fuse_ddp_communication = False
@@ -864,6 +965,7 @@ class _collective:
     one_shot_all_reduce_threshold_bytes: int = 128 * 1024
 
 
+<<<<<<< HEAD
 class aten_distributed_optimizations:
     """Configuration for distributed optimization passes on ATen FX graphs."""
 
@@ -889,6 +991,8 @@ class aten_distributed_optimizations:
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def parallel_compile_enabled_internally() -> bool:
     """
     TODO: Remove when parallel compiled is fully enabled internally. For rollout, use a
@@ -942,6 +1046,7 @@ def decide_compile_threads() -> int:
 # TODO: Set directly after internal rollout.
 compile_threads: Optional[int] = None if is_fbcode() else decide_compile_threads()
 
+<<<<<<< HEAD
 # Whether to quiesce the Triton-compile subprocess pool at the end of each compilation.
 quiesce_async_compile_pool: bool = Config(
     justknob="pytorch/inductor:quiesce_async_compile_pool",
@@ -949,6 +1054,8 @@ quiesce_async_compile_pool: bool = Config(
     default=False,
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Whether or not to enable statically launching CUDA kernels
 # compiled by triton (instead of using triton's own launcher)
 use_static_cuda_launcher: bool = static_cuda_launcher_default()
@@ -997,6 +1104,7 @@ comprehensive_padding = (
 )
 pad_channels_last = False
 
+<<<<<<< HEAD
 # Control if we will do padding on dynamic shapes
 pad_dynamic_shapes = False
 
@@ -1006,6 +1114,11 @@ disable_padding_cpu = True
 # Control if we will expand the dimension of pointwise nodes to fuse
 expand_dimension_for_pointwise_nodes = False
 
+=======
+# Disable comprehensive padding on the CPU
+disable_padding_cpu = True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The width of comprehensive padding, in bytes.
 # CUDA max memory transaction size is 128 bytes for a warp.
 padding_alignment_bytes = 128
@@ -1120,6 +1233,7 @@ enable_linear_binary_folding = (
 annotate_training: bool = os.environ.get("TORCHINDUCTOR_ANNOTATE_TRAINING", "0") == "1"
 
 # Enable caching codegen of triton templates.
+<<<<<<< HEAD
 enable_caching_generated_triton_templates: bool = True
 
 # Lookup table for overriding autotune configs based on hash of Triton source code
@@ -1144,15 +1258,21 @@ torchinductor_worker_logpath: str = Config(
     env_name_force="TORCHINDUCTOR_WORKER_LOGPATH",
     default="",
 )
+=======
+enable_caching_generated_triton_templates: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # config specific to codegen/cpp.py
 class cpp:
+<<<<<<< HEAD
     """
     Settings for cpp backend.
     This class provides a centralized location for managing cpp backend settings.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # set to torch.get_num_threads()
     threads = -1
 
@@ -1169,9 +1289,15 @@ class cpp:
     dynamic_threads = os.environ.get("TORCHINDUCTOR_CPP_DYNAMIC_THREADS", "0") == "1"
 
     simdlen: Optional[int] = None
+<<<<<<< HEAD
     min_chunk_size = int(os.environ.get("TORCHINDUCTOR_CPP_MIN_CHUNK_SIZE", "512"))
 
     cxx: tuple[None, str] = (
+=======
+    min_chunk_size = int(os.environ.get("TORCHINDUCTOR_CPP_MIN_CHUNK_SIZE", "4096"))
+
+    cxx: tuple[Literal[None], str] = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         None,  # download gcc12 from conda-forge if conda is installed
         os.environ.get("CXX", "clang++" if sys.platform == "darwin" else "g++"),
     )  # type: ignore[assignment]
@@ -1268,6 +1394,7 @@ class cpp:
     # Use a small dequant buffer for wgt of woq int4 size as: [q_group_size, Nr]
     use_small_dequant_buffer = False
 
+<<<<<<< HEAD
     force_inline_kernel = (
         os.environ.get("TORCHINDUCTOR_CPP_FORCE_INLINE_KERNEL", "0") == "1"
     )
@@ -1283,6 +1410,11 @@ class triton:
     Config specific to codegen/triton.py
     """
 
+=======
+
+# config specific to codegen/triton.py
+class triton:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Use cudagraphs on output code
     cudagraphs = os.environ.get("TORCHINDUCTOR_CUDAGRAPHS") == "1"
 
@@ -1304,7 +1436,11 @@ class triton:
     cudagraph_trees_history_recording = False
 
     # Enable cudagraph support for mutated inputs from prior cudagraph pool
+<<<<<<< HEAD
     cudagraph_support_input_mutation = not is_fbcode()
+=======
+    cudagraph_support_input_mutation = False if is_fbcode() else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Maximal number of allowed cudagraph re-record for a function and
     # a cudagraph node due to static input tensor address changes or
@@ -1315,7 +1451,11 @@ class triton:
 
     # Warn loudly when the number of cudagraphs due to dynamic shape
     # exceeds this limit
+<<<<<<< HEAD
     cudagraph_dynamic_shape_warn_limit: Optional[int] = 8
+=======
+    cudagraph_dynamic_shape_warn_limit: Optional[int] = 50
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # synchronize after cudagraph invocation
     force_cudagraph_sync = False
@@ -1324,6 +1464,7 @@ class triton:
     # instead of recording and executing cudagraphs
     force_cudagraphs_warmup = False
 
+<<<<<<< HEAD
     # If False (default), torch.compile skips cudagraph for a graph if it
     # contains cudagraph-unsafe ops. If True, we require that all cuda ops
     # be captured into cudagraph. If this is not possible, this will raise
@@ -1333,6 +1474,8 @@ class triton:
         default=False,
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assertions on the fast path
     fast_path_cudagraph_asserts = False
 
@@ -1390,6 +1533,7 @@ class triton:
     # For best results, this should be used with prefer_nd_tiling.
     tile_reductions: bool = False
 
+<<<<<<< HEAD
     # Codegen matmul natively with tl.dot without using a template.
     # This option makes Inductor generate matrix multiplication from scratch,
     # instead of calling predefined Triton templates (mm, bmm, mm_plus_mm).
@@ -1408,6 +1552,8 @@ class triton:
     # an error will be thrown.
     native_matmul: bool = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # should we stop a fusion to allow better tiling?
     tiling_prevents_pointwise_fusion = True
     tiling_prevents_reduction_fusion = True
@@ -1479,11 +1625,16 @@ class triton:
     # So far we see a fixed 8 spilled registers for kernels using sin/cos.
     # Raise the threshold to 16 to be safe.
     # We should revisit this once we understand more of the source of register spills.
+<<<<<<< HEAD
     spill_threshold: int = 32 if torch.version.hip else 16
+=======
+    spill_threshold: int = 16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Generate code containing the newer tl.make_block_ptr() API for loads/store
     use_block_ptr = False
 
+<<<<<<< HEAD
     # (Experimental)
     # Generate code using the tl.make_tensor_descriptor() API for loads/store
     # [Note: TMA API Restrictions] Currently the TMA API requires the following:
@@ -1497,6 +1648,8 @@ class triton:
     # can be satisfied, along with any existing requirements for index expressions
     use_tensor_descriptor = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Inject a bug into our relu implementation; useful for testing our repro
     # extraction and minification functionality.
     # Valid values: "compile_error", "runtime_error", "accuracy"
@@ -1510,11 +1663,14 @@ class triton:
     enable_persistent_tma_matmul = (
         os.environ.get("ENABLE_PERSISTENT_TMA_MATMUL", "0") == "1"
     )
+<<<<<<< HEAD
     # Should TMA store be enable from templates. TODO: Remove once we
     # can autotune over the result.
     enable_template_tma_store = os.environ.get("ENABLE_TEMPLATE_TMA_STORE", "0") == "1"
     # Use epilogue subtiling. We allow disabling it due to limited B200 testing.
     enable_epilogue_subtiling = os.environ.get("ENABLE_EPILOGUE_SUBTILING", "1") == "1"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Skip L1 cache for buffers that are used only once.  Disabled by default
     skip_l1_cache = os.environ.get("TORCHINDUCTOR_SKIP_L1", "0") == "1"
 
@@ -1524,6 +1680,7 @@ class triton:
     # Note: it may also need to be used with config.compile_threads = 1
     disallow_failing_autotune_kernels_TESTING_ONLY = False
 
+<<<<<<< HEAD
     # specify number of splits to autotune on for decompose_k. 0 disables decompose_k
     num_decompose_k_splits = int(
         os.environ.get("TORCHINDUCTOR_NUM_DECOMPOSE_K_SPLITS", "10")
@@ -1544,6 +1701,8 @@ class triton:
         os.environ.get("TORCHINDUCTOR_MIX_ORDER_REDUCTION", "0") == "1"
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class aot_inductor:
     """
@@ -1595,6 +1754,7 @@ class aot_inductor:
     # rather than embedded into the data section. Needed to support 1B+ parameter models
     force_mmap_weights: bool = False
 
+<<<<<<< HEAD
     # Default value of use_consts_asm_build is True, it will build by assembly language.
     # When the value is False, it will build by c++ language.
     use_consts_asm_build = True
@@ -1605,6 +1765,10 @@ class aot_inductor:
     # If package_cpp_only is True, whether cpp files will be compiled to a
     # dynamically linked library or static linked library
     dynamic_linkage: bool = True
+=======
+    package: bool = False
+    package_cpp_only: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Dictionary of metadata users might want to save to pass to the runtime.
     # TODO: Move this somewhere else, since it's no longer really a config
@@ -1643,6 +1807,7 @@ class aot_inductor:
     # but performance for that interface may be degraded.
     use_minimal_arrayref_interface: bool = False
 
+<<<<<<< HEAD
     # Set to True if we want to use Pytorch's CUDACachingAllocator for weight management
     weight_use_caching_allocator: bool = (
         os.environ.get("AOT_INDUCTOR_WEIGHT_USE_CACHING_ALLOCATOR", "0") == "1"
@@ -1665,16 +1830,28 @@ class aot_inductor:
     #       Stores all weights in a single binary blob in data/aot_inductor/model folder for each model.
     #       This option and config.aot_inductor.force_mmap_weights cannot both be True
     package_constants_on_disk_format: Optional[str] = None
+=======
+    # Experimental. Flag to control whether to include weight in .so
+    package_constants_in_so: bool = True
+
+    # Experimental. Flag to control whether to package weight separately on disk
+    package_constants_on_disk: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Experimental.  Controls automatic precompiling of common AOTI include files.
     precompile_headers: bool = not is_fbcode()
 
     # Embed generated kernel binary files into model.so
+<<<<<<< HEAD
     embed_kernel_binary: Optional[bool] = None
+=======
+    embed_kernel_binary: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Generate kernel files that support multiple archs
     # For CUDA, this means generating fatbin files for kernels, and the fatbin files
     # contains PTX and SASS for the current architecture.
+<<<<<<< HEAD
     emit_multi_arch_kernel: Optional[bool] = None
 
     # If not None, the generated files with use this name in file stem.
@@ -1686,6 +1863,12 @@ class aot_inductor:
     # If compile_standalone, the aoti model class name is f"AOTInductorModel{name}"
     #
     # This name can only contain letters, numbers, and underscores.
+=======
+    emit_multi_arch_kernel: bool = False
+
+    # If not None, the generated files with use this name in file stem.
+    # If None, we will use a hash to name files.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     model_name_for_generated_files: Optional[str] = None
 
     # Custom ops that have implemented C shim wrappers, defined as an op to C shim declaration dict
@@ -1693,6 +1876,7 @@ class aot_inductor:
     # custom op libs that have implemented C shim wrappers
     custom_op_libs: Optional[list[str]] = None
 
+<<<<<<< HEAD
     # Whether to enable link-time-optimization
     enable_lto = os.environ.get("AOT_INDUCTOR_ENABLE_LTO", "0") == "1"
 
@@ -1724,6 +1908,8 @@ class aot_inductor_mode:
     # emit_multi_arch_kernel=True
     compile_standalone: bool = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class cuda:
     """Settings for cuda backend, today this consists of cutlass"""
@@ -1755,11 +1941,19 @@ class cuda:
 
     # Path to the CUTLASS repo root directory.
     # The default path only works under PyTorch local development environment.
+<<<<<<< HEAD
     cutlass_dir = os.path.realpath(
         os.environ.get(
             "TORCHINDUCTOR_CUTLASS_DIR",
             os.path.join(os.path.dirname(torch.__file__), "../third_party/cutlass/"),
         )
+=======
+    cutlass_dir = os.environ.get(
+        "TORCHINDUCTOR_CUTLASS_DIR",
+        os.path.abspath(
+            os.path.join(os.path.dirname(torch.__file__), "../third_party/cutlass/")
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     # Configures the maximum number of CUTLASS configs to profile in max_autotune.
@@ -1824,6 +2018,14 @@ class cuda:
         "TORCHINDUCTOR_CUTLASS_INSTANTIATION_LEVEL", "0"
     )
 
+<<<<<<< HEAD
+=======
+    # Experimental. Only for H100 for now. Flag to control whether to use presets.
+    # Format looks like: "0,1,3" for using presets 0, 1, and 3. Presets can be
+    # controlled by some cutlass instantiation level flags (e.g. 0, 1111, 2222, ...)
+    cutlass_presets: Optional[str] = os.environ.get("TORCHINDUCTOR_CUTLASS_PRESETS")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # use compile command to create kernel .cu and .so name
     cutlass_hash_with_compile_cmd: bool = (
         os.environ.get("TORCHINDUCTOR_CUTLASS_HASH_WITH_COMPILE_CMD", "0") == "1"
@@ -1851,9 +2053,12 @@ class cuda:
     # Use this to overwrite and handle cache pollution
     binary_remote_cache_force_write: bool = False
 
+<<<<<<< HEAD
     # Enable caching codegen of cuda templates.
     enable_caching_codegen: bool = True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class rocm:
     # Offload arch list for device code compilation, e.g. ["gfx90a", "gfx942"].
@@ -1862,11 +2067,15 @@ class rocm:
 
     # Enable the CK backend for CDNA2 and CDNA3 only (for now)
     # Processor name reference: https://llvm.org/docs/AMDGPUUsage.html#processors
+<<<<<<< HEAD
     ck_supported_arch: list[Literal["gfx90a", "gfx942", "gfx950"]] = [
         "gfx90a",
         "gfx942",
         "gfx950",
     ]
+=======
+    ck_supported_arch: list[str] = ["gfx90a", "gfx942"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Optimization level, use to balance compilation speed and runtime performance.
     # The type will not necessarily be comprehensive and won't be enforced at runtime.
@@ -1924,9 +2133,12 @@ class rocm:
     # The threshold at which we trigger a splitK config - K // max(M,N) has to be greater than this
     split_k_threshold: int = 16
 
+<<<<<<< HEAD
     # The threshold at which we trigger a contiguous subgraph transformation
     contiguous_threshold: int = 16
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Backend to use for CPU codegen either "cpp" or "triton" (experimental) or "halide" (experimental)
 cpu_backend: Literal["cpp", "triton", "halide"] = "cpp"
@@ -2026,6 +2238,7 @@ class trace:
 
     log_autotuning_results = os.environ.get("LOG_AUTOTUNE_RESULTS", "0") == "1"
 
+<<<<<<< HEAD
     # Save mapping info from inductor generated kernel to post_grad/pre_grad fx nodes
     # Levels:
     #   0 - disabled (default)
@@ -2039,6 +2252,10 @@ class trace:
             "INDUCTOR_PROVENANCE", os.environ.get("TORCH_COMPILE_DEBUG", "0")
         )
     )
+=======
+    # Save mapping info from inductor generated triton kernel to post_grad fx nodes
+    log_inductor_triton_kernel_to_post_grad_node_info: bool = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _save_config_ignore: list[str] = [
@@ -2066,8 +2283,11 @@ _cache_config_ignore_prefix: list[str] = [
     # see CustomGraphPass; these are handled specially
     "post_grad_custom_post_pass",
     "post_grad_custom_pre_pass",
+<<<<<<< HEAD
     "joint_custom_pre_pass",
     "joint_custom_post_pass",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "_fuse_ddp_communication_passes",
     "_pre_fusion_custom_pass",
     # tests assume that changes here don't invalidate cache
@@ -2082,10 +2302,13 @@ _cache_config_ignore_prefix: list[str] = [
 # External callable for matmul tuning candidates
 external_matmul: list[Callable[[torch.Tensor, torch.Tensor, torch.Tensor], None]] = []
 
+<<<<<<< HEAD
 write_are_deterministic_algorithms_enabled = (
     os.getenv("TORCHINDUCTOR_WRITE_ARE_DETERMINISTIC_ALGORITHMS_ENABLED", "1") == "1"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class test_configs:
     force_extern_kernel_in_multi_template: bool = False
@@ -2093,7 +2316,10 @@ class test_configs:
     max_mm_configs: Optional[int] = None
 
     runtime_triton_dtype_assert = False
+<<<<<<< HEAD
     runtime_triton_shape_assert = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static_cpp_dtype_assert = False
 
     # regex to control the set of considered autotuning
@@ -2103,6 +2329,7 @@ class test_configs:
 
     graphsafe_rng_func_ignores_fallback_random = False
 
+<<<<<<< HEAD
     track_memory_lifecycle: Optional[Literal["assert", "log"]] = None
 
     # If set to True, AOTI-generated CMakelists.txt will still use libtorch
@@ -2125,6 +2352,8 @@ class test_configs:
         "TORCHINDUCTOR_DISTORT_BENCHMARKING_RESULT", ""
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
     from torch.utils._config_typing import *  # noqa: F401, F403

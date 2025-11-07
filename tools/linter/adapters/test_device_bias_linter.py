@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
 This lint verifies that every Python test file (file that matches test_*.py or
+<<<<<<< HEAD
 *_test.py in the test folder) has a cuda hard code in `requires_gpu()` or
 `requires_triton()` decorated function or `if HAS_GPU:` guarded main section,
 to ensure that the test not fail on other GPU devices.
+=======
+*_test.py in the test folder) has a cuda hard code in `requires_gpu()`
+decorated function to ensure that the test not fail on other GPU.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 
 from __future__ import annotations
@@ -39,6 +45,7 @@ class LintMessage(NamedTuple):
 
 
 DEVICE_BIAS = ["cuda", "xpu", "mps"]
+<<<<<<< HEAD
 GPU_RELATED_DECORATORS = {"requires_gpu", "requires_triton"}
 
 
@@ -87,11 +94,27 @@ class DeviceBiasVisitor(ast.NodeVisitor):
     def _has_proper_decorator(self, node: ast.FunctionDef) -> bool:
         for d in node.decorator_list:
             if isinstance(d, ast.Name) and d.id in GPU_RELATED_DECORATORS:
+=======
+
+
+class DeviceBiasVisitor(ast.NodeVisitor):
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.lint_messages: list[LintMessage] = []
+
+    def _has_requires_gpu_decorator(self, node: ast.FunctionDef) -> bool:
+        for d in node.decorator_list:
+            if isinstance(d, ast.Name) and d.id == "requires_gpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return True
             if (
                 isinstance(d, ast.Call)
                 and isinstance(d.func, ast.Name)
+<<<<<<< HEAD
                 and d.func.id in GPU_RELATED_DECORATORS
+=======
+                and d.func.id == "requires_gpu"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 return True
         return False
@@ -100,6 +123,10 @@ class DeviceBiasVisitor(ast.NodeVisitor):
     def _check_keyword_device(self, subnode: ast.keyword, msg_prefix: str) -> None:
         if subnode.arg != "device":
             return
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         val = subnode.value
         if isinstance(val, ast.Constant) and any(
             bias in val.value for bias in DEVICE_BIAS
@@ -142,6 +169,7 @@ class DeviceBiasVisitor(ast.NodeVisitor):
                     f"{msg_prefix} .to('{arg.value}'), suggest to use .to(GPU_TYPE)",
                 )
 
+<<<<<<< HEAD
     def _check_with_statement(self, node: ast.With, msg_prefix: str) -> None:
         for item in node.items:
             ctx_expr = item.context_expr
@@ -162,6 +190,17 @@ class DeviceBiasVisitor(ast.NodeVisitor):
                     )
 
     def _check_node(self, node: ast.AST, msg_prefix: str) -> None:
+=======
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        # Check if the function is decorated with @requires_gpu, which indicates
+        # that the function is intended to run on GPU devices (e.g., CUDA or XPU),
+        # but ensure it does not hardcode the device to CUDA.
+        if not self._has_requires_gpu_decorator(node):
+            self.generic_visit(node)
+            return
+
+        msg_prefix = "`@requires_gpu` function should not hardcode"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for subnode in ast.walk(node):
             if isinstance(subnode, ast.keyword):
                 self._check_keyword_device(subnode, msg_prefix)
@@ -169,6 +208,7 @@ class DeviceBiasVisitor(ast.NodeVisitor):
                 subnode.func, ast.Attribute
             ):
                 self._check_device_methods(subnode, msg_prefix)
+<<<<<<< HEAD
             elif isinstance(subnode, ast.With):
                 self._check_with_statement(subnode, msg_prefix)
 
@@ -182,6 +222,9 @@ class DeviceBiasVisitor(ast.NodeVisitor):
             # If the function is guarded by HAS_GPU in main(), we still need to check for device bias
             msg_prefix = "The test suites is shared amount GPUS, should not hardcode"
             self._check_node(node, msg_prefix)
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.generic_visit(node)
 
     def record(self, node: ast.AST, message: str) -> None:
@@ -204,16 +247,27 @@ def check_file(filename: str) -> list[LintMessage]:
     with open(filename) as f:
         source = f.read()
         tree = ast.parse(source, filename=filename)
+<<<<<<< HEAD
         is_gpu_test_suite = is_main_has_gpu(tree)
         checker = DeviceBiasVisitor(filename, is_gpu_test_suite)
         checker.visit(tree)
+=======
+        checker = DeviceBiasVisitor(filename)
+        checker.visit(tree)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return checker.lint_messages
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
+<<<<<<< HEAD
         description="Detect Device bias in functions decorated with requires_gpu/requires_triton"
         " or guarded by HAS_GPU block in main() that may break other GPU devices.",
+=======
+        description="Detect Device bias in python functions decorated with [require_gpu]"
+        " that may potentially break support for other GPU devices.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fromfile_prefix_chars="@",
     )
     parser.add_argument(

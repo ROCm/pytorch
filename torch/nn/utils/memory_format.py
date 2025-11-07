@@ -84,7 +84,10 @@ def convert_conv2d_weight_memory_format(
         )
     for child in module.children():
         convert_conv2d_weight_memory_format(child, memory_format)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return module
 
 
@@ -164,7 +167,10 @@ def convert_conv3d_weight_memory_format(
         )
     for child in module.children():
         convert_conv3d_weight_memory_format(child, memory_format)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return module
 
 

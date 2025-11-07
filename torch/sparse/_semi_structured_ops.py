@@ -40,7 +40,11 @@ def semi_sparse_values(func, types, args=(), kwargs=None) -> torch.Tensor:
     if A.meta is None:
         m, k = A.shape
         num_kept_elements = m * k // 2
+<<<<<<< HEAD
         return A.packed.ravel()[:num_kept_elements:].view(m, -1)
+=======
+        return A.packed[:num_kept_elements:].view(m, -1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return A.packed.detach()
 
@@ -53,7 +57,11 @@ def semi_sparse_indices(func, types, args=(), kwargs=None) -> torch.Tensor:
     if A.meta is None:
         m, k = A.shape
         num_kept_elements = m * k // 2
+<<<<<<< HEAD
         metadata = A.packed.ravel()[num_kept_elements:].view(m, -1)
+=======
+        metadata = A.packed[num_kept_elements:].view(m, -1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return metadata.view(torch.int32 if A.dtype == torch.int32 else torch.int16)
     else:
         return A.meta
@@ -67,7 +75,10 @@ def semi_sparse_t(func, types, args=(), kwargs=None) -> torch.Tensor:
     # Because we cannot go from the compressed representation back to the dense representation currently,
     # we just keep track of how many times we have been transposed. Depending on whether the sparse matrix
     # is the first or second argument, we expect an even / odd number of calls to transpose respectively.
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return self.__class__(
         torch.Size([self.shape[-1], self.shape[0]]),
         packed=self.packed_t,

@@ -58,7 +58,10 @@ BACKENDS: dict[str, list[Subsystem]] = {
     # applies CrossRefFakeMode on invocation
     "aot_eager_decomp_partition_crossref": [],
     "inductor": [
+<<<<<<< HEAD
         BisectSubsystem("pre_grad_passes"),  # passes applied on pre-grad IR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         BisectSubsystem("joint_graph_passes"),  # passes applied on joint graph
         BisectSubsystem(
             "post_grad_passes"
@@ -243,7 +246,10 @@ class CompilerBisector:
         lines = cls.read_lines_from_file(file_path)
         low = None
         high = None
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for line in reversed(lines):
             if line.startswith("low="):
                 low = int(line.strip().split("=")[1])
@@ -551,7 +557,11 @@ class CompilerBisector:
                         curr_backend,
                         curr_subsystem.name,
                         low,
+<<<<<<< HEAD
                         call_counter_debug_info.get(low),
+=======
+                        call_counter_debug_info.get(low, None),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
                 next_subsystem = cls.advance_subsystem(curr_backend, curr_subsystem)

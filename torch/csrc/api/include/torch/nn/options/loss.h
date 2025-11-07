@@ -131,7 +131,11 @@ struct TORCH_API BCELossOptions {
       reduction_t;
 
   /// A manual rescaling weight given to the loss of each batch element.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Specifies the reduction to apply to the output.
   /// ``'none'`` | ``'mean'`` | ``'sum'``. Default: ``'mean'``
   TORCH_ARG(reduction_t, reduction) = torch::kMean;
@@ -207,7 +211,11 @@ struct TORCH_API MultiMarginLossOptions {
   /// A manual rescaling weight given to each
   /// class. If given, it has to be a Tensor of size `C`. Otherwise, it is
   /// treated as if having all ones.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Specifies the reduction to apply to the output:
   /// ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be
   /// applied,
@@ -365,7 +373,11 @@ struct TORCH_API MultiLabelSoftMarginLossOptions {
   /// A manual rescaling weight given to each
   /// class. If given, it has to be a Tensor of size `C`. Otherwise, it is
   /// treated as if having all ones.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /// Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'.
   /// 'none': no reduction will be applied, 'mean': the sum of the output will
@@ -697,7 +709,11 @@ struct TORCH_API NLLLossOptions {
   /// A manual rescaling weight given to each
   /// class. If given, it has to be a Tensor of size `C`. Otherwise, it is
   /// treated as if having all ones.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Specifies a target value that is ignored
   /// and does not contribute to the input gradient.
   TORCH_ARG(int64_t, ignore_index) = -100;
@@ -735,7 +751,11 @@ struct TORCH_API CrossEntropyLossOptions {
 
   /// A manual rescaling weight given to each class. If given, has to be a
   /// Tensor of size C
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Specifies a target value that is ignored
   /// and does not contribute to the input gradient.
   TORCH_ARG(int64_t, ignore_index) = -100;
@@ -774,12 +794,20 @@ struct TORCH_API BCEWithLogitsLossOptions {
       reduction_t;
   /// A manual rescaling weight given to the loss of each batch element.
   /// If given, has to be a Tensor of size `nbatch`.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// Specifies the reduction to apply to the output. Default: Mean
   TORCH_ARG(reduction_t, reduction) = torch::kMean;
   /// A weight of positive examples.
   /// Must be a vector with length equal to the number of classes.
+<<<<<<< HEAD
   TORCH_ARG(Tensor, pos_weight);
+=======
+  TORCH_ARG(Tensor, pos_weight) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 namespace functional {

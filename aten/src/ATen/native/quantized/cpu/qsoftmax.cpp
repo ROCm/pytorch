@@ -16,8 +16,13 @@ namespace {
 
 #ifdef USE_PYTORCH_QNNPACK
 
+<<<<<<< HEAD
 constexpr static float qnnpack_softmax_output_scale = 0x1.0p-8f;
 constexpr static int qnnpack_softmax_output_zero_point = 0;
+=======
+const static float qnnpack_softmax_output_scale = 0x1.0p-8f;
+const static int qnnpack_softmax_output_zero_point = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool is_qnnpack_compatible(
     const Tensor& qx,

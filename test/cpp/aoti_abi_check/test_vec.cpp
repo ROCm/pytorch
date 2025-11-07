@@ -2,6 +2,7 @@
 
 #include <ATen/cpu/vec/vec.h>
 
+<<<<<<< HEAD
 namespace torch {
 namespace aot_inductor {
 
@@ -23,6 +24,12 @@ void ExpectVecEqual(
   }
 }
 
+=======
+#include <iostream>
+namespace torch {
+namespace aot_inductor {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(TestVec, TestAdd) {
   using Vec = at::vec::Vectorized<int>;
   std::vector<int> a(1024, 1);
@@ -33,7 +40,13 @@ TEST(TestVec, TestAdd) {
   std::vector<int> expected(1024, 3);
   Vec expected_vec = Vec::loadu(expected.data());
 
+<<<<<<< HEAD
   ExpectVecEqual(expected_vec, actual_vec);
+=======
+  for (int i = 0; i < Vec::size(); i++) {
+    EXPECT_EQ(expected_vec[i], actual_vec[i]);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(TestVec, TestMax) {
@@ -45,7 +58,13 @@ TEST(TestVec, TestMax) {
   Vec actual_vec = at::vec::maximum(a_vec, b_vec);
   Vec expected_vec = b_vec;
 
+<<<<<<< HEAD
   ExpectVecEqual(expected_vec, actual_vec);
+=======
+  for (int i = 0; i < Vec::size(); i++) {
+    EXPECT_EQ(expected_vec[i], actual_vec[i]);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(TestVec, TestMin) {
@@ -57,7 +76,13 @@ TEST(TestVec, TestMin) {
   Vec actual_vec = at::vec::minimum(a_vec, b_vec);
   Vec expected_vec = a_vec;
 
+<<<<<<< HEAD
   ExpectVecEqual(expected_vec, actual_vec);
+=======
+  for (int i = 0; i < Vec::size(); i++) {
+    EXPECT_EQ(expected_vec[i], actual_vec[i]);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(TestVec, TestConvert) {
@@ -69,7 +94,13 @@ TEST(TestVec, TestConvert) {
   auto actual_vec = at::vec::convert<float>(a_vec);
   auto expected_vec = b_vec;
 
+<<<<<<< HEAD
   ExpectVecEqual(expected_vec, actual_vec);
+=======
+  for (int i = 0; i < at::vec::Vectorized<int>::size(); i++) {
+    EXPECT_EQ(expected_vec[i], actual_vec[i]);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(TestVec, TestClampMin) {
@@ -81,7 +112,13 @@ TEST(TestVec, TestClampMin) {
   Vec actual_vec = at::vec::clamp_min(a_vec, min_vec);
   Vec expected_vec = min_vec;
 
+<<<<<<< HEAD
   ExpectVecEqual(expected_vec, actual_vec);
+=======
+  for (int i = 0; i < Vec::size(); i++) {
+    EXPECT_EQ(expected_vec[i], actual_vec[i]);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace aot_inductor

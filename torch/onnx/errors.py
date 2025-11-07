@@ -44,7 +44,11 @@ class UnsupportedOperatorError(OnnxExporterError):
             )
         else:
             msg = (
+<<<<<<< HEAD
                 f"ONNX export failed on an operator with unrecognized namespace {name}. "
+=======
+                "ONNX export failed on an operator with unrecognized namespace {op_name}. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "If you are trying to export a custom operator, make sure you registered it with "
                 "the right domain and version."
             )

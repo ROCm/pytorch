@@ -112,7 +112,11 @@ def run_command(
             if remaining_retries == 0:
                 raise err
             remaining_retries -= 1
+<<<<<<< HEAD
             logging.warning(  # noqa: G200
+=======
+            logging.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "(%s/%s) Retrying because command failed with: %r",
                 retries - remaining_retries,
                 retries,

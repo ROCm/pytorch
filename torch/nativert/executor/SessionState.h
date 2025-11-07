@@ -9,6 +9,12 @@
 
 namespace torch::nativert {
 
+<<<<<<< HEAD
+=======
+using torch::nativert::ExecutionFrame;
+using torch::nativert::Node;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T, typename __atomic_base = std::atomic<T>>
 struct copyable_atomic : public __atomic_base {
  public:

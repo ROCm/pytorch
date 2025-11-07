@@ -261,8 +261,12 @@ static optional_variable_list _process_backward_mode_ad(
     const at::ArrayRef<std::optional<Variable>> raw_outputs,
     const std::shared_ptr<Node>& cdata,
     const std::unordered_set<at::TensorImpl*>& to_save_if_setup_context,
+<<<<<<< HEAD
     const _view_as_self_fn_t& view_as_self_fn,
     bool pure_view) {
+=======
+    const _view_as_self_fn_t& view_as_self_fn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto num_outputs = raw_outputs.size();
 
 #ifndef STRIP_ERROR_MESSAGES
@@ -405,8 +409,12 @@ static optional_variable_list _process_backward_mode_ad(
     if (!(is_input && is_modified) && var.is_view()) {
       // is_view() => diff_view_meta
       auto diff_view_meta = impl::get_view_autograd_meta(var);
+<<<<<<< HEAD
       diff_view_meta->set_creation_meta(
           pure_view ? CreationMeta::DEFAULT : CreationMeta::IN_CUSTOM_FUNCTION);
+=======
+      diff_view_meta->set_creation_meta(CreationMeta::IN_CUSTOM_FUNCTION);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     if (is_differentiable) {
@@ -450,20 +458,27 @@ optional_variable_list _wrap_outputs(
     const std::shared_ptr<Node>& cdata,
     const _jvp_fn_t& jvp_user_function,
     const std::unordered_set<at::TensorImpl*>& to_save_if_setup_context,
+<<<<<<< HEAD
     const _view_as_self_fn_t& view_as_self_fn,
     bool pure_view) {
+=======
+    const _view_as_self_fn_t& view_as_self_fn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unordered_map<at::TensorImpl*, size_t> inputs_mapping;
   inputs_mapping.reserve(input_vars.size());
   for (const auto i : c10::irange(input_vars.size())) {
     inputs_mapping.emplace(input_vars[i].unsafeGetTensorImpl(), i);
   }
 
+<<<<<<< HEAD
   // Limit pure views to 1-1 mapping as it is unclear if it is even
   // possible to have a pure view for N-1 or 1-N.
   TORCH_CHECK(
       !pure_view || (input_vars.size() == 1 && raw_outputs.size() == 1),
       "Pure view custom Function can only have one input Tensor and one output Tensor. Open an issue if you need to support more.");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto outputs = _process_backward_mode_ad(
       inputs_mapping,
       non_differentiable,
@@ -471,8 +486,12 @@ optional_variable_list _wrap_outputs(
       raw_outputs,
       cdata,
       to_save_if_setup_context,
+<<<<<<< HEAD
       view_as_self_fn,
       pure_view);
+=======
+      view_as_self_fn);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // This must happen after the backward processing as we expect the
   // computations happening here to track backward mode gradients.
@@ -492,6 +511,7 @@ void check_variable_result(
     const at::TensorBase& original,
     const at::TensorBase& result,
     const std::string& hook_name) {
+<<<<<<< HEAD
   TORCH_CHECK(
       original.options().type_equal(result.options()),
       "hook '",
@@ -517,6 +537,32 @@ void check_variable_result(
       "hook '",
       hook_name,
       "' has changed the size of value");
+=======
+  if (!original.options().type_equal(result.options())) {
+    std::stringstream ss;
+    ss << "hook '" << hook_name << "' has changed the type of value (";
+    ss << "was " << original.toString() << " got ";
+    ss << result.toString() << ")";
+    throw std::runtime_error(ss.str());
+  }
+
+  if (original.is_cuda() != result.is_cuda()) {
+    std::stringstream ss;
+    ss << "hook '" << hook_name << "' has changed the type of value";
+    if (original.is_cuda()) {
+      ss << " (was CUDA tensor got CPU tensor)";
+    } else {
+      ss << " (was CPU tensor got CUDA tensor)";
+    }
+    throw std::runtime_error(ss.str());
+  }
+
+  if (original.sym_sizes().vec() != result.sym_sizes().vec()) {
+    std::stringstream ss;
+    ss << "hook '" << hook_name << "' has changed the size of value";
+    throw std::runtime_error(ss.str());
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 AutogradContext::AutogradContext(PackedArgs& packed_args) {

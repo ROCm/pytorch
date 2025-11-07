@@ -118,7 +118,10 @@ def download_patch(pr_number: int, repo_url: str, download_dir: str) -> str:
             urllib.request.urlopen(patch_url) as response,
             open(patch_file, "wb") as out_file,
         ):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-specialization]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shutil.copyfileobj(response, out_file)
         if not os.path.isfile(patch_file):
             print(f"Failed to download patch for PR #{pr_number}")

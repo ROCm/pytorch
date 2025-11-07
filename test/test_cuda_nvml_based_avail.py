@@ -127,7 +127,11 @@ class TestVisibleDeviceParses(TestCase):
             _transform_uuid_to_ordinals(["GPU-e4", "GPU-9e8d35e3"], uuids), [2, 1]
         )
         self.assertEqual(
+<<<<<<< HEAD
             _transform_uuid_to_ordinals(["GPU-9e8d35e3", "GPU-1", "GPU-47"], uuids),
+=======
+            _transform_uuid_to_ordinals("GPU-9e8d35e3,GPU-1,GPU-47".split(","), uuids),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [1, 7, 5],
         )
         # First invalid UUID aborts parsing
@@ -138,7 +142,11 @@ class TestVisibleDeviceParses(TestCase):
             _transform_uuid_to_ordinals(["GPU-9e8d35e3", "GPU-123", "GPU-47"], uuids),
             [1],
         )
+<<<<<<< HEAD
         # First ambiguous UUID aborts parsing
+=======
+        # First ambigous UUID aborts parsing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             _transform_uuid_to_ordinals(["GPU-9e8d35e3", "GPU-e", "GPU-47"], uuids), [1]
         )

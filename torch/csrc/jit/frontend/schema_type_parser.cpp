@@ -8,7 +8,10 @@
 #include <torch/csrc/jit/frontend/parse_string_literal.h>
 #include <torch/custom_class.h>
 #include <string>
+<<<<<<< HEAD
 #include <unordered_set>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 using c10::AliasInfo;
 using c10::AwaitType;
@@ -34,7 +37,10 @@ using c10::StorageType;
 using c10::StreamObjType;
 using c10::StringType;
 using c10::Symbol;
+<<<<<<< HEAD
 using c10::SymBoolType;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using c10::SymIntType;
 using c10::TensorType;
 using c10::TupleType;
@@ -43,6 +49,7 @@ using c10::VarType;
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 static std::unordered_set<std::string>& getOpaqueTypes() {
   static std::unordered_set<std::string> global_opaque_types;
   return global_opaque_types;
@@ -62,6 +69,8 @@ bool isRegisteredOpaqueType(const std::string& type_name) {
   return global_opaque_types.find(type_name) != global_opaque_types.end();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TypePtr SchemaTypeParser::parseBaseType() {
   static std::unordered_map<std::string, TypePtr> type_map = {
       {"Generator", c10::TypeFactory::get<GeneratorType>()},
@@ -87,7 +96,10 @@ TypePtr SchemaTypeParser::parseBaseType() {
       {"int", c10::TypeFactory::get<IntType>()},
       {"SymInt", c10::TypeFactory::get<SymIntType>()},
       {"bool", c10::TypeFactory::get<BoolType>()},
+<<<<<<< HEAD
       {"SymBool", c10::TypeFactory::get<SymBoolType>()},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {"None", c10::TypeFactory::get<NoneType>()},
       {"NoneType", c10::TypeFactory::get<NoneType>()},
       {"Capsule", c10::TypeFactory::get<CapsuleType>()},
@@ -101,11 +113,14 @@ TypePtr SchemaTypeParser::parseBaseType() {
   }
   std::string text = tok.text();
 
+<<<<<<< HEAD
   // Check if this type is registered as an opaque type first
   if (isRegisteredOpaqueType(text)) {
     return c10::PyObjectType::get();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto it = type_map.find(text);
   if (it == type_map.end()) {
     if (allow_typevars_ && !text.empty() && islower(text[0])) {

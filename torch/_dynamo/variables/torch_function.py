@@ -38,6 +38,10 @@ import torch.utils._pytree as pytree
 from torch._guards import Source
 from torch.overrides import (
     _get_overloaded_args,
+<<<<<<< HEAD
+=======
+    BaseTorchFunctionMode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_default_nowrap_functions,
     TorchFunctionMode,
 )
@@ -123,6 +127,76 @@ un_ops = [
     operator.length_hint,
 ]
 
+<<<<<<< HEAD
+=======
+BUILTIN_TO_TENSOR_FN_MAP = {}
+
+# These functions represent the r* versions of the above ops
+# Basically, if __add__(1, Tensor) is called, it is translated
+# to __radd__(Tensor, 1).
+# In the builtin var, we check if there is a tensor in the first args position,
+# if not, we swap the args and use the r* version of the op.
+BUILTIN_TO_TENSOR_RFN_MAP = {}
+
+
+def populate_builtin_to_tensor_fn_map():
+    global BUILTIN_TO_TENSOR_FN_MAP
+
+    most_recent_func = None
+
+    class GetMethodMode(BaseTorchFunctionMode):
+        """
+        Mode to extract the correct methods from torch function invocations
+        (Used to get the correct torch.Tensor methods from builtins)
+        """
+
+        def __torch_function__(self, func, types, args=(), kwargs=None):
+            kwargs = kwargs or {}
+            nonlocal most_recent_func
+            most_recent_func = func
+            return func(*args, **kwargs)
+
+    inp0 = torch.ones(1)
+    inp1 = torch.ones(1)
+    inp0_int = torch.ones(1, dtype=torch.int32)
+    inp1_int = torch.ones(1, dtype=torch.int32)
+    with GetMethodMode():
+        setups_and_oplists = [
+            (lambda o: o(inp0), un_ops),
+            (lambda o: o(inp0_int), un_int_ops),
+            (lambda o: o(inp0, inp1), bin_ops),
+            (lambda o: o(inp0_int, inp1_int), bin_int_ops),
+            (lambda o: o(inp0_int, 0), tensor_and_int_ops),
+        ]
+        for setup_fn, op_list in setups_and_oplists:
+            for op in op_list:
+                setup_fn(op)
+                assert most_recent_func is not None
+                BUILTIN_TO_TENSOR_FN_MAP[op] = most_recent_func
+
+        # gather the reverse functions
+        rsetups_and_oplists = [
+            (
+                lambda o: o(1, inp1),
+                bin_ops,
+            ),  # Get r* ops, (ex. __sub__(int, Tensor) -> __rsub__(Tensor, int))
+            (lambda o: o(1, inp1_int), bin_int_ops),
+            (lambda o: o(0, inp0_int), tensor_and_int_ops),
+        ]
+
+        rskips = {operator.matmul, operator.imatmul, operator.getitem}
+        for setup_fn, op_list in rsetups_and_oplists:
+            for op in op_list:
+                if op in rskips:
+                    continue
+                setup_fn(op)
+                assert most_recent_func is not None
+                if most_recent_func != BUILTIN_TO_TENSOR_FN_MAP[op]:
+                    BUILTIN_TO_TENSOR_RFN_MAP[op] = most_recent_func
+
+
+populate_builtin_to_tensor_fn_map()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 banned_attrs = [
     fn.__self__.__name__
@@ -389,7 +463,11 @@ def _flatten_vts(vts):
     output = []
 
     while vts:
+<<<<<<< HEAD
         vt = vts.popleft()
+=======
+        vt = vts.pop()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not vt.is_realized() and vt.peek_type() in (dict, list, tuple):
             vt.realize()
@@ -397,10 +475,15 @@ def _flatten_vts(vts):
         if vt.is_realized():
             if isinstance(vt, ListVariable):
                 vts.extend(vt.items)
+<<<<<<< HEAD
                 continue
             elif isinstance(vt, ConstDictVariable):
                 vts.extend(vt.items.values())
                 continue
+=======
+            elif isinstance(vt, ConstDictVariable):
+                vts.extend(vt.items.values())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         output.append(vt)
 
@@ -583,6 +666,15 @@ class TensorWithTFOverrideVariable(TensorVariable):
         ):
             args, kwargs = [self], {}
             if can_dispatch_torch_function(tx, args, kwargs):
+<<<<<<< HEAD
+=======
+                if self.source:
+                    install_guard(
+                        AttrSource(
+                            AttrSource(self.source, "__class__"), name
+                        ).make_guard(GuardBuilder.FUNCTION_MATCH)
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 get_fn = VariableTracker.build(tx, getattr(torch.Tensor, name).__get__)
 
                 return self.call_torch_function(
@@ -608,14 +700,23 @@ class TensorWithTFOverrideVariable(TensorVariable):
                 cls_source = GlobalSource(self.global_mangled_class_name(tx))
                 attr_source = AttrSource(cls_source, name)
                 if isinstance(attr, types.FunctionType):
+<<<<<<< HEAD
                     install_guard(attr_source.make_guard(GuardBuilder.CLOSURE_MATCH))
+=======
+                    install_guard(attr_source.make_guard(GuardBuilder.FUNCTION_MATCH))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return UserMethodVariable(attr, self)
 
                 elif isinstance(attr, property):
                     getter_source = AttrSource(attr_source, "fget")
                     getter = attr.fget
+<<<<<<< HEAD
                     getter_var = VariableTracker.build(tx, getter, source=getter_source)
                     return getter_var.call_function(tx, [self], {})
+=======
+                    getter_var = UserMethodVariable(getter, self, source=getter_source)
+                    return getter_var.call_function(tx, [], {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 elif isinstance(attr, classmethod):
                     return UserMethodVariable(

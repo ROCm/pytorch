@@ -10,9 +10,23 @@ from unittest import skip, skipIf
 from attn_ft import BertSelfAttention as BertSelfAttentionA, Linear
 from attn_positional import BertSelfAttention as BertSelfAttentionB
 
+<<<<<<< HEAD
 import functorch.dim
 import torch
 from functorch.dim import Dim, DimList, dimlists, dims, stack, Tensor
+=======
+import torch
+from functorch._C import dim as _C
+from functorch.dim import (
+    Dim,
+    DimensionBindError,
+    DimList,
+    dimlists,
+    dims,
+    stack,
+    Tensor,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     run_tests,
     skipIfTorchDynamo,
@@ -26,6 +40,15 @@ try:
 except ImportError:
     resnet18 = None
 
+<<<<<<< HEAD
+=======
+_test_c, _parse_test, _set_pointwise_optimize = (
+    _C._test_c,
+    _C._parse_test,
+    _C._set_pointwise_optimize,
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from time import perf_counter
 
@@ -398,6 +421,14 @@ class TestMin(TestCase):
         torch.testing.assert_close(
             A[c + 1, c + 0].order(c), A[torch.arange(2) + 1, torch.arange(2)]
         )
+<<<<<<< HEAD
+=======
+        try:
+            A[..., 3, ...]
+            raise NotImplementedError
+        except DimensionBindError:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         C = torch.rand(4, 7)
         c_, x, y, z = dims()
@@ -474,6 +505,12 @@ class TestMin(TestCase):
         j.size = 4
         (i < j)  # noqa: B015
 
+<<<<<<< HEAD
+=======
+    def test_c(self):
+        _test_c()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_seg(self):
         i, k = dims()
         i.size = 4
@@ -485,6 +522,26 @@ class TestMin(TestCase):
         i = dims()
         self.assertEqual(list(A[i].expand(2, 4).order(i).size()), [3, 2, 4])
 
+<<<<<<< HEAD
+=======
+    def test_parse(self):
+        self.assertEqual(("x", None, None, None), _parse_test(1, 0, "x"))
+        self.assertEqual(("x", None, "y", None), _parse_test(1, 0, "x", c="y"))
+        self.assertEqual(("x", None, "y", "z"), _parse_test(1, 0, "x", d="z", c="y"))
+
+        self.assertEqual(("x", "4", None, None), _parse_test(2, 0, "x", b="4"))
+        self.assertEqual(("x", "y", "z", "q"), _parse_test(2, 0, "x", "y", "z", "q"))
+        with self.assertRaises(TypeError):
+            _parse_test(2, 0, "x", "y", "z", "q", "5")
+        with self.assertRaises(TypeError):
+            _parse_test(2, 0, "x", "y", b="y")
+
+        with self.assertRaises(TypeError):
+            _parse_test(2, 0, "x", c="y")
+        with self.assertRaises(TypeError):
+            _parse_test(2, 0, "x")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_network(self):
         if resnet18 is None:
             self.skipTest("no torchvision")
@@ -677,10 +734,17 @@ skip_functorch_only = ["test_time_mm_fuse", "test_attn_cuda"]
 class TestMinFunctorchOnly(TestMin):
     def setUp(self):
         super().setUp()
+<<<<<<< HEAD
         functorch.dim.POINTWISE_OPTIMIZE = False
 
     def tearDown(self):
         functorch.dim.POINTWISE_OPTIMIZE = True
+=======
+        _set_pointwise_optimize(False)
+
+    def tearDown(self):
+        _set_pointwise_optimize(True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().tearDown()
 
 

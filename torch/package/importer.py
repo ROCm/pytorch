@@ -1,5 +1,6 @@
 # mypy: allow-untyped-defs
 import importlib
+<<<<<<< HEAD
 import logging
 from abc import ABC, abstractmethod
 
@@ -8,6 +9,13 @@ from pickle import (  # type: ignore[attr-defined]
     _getattribute,
     _Pickler,
     whichmodule as _pickle_whichmodule,  # pyrefly: ignore  # missing-module-attribute
+=======
+from abc import ABC, abstractmethod
+from pickle import (  # type: ignore[attr-defined]
+    _getattribute,
+    _Pickler,
+    whichmodule as _pickle_whichmodule,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from types import ModuleType
 from typing import Any, Optional
@@ -16,7 +24,10 @@ from ._mangling import demangle, get_mangle_prefix, is_mangled
 
 
 __all__ = ["ObjNotFoundError", "ObjMismatchError", "Importer", "OrderedImporter"]
+<<<<<<< HEAD
 log = logging.getLogger(__name__)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ObjNotFoundError(Exception):
@@ -208,6 +219,7 @@ class OrderedImporter(Importer):
             return True
         return module.__file__ is None
 
+<<<<<<< HEAD
     def get_name(self, obj: Any, name: Optional[str] = None) -> tuple[str, str]:
         for importer in self._importers:
             try:
@@ -222,6 +234,8 @@ class OrderedImporter(Importer):
             f"Could not find obj {obj} and name {name} in any of the importers {self._importers}"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def import_module(self, module_name: str) -> ModuleType:
         last_err = None
         for importer in self._importers:

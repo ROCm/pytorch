@@ -1,4 +1,8 @@
 # Owner(s): ["module: dynamo"]
+<<<<<<< HEAD
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest.mock as mock
 
 import torch
@@ -12,6 +16,13 @@ from torch._dynamo.testing import (
 )
 from torch._higher_order_ops.schema import find_hop_schema
 from torch.testing._internal.common_utils import instantiate_parametrized_tests
+<<<<<<< HEAD
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+
+
+requires_cuda = unittest.skipUnless(HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def normalize_graph(gm):

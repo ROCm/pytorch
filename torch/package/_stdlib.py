@@ -17,12 +17,20 @@ def is_stdlib_module(module: str) -> bool:
 
 
 def _get_stdlib_modules():
+<<<<<<< HEAD
     if sys.version_info.major == 3:  # noqa: UP036
+=======
+    if sys.version_info.major == 3:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if sys.version_info.minor == 9:
             return stdlib3_9
         if sys.version_info.minor >= 10:  # noqa: YTT204
             return sys.stdlib_module_names  # type: ignore[attr-defined]
+<<<<<<< HEAD
     elif sys.version_info.major > 3:  # noqa: UP036
+=======
+    elif sys.version_info.major > 3:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return sys.stdlib_module_names  # type: ignore[attr-defined]
 
     raise RuntimeError(f"Unsupported Python version: {sys.version_info}")

@@ -15,7 +15,10 @@ import torch.cuda
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import _reduction as _Reduction
+<<<<<<< HEAD
 from torch.testing._internal import common_utils
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import TestCase, to_gpu, freeze_rng_state, is_iterable, \
     gradcheck, gradgradcheck, set_default_dtype, skipIfTorchDynamo, TEST_WITH_ROCM
 from torch.testing._internal.common_cuda import TEST_CUDA, SM90OrLater
@@ -24,8 +27,12 @@ from torch.autograd import Variable
 from torch.types import _TensorOrTensors
 import torch.backends.cudnn
 
+<<<<<<< HEAD
 from typing import Union, Any
 from collections.abc import Callable
+=======
+from typing import Callable, Union, Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Sequence
 
 TemporaryFile = tempfile.TemporaryFile
@@ -1080,7 +1087,10 @@ def single_batch_reference_fn(input, parameters, module):
 
 
 def get_new_module_tests():
+<<<<<<< HEAD
     common_utils.set_rng_seed()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_module_tests = [
         poissonnllloss_no_reduce_test(),
         bceloss_no_reduce_test(),
@@ -2633,7 +2643,11 @@ def get_new_module_tests():
     # add conv padding mode tests:
     for padding_mode, cpp_padding_mode in zip(
             ['reflect', 'circular', 'replicate', 'zeros'],
+<<<<<<< HEAD
             ['torch::kReflect', 'torch::kCircular', 'torch::kReplicate', 'torch::kZeros'], strict=True):
+=======
+            ['torch::kReflect', 'torch::kCircular', 'torch::kReplicate', 'torch::kZeros']):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # conv signature:
         #     in_channels, out_channels, kernel_size, stride=1,
         #     padding=0, dilation=1, groups=1,
@@ -2848,8 +2862,13 @@ def nllloss_reference(input, target, weight=None, ignore_index=-100,
         return (result, norm)
 
     losses_and_weights = [nll_loss_helper(i, t, weight, ignore_index)
+<<<<<<< HEAD
                           for i, t in zip(input, target, strict=True)]
     losses, weights = zip(*losses_and_weights, strict=True)
+=======
+                          for i, t in zip(input, target)]
+    losses, weights = zip(*losses_and_weights)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     losses_tensor = input.new_tensor(losses)
     if reduction == 'mean':
         return sum(losses_tensor) / sum(weights)
@@ -2896,7 +2915,11 @@ def _multilabelmarginloss_reference(input, target):
 
     sum = 0
     for target_index in targets:
+<<<<<<< HEAD
         for i in range(len(input)):
+=======
+        for i in range(0, len(input)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if i not in targets:
                 sum += max(0, 1 - input[target_index] + input[i])
 
@@ -2914,7 +2937,11 @@ def multilabelmarginloss_reference(input, target, reduction='mean'):
     n = input.size(0)
     dim = input.size(1)
     output = input.new(n).zero_()
+<<<<<<< HEAD
     for i in range(n):
+=======
+    for i in range(0, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output[i] = _multilabelmarginloss_reference(input[i], target[i])
 
     if reduction == 'mean':
@@ -2955,7 +2982,11 @@ def _multimarginloss_reference(input, target_idx, p, margin, weight):
         weight = input.new(len(input)).fill_(1)
 
     output = 0
+<<<<<<< HEAD
     for i in range(len(input)):
+=======
+    for i in range(0, len(input)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if i != target_idx:
             output += weight[target_idx] * (max(0, (margin - input[target_idx] + input[i])) ** p)
     return output
@@ -2972,7 +3003,11 @@ def multimarginloss_reference(input, target, p=1, margin=1, weight=None, reducti
     n = input.size(0)
     dim = input.size(1)
     output = input.new(n)
+<<<<<<< HEAD
     for x in range(n):
+=======
+    for x in range(0, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output[x] = _multimarginloss_reference(input[x], target[x], p, margin, weight)
 
     if reduction == 'mean':
@@ -2987,7 +3022,11 @@ def multimarginloss_reference(input, target, p=1, margin=1, weight=None, reducti
 def cosineembeddingloss_reference(input1, input2, target, margin=0, reduction='mean'):
     def _cos(a, b):
         cos = a.new(a.size(0))
+<<<<<<< HEAD
         for i in range(a.size(0)):
+=======
+        for i in range(0, a.size(0)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cos[i] = (a[i] * b[i]).sum() / ((((a[i] * a[i]).sum() + 1e-12) * ((b[i] * b[i]).sum() + 1e-12)) ** 0.5)
         return cos
 
@@ -3268,7 +3307,11 @@ class NNTestCase(TestCase):
         for i in range(output_size):
             param, d_param = self._get_parameters(module)
             # make non grad zeros
+<<<<<<< HEAD
             d_param = [torch.zeros_like(p) if d is None else d for (p, d) in zip(param, d_param, strict=True)]
+=======
+            d_param = [torch.zeros_like(p) if d is None else d for (p, d) in zip(param, d_param)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             d_out = torch.zeros_like(output)
             flat_d_out = d_out.view(-1)
@@ -3282,7 +3325,11 @@ class NNTestCase(TestCase):
             d_input = self._backward(module, input, output, d_out)
 
             if jacobian_input:
+<<<<<<< HEAD
                 for jacobian_x, d_x in zip(flat_jacobian_input, _iter_tensors(d_input), strict=True):
+=======
+                for jacobian_x, d_x in zip(flat_jacobian_input, _iter_tensors(d_input)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     jacobian_x[:, i] = d_x.contiguous().view(-1)
             if jacobian_parameters:
                 jacobian_param[:, i] = torch.cat(self._flatten_tensors(d_param), 0)
@@ -3320,7 +3367,11 @@ class NNTestCase(TestCase):
         numerical_t = list(_iter_tensors(numerical))
 
         differences = []
+<<<<<<< HEAD
         for a, n in zip(analytical_t, numerical_t, strict=True):
+=======
+        for a, n in zip(analytical_t, numerical_t):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if a.numel() != 0:
                 differences.append(a.add(n, alpha=-1).abs().max())
             # TODO: compare structure (ensure analytic jacobian has correct shape)
@@ -3421,7 +3472,11 @@ class ModuleTest(TestBase):
             kwargs.get('FIXME_no_cuda_gradgrad_comparison', False)
         self.precision = kwargs.get('precision', 2e-4)
         self.check_forward_only = kwargs.get('check_forward_only', False)
+<<<<<<< HEAD
         self.default_dtype = kwargs.get('default_dtype')
+=======
+        self.default_dtype = kwargs.get('default_dtype', None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.default_dtype is None:
             self.default_dtype = torch.get_default_dtype()
 
@@ -3528,7 +3583,11 @@ class ModuleTest(TestBase):
             gpu_module = self.constructor(*self.constructor_args).float().cuda()
             cpu_param = test_case._get_parameters(cpu_module)
             gpu_param = test_case._get_parameters(gpu_module)
+<<<<<<< HEAD
             for cpu_p, gpu_p in zip(cpu_param[0], gpu_param[0], strict=True):
+=======
+            for cpu_p, gpu_p in zip(cpu_param[0], gpu_param[0]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 gpu_p.data.copy_(cpu_p)
 
             test_case._zero_grad_input(cpu_input_tuple)
@@ -3549,7 +3608,11 @@ class ModuleTest(TestBase):
                 cpu_gradInput = test_case._backward(cpu_module, cpu_input_tuple, cpu_output, cpu_gradOutput)
                 gpu_gradInput = test_case._backward(gpu_module, gpu_input_tuple, gpu_output, gpu_gradOutput)
                 test_case.assertEqual(cpu_gradInput, gpu_gradInput, atol=self.precision, rtol=0, exact_dtype=False)
+<<<<<<< HEAD
                 for cpu_d_p, gpu_d_p in zip(cpu_param[1], gpu_param[1], strict=True):
+=======
+                for cpu_d_p, gpu_d_p in zip(cpu_param[1], gpu_param[1]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     test_case.assertEqual(cpu_d_p, gpu_d_p, atol=self.precision, rtol=0)
 
             # Run double-backwards on CPU and GPU and compare results
@@ -3575,7 +3638,11 @@ class ModuleTest(TestBase):
                     gpu_gradOutput,
                     create_graph=True)
 
+<<<<<<< HEAD
                 for cpu_d_i, gpu_d_i in zip(cpu_gradInputs, gpu_gradInputs, strict=True):
+=======
+                for cpu_d_i, gpu_d_i in zip(cpu_gradInputs, gpu_gradInputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     test_case.assertEqual(cpu_d_i, gpu_d_i, atol=self.precision, rtol=0, exact_dtype=False)
 
                 # We mix output into the second backwards computation so that
@@ -3598,7 +3665,11 @@ class ModuleTest(TestBase):
                     gpu_input_tuple + (gpu_gradOutput,) + tuple(gpu_module.parameters()),
                     retain_graph=True)
                 test_case.assertEqual(cpu_gradInput, gpu_gradInput, atol=self.precision, rtol=0, exact_dtype=False)
+<<<<<<< HEAD
                 for cpu_d_p, gpu_d_p in zip(cpu_gg, gpu_gg, strict=True):
+=======
+                for cpu_d_p, gpu_d_p in zip(cpu_gg, gpu_gg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     test_case.assertEqual(cpu_d_p, gpu_d_p, atol=self.precision, rtol=0, exact_dtype=False)
 
             self.test_noncontig(test_case, gpu_module, gpu_input_tuple)
@@ -3632,7 +3703,11 @@ class NewModuleTest(InputVariableMixin, ModuleTest):  # type: ignore[misc]
         self.test_cpu = kwargs.get('test_cpu', True)
         self.has_sparse_gradients = kwargs.get('has_sparse_gradients', False)
         self.check_batched_grad = kwargs.get('check_batched_grad', True)
+<<<<<<< HEAD
         self.gradcheck_fast_mode = kwargs.get('gradcheck_fast_mode')
+=======
+        self.gradcheck_fast_mode = kwargs.get('gradcheck_fast_mode', None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.supports_forward_ad = kwargs.get('supports_forward_ad', False)
         self.supports_fwgrad_bwgrad = kwargs.get('supports_fwgrad_bwgrad', False)
 
@@ -3836,7 +3911,11 @@ class CriterionTest(InputVariableMixin, TestBase):  # type: ignore[misc]
         self.with_tf32 = kwargs.get('with_tf32', True)
         self.tf32_precision = kwargs.get('tf32_precision', 0.001)
         self.check_batched_grad = kwargs.get('check_batched_grad', True)
+<<<<<<< HEAD
         self.default_dtype = kwargs.get('default_dtype')
+=======
+        self.default_dtype = kwargs.get('default_dtype', None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.default_dtype is None:
             self.default_dtype = torch.get_default_dtype()
 

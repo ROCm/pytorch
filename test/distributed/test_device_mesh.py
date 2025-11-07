@@ -1,15 +1,22 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
 import os
+<<<<<<< HEAD
 import unittest
 from datetime import timedelta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 import torch.distributed._functional_collectives as funcol
+<<<<<<< HEAD
 from torch._C._distributed_c10d import Backend as C10dBackend
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.distributed._mesh_layout import _MeshLayout as _Layout
+=======
+from torch._subclasses.fake_tensor import FakeTensorMode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _mesh_resources, DeviceMesh, init_device_mesh
 from torch.distributed.distributed_c10d import (
     _get_default_group,
@@ -29,11 +36,16 @@ from torch.distributed.tensor._collective_utils import (
 )
 from torch.distributed.tensor.placement_types import _Partial, Shard
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, TEST_XPU, TestCase
+=======
+from torch.testing._internal.common_utils import run_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     with_comms,
 )
+<<<<<<< HEAD
 from torch.testing._internal.distributed.fake_pg import FakeProcessGroup, FakeStore
 from torch.utils._typing_utils import not_none
 
@@ -49,6 +61,12 @@ except ImportError:
     _NCCL_AVAILABLE = False
 
 
+=======
+from torch.testing._internal.distributed.fake_pg import FakeStore
+from torch.utils._typing_utils import not_none
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _set_env_var(addr="localhost", port="25364", world_size=1, rank=0, local_rank=-1):
     os.environ["MASTER_ADDR"] = addr
     os.environ["MASTER_PORT"] = port
@@ -58,7 +76,10 @@ def _set_env_var(addr="localhost", port="25364", world_size=1, rank=0, local_ran
         os.environ["LOCAL_RANK"] = f"{local_rank}"
 
 
+<<<<<<< HEAD
 @unittest.skipIf(TEST_XPU, "XPU does not support gloo backend.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DeviceMeshTestGlooBackend(DTensorTestBase):
     @property
     def backend(self):
@@ -88,16 +109,24 @@ class DeviceMeshSetDeviceTest(DTensorTestBase):
 
         # Set the device on each process before DeviceMesh constructor,
         # and device to be different than the default world rank
+<<<<<<< HEAD
         torch.accelerator.set_device_index((self.rank + 2) % self.world_size)
+=======
+        torch.cuda.set_device((self.rank + 2) % self.world_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _set_env_var(world_size=self.world_size, rank=self.rank)
         DeviceMesh(self.device_type, mesh_tensor)
         self.assertTrue(is_initialized())
 
         # check that the device is set to the correct device
         # and respect the previous set_device calls
+<<<<<<< HEAD
         self.assertEqual(
             torch.accelerator.current_device_idx(), (self.rank + 2) % self.world_size
         )
+=======
+        self.assertEqual(torch.cuda.current_device(), (self.rank + 2) % self.world_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.destroy_pg()
 
     @skip_if_lt_x_gpu(4)
@@ -118,7 +147,11 @@ class DeviceMeshSetDeviceTest(DTensorTestBase):
 
         # check that the device is set to the correct device
         # and respect the LOCAL_RANK env var
+<<<<<<< HEAD
         self.assertEqual(torch.accelerator.current_device_idx(), local_rank)
+=======
+        self.assertEqual(torch.cuda.current_device(), local_rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.destroy_pg()
 
     @skip_if_lt_x_gpu(4)
@@ -137,7 +170,11 @@ class DeviceMeshSetDeviceTest(DTensorTestBase):
         self.assertTrue(is_initialized())
 
         # check that the device is set to the correct device
+<<<<<<< HEAD
         self.assertEqual(torch.accelerator.current_device_idx(), self.rank)
+=======
+        self.assertEqual(torch.cuda.current_device(), self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.destroy_pg()
 
 
@@ -239,7 +276,11 @@ class DeviceMeshTest(DTensorTestBase):
     @with_comms
     def test_device_mesh_2d(self):
         mesh_tensor = torch.arange(4).reshape(2, 2)
+<<<<<<< HEAD
         # construct a device mesh for self.device_type
+=======
+        # construct a cuda device mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh = DeviceMesh(self.device_type, mesh_tensor)
 
         # check all dim groups
@@ -263,25 +304,37 @@ class DeviceMeshTest(DTensorTestBase):
 
     @with_comms
     def test_device_mesh_init_backend(self):
+<<<<<<< HEAD
         mesh = DeviceMesh(
             self.device_type, torch.arange(10), _init_backend=False, _rank=5
         )
+=======
+        mesh = DeviceMesh(self.device_type, [1], _init_backend=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with self.assertRaisesRegex(RuntimeError, "process groups not initialized!"):
             mesh.get_group()
 
         # coordinates should always been populated when init_backend is False, as whenever
         # we call init_backend we should make sure the default pg already created
+<<<<<<< HEAD
         self.assertEqual(mesh.get_coordinate(), [5])
+=======
+        mesh.get_coordinate()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_fake_pg_device_mesh(self):
         fake_store = FakeStore()
         init_process_group("fake", store=fake_store, rank=0, world_size=self.world_size)
+<<<<<<< HEAD
         device_type = (
             torch.accelerator.current_accelerator().type
             if torch.accelerator.is_available()
             else "cpu"
         )
+=======
+        device_type = "cuda" if torch.cuda.is_available() else "cpu"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh = DeviceMesh(device_type, torch.arange(self.world_size))
 
         local_tensor = torch.randn(2, 8)
@@ -321,7 +374,11 @@ class DeviceMeshTest(DTensorTestBase):
         regex = r"Invalid mesh \[\[0, 1\], \[2, 3\]\] for ProcessGroup with ranks \[0, 1, 2, 3\]"
         with self.assertRaisesRegex(ValueError, regex):
             DeviceMesh.from_group(
+<<<<<<< HEAD
                 global_pg, device_type, invalid_mesh, mesh_dim_names=("dim0", "dim1")
+=======
+                global_pg, "cuda", invalid_mesh, mesh_dim_names=("dim0", "dim1")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         device_mesh = init_device_mesh(self.device_type, (2, 2))
@@ -341,6 +398,7 @@ class DeviceMeshTest(DTensorTestBase):
             # test init_device_mesh with an invalid device type that contains a GPU index
             mesh_shape = (2, self.world_size // 2)
             init_device_mesh(
+<<<<<<< HEAD
                 f"{device_type}:0", mesh_shape=mesh_shape, mesh_dim_names=("dp", "tp")
             )
 
@@ -372,6 +430,20 @@ class DeviceMeshTest(DTensorTestBase):
 
         self.assertNotEqual(_mesh_resources.get_root_mesh(mesh1_dp), mesh2)
         self.assertNotEqual(_mesh_resources.get_root_mesh(mesh1_tp), mesh2)
+=======
+                "cuda:0", mesh_shape=mesh_shape, mesh_dim_names=("dp", "tp")
+            )
+
+    @with_comms
+    def test_set_mesh_dim_group_options(self):
+        device_type = "cuda" if torch.cuda.is_available() else "cpu"
+        _mesh_resources._set_mesh_dim_group_options(1, "fake", None)
+
+        mesh_tensor = torch.arange(4).reshape(2, 2)
+        mesh = DeviceMesh(device_type, mesh_tensor)
+        # Fake pg only have BackendType as BackendType::CUSTOM.
+        self.assertEqual(mesh.get_group(1)._get_backend_name(), "custom")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DeviceMeshTestNDim(DTensorTestBase):
@@ -381,7 +453,11 @@ class DeviceMeshTestNDim(DTensorTestBase):
 
     @with_comms
     def test_device_mesh_nd(self):
+<<<<<<< HEAD
         # construct a device mesh for self.device_type
+=======
+        # construct a cuda device mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh_tensor = torch.arange(8).reshape(2, 2, 2)
         mesh = DeviceMesh(self.device_type, mesh_tensor)
 
@@ -462,10 +538,14 @@ class DeviceMeshTestNDim(DTensorTestBase):
         ep_mesh_2 = DeviceMesh(self.device_type, mesh_group_2)
         ep_mesh = ep_mesh_1 if self.rank < self.world_size // 2 else ep_mesh_2
         # ep_mesh is considered different from mesh_2d["TP"]
+<<<<<<< HEAD
         self.assertEqual(
             mesh_2d["TP"].mesh.flatten().tolist(), ep_mesh.mesh.flatten().tolist()
         )
         self.assertEqual(mesh_2d["TP"]._layout, ep_mesh._layout)
+=======
+        self.assertEqual(mesh_2d["TP"]._flatten_mesh_list, ep_mesh._flatten_mesh_list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(mesh_2d["TP"].mesh.shape, ep_mesh.mesh.shape)
         self.assertEqual(mesh_2d["TP"].device_type, ep_mesh.device_type)
         self.assertNotEqual(mesh_2d["TP"].mesh_dim_names, ep_mesh.mesh_dim_names)
@@ -479,8 +559,12 @@ class DeviceMeshTestNDim(DTensorTestBase):
             another_mesh_1 if self.rank < self.world_size // 2 else another_mesh_2
         )
         # another_mesh is considered the same as ep_mesh
+<<<<<<< HEAD
         self.assertEqual(ep_mesh._flatten_rank_map, another_mesh._flatten_rank_map)
         self.assertEqual(ep_mesh._layout, another_mesh._layout)
+=======
+        self.assertEqual(ep_mesh._flatten_mesh_list, another_mesh._flatten_mesh_list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ep_mesh.mesh.shape, another_mesh.mesh.shape)
         self.assertEqual(ep_mesh.device_type, another_mesh.device_type)
         self.assertEqual(ep_mesh.mesh_dim_names, another_mesh.mesh_dim_names)
@@ -538,7 +622,11 @@ class DeviceMeshTestNDim(DTensorTestBase):
         # Create shard groups (e.g. (0, 1, 2, 3), (4, 5, 6, 7))
         # and assign the correct shard group to each rank
         shard_rank_lists = (
+<<<<<<< HEAD
             list(range(self.world_size // 2)),
+=======
+            list(range(0, self.world_size // 2)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             list(range(self.world_size // 2, self.world_size)),
         )
         shard_groups = (
@@ -566,6 +654,10 @@ class DeviceMeshTestNDim(DTensorTestBase):
             mesh_dim_names=("dp_replicate", "dp_shard"),
         )
 
+<<<<<<< HEAD
+=======
+        # self.assertEqual(ref_mesh._dim_group_names, dp_mesh._dim_group_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for mesh_dim_group, ref_mesh_dim_group in zip(
             dp_mesh.get_all_groups(), ref_mesh.get_all_groups()
         ):
@@ -624,6 +716,7 @@ class InitDeviceMeshTest(DTensorTestBase):
                 mesh_dim_names=["dp", "tp"],
             )
 
+<<<<<<< HEAD
     def _test_backend_override_argument_dict_with_idx_and_backend(self):
         opts = FakeProcessGroup.Options()
         opts.fake_option = 42
@@ -733,6 +826,8 @@ class InitDeviceMeshTest(DTensorTestBase):
                 backend_override={42: "bar"},
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestDeviceMeshGetItem(DTensorTestBase):
     @property
@@ -753,9 +848,13 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         with self.assertRaisesRegex(KeyError, "Invalid mesh_dim_name"):
             mesh_dim_names = ("DP", "TP")
             mesh = init_device_mesh(
+<<<<<<< HEAD
                 self.device_type,
                 (2, 4),
                 mesh_dim_names=mesh_dim_names,
+=======
+                self.device_type, (2, 4), mesh_dim_names=mesh_dim_names
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             mesh[child_mesh_dim_name]
 
@@ -823,6 +922,7 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         self.assertEqual(hsdp_mesh_2.mesh.tolist(), hsdp_group[hsdp_group_idx])
         self.assertEqual(hsdp_mesh_1, hsdp_mesh_2)
 
+<<<<<<< HEAD
         # Test slicing out 1D mesh from a sub-2D mesh.
         shard_mesh = hsdp_mesh_2["Shard"]
         self.assertEqual(shard_mesh.mesh.tolist(), shard_group[shard_group_idx])
@@ -831,6 +931,8 @@ class TestDeviceMeshGetItem(DTensorTestBase):
             replicate_mesh.mesh.tolist(), replicate_group[replicate_group_idx]
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_comms
     def test_cache_and_reuse_submesh_slice_result(self):
         mesh = init_device_mesh(self.device_type, (2, 4), mesh_dim_names=("dp", "tp"))
@@ -875,6 +977,7 @@ class TestDeviceMeshGetItem(DTensorTestBase):
             mesh_3d["cp", "dp"]
 
     @with_comms
+<<<<<<< HEAD
     def test_flatten_mesh_1d(self):
         mesh_shape = (4,)
         mesh_dim_names = ("default",)
@@ -884,6 +987,8 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         mesh_1d._flatten()
 
     @with_comms
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_flatten_mesh_3d(self):
         mesh_shape = (2, 2, 2)
         mesh_dim_names = ("dp", "cp", "tp")
@@ -891,6 +996,7 @@ class TestDeviceMeshGetItem(DTensorTestBase):
             self.device_type, mesh_shape, mesh_dim_names=mesh_dim_names
         )
 
+<<<<<<< HEAD
         # Test flatten into an existing mesh_dim_name inside the mesh
         with self.assertRaisesRegex(
             ValueError,
@@ -898,11 +1004,14 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         ):
             mesh_3d._flatten("dp")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test flatten contiguous dims
         dp_cp_mesh = mesh_3d["dp", "cp"]
         flattened_dp_cp_mesh = dp_cp_mesh._flatten()
         self.assertEqual(dp_cp_mesh.mesh.flatten(), flattened_dp_cp_mesh.mesh)
         self.assertEqual(flattened_dp_cp_mesh.mesh_dim_names[0], "dp_cp")
+<<<<<<< HEAD
         self.assertEqual(flattened_dp_cp_mesh.get_group().group_desc, "mesh_dp_cp")
         root_mesh = dp_cp_mesh._get_root_mesh()
         self.assertEqual(root_mesh, mesh_3d)
@@ -912,6 +1021,14 @@ class TestDeviceMeshGetItem(DTensorTestBase):
             flattened_dp_cp_mesh._layout.global_ranks(8),
             [[0, 2, 4, 6], [1, 3, 5, 7]],
         )
+=======
+        root_mesh = _mesh_resources.get_root_mesh(dp_cp_mesh)
+        self.assertEqual(root_mesh, mesh_3d)
+        flatten_mesh_root_dims = _mesh_resources.flatten_name_to_root_dims[root_mesh][
+            "dp_cp"
+        ]
+        self.assertEqual(flatten_mesh_root_dims, (0, 1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ref_pg_count = _world.group_count
         # Calling flatten again should not create a new pg.
@@ -924,6 +1041,7 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         flattened_dp_tp_mesh = dp_tp_mesh._flatten()
         self.assertEqual(dp_tp_mesh.mesh.flatten(), flattened_dp_tp_mesh.mesh)
         self.assertEqual(flattened_dp_tp_mesh.mesh_dim_names[0], "dp_tp")
+<<<<<<< HEAD
         root_mesh = dp_tp_mesh._get_root_mesh()
         self.assertEqual(root_mesh, mesh_3d)
         flatten_mesh_root_layout = root_mesh._flatten_mapping["dp_tp"]._layout
@@ -937,12 +1055,21 @@ class TestDeviceMeshGetItem(DTensorTestBase):
             "Currently, this only allows slicing out a contiguous flattened dim",
         ):
             mesh_3d["dp_tp", "cp"]
+=======
+        root_mesh = _mesh_resources.get_root_mesh(dp_tp_mesh)
+        self.assertEqual(root_mesh, mesh_3d)
+        flatten_mesh_root_dims = _mesh_resources.flatten_name_to_root_dims[root_mesh][
+            "dp_tp"
+        ]
+        self.assertEqual(flatten_mesh_root_dims, (0, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Test flatten with a flattened mesh_dim_name
         cp_tp_mesh = mesh_3d["cp", "tp"]
         cp_tp_mesh._flatten("dummy")
         self.assertEqual(mesh_3d["dummy"].mesh_dim_names[0], "dummy")
 
+<<<<<<< HEAD
         # Test flatten into an existing mesh_dim_name inside the mesh
         with self.assertRaisesRegex(
             ValueError,
@@ -955,6 +1082,8 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         ):
             mesh_3d["cp", "tp"]._flatten("dp_tp")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_comms(eager_init=True)
     def test_flatten_mesh_4d(self):
         mesh_shape = (2, 2, 2, 1)
@@ -970,6 +1099,7 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         # check flattened mesh dim names is correct
         self.assertEqual(dp_cp_mesh.mesh_dim_names, ("dp_cp",))
         # check flattened mesh dependency
+<<<<<<< HEAD
         self.assertEqual(dp_cp_mesh._get_root_mesh(), mesh_4d)
 
     @with_comms
@@ -1078,6 +1208,9 @@ class TestDeviceMeshGetItem(DTensorTestBase):
         self.assertEqual(
             mesh_3d, DeviceMesh._concatenate([mesh_3d["pp", "dp"], mesh_3d["tp"]])
         )
+=======
+        self.assertEqual(_mesh_resources.get_root_mesh(dp_cp_mesh), mesh_4d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_reconstruct_mesh_with_flatten_dim(self):
@@ -1116,9 +1249,13 @@ class TestMeshEnv(DTensorTestBase):
     @with_comms
     def test_get_root_mesh(self):
         mesh_3d = init_device_mesh(
+<<<<<<< HEAD
             self.device_type,
             (2, 2, 2),
             mesh_dim_names=("dp", "cp", "tp"),
+=======
+            self.device_type, (2, 2, 2), mesh_dim_names=("dp", "cp", "tp")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         dp_cp_mesh = mesh_3d["dp", "cp"]
@@ -1127,19 +1264,25 @@ class TestMeshEnv(DTensorTestBase):
         dp_mesh = mesh_3d["dp"]
         cp_mesh = mesh_3d["cp"]
         tp_mesh = mesh_3d["tp"]
+<<<<<<< HEAD
         # Test BC case is still working
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(_mesh_resources.get_root_mesh(dp_cp_mesh), mesh_3d)
         self.assertEqual(_mesh_resources.get_root_mesh(dp_tp_mesh), mesh_3d)
         self.assertEqual(_mesh_resources.get_root_mesh(cp_tp_mesh), mesh_3d)
         self.assertEqual(_mesh_resources.get_root_mesh(dp_mesh), mesh_3d)
         self.assertEqual(_mesh_resources.get_root_mesh(cp_mesh), mesh_3d)
         self.assertEqual(_mesh_resources.get_root_mesh(tp_mesh), mesh_3d)
+<<<<<<< HEAD
         self.assertEqual(dp_cp_mesh._get_root_mesh(), mesh_3d)
         self.assertEqual(dp_tp_mesh._get_root_mesh(), mesh_3d)
         self.assertEqual(cp_tp_mesh._get_root_mesh(), mesh_3d)
         self.assertEqual(dp_mesh._get_root_mesh(), mesh_3d)
         self.assertEqual(cp_mesh._get_root_mesh(), mesh_3d)
         self.assertEqual(tp_mesh._get_root_mesh(), mesh_3d)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_get_root_mesh_dim_exist(self):
@@ -1149,15 +1292,24 @@ class TestMeshEnv(DTensorTestBase):
             self.device_type, mesh_shape, mesh_dim_names=mesh_dim_names
         )
 
+<<<<<<< HEAD
         self.assertEqual(mesh_2d["DP"]._get_root_mesh_dim(), 0)
         self.assertEqual(mesh_2d["TP"]._get_root_mesh_dim(), 1)
+=======
+        self.assertEqual(_mesh_resources.get_root_mesh_dim(mesh_2d["DP"]), 0)
+        self.assertEqual(_mesh_resources.get_root_mesh_dim(mesh_2d["TP"]), 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_get_root_mesh_dim_not_exist(self):
         mesh_shape = (self.world_size,)
         mesh = init_device_mesh(self.device_type, mesh_shape)
 
+<<<<<<< HEAD
         self.assertEqual(mesh._get_root_mesh_dim(), None)
+=======
+        self.assertEqual(_mesh_resources.get_root_mesh_dim(mesh), None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_get_mesh_dim_by_name(self):
@@ -1167,17 +1319,28 @@ class TestMeshEnv(DTensorTestBase):
             self.device_type, mesh_shape, mesh_dim_names=mesh_dim_names
         )
 
+<<<<<<< HEAD
         self.assertEqual(mesh_2d._get_mesh_dim_by_name("DP"), 0)
         self.assertEqual(mesh_2d._get_mesh_dim_by_name("TP"), 1)
+=======
+        self.assertEqual(_mesh_resources.get_mesh_dim_by_name(mesh_2d, "DP"), 0)
+        self.assertEqual(_mesh_resources.get_mesh_dim_by_name(mesh_2d, "TP"), 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_get_all_submeshes(self):
         mesh_2d = init_device_mesh(
+<<<<<<< HEAD
             self.device_type,
             (2, 4),
             mesh_dim_names=("replicate", "shard"),
         )
         all_submeshes = mesh_2d._get_all_submeshes("replicate")
+=======
+            self.device_type, (2, 4), mesh_dim_names=("replicate", "shard")
+        )
+        all_submeshes = _mesh_resources._get_all_submeshes(mesh_2d, "replicate")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(len(all_submeshes), 4)
         self.assertEqual(
             all(submesh.mesh.numel() == 2 for submesh in all_submeshes), True
@@ -1455,6 +1618,7 @@ class DeviceMeshCollectiveTest(DTensorTestBase):
             self.assertEqual(received_tensor, torch.ones(3, 3) * self.rank)
 
 
+<<<<<<< HEAD
 class CuTeLayoutTest(TestCase):
     def test_coalesce(self):
         # ((3,2),(2,1)) -> (6,1)
@@ -1736,5 +1900,7 @@ class CuTeLayoutTest(TestCase):
         self.assertEqual(result7, expected7)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

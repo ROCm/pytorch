@@ -31,7 +31,10 @@ class Normal(ExponentialFamily):
             (often referred to as sigma)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"loc": constraints.real, "scale": constraints.positive}
     support = constraints.real
     has_rsample = True
@@ -89,7 +92,10 @@ class Normal(ExponentialFamily):
         if self._validate_args:
             self._validate_sample(value)
         # compute the variance
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var = self.scale**2
         log_scale = (
             math.log(self.scale)
@@ -119,6 +125,9 @@ class Normal(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor, Tensor]:
         return (self.loc / self.scale.pow(2), -0.5 * self.scale.pow(2).reciprocal())
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x, y):
         return -0.25 * x.pow(2) / y + 0.5 * torch.log(-math.pi / y)

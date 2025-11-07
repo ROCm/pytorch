@@ -8,6 +8,7 @@ import itertools
 import math
 import operator
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from typing import Any, NamedTuple, Optional, Union
@@ -26,6 +27,13 @@ try:
 except ImportError:
     from typing_extensions import NotRequired
 
+=======
+from enum import Enum
+from typing import Any, Callable, Optional, Union
+
+import torch
+from torch import Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.flex_attention import flex_attention as flex_attention_hop
 from torch._higher_order_ops.utils import _set_compilation_env
 from torch._prims_common import DeviceLikeType
@@ -34,6 +42,7 @@ from torch.fx.experimental.proxy_tensor import (
     _temp_remove_pre_dispatch_torch_function_mode,
 )
 from torch.nn.attention._utils import _validate_sdpa_input
+<<<<<<< HEAD
 from torch.utils._pytree import GetAttrKey, tree_map_only
 
 
@@ -65,16 +74,25 @@ def _warn_once(
     if warning_id not in _WARNINGS_SHOWN:
         warnings.warn(message, category, stacklevel=2)
         _WARNINGS_SHOWN.add(warning_id)
+=======
+from torch.utils._pytree import tree_map_only
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
     "BlockMask",
     "flex_attention",
+<<<<<<< HEAD
     "AuxOutput",
     "AuxRequest",
     "FlexKernelOptions",
     "create_block_mask",
     "create_mask",
+=======
+    "create_block_mask",
+    "create_mask",
+    "create_nested_block_mask",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "or_masks",
     "and_masks",
     "noop_mask",
@@ -84,6 +102,7 @@ _score_mod_signature = Callable[[Tensor, Tensor, Tensor, Tensor, Tensor], Tensor
 _mask_mod_signature = Callable[[Tensor, Tensor, Tensor, Tensor], Tensor]
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-inheritance]
 class FlexKernelOptions(TypedDict, total=False):
     """Options for controlling the behavior of FlexAttention kernels.
@@ -248,6 +267,8 @@ class AuxOutput(NamedTuple):
     max_scores: Optional[Tensor] = None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _ModificationType(Enum):
     """Enum for the type of modification function.
     - SCORE_MOD: score_mod function which accepts a score as the first argument
@@ -267,6 +288,7 @@ def _get_mod_type(fn: Callable) -> _ModificationType:
     considered as a score_mod function. If the function has 4 positional arguments, it is
     considered as a mask function.
     """
+<<<<<<< HEAD
     if hasattr(fn, "__code__"):
         code = fn.__code__
         num_positional_total = code.co_argcount
@@ -281,6 +303,13 @@ def _get_mod_type(fn: Callable) -> _ModificationType:
             for param in inspect.signature(fn).parameters.values()
             if param.default is inspect.Parameter.empty
         )
+=======
+    num_positional_args = sum(
+        1
+        for param in inspect.signature(fn).parameters.values()
+        if param.default == inspect.Parameter.empty
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert num_positional_args == 5 or num_positional_args == 4
     if num_positional_args == 5:
         return _ModificationType.SCORE_MOD
@@ -357,6 +386,7 @@ def noop_mask(
     return batch.new_ones(size=(), dtype=torch.bool, device=batch.device)
 
 
+<<<<<<< HEAD
 def _sliced_mask_mod_error(
     batch: Tensor,
     head: Tensor,
@@ -384,6 +414,8 @@ def _sliced_mask_mod_error(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _DEFAULT_SPARSE_BLOCK_SIZE = 128
 _LARGE_SPARSE_BLOCK_SIZE = 1 << 30
 
@@ -519,6 +551,7 @@ class BlockMask:
     BLOCK_SIZE: tuple[int, int]
     mask_mod: _mask_mod_signature
 
+<<<<<<< HEAD
     # Attribute lists for pytree flatten/unflatten
     _TENSOR_ATTRS = [
         "kv_num_blocks",
@@ -537,6 +570,8 @@ class BlockMask:
         "mask_mod",
     ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         seq_lengths: tuple[int, int],
@@ -555,6 +590,11 @@ class BlockMask:
             raise RuntimeError("BlockMask must have at least 2 dimensions")
         assert kv_num_blocks is not None, "kv_num_blocks must be provided"
         assert kv_indices is not None, "kv_indices must be provided"
+<<<<<<< HEAD
+=======
+        assert q_num_blocks is not None, "q_num_blocks must be provided"
+        assert q_indices is not None, "q_indices must be provided"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert (full_kv_num_blocks is None) == (full_kv_indices is None), (
             "full_kv_num_blocks and full_kv_indices must be both provided or omitted"
         )
@@ -584,7 +624,10 @@ class BlockMask:
         BLOCK_SIZE: Union[int, tuple[int, int]] = _DEFAULT_SPARSE_BLOCK_SIZE,
         mask_mod: Optional[_mask_mod_signature] = None,
         seq_lengths: Optional[tuple[int, int]] = None,
+<<<<<<< HEAD
         compute_q_blocks: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Creates a BlockMask instance from key-value block information.
@@ -612,6 +655,7 @@ class BlockMask:
         )
 
         # Generate q_num_blocks and q_indices
+<<<<<<< HEAD
         if compute_q_blocks:
             q_num_blocks, q_indices = _transpose_ordered(kv_num_blocks, kv_indices)
             if full_kv_num_blocks is not None:
@@ -623,6 +667,15 @@ class BlockMask:
                 full_q_num_blocks, full_q_indices = None, None
         else:
             q_num_blocks, q_indices = None, None
+=======
+        q_num_blocks, q_indices = _transpose_ordered(kv_num_blocks, kv_indices)
+        if full_kv_num_blocks is not None:
+            assert full_kv_indices is not None
+            full_q_num_blocks, full_q_indices = _transpose_ordered(
+                full_kv_num_blocks, full_kv_indices
+            )
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             full_q_num_blocks, full_q_indices = None, None
 
         if isinstance(BLOCK_SIZE, int):
@@ -631,7 +684,11 @@ class BlockMask:
         mask_mod = mask_mod if mask_mod is not None else noop_mask
         if seq_lengths is None:
             q_length = kv_indices.shape[-2] * BLOCK_SIZE[0]
+<<<<<<< HEAD
             kv_length = kv_indices.shape[-1] * BLOCK_SIZE[1]
+=======
+            kv_length = q_indices.shape[-2] * BLOCK_SIZE[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             seq_lengths = (q_length, kv_length)
 
         return cls(
@@ -662,7 +719,10 @@ class BlockMask:
             block_size = (self.BLOCK_SIZE,)  # type: ignore[assignment]
             seq_lengths = (self.seq_lengths,)  # type: ignore[assignment]
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             *seq_lengths,
             self.kv_num_blocks,
@@ -731,6 +791,7 @@ class BlockMask:
                 assert new_block_mask.kv_num_blocks.shape == (2, 1, 1)
                 assert new_block_mask.kv_indices.shape == (2, 1, 1, 4)
         """
+<<<<<<< HEAD
         index = (index,) if not isinstance(index, tuple) else index
         padded = (*index, slice(None), slice(None), slice(None))[:3]
         sizes = self.kv_num_blocks.shape[:3]
@@ -740,6 +801,8 @@ class BlockMask:
             else i
             for i, n in zip(padded, sizes)
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_kv_num_blocks = self.kv_num_blocks[index]
         new_kv_indices = self.kv_indices[index]
         if self.full_kv_num_blocks is not None:
@@ -755,9 +818,14 @@ class BlockMask:
             new_full_kv_num_blocks,
             new_full_kv_indices,
             BLOCK_SIZE=self.BLOCK_SIZE,
+<<<<<<< HEAD
             mask_mod=_sliced_mask_mod_error,
             seq_lengths=self.seq_lengths,
             compute_q_blocks=self.q_indices is not None,
+=======
+            mask_mod=None,
+            seq_lengths=self.seq_lengths,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def __repr__(self):
@@ -835,7 +903,10 @@ class BlockMask:
         partial_dense = _ordered_to_dense(self.kv_num_blocks, self.kv_indices)
         if self.full_kv_num_blocks is not None:
             assert self.full_kv_indices is not None
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return partial_dense | _ordered_to_dense(
                 self.full_kv_num_blocks, self.full_kv_indices
             )
@@ -920,7 +991,11 @@ class BlockMask:
 
         Note:
             This method does not modify the original BlockMask in-place.
+<<<<<<< HEAD
             Instead, it returns a new BlockMask instance where individual tensor attributes
+=======
+            Instead, it returns a new BlockMask instance where invidual tensor attributes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             may or may not be moved to the specified device, depending on their
             current device placement.
         """
@@ -931,6 +1006,7 @@ class BlockMask:
         )
         return BlockMask(*mapped_attributes)
 
+<<<<<<< HEAD
     def _flatten(self):
         """Flatten BlockMask into a list of tensors and context."""
         tensors = tuple(getattr(self, attr) for attr in self._TENSOR_ATTRS)
@@ -957,6 +1033,8 @@ class BlockMask:
         )
         return tensors, context
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _broadcast_to_dim(x, dim):
     while x.dim() < dim:
@@ -1090,7 +1168,11 @@ def create_mask(
     H: Optional[int],
     Q_LEN: int,
     KV_LEN: int,
+<<<<<<< HEAD
     device: Optional[DeviceLikeType] = None,
+=======
+    device: DeviceLikeType = "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     r"""This function creates a mask tensor from a mod_fn function.
 
@@ -1105,8 +1187,11 @@ def create_mask(
     Returns:
         mask (Tensor): A mask tensor with shape (B, H, M, N).
     """
+<<<<<<< HEAD
     if device is None:
         device = torch.accelerator.current_accelerator() or "cpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if B is None:
         B = 1
     if H is None:
@@ -1141,7 +1226,11 @@ def create_block_mask(
     H: Optional[int],
     Q_LEN: int,
     KV_LEN: int,
+<<<<<<< HEAD
     device: Optional[DeviceLikeType] = None,
+=======
+    device: DeviceLikeType = "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BLOCK_SIZE: Union[int, tuple[int, int]] = _DEFAULT_SPARSE_BLOCK_SIZE,
     _compile=False,
 ) -> BlockMask:
@@ -1176,8 +1265,11 @@ def create_block_mask(
             value = torch.randn(1, 1, 8192, 64, device="cuda", dtype=torch.float16)
             output = flex_attention(query, key, value, block_mask=block_mask)
     """
+<<<<<<< HEAD
     if device is None:
         device = torch.accelerator.current_accelerator() or "cpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mod_type = _get_mod_type(mask_mod)
     assert mod_type == _ModificationType.MASK_MOD, (
         f"create-block_mask requires a mask_mod function! Got {mask_mod}"
@@ -1196,7 +1288,10 @@ def create_block_mask(
         warnings.warn(
             "_compile flag on create_block_mask was originally added to work around a torch.compile limitation. That limitation has since been addressed. So, to compile create_block_mask, we suggest doing torch.compile(create_block_mask). This still works for now, but will be removed in the future.",
             DeprecationWarning,
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return torch.compile(create_block_mask)(
             mask_mod, B, H, Q_LEN, KV_LEN, device, BLOCK_SIZE
@@ -1234,6 +1329,7 @@ def _create_empty_block_mask(query: Tensor, key: Tensor) -> BlockMask:
     )
 
 
+<<<<<<< HEAD
 def _apply_kernel_options(
     query: Tensor,
     key: Tensor,
@@ -1241,6 +1337,183 @@ def _apply_kernel_options(
     return_lse: bool,
     kernel_options,
     return_aux: Optional[AuxRequest] = None,
+=======
+def _nested_mod_func_adapter(
+    orig_mod_func: Union[_score_mod_signature, _mask_mod_signature],
+    q_nt: torch.Tensor,
+    kv_nt: torch.Tensor,
+    is_score_mod: bool,
+) -> Union[_score_mod_signature, _mask_mod_signature]:
+    r"""Adapter to convert a score_mod / mask_mod to be NJT-compatible. The given mod func
+    should be written as if operating over a single sequence at a item. This adapter will
+    handle conversion from indices operating over a "stacked sequence" of length ``sum(S)``
+    for sequence length ``S`` in the NJT to "sequence relative" indices in range ``[0, S)``.
+
+    Args:
+        orig_mod_func (Callable): Function to modify attention scores. It takes four or five
+            arguments, depending on whether a mask_mod or score_mod func is passed.
+        q_nt (torch.Tensor): Jagged layout nested tensor (NJT) that defines the sequence length
+            structure for query.
+        kv_nt (torch.Tensor): Jagged layout nested tensor (NJT) that defines the sequence length
+            structure for key / value.
+        is_score_mod (bool): Indicates whether the mod function is a score_mod.
+
+    Returns:
+        nt_score_mod: An NJT-compatible version of orig_score_mod
+    """
+
+    # Used to convert indices within the "stacked" sequence (range [0, sum(*)))
+    # to "sequence local" indices (range [0, S) for each S).
+    def _build_seq_idx(offsets, total_length):
+        range_tensor = torch.arange(
+            total_length, device=offsets.device, dtype=torch.int32
+        )
+
+        # Use searchsorted to find the index for each position
+        # NB: This assumes offsets[0] to offsets[-1] spans the packed dim of values.
+        # If we ever loosen this restriction, this logic will need to be updated.
+        seq_idx = torch.searchsorted(offsets, range_tensor, right=True) - 1
+        return seq_idx
+
+    q_offsets = q_nt._offsets  # type: ignore[attr-defined]
+    kv_offsets = kv_nt._offsets  # type: ignore[attr-defined]
+    q_seq_idx = _build_seq_idx(q_offsets, q_nt._values.shape[q_nt._ragged_idx - 1])  # type: ignore[attr-defined]
+    if q_nt is kv_nt:
+        kv_seq_idx = q_seq_idx
+    else:
+        # cross attention case
+        kv_seq_idx = _build_seq_idx(
+            kv_offsets,
+            kv_nt._values.shape[kv_nt._ragged_idx - 1],  # type: ignore[attr-defined]
+        )
+
+    # Converts q_idx / kv_idx from [0, total_length) -> [0, S), where S refers
+    # to the sequence length for each sequence in the NJT, for use in given
+    # score_mod. This allows the user to write a score_mod as if it were
+    # operating on a single sequence and the "stacked sequence" is split
+    # automatically into individual sequences for them.
+    if is_score_mod:
+
+        def nt_score_mod(score, b, h, q_idx, kv_idx):
+            b_nested = q_seq_idx[q_idx]
+            q_nested = q_idx - q_offsets[q_seq_idx[q_idx]]
+            kv_nested = kv_idx - kv_offsets[kv_seq_idx[kv_idx]]
+            is_same_sequence = q_seq_idx[q_idx] == kv_seq_idx[kv_idx]
+            return torch.where(
+                is_same_sequence,
+                orig_mod_func(score, b_nested, h, q_nested, kv_nested),  # type: ignore[call-arg]
+                # don't allow inter-sequence attention
+                float("-inf"),
+            )
+
+        return nt_score_mod
+    else:
+
+        def nt_mask_mod(b, h, q_idx, kv_idx):
+            b_nested = q_seq_idx[q_idx]
+            q_nested = q_idx - q_offsets[q_seq_idx[q_idx]]
+            kv_nested = kv_idx - kv_offsets[kv_seq_idx[kv_idx]]
+            # don't allow inter-sequence attention
+            is_same_sequence = q_seq_idx[q_idx] == kv_seq_idx[kv_idx]
+            return orig_mod_func(b_nested, h, q_nested, kv_nested) & is_same_sequence  # type: ignore[call-arg]
+
+        return nt_mask_mod
+
+
+def create_nested_block_mask(
+    mask_mod: _mask_mod_signature,
+    B: Optional[int],
+    H: Optional[int],
+    q_nt: torch.Tensor,
+    kv_nt: Optional[torch.Tensor] = None,
+    BLOCK_SIZE: Union[int, tuple[int, int]] = _DEFAULT_SPARSE_BLOCK_SIZE,
+    _compile=False,
+) -> BlockMask:
+    r"""This function creates a nested tensor compatible block mask tuple from a mask_mod
+    function. The returned BlockMask will be on the device specified by the input nested tensor.
+
+    Args:
+        mask_mod (Callable): mask_mod function. This is a callable that defines the
+            masking pattern for the attention mechanism. It takes four arguments:
+            b (batch size), h (number of heads), q_idx (query index), and kv_idx (key/value index).
+            It should return a boolean tensor indicating which attention connections are allowed
+            (True) or masked out (False).
+        B (int): Batch size.
+        H (int): Number of query heads.
+        q_nt (torch.Tensor): Jagged layout nested tensor (NJT) that defines the sequence length
+            structure for query. The block mask will be constructed to operate on a "stacked
+            sequence" of length ``sum(S)`` for sequence length ``S`` from the NJT.
+        kv_nt (torch.Tensor): Jagged layout nested tensor (NJT) that defines the sequence length
+            structure for key / value, allowing for cross attention. The block mask will be
+            constructed to operate on a "stacked sequence" of length ``sum(S)`` for sequence
+            length ``S`` from the NJT. If this is None, ``q_nt`` is used to define the structure
+            for key / value as well. Default: None
+        BLOCK_SIZE (int or tuple[int, int]): Block size for the block mask. If a single int is
+            provided it is used for both query and key/value.
+
+    Returns:
+        BlockMask:  A BlockMask object that contains the block mask information.
+
+    Example Usage:
+        .. code-block:: python
+
+            # shape (B, num_heads, seq_len*, D) where seq_len* varies across the batch
+            query = torch.nested.nested_tensor(..., layout=torch.jagged)
+            key = torch.nested.nested_tensor(..., layout=torch.jagged)
+            value = torch.nested.nested_tensor(..., layout=torch.jagged)
+
+
+            def causal_mask(b, h, q_idx, kv_idx):
+                return q_idx >= kv_idx
+
+
+            block_mask = create_nested_block_mask(
+                causal_mask, 1, 1, query, _compile=True
+            )
+            output = flex_attention(query, key, value, block_mask=block_mask)
+
+        .. code-block:: python
+
+            # shape (B, num_heads, seq_len*, D) where seq_len* varies across the batch
+            query = torch.nested.nested_tensor(..., layout=torch.jagged)
+            key = torch.nested.nested_tensor(..., layout=torch.jagged)
+            value = torch.nested.nested_tensor(..., layout=torch.jagged)
+
+
+            def causal_mask(b, h, q_idx, kv_idx):
+                return q_idx >= kv_idx
+
+
+            # cross attention case: pass both query and key/value NJTs
+            block_mask = create_nested_block_mask(
+                causal_mask, 1, 1, query, key, _compile=True
+            )
+            output = flex_attention(query, key, value, block_mask=block_mask)
+    """
+    # use same structure for kv as for q by default
+    if kv_nt is None:
+        kv_nt = q_nt
+    if q_nt.device != kv_nt.device:
+        raise ValueError(
+            "create_nested_block_mask(): Expected q_nt and kv_nt to be on the same device"
+        )
+    return create_block_mask(
+        _nested_mod_func_adapter(mask_mod, q_nt, kv_nt, is_score_mod=False),  # type: ignore[arg-type]
+        B,
+        H,
+        q_nt._values.shape[q_nt._ragged_idx - 1],  # type: ignore[attr-defined]
+        kv_nt._values.shape[kv_nt._ragged_idx - 1],  # type: ignore[attr-defined]
+        device=q_nt.device,  # type: ignore[arg-type]
+        # compile is important so we don't materialize a mask_tensor of
+        # shape (1, 1, total_seqlen, total_seqlen)
+        BLOCK_SIZE=BLOCK_SIZE,
+        _compile=_compile,
+    )
+
+
+def _apply_kernel_options(
+    query: Tensor, key: Tensor, value: Tensor, return_lse: bool, kernel_options
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     kernel_options = {} if kernel_options is None else dict(kernel_options)
 
@@ -1250,6 +1523,7 @@ def _apply_kernel_options(
     # This forces all biases grad scatters to be done in the DQ iteration loop of the backwards
     kernel_options.setdefault("WRITE_DQ", True)
 
+<<<<<<< HEAD
     any_inputs_on_cpu_device = (
         query.device.type == "cpu"
         or key.device.type == "cpu"
@@ -1286,6 +1560,26 @@ def _apply_kernel_options(
         raise NotImplementedError("Returning max scores is not supported on CPU.")
         kernel_options["OUTPUT_MAX"] = False
 
+=======
+    # If forward kernel needs to return logsumexp is decided by this rule internally.
+    assert "OUTPUT_LOGSUMEXP" not in kernel_options
+    kernel_options["OUTPUT_LOGSUMEXP"] = True
+    if not return_lse:
+        # We used to check if q,k,v required grads but since captured buffers can require grad
+        # we always write unless in no_grad
+        output_logsumexp = torch.is_grad_enabled()
+        kernel_options["OUTPUT_LOGSUMEXP"] = output_logsumexp
+        any_inputs_on_cpu_device = (
+            query.device.type == "cpu"
+            or key.device.type == "cpu"
+            or value.device.type == "cpu"
+        )
+        if any_inputs_on_cpu_device:
+            # CPU with torch.compile now supports infernece, and will not return lse
+            # TODO: support CPU for training and return lse
+            kernel_options["OUTPUT_LOGSUMEXP"] = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return kernel_options
 
 
@@ -1301,14 +1595,44 @@ def _validate_device(query: Tensor, key: Tensor, value: Tensor):
     """TODO: Remove once non cuda/cpu devices support is added
     We only need to check query since we have already that q,k,v are on the same device
     """
+<<<<<<< HEAD
     supported_devices = {"cuda", "cpu", "xpu", "hpu"}
     if query.device.type not in supported_devices:
+=======
+    if (
+        query.device.type != "cuda"
+        and query.device.type != "cpu"
+        and query.device.type != "hpu"
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise ValueError(
             "FlexAttention is only supported on CUDA, CPU or HPU devices. "
             f"Found input tensors on {query.device.type} device."
         )
 
 
+<<<<<<< HEAD
+=======
+def _validate_nestedness(query: Tensor, key: Tensor, value: Tensor):
+    # Currently, inputs can only be all nested or no nested.
+    if query.is_nested != key.is_nested or key.is_nested != value.is_nested:
+        raise ValueError(
+            "FlexAttention does not support mixed nested tensor / non-nested tensor inputs. "
+            "Please file an issue requesting this if it is important to you."
+        )
+
+    if (
+        (query.is_nested and query._lengths is not None)  # type: ignore[attr-defined]
+        or (key.is_nested and key._lengths is not None)  # type: ignore[attr-defined]
+        or (value.is_nested and value._lengths is not None)  # type: ignore[attr-defined]
+    ):
+        raise ValueError(
+            "FlexAttention does not support nested tensors that are non-contiguous with holes. "
+            "Please file an issue requesting this if it is important to you."
+        )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _enforce_mem_layouts(
     query: Tensor, key: Tensor, value: Tensor
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -1377,10 +1701,15 @@ def flex_attention(
     scale: Optional[float] = None,
     enable_gqa: bool = False,
     return_lse: bool = False,
+<<<<<<< HEAD
     kernel_options: Optional[FlexKernelOptions] = None,
     *,
     return_aux: Optional[AuxRequest] = None,
 ) -> Union[Tensor, tuple[Tensor, Tensor], tuple[Tensor, AuxOutput]]:
+=======
+    kernel_options: Optional[dict[str, Any]] = None,
+) -> Union[Tensor, tuple[Tensor, Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""This function implements scaled dot product attention with an arbitrary attention score modification function.
 
     This function computes the scaled dot product attention between query, key, and value tensors with a user-defined
@@ -1414,6 +1743,7 @@ def flex_attention(
         block_mask (Optional[BlockMask]): BlockMask object that controls the blocksparsity pattern of the attention.
         scale (Optional[float]): Scaling factor applied prior to softmax. If none, the default value is set to :math:`\frac{1}{\sqrt{E}}`.
         enable_gqa (bool): If set to True, enables Grouped Query Attention (GQA) and broadcasts key/value heads to query heads.
+<<<<<<< HEAD
         return_lse (bool): Whether to return the logsumexp of the attention scores. Default is False. **Deprecated**: Use ``return_aux=AuxRequest(lse=True)`` instead.
         kernel_options (Optional[FlexKernelOptions]):
             Options to control the behavior of the underlying Triton kernels.
@@ -1421,16 +1751,23 @@ def flex_attention(
         return_aux (Optional[AuxRequest]): Specifies which auxiliary outputs to compute and return.
             If None, only the attention output is returned. Use ``AuxRequest(lse=True, max_scores=True)``
             to request both auxiliary outputs.
+=======
+        return_lse (bool): Whether to return the logsumexp of the attention scores. Default is False.
+        kernel_options (Optional[Dict[str, Any]]): Options to pass into the Triton kernels.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         output (Tensor): Attention output; shape :math:`(B, Hq, L, Ev)`.
 
+<<<<<<< HEAD
         When ``return_aux`` is not None:
             aux (AuxOutput): Auxiliary outputs with requested fields populated.
 
         When ``return_aux`` is None (deprecated paths):
             lse (Tensor): Log-sum-exp of attention scores; shape :math:`(B, Hq, L)`. Only returned if ``return_lse=True``.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Shape legend:
         - :math:`N: \text{Batch size} ... : \text{Any number of other batch dimensions (optional)}`
         - :math:`S: \text{Source sequence length}`
@@ -1448,6 +1785,10 @@ def flex_attention(
     _validate_sdpa_input(query, key, value)
     _validate_embed_dim(query, key, value)
     _validate_device(query, key, value)
+<<<<<<< HEAD
+=======
+    _validate_nestedness(query, key, value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     query, key, value = _enforce_mem_layouts(query, key, value)
     if query.dim() != 4 or key.dim() != 4 or value.dim() != 4:
         raise NotImplementedError("NYI: query, key, and value must be 4D tensors")
@@ -1482,21 +1823,44 @@ def flex_attention(
 
     if score_mod is None:
         score_mod = _identity
+<<<<<<< HEAD
+=======
+    elif query.is_nested:
+        # use same NJT if the ragged structures for sequence lengths match between q and kv
+        kv = (
+            query
+            if query.size(query._ragged_idx) == key.size(query._ragged_idx)  # type: ignore[attr-defined]
+            else key
+        )
+        score_mod = _nested_mod_func_adapter(score_mod, query, kv, is_score_mod=True)  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if block_mask is None:
         block_mask = _create_empty_block_mask(query, key)
 
+<<<<<<< HEAD
     # If BlockMask was sliced, its mask_mod is intentionally replaced with an error-raising stub.
     # This guard ensures we surface the intended error message before any shape-based checks.
     if getattr(block_mask, "mask_mod", None) is _sliced_mask_mod_error:
         raise RuntimeError("Cannot use mask_mod from a sliced BlockMask")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (
         block_mask.BLOCK_SIZE[0] == _LARGE_SPARSE_BLOCK_SIZE
         and block_mask.BLOCK_SIZE[1] == _LARGE_SPARSE_BLOCK_SIZE
     ):
         # This corresponds to the case where we essentially have a "no-op" block mask.
         pass
+<<<<<<< HEAD
+=======
+    elif query.is_nested:
+        if block_mask.shape[-2] != query._values.size(query._ragged_idx - 1):  # type: ignore[attr-defined]
+            raise RuntimeError(
+                f"block_mask of shape {block_mask.shape} is not compatible with nested tensor input "
+                f"with total sequence length of {query._values.size(query._ragged_idx - 1)}"  # type: ignore[attr-defined]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         block_mask_q_len = block_mask.shape[-2]
         block_mask_kv_len = block_mask.shape[-1]
@@ -1524,6 +1888,7 @@ def flex_attention(
             f"but got {query.device} and {block_mask.kv_num_blocks.device}."  # type: ignore[union-attr]
         )
 
+<<<<<<< HEAD
     # Handle deprecation warnings for old parameters
     if return_lse and return_aux is not None:
         raise ValueError(
@@ -1538,12 +1903,15 @@ def flex_attention(
             category=FutureWarning,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     kernel_options = _apply_kernel_options(
         query,
         key,
         value,
         return_lse,
         kernel_options,
+<<<<<<< HEAD
         return_aux,
     )
 
@@ -1576,13 +1944,21 @@ def flex_attention(
 
         return out
 
+=======
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if torch.compiler.is_dynamo_compiling():
         # mark head_dim and number of heads to be static
         for x in [query, key, value]:
             torch._dynamo.mark_static(x, -3)
             torch._dynamo.mark_static(x, -1)
 
+<<<<<<< HEAD
         out, lse, max_scores = flex_attention_hop(
+=======
+        out, lse = flex_attention_hop(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             query,
             key,
             value,
@@ -1591,6 +1967,7 @@ def flex_attention(
             scale,
             kernel_options,  # type: ignore[union-attr]
         )
+<<<<<<< HEAD
         return _finalize_outputs(
             out, lse, max_scores, return_aux=return_aux, return_lse=return_lse
         )
@@ -1606,6 +1983,12 @@ def flex_attention(
                 "This will allow you to use print statements or breakpoints. Note: This doesn't work with the backwards pass and may produce incorrect results."
             ),
         )
+=======
+        if return_lse:
+            return out, lse * math.log(2)
+        else:
+            return out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not torch._dynamo.is_dynamo_supported():
         raise RuntimeError("flex_attention requires dynamo support")
@@ -1624,6 +2007,7 @@ def flex_attention(
             with _temp_remove_pre_dispatch_torch_function_mode():
                 with _temp_remove_metadata_torch_function_mode() as metadata_mode:
                     if metadata_mode:
+<<<<<<< HEAD
                         backend: Union[str, Callable[..., Any]] = (
                             make_eager_backend_with_torch_function_mode(metadata_mode)
                         )
@@ -1638,6 +2022,16 @@ def flex_attention(
                         )
 
                     out, lse, max_scores = flex_fn(
+=======
+                        backend = make_eager_backend_with_torch_function_mode(
+                            metadata_mode
+                        )
+                    else:
+                        backend = "eager"
+                    out, lse = torch.compile(
+                        _flex_attention_hop_wrapper, backend=backend, fullgraph=True
+                    )(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         query,
                         key,
                         value,
@@ -1646,6 +2040,13 @@ def flex_attention(
                         scale,
                         kernel_options,
                     )
+<<<<<<< HEAD
     return _finalize_outputs(
         out, lse, max_scores, return_aux=return_aux, return_lse=return_lse
     )
+=======
+                    if return_lse:
+                        return out, lse * math.log(2)
+                    else:
+                        return out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -66,7 +66,11 @@ def main():
                 filenames, total_length
             )
             print(f"{modelname}, {utilization}, {mm_conv_utilization}")
+<<<<<<< HEAD
         except BaseException:  # noqa: B036
+=======
+        except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.exception("%s, ERROR", filename)
             print(f"{filename}, ERROR")
 

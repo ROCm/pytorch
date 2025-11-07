@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 # Owner(s): ["oncall: distributed"]
 import unittest
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast, Union
+=======
+# Owner(s): ["module: unknown"]
+import unittest
+from dataclasses import dataclass
+from typing import Any, Callable, cast, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import nn, optim

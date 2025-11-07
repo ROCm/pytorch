@@ -5,7 +5,10 @@ import re
 
 
 def set_output(name: str, val: str) -> None:
+<<<<<<< HEAD
     print(f"Setting output {name}={val}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if os.getenv("GITHUB_OUTPUT"):
         with open(str(os.getenv("GITHUB_OUTPUT")), "a") as env:
             print(f"{name}={val}", file=env)

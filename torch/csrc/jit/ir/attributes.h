@@ -33,7 +33,11 @@ enum class AttributeKind {
 };
 static inline const char* toString(AttributeKind kind) {
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+<<<<<<< HEAD
   static constexpr const char* names[] = {
+=======
+  static const char* names[] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "f",
       "c",
       "cs",

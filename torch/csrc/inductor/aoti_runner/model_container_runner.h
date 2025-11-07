@@ -55,7 +55,10 @@ class TORCH_API AOTIModelContainerRunner {
       AOTInductorStreamHandle cuda_stream_handle = nullptr);
   void swap_constant_buffer();
   void free_inactive_constant_buffer();
+<<<<<<< HEAD
   void update_constant_buffer_from_blob(const std::string& weights_path);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<std::string> get_call_spec();
 
@@ -100,10 +103,13 @@ class TORCH_API AOTIModelContainerRunner {
   decltype(&AOTInductorModelContainerFreeInactiveConstantBuffer)
       free_inactive_constant_buffer_func_{nullptr};
   decltype(&AOTInductorModelContainerGetCallSpec) get_call_spec_func_{nullptr};
+<<<<<<< HEAD
   decltype(&AOTInductorModelContainerGetConstantsBlobSize)
       get_constants_blob_size_func_{nullptr};
   decltype(&AOTInductorModelUpdateConstantsFromBlob)
       update_constants_from_blob_func_{nullptr};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   AOTInductorModelContainerHandle container_handle_ = nullptr;
 

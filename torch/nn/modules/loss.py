@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, Union
+=======
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 from torch import Tensor
@@ -127,9 +131,12 @@ class L1Loss(_Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.l1_loss(input, target, reduction=self.reduction)
 
 
@@ -254,9 +261,12 @@ class NLLLoss(_WeightedLoss):
         self.ignore_index = ignore_index
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.nll_loss(
             input,
             target,
@@ -361,9 +371,12 @@ class PoissonNLLLoss(_Loss):
         self.eps = eps
 
     def forward(self, log_input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.poisson_nll_loss(
             log_input,
             target,
@@ -455,9 +468,12 @@ class GaussianNLLLoss(_Loss):
     def forward(
         self, input: Tensor, target: Tensor, var: Union[Tensor, float]
     ) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.gaussian_nll_loss(
             input, target, var, full=self.full, eps=self.eps, reduction=self.reduction
         )
@@ -558,9 +574,12 @@ class KLDivLoss(_Loss):
         self.log_target = log_target
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.kl_div(
             input, target, reduction=self.reduction, log_target=self.log_target
         )
@@ -629,9 +648,12 @@ class MSELoss(_Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.mse_loss(input, target, reduction=self.reduction)
 
 
@@ -722,9 +744,12 @@ class BCELoss(_WeightedLoss):
         super().__init__(weight, size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.binary_cross_entropy(
             input, target, weight=self.weight, reduction=self.reduction
         )
@@ -814,7 +839,11 @@ class BCEWithLogitsLoss(_Loss):
             operations. For a target of size [B, C, H, W] (where B is batch size) pos_weight of
             size [B, C, H, W] will apply different pos_weights to each element of the batch or
             [C, H, W] the same pos_weights across the batch. To apply the same positive weight
+<<<<<<< HEAD
             along all spatial dimensions for a 2D multi-class target [C, H, W] use: [C, 1, 1].
+=======
+            along all spacial dimensions for a 2D multi-class target [C, H, W] use: [C, 1, 1].
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Default: ``None``
 
     Shape:
@@ -847,7 +876,10 @@ class BCEWithLogitsLoss(_Loss):
         self.pos_weight: Optional[Tensor]
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.binary_cross_entropy_with_logits(
             input,
             target,
@@ -921,7 +953,10 @@ class HingeEmbeddingLoss(_Loss):
         self.margin = margin
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.hinge_embedding_loss(
             input, target, margin=self.margin, reduction=self.reduction
         )
@@ -989,7 +1024,10 @@ class MultiLabelMarginLoss(_Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.multilabel_margin_loss(input, target, reduction=self.reduction)
 
 
@@ -1074,7 +1112,10 @@ class SmoothL1Loss(_Loss):
         self.beta = beta
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.smooth_l1_loss(input, target, reduction=self.reduction, beta=self.beta)
 
 
@@ -1136,7 +1177,10 @@ class HuberLoss(_Loss):
         self.delta = delta
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.huber_loss(input, target, reduction=self.reduction, delta=self.delta)
 
 
@@ -1179,7 +1223,10 @@ class SoftMarginLoss(_Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.soft_margin_loss(input, target, reduction=self.reduction)
 
 
@@ -1288,9 +1335,13 @@ class CrossEntropyLoss(_WeightedLoss):
           :math:`K \geq 1` in the case of K-dimensional loss where each value should be between :math:`[0, C)`. The
           target data type is required to be long when using class indices. If containing class probabilities, the
           target must be the same shape input, and each value should be between :math:`[0, 1]`. This means the target
+<<<<<<< HEAD
           data type is required to be float when using class probabilities. Note that PyTorch does not strictly enforce
           probability constraints on the class probabilities and that it is the user's responsibility to ensure
           ``target`` contains valid probability distributions (see below examples section for more details).
+=======
+          data type is required to be float when using class probabilities.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         - Output: If reduction is 'none', shape :math:`()`, :math:`(N)` or :math:`(N, d_1, d_2, ..., d_K)` with :math:`K \geq 1`
           in the case of K-dimensional loss, depending on the shape of the input. Otherwise, scalar.
 
@@ -1317,6 +1368,7 @@ class CrossEntropyLoss(_WeightedLoss):
         >>> target = torch.randn(3, 5).softmax(dim=1)
         >>> output = loss(input, target)
         >>> output.backward()
+<<<<<<< HEAD
 
     .. note::
         When ``target`` contains class probabilities, it should consist of soft labels—that is,
@@ -1362,6 +1414,8 @@ class CrossEntropyLoss(_WeightedLoss):
         tensor([1.0000, 1.0000, 1.0000])
         >>> loss(input, target_new).item()
         2.55349063873291
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     __constants__ = ["ignore_index", "reduction", "label_smoothing"]
@@ -1382,7 +1436,10 @@ class CrossEntropyLoss(_WeightedLoss):
         self.label_smoothing = label_smoothing
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.cross_entropy(
             input,
             target,
@@ -1444,7 +1501,10 @@ class MultiLabelSoftMarginLoss(_WeightedLoss):
         super().__init__(weight, size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.multilabel_soft_margin_loss(
             input, target, weight=self.weight, reduction=self.reduction
         )
@@ -1516,7 +1576,10 @@ class CosineEmbeddingLoss(_Loss):
         self.margin = margin
 
     def forward(self, input1: Tensor, input2: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.cosine_embedding_loss(
             input1, input2, target, margin=self.margin, reduction=self.reduction
         )
@@ -1583,7 +1646,10 @@ class MarginRankingLoss(_Loss):
         self.margin = margin
 
     def forward(self, input1: Tensor, input2: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.margin_ranking_loss(
             input1, input2, target, margin=self.margin, reduction=self.reduction
         )
@@ -1674,7 +1740,10 @@ class MultiMarginLoss(_WeightedLoss):
         self.margin = margin
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.multi_margin_loss(
             input,
             target,
@@ -1770,7 +1839,11 @@ class TripletMarginLoss(_Loss):
         size_average=None,
         reduce=None,
         reduction: str = "mean",
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(size_average, reduce, reduction)
         if margin <= 0:
             raise ValueError(
@@ -1782,7 +1855,10 @@ class TripletMarginLoss(_Loss):
         self.swap = swap
 
     def forward(self, anchor: Tensor, positive: Tensor, negative: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.triplet_margin_loss(
             anchor,
             positive,
@@ -1905,7 +1981,11 @@ class TripletMarginWithDistanceLoss(_Loss):
         margin: float = 1.0,
         swap: bool = False,
         reduction: str = "mean",
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(size_average=None, reduce=None, reduction=reduction)
         if margin <= 0:
             raise ValueError(
@@ -1918,7 +1998,10 @@ class TripletMarginWithDistanceLoss(_Loss):
         self.swap = swap
 
     def forward(self, anchor: Tensor, positive: Tensor, negative: Tensor) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.triplet_margin_with_distance_loss(
             anchor,
             positive,
@@ -2063,11 +2146,18 @@ class CTCLoss(_Loss):
         https://www.cs.toronto.edu/~graves/icml_2006.pdf
 
     Note:
+<<<<<<< HEAD
         In order to use CuDNN, the following must be satisfied: the :attr:`targets` must be
         in concatenated format, all :attr:`input_lengths` must be `T`.  :math:`blank=0`,
         :attr:`target_lengths` :math:`\leq 256`, the integer arguments must be of
         dtype :attr:`torch.int32`, and the :attr:`log_probs` itself must be of
         dtype :attr:`torch.float32`.
+=======
+        In order to use CuDNN, the following must be satisfied: :attr:`targets` must be
+        in concatenated format, all :attr:`input_lengths` must be `T`.  :math:`blank=0`,
+        :attr:`target_lengths` :math:`\leq 256`, the integer arguments must be of
+        dtype :attr:`torch.int32`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         The regular implementation uses the (more common in PyTorch) `torch.long` dtype.
 
@@ -2087,7 +2177,11 @@ class CTCLoss(_Loss):
 
     def __init__(
         self, blank: int = 0, reduction: str = "mean", zero_infinity: bool = False
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(reduction=reduction)
         self.blank = blank
         self.zero_infinity = zero_infinity
@@ -2099,7 +2193,10 @@ class CTCLoss(_Loss):
         input_lengths: Tensor,
         target_lengths: Tensor,
     ) -> Tensor:
+<<<<<<< HEAD
         """Runs the forward pass."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.ctc_loss(
             log_probs,
             targets,

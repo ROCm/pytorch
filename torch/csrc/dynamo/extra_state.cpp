@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/dynamo/extra_state.h>
 
 #include <torch/csrc/dynamo/cache_entry.h>
@@ -153,8 +156,13 @@ void lookup(
   for (CacheEntry& cache_entry : extra_state->cache_entry_list) {
     // Check backend. Py_False means run only mode.
 
+<<<<<<< HEAD
     bool valid = backend == Py_False ||
         backend_match(cache_entry.backend.ptr(), backend);
+=======
+    bool valid =
+        backend == Py_False || backend_match(cache_entry.backend, backend);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (valid) {
       try {
@@ -233,8 +241,14 @@ py::list _debug_get_cache_entry_list(const py::handle& code_obj) {
 
 PrecompileEntry::PrecompileEntry(py::object gm, py::object c)
     : guard_manager(std::move(gm)), code(std::move(c)) {
+<<<<<<< HEAD
   TORCH_CHECK(
       PyCode_Check(code.ptr()), "Expecting CodeType from PrecompileEntry.");
+=======
+  if (!PyCode_Check(code.ptr())) {
+    throw std::runtime_error("Expecting CodeType from PrecompileEntry.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   root_mgr =
       torch::dynamo::convert_to_root_guard_manager(guard_manager.attr("root"));
 }
@@ -268,6 +282,7 @@ void _load_precompile_entry(
       PrecompileEntry(std::move(guard_manager), std::move(dynamo_code));
   extra->precompile_entries.push_back(std::move(entry));
 }
+<<<<<<< HEAD
 
 py::list _debug_get_precompile_entries(const py::handle& code_obj) {
   if (!py::isinstance(code_obj, py::module::import("types").attr("CodeType"))) {
@@ -283,3 +298,5 @@ py::list _debug_get_precompile_entries(const py::handle& code_obj) {
   }
   return result;
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

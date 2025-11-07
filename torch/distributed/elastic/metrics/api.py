@@ -88,7 +88,14 @@ def configure(handler: MetricHandler, group: Optional[str] = None):
 
 
 def getStream(group: str):
+<<<<<<< HEAD
     handler = _metrics_map.get(group, _default_metrics_handler)
+=======
+    if group in _metrics_map:
+        handler = _metrics_map[group]
+    else:
+        handler = _default_metrics_handler
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return MetricStream(group, handler)
 
 
@@ -168,15 +175,23 @@ def profile(group=None):
             try:
                 start_time = time.time()
                 result = func(*args, **kwargs)
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 publish_metric(group, f"{func.__name__}.success", 1)
             except Exception:
                 # pyrefly: ignore [bad-argument-type]
+=======
+                publish_metric(group, f"{func.__name__}.success", 1)
+            except Exception:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 publish_metric(group, f"{func.__name__}.failure", 1)
                 raise
             finally:
                 publish_metric(
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     group,
                     f"{func.__name__}.duration.ms",
                     get_elapsed_time_ms(start_time),  # type: ignore[possibly-undefined]

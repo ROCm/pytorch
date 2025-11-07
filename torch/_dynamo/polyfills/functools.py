@@ -3,8 +3,13 @@ Python polyfills for functools
 """
 
 import functools
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import TypeVar
+=======
+from collections.abc import Iterable
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ..decorators import substitute_in_graph
 

@@ -4,9 +4,13 @@
 #include <torch/csrc/dynamo/cpython_includes.h>
 #include <torch/csrc/dynamo/debug_macros.h>
 
+<<<<<<< HEAD
 #define Py_BUILD_CORE
 #include <internal/pycore_code.h>
 #undef Py_BUILD_CORE
+=======
+#include <internal/pycore_code.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if IS_PYTHON_3_11_PLUS
 
@@ -28,6 +32,7 @@ FrameLocalsMapping::FrameLocalsMapping(FrameLocalsFrameType* frame)
   PyCodeObject* co = F_CODE(frame);
   _framelocals.resize(co->co_nlocalsplus, nullptr);
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_15_PLUS || (IS_PYTHON_3_14_PLUS && defined(_WIN32))
   TORCH_CHECK(false, "Python 3.15+ / 3.14 on Windows not supported");
 #elif IS_PYTHON_3_14_PLUS
@@ -39,6 +44,11 @@ FrameLocalsMapping::FrameLocalsMapping(FrameLocalsFrameType* frame)
     return;
   }
 #endif
+=======
+  if (!frame->stacktop) {
+    return;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto update_framelocals = [&](int i, PyObject* value) {
     _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
@@ -63,6 +73,7 @@ FrameLocalsMapping::FrameLocalsMapping(FrameLocalsFrameType* frame)
   };
 
   auto offset = co->co_nlocalsplus - co->co_nfreevars;
+<<<<<<< HEAD
 #if IS_PYTHON_3_15_PLUS || (IS_PYTHON_3_14_PLUS && defined(_WIN32))
   TORCH_CHECK(false, "Python 3.15+ / 3.14 on Windows not supported");
 #elif IS_PYTHON_3_14_PLUS
@@ -82,6 +93,13 @@ FrameLocalsMapping::FrameLocalsMapping(FrameLocalsFrameType* frame)
 #else
   PyObject* closure = FUNC(frame)->func_closure;
 #endif
+=======
+  for (int i = 0; i < offset; i++) {
+    update_framelocals(i, frame->localsplus[i]);
+  }
+  // Get references to closure variables
+  PyObject* closure = ((PyFunctionObject*)FUNC(frame))->func_closure;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (int i = 0; i < co->co_nfreevars; i++) {
     update_framelocals(offset + i, PyTuple_GET_ITEM(closure, i));
   }
@@ -159,6 +177,7 @@ void FrameLocalsMapping::_realize_dict() {
   auto update_mapping = [&](int i) {
     DEBUG_CHECK(0 <= i && i < _framelocals.size());
     PyObject* value = _framelocals[i].ptr();
+<<<<<<< HEAD
     // NOTE: CPython's PyFrame_FastToLocalsWithError/map_to_dict
     // removes the local name from the locals dict if the value is NULL.
     // This is likely so that if a local variable is deleted in the fastlocals,
@@ -169,6 +188,11 @@ void FrameLocalsMapping::_realize_dict() {
     // It is unexpected that multiple fastlocal values corresponding to
     // the same variable name have both a null and non-null value.
     if (value != nullptr) {
+=======
+    if (value == nullptr) {
+      _dict.attr("pop")(framelocals_names[i], py::none());
+    } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       _dict[framelocals_names[i]] = value;
     }
   };

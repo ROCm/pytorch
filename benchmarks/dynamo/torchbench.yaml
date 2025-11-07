@@ -5,6 +5,11 @@ batch_size:
     demucs: 4
     dlrm: 1024
     densenet121: 4
+<<<<<<< HEAD
+=======
+    hf_Reformer: 4
+    hf_T5_base: 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     timm_efficientdet: 1
     llama_v2_7b_16h: 1
     # reduced from 16 due to cudagraphs OOM in TorchInductor dashboard
@@ -28,6 +33,10 @@ tolerance:
     - alexnet
     - attention_is_all_you_need_pytorch
     - densenet121
+<<<<<<< HEAD
+=======
+    - hf_Albert
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - vgg16
     - mobilenet_v3_large
     - nvidia_deeprecommender
@@ -37,21 +46,35 @@ tolerance:
     - soft_actor_critic
     - tacotron2
     - yolov3
+<<<<<<< HEAD
+=======
+    - timm_efficientdet
+    - timm_efficientnet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - squeezenet1_1
 
   higher_fp16:
     - doctr_reco_predictor
     - drq
+<<<<<<< HEAD
     - phlippe_resnet
     - pytorch_CycleGAN_and_pix2pix
+=======
+    - hf_Whisper
+    - phlippe_resnet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   higher_bf16:
     - doctr_reco_predictor
     - drq
+<<<<<<< HEAD
 
   # These models need higher tolerance for xpu devices with bf16
   higher_bf16_xpu:
     - squeezenet1_1
+=======
+    - hf_Whisper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   freezing:
     # Similar logic to timm_models.py:get_tolerance_and_cosine_flag
@@ -65,9 +88,22 @@ tolerance:
 
 require_larger_multiplier_for_smaller_tensor:
   - yolov3
+<<<<<<< HEAD
 
 # These benchmarks took >600s on an i9-11900K CPU
 very_slow: &VERY_SLOW_MODELS
+=======
+  - timm_efficientnet
+
+# These benchmarks took >600s on an i9-11900K CPU
+very_slow: &VERY_SLOW_MODELS
+  # 3339s
+  - hf_BigBird
+  # 3062s
+  - hf_Longformer
+  # 930s
+  - hf_T5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # These benchmarks took >60s on an i9-11900K CPU
@@ -79,6 +115,21 @@ slow:
   - demucs
   # 242s
   - fastNLP_Bert
+<<<<<<< HEAD
+=======
+  # 221s
+  - hf_Albert
+  # 400s
+  - hf_Bart
+  # 334s
+  - hf_Bert
+  # 187s
+  - hf_DistilBert
+  # 470s
+  - hf_GPT2
+  # 141s
+  - hf_Reformer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # 317s
   - speech_transformer
   # 99s
@@ -162,6 +213,7 @@ skip:
     - hf_clip
     # multi gpu not always available in benchmark runners
     - simple_gpt_tp_manual
+<<<<<<< HEAD
     # skip hf and timm models in torchbench since
     # there are already separate benchmarks for them
     - hf_Albert
@@ -192,6 +244,13 @@ skip:
 
   device:
     cpu:
+=======
+
+  device:
+    cpu:
+      # OOMs
+      - hf_T5_generate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # model is CUDA only
       - cm3leon_generate
       # timeout
@@ -208,13 +267,20 @@ skip:
       - torchrec_dlrm
       - simple_gpt
       # works on cuda, accuracy failure on cpu
+<<<<<<< HEAD
+=======
+      - hf_Whisper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - stable_diffusion_text_encoder
       - llava
       - moco
 
+<<<<<<< HEAD
     # Skip these additional models when running on aarch64
     cpu_aarch64: []
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cuda: []
 
   test:
@@ -231,6 +297,10 @@ skip:
       - sam_fast
       # Model's DEFAULT_TRAIN_BSIZE is not implemented
       - cm3leon_generate
+<<<<<<< HEAD
+=======
+      - hf_T5_generate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - doctr_det_predictor
       - doctr_reco_predictor
       - moondream
@@ -242,6 +312,12 @@ skip:
     - cm3leon_generate
     - detectron2_fcos_r_50_fpn
     - fastNLP_Bert
+<<<<<<< HEAD
+=======
+    - hf_Longformer
+    - hf_Reformer
+    - hf_T5_generate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - opacus_cifar10
     - speech_transformer
 
@@ -278,6 +354,12 @@ accuracy:
       # Models too large to have eager, dynamo and fp64_numbers simultaneosuly
       # even for 40 GB machine. We have tested accuracy for smaller version of
       # these models
+<<<<<<< HEAD
+=======
+      - hf_GPT2_large
+      - hf_T5_large
+      - timm_vision_transformer_large
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # accuracy https://github.com/pytorch/pytorch/issues/93847
       - maml
       - llama_v2_7b_16h
@@ -289,4 +371,8 @@ accuracy:
       - pytorch_unet
 
   max_batch_size:
+<<<<<<< HEAD
+=======
+    hf_GPT2: 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pytorch_unet: 2

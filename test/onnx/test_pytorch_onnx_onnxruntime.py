@@ -41,9 +41,13 @@ from pytorch_test_common import (
 import torch
 from torch import Tensor
 from torch.nn.utils import rnn as rnn_utils
+<<<<<<< HEAD
 from torch.onnx import errors
 from torch.onnx._internal.torchscript_exporter import verification
 from torch.onnx._internal.torchscript_exporter._type_utils import JitScalarType
+=======
+from torch.onnx import errors, verification
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 from torch.testing._internal.common_utils import skipIfNoLapack
 
@@ -897,11 +901,15 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         # export succeeds, but running ORT through run_test would fail because the exported model
         # has the inputs flattened into 3 inputs.
         torch.onnx.export(
+<<<<<<< HEAD
             model,
             (x, {"y": (y0, y1)}),
             io.BytesIO(),
             opset_version=self.opset_version,
             dynamo=False,
+=======
+            model, (x, {"y": (y0, y1)}), io.BytesIO(), opset_version=self.opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_primitive_input_integer(self):
@@ -1935,7 +1943,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         class DivModule(torch.nn.Module):
             def forward(self, x, y):
                 # Add transpose to hide shape/type information
+<<<<<<< HEAD
                 # Otherwise shape and type are still available from input.
+=======
+                # Otherwise shape and type are still avaiable from input.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 x = x.transpose(1, 2)
                 y = y.transpose(1, 2)
                 return x / y, torch.true_divide(x, y)
@@ -3878,7 +3890,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
     def test_topk_smallest_unsorted(self):
         class MyModule(torch.nn.Module):
             def forward(self, x, k):
+<<<<<<< HEAD
                 # When sorted=False, order of elements in the output tensors
+=======
+                # When sorted=False, order of elements in the outout tensors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # are not expected to match between PyTorch and ORT
                 topk_unsorted = torch.topk(x, k, largest=False, sorted=False)
                 topk_sorted = torch.topk(x, k, largest=False, sorted=True)
@@ -4361,7 +4377,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
                 super().__init__()
                 self.weight = torch.nn.Buffer(torch.ones(5))
                 # torch.nn.Embedding is converted to ONNX::Gather.
+<<<<<<< HEAD
                 # Constant folding will be triggered for constant inputs.
+=======
+                # Constant folding will be triggerred for constant inputs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # This pattern is common for constant mask inputs in transformer models.
                 self.embed = torch.nn.Embedding(8, 3)
 
@@ -4879,7 +4899,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
     @skipScriptTest()
     def test_rnn_no_bias(self):
         def make_model(layers, packed_sequence):
+<<<<<<< HEAD
             batch_first = packed_sequence == 2
+=======
+            batch_first = True if packed_sequence == 2 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model = torch.nn.RNN(
                 RNN_INPUT_SIZE,
                 RNN_HIDDEN_SIZE,
@@ -4900,7 +4924,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             return model
 
         def make_input(batch_size, layers, packed_sequence):
+<<<<<<< HEAD
             batch_first = packed_sequence == 2
+=======
+            batch_first = True if packed_sequence == 2 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             seq_lengths = np.random.randint(1, RNN_SEQUENCE_LENGTH + 1, size=batch_size)
             seq_lengths = sorted(map(int, seq_lengths), reverse=True)
             inputs = [torch.randn(l, RNN_INPUT_SIZE) for l in seq_lengths]
@@ -5389,7 +5417,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         input = torch.randn(7, 3, 5)
         self._argmin_argmax_model(input)
 
+<<<<<<< HEAD
     # Argmin and Argmax with "select_last_index" is not supported before opset 12
+=======
+    # Argmin and Argmax with "select_last_index" is not supprted before opset 12
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # "select_last_index" was added in opset 12 to deal with corner case where the
     # same value appears multiple times in the tensor
     @skipIfUnsupportedMinOpsetVersion(12)
@@ -10511,7 +10543,11 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
                 amax = torch.ones(4)
                 scale = amax / 127.0
                 zero_point = torch.zeros_like(amax, dtype=torch.int)
+<<<<<<< HEAD
                 # Quantize twice to test different branches
+=======
+                # Quantize twice to test differnet branches
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 y = torch.fake_quantize_per_channel_affine(
                     input, scale, zero_point, 1, 0, 255
                 )
@@ -10795,7 +10831,10 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             opset_version=self.opset_version,
             do_constant_folding=False,
             training=torch.onnx.TrainingMode.TRAINING,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
         ort_outs = verification._run_onnx(ort_sess, (x,))
@@ -10811,7 +10850,10 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             opset_version=self.opset_version,
             do_constant_folding=False,
             training=torch.onnx.TrainingMode.TRAINING,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_outs = verification._run_onnx(ort_sess, (x,))
         assert not torch.all(torch.eq(x, torch.from_numpy(ort_outs[0])))
@@ -10845,7 +10887,10 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             opset_version=self.opset_version,
             do_constant_folding=False,
             training=torch.onnx.TrainingMode.TRAINING,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
         ort_outs = verification._run_onnx(ort_sess, (x,))
@@ -10871,7 +10916,10 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             opset_version=self.opset_version,
             do_constant_folding=False,
             training=torch.onnx.TrainingMode.TRAINING,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
         ort_outs = verification._run_onnx(ort_sess, (x,))
@@ -12632,11 +12680,15 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         dummy_input = (torch.tensor([expected_mean]), torch.tensor([expected_std]))
         model_onnx = io.BytesIO()
         torch.onnx.export(
+<<<<<<< HEAD
             model_export,
             dummy_input,
             model_onnx,
             opset_version=self.opset_version,
             dynamo=False,
+=======
+            model_export, dummy_input, model_onnx, opset_version=self.opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
         ort_out = verification._run_onnx(ort_sess, inputs=dummy_input)
@@ -12667,11 +12719,15 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         model_onnx = io.BytesIO()
         test_inputs = ()
         torch.onnx.export(
+<<<<<<< HEAD
             model_export,
             test_inputs,
             model_onnx,
             opset_version=self.opset_version,
             dynamo=False,
+=======
+            model_export, test_inputs, model_onnx, opset_version=self.opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
         ort_out = verification._run_onnx(ort_sess, inputs=test_inputs)
@@ -12714,11 +12770,15 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
         dummy_input = (torch.tensor([expected_min]), torch.tensor([expected_max]))
         model_onnx = io.BytesIO()
         torch.onnx.export(
+<<<<<<< HEAD
             model_export,
             dummy_input,
             model_onnx,
             opset_version=self.opset_version,
             dynamo=False,
+=======
+            model_export, dummy_input, model_onnx, opset_version=self.opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ort_sess = verification._ort_session(model_onnx)
 
@@ -13725,10 +13785,16 @@ class TestONNXRuntime(onnx_test_common._TestONNXRuntime):
             # Ensure condition is not constant
             dynamic_axes={"x": {0: dynamic_axis_name}},
             input_names=["x"],
+<<<<<<< HEAD
             dynamo=False,
         )
         exported = onnx.load_from_string(f.getvalue())
         expected_elem_type = JitScalarType.from_value(x).onnx_type()
+=======
+        )
+        exported = onnx.load_from_string(f.getvalue())
+        expected_elem_type = torch.onnx.JitScalarType.from_value(x).onnx_type()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expected_output_type = onnx.helper.make_optional_type_proto(
             onnx.helper.make_tensor_type_proto(expected_elem_type, (dynamic_axis_name,))
         )

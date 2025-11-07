@@ -5,7 +5,10 @@ import torch._dynamo.test_case
 import torch._dynamo.testing
 from torch._dynamo.testing import CompileCounter
 from torch.backends.cuda import SDPAParams
+<<<<<<< HEAD
 from torch.nn.attention import _cur_sdpa_kernel_backends, sdpa_kernel, SDPBackend
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @contextlib.contextmanager
@@ -100,6 +103,7 @@ class TestSDPA(torch._dynamo.test_case.TestCase):
             self.assert_ref_equals_params(o, expected)
             self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
     def test_sdpa_c_functions_no_graph_break(self):
         counter = CompileCounter()
 
@@ -137,6 +141,8 @@ class TestSDPA(torch._dynamo.test_case.TestCase):
         self.assertEqual(result.shape, x.shape)
         self.assertEqual(counter.frame_count, 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

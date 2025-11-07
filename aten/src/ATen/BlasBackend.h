@@ -28,6 +28,7 @@ inline std::ostream& operator<<(std::ostream& stream, at::BlasBackend backend) {
   return stream << BlasBackendToString(backend);
 }
 
+<<<<<<< HEAD
 namespace blas {
 
 enum class ScalingType : std::uint8_t {
@@ -43,4 +44,6 @@ enum class SwizzleType : std::uint8_t { NO_SWIZZLE = 0, SWIZZLE_32_4_4 = 1 };
 
 } // namespace blas
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at

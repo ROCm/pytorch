@@ -77,9 +77,13 @@ Single-node multi-worker
 .. note:: ``--nproc-per-node`` may be
           ``"gpu"`` (spawn one process per GPU),
           ``"cpu"`` (spawn one process per CPU),
+<<<<<<< HEAD
           ``"xpu"`` (spawn one process per XPU),
           ``"auto"`` (equivalent to ``"gpu"`` if CUDA is available,
           else equivalent to ``"xpu"`` if XPU is available,
+=======
+          ``"auto"`` (equivalent to ``"gpu"`` if CUDA is available,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           else equivalent to ``"cpu"``),
           or an integer specifying the number of processes.
           See `torch.distributed.run.determine_local_world_size
@@ -373,9 +377,14 @@ import os
 import sys
 import uuid
 from argparse import ArgumentParser, REMAINDER
+<<<<<<< HEAD
 from collections.abc import Callable
 from importlib import metadata
 from typing import Optional, Union
+=======
+from importlib import metadata
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.distributed.argparse_util import check_env, env
@@ -385,10 +394,13 @@ from torch.distributed.elastic.rendezvous.utils import _parse_rendezvous_config
 from torch.distributed.elastic.utils import macros
 from torch.distributed.elastic.utils.logging import get_logger
 from torch.distributed.launcher.api import elastic_launch, LaunchConfig
+<<<<<<< HEAD
 from torch.numa.binding import (
     AffinityMode as _AffinityMode,  # Signify as private with _
     NumaOptions as _NumaOptions,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils.backend_registration import _get_custom_mod_func
 
 
@@ -399,6 +411,7 @@ def get_args_parser() -> ArgumentParser:
     """Parse the command line options."""
     parser = ArgumentParser(description="Torch Distributed Elastic Training Launcher")
 
+<<<<<<< HEAD
     def comma_separated_list(value):
         placeholder = "<COMMA_PLACEHOLDER>"
         value = value.replace(",,", placeholder)
@@ -406,6 +419,8 @@ def get_args_parser() -> ArgumentParser:
         items = [item.replace(placeholder, ",") for item in items]
         return items
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # Worker/node size related arguments.
     #
@@ -423,7 +438,11 @@ def get_args_parser() -> ArgumentParser:
         action=env,
         type=str,
         default="1",
+<<<<<<< HEAD
         help="Number of workers per node; supported values: [auto, cpu, gpu, xpu, int].",
+=======
+        help="Number of workers per node; supported values: [auto, cpu, gpu, int].",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     #
@@ -578,6 +597,7 @@ def get_args_parser() -> ArgumentParser:
         "log files saved via --redirect or --tee",
     )
 
+<<<<<<< HEAD
     parser.add_argument(
         "--duplicate-stdout-filters",
         "--duplicate_stdout_filters",
@@ -600,6 +620,8 @@ def get_args_parser() -> ArgumentParser:
         "OR 'orange'. An empty filters list won't duplicate any lines. Use double comma to escape a comma) ",
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # Backwards compatible parameters with caffe2.distributed.launch.
     #
@@ -652,6 +674,7 @@ def get_args_parser() -> ArgumentParser:
         "Can be used to override custom logging behavior.",
     )
 
+<<<<<<< HEAD
     parser.add_argument(
         "--numa-binding",
         "--numa_binding",
@@ -688,6 +711,8 @@ def get_args_parser() -> ArgumentParser:
         "Common additional signals: SIGUSR1,SIGUSR2 (used in SLURM environments).",
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # Positional arguments.
     #
@@ -737,20 +762,35 @@ def determine_local_world_size(nproc_per_node: str):
                 raise ValueError("Cuda is not available.") from e
             device_type = "gpu"
             num_proc = torch.cuda.device_count()
+<<<<<<< HEAD
         elif nproc_per_node == "xpu":
             if not torch.xpu.is_available():
                 raise ValueError("Xpu is not available.") from e
             device_type = "xpu"
             num_proc = torch.xpu.device_count()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif nproc_per_node == torch._C._get_privateuse1_backend_name():
             if not _get_custom_mod_func("is_available")():
                 raise ValueError(f"{nproc_per_node} is not available.") from e
             device_type = nproc_per_node
             num_proc = _get_custom_mod_func("device_count")()
         elif nproc_per_node == "auto":
+<<<<<<< HEAD
             if torch.accelerator.is_available():
                 num_proc = torch.accelerator.device_count()
                 device_type = torch.accelerator.current_accelerator().type  # type: ignore[union-attr]
+=======
+            if torch.cuda.is_available():
+                num_proc = torch.cuda.device_count()
+                device_type = "gpu"
+            elif (
+                hasattr(torch, torch._C._get_privateuse1_backend_name())
+                and _get_custom_mod_func("is_available")()
+            ):
+                num_proc = _get_custom_mod_func("device_count")()
+                device_type = torch._C._get_privateuse1_backend_name()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 num_proc = os.cpu_count()
                 device_type = "cpu"
@@ -800,9 +840,20 @@ def _get_logs_specs_class(logs_specs_name: Optional[str]) -> type[LogsSpecs]:
     logs_specs_cls = None
     if logs_specs_name is not None:
         eps = metadata.entry_points()
+<<<<<<< HEAD
         group = eps.select(group="torchrun.logs_specs")
         if group.select(name=logs_specs_name):
             logs_specs_cls = group[logs_specs_name].load()
+=======
+        if hasattr(eps, "select"):  # >= 3.10
+            group = eps.select(group="torchrun.logs_specs")
+            if group.select(name=logs_specs_name):
+                logs_specs_cls = group[logs_specs_name].load()
+
+        elif specs := eps.get("torchrun.logs_specs"):  # < 3.10
+            if entrypoint_list := [ep for ep in specs if ep.name == logs_specs_name]:
+                logs_specs_cls = entrypoint_list[0].load()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if logs_specs_cls is None:
             raise ValueError(
@@ -869,18 +920,24 @@ def config_from_args(args) -> tuple[LaunchConfig, Union[Callable, str], list[str
             ) from e
 
     logs_specs_cls: type[LogsSpecs] = _get_logs_specs_class(args.logs_specs)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-instantiation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     logs_specs = logs_specs_cls(
         log_dir=args.log_dir,
         redirects=Std.from_str(args.redirects),
         tee=Std.from_str(args.tee),
         local_ranks_filter=ranks,
     )
+<<<<<<< HEAD
     numa_options = (
         None
         if args.numa_binding is None
         else _NumaOptions(affinity_mode=_AffinityMode(args.numa_binding))
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     config = LaunchConfig(
         min_nodes=min_nodes,
@@ -898,10 +955,13 @@ def config_from_args(args) -> tuple[LaunchConfig, Union[Callable, str], list[str
         local_addr=args.local_addr,
         logs_specs=logs_specs,
         event_log_handler=args.event_log_handler,
+<<<<<<< HEAD
         numa_options=numa_options,
         signals_to_handle=args.signals_to_handle,
         duplicate_stdout_filters=args.duplicate_stdout_filters,
         duplicate_stderr_filters=args.duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     with_python = not args.no_python

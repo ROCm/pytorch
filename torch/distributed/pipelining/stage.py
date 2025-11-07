@@ -3,15 +3,22 @@
 import logging
 import operator
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, cast, Optional, Union
+=======
+from typing import Any, Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 import torch.fx as fx
 import torch.nn as nn
 from torch._subclasses.fake_tensor import FakeTensor
+<<<<<<< HEAD
 from torch.distributed._composable.replicate_with_fsdp import replicate, ReplicateModule
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import FSDPModule, fully_shard
 from torch.fx.node import Argument, map_aggregate
 from torch.nn.parallel import DistributedDataParallel
@@ -155,7 +162,10 @@ class _PipelineStageBase(ABC):
         self.submod = submodule
         self.stage_index = stage_index
         self.num_stages = num_stages
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = device
         self.group = group
 
@@ -465,10 +475,18 @@ class _PipelineStageBase(ABC):
         """
         Get the gradient send ops for current stage's backward.
         """
+<<<<<<< HEAD
         if not self.has_backward or self.is_first:
             return []
 
         self._check_chunk_id(bwd_chunk_id)
+=======
+        self._check_chunk_id(bwd_chunk_id)
+
+        if not self.has_backward or self.is_first:
+            return []
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Create bwd send infra lazily
         if self.grad_send_info is None:
             # Send info for input grads during backward:
@@ -590,7 +608,11 @@ class _PipelineStageBase(ABC):
         last_backward: bool = False,
     ) -> tuple[tuple[Optional[torch.Tensor], ...], Optional[list[dict[str, Any]]]]:
         """
+<<<<<<< HEAD
         Whether using PP with FSDP, DDP, or replicate there are some runtime differences between the last backward step and the
+=======
+        Whether using PP with FSDP or DDP, there are some runtime differences between the last backward step and the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         other steps.  Namely, we need to accumulate gradients on previous steps and reduce them on the last step, but
         there are additional state-variables and performance considerations depending on the data parallelism used.
         This helper should adapt any pipeline parallel schedule to work with common/supported data parallel libraries.
@@ -644,13 +666,37 @@ class _PipelineStageBase(ABC):
             else:
                 with self.submod.no_sync():  # type: ignore[operator]
                     result = perform_backward(backward_type)()
+<<<<<<< HEAD
 
         # If submod is a FSDP or replicate module
+=======
+        # If submod is a FSDP module
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(self.submod, FSDPModule):
             self.submod.set_is_last_backward(False)
             self.submod.set_reshard_after_backward(False)
             self.submod.set_requires_gradient_sync(False)
             result = perform_backward(backward_type)()
+<<<<<<< HEAD
+=======
+            if last_backward:
+                # Manually call post backward for FSDP
+                def run_post_backward(fsdp_module: FSDPModule) -> None:
+                    fsdp_module.set_is_last_backward(True)
+                    fsdp_module.set_reshard_after_backward(True)
+                    fsdp_module.set_requires_gradient_sync(True)
+                    fsdp_state = fully_shard.state(fsdp_module)  # type: ignore[attr-defined]
+                    for state in fsdp_state._state_ctx.all_states:
+                        if state._fsdp_param_group:
+                            state._fsdp_param_group.post_backward()
+
+                    # it would be much better if pipelining backward invoked .backward so autograd hooks
+                    # worked and modules like DDP/FSDP behaved as expected.  Working around this for the time being,
+                    # we need to call this too to ensure FSDP syncs its grad reduction ops back to the default stream.
+                    fsdp_state._root_post_backward_final_callback()
+
+                run_post_backward(self.submod)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         else:
             # Non-DP submodule, regular backward
@@ -664,7 +710,10 @@ class _PipelineStageBase(ABC):
         fwd_chunk_id: int,
         args: tuple[Any, ...],
         kwargs: Optional[dict[str, Any]] = None,
+<<<<<<< HEAD
         save_forward_output: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Perform forward pass on the stage with one microbatch.
@@ -704,8 +753,14 @@ class _PipelineStageBase(ABC):
 
         # Prepare for final output merge or reduction
         # Output chunks is only used for the last stage since we only merge the output of the last stage
+<<<<<<< HEAD
         if self.is_last and save_forward_output:
             self.output_chunks.append(output)
+=======
+        if self.is_last:
+            self.output_chunks.append(output)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Save activations and inputs for backward
         flat_args = flatten_args(composite_args)
         flat_kwargs = flatten_args(composite_kwargs)
@@ -747,10 +802,13 @@ class _PipelineStageBase(ABC):
         last_backward is controlled by the schedule and signals synchronization of gradients across DP groups
         after the last backward.
         """
+<<<<<<< HEAD
         # skip backward computation if backward is not enabled
         if not self.has_backward:
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._check_chunk_id(bwd_chunk_id)
 
         (
@@ -838,10 +896,13 @@ class _PipelineStageBase(ABC):
         logger.debug("%s Backwarded chunk %s", self.log_prefix, bwd_chunk_id)
 
     def backward_weight_one_chunk(self, bwd_chunk_id: int, last_backward=False):
+<<<<<<< HEAD
         # skip backward computation if backward is not enabled
         if not self.has_backward:
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert bwd_chunk_id in self.dw_runner, (
             f"{self.log_prefix} Attempted to run backward_weight_one_chunk for chunk {bwd_chunk_id}"
             " without first calling `backward_one_chunk(full_backward=False)`"
@@ -922,6 +983,7 @@ class _PipelineStageBase(ABC):
             f"Stage {self.stage_index} forward outputs", expected_tensors_meta, outputs
         )
 
+<<<<<<< HEAD
     def _get_init_p2p_neighbors_ops(self) -> list[dist.P2POp]:
         """
         Get the operations to initialize the p2p communicators between previous and next stages.
@@ -1003,6 +1065,8 @@ class _PipelineStageBase(ABC):
         # NOTE: this must happen after FSDP post_backward is FSDP is enabled
         self.scale_grads(grad_scale_factor)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _PipelineStage(_PipelineStageBase):
     def __init__(
@@ -1438,7 +1502,10 @@ class PipelineStage(_PipelineStageBase):
                 ),
                 group=self.group,
                 device=self.device,
+<<<<<<< HEAD
                 use_batch=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             recv_args = objects[0]
             assert isinstance(recv_args, tuple), type(recv_args)
@@ -1504,7 +1571,10 @@ class PipelineStage(_PipelineStageBase):
                 ),
                 group=self.group,
                 device=self.device,
+<<<<<<< HEAD
                 use_batch=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             outputs_meta = tuple()
 
@@ -1530,12 +1600,23 @@ class PipelineStage(_PipelineStageBase):
             if not self.is_first:
                 # We assume that we always receive from stage - 1
                 recv_infos = tuple(
+<<<<<<< HEAD
                     _RecvInfo(
                         f"recv_for_{self.stage_index}_from_{self.stage_index - 1}",
                         self.stage_index - 1,
                         _make_tensor_from_meta(inp, self.device),
                     )
                     for inp in self.inputs_meta
+=======
+                    [
+                        _RecvInfo(
+                            f"recv_for_{self.stage_index}_from_{self.stage_index - 1}",
+                            self.stage_index - 1,
+                            _make_tensor_from_meta(inp, self.device),
+                        )
+                        for inp in self.inputs_meta
+                    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 # In case there is backward pass, set requires_grad for receive buffers
                 if self.has_backward:
@@ -1545,7 +1626,11 @@ class PipelineStage(_PipelineStageBase):
                 self.args_recv_info[chunk_id] = recv_infos
             else:
                 self.args_recv_info[chunk_id] = tuple(
+<<<<<<< HEAD
                     _RootArgPlaceholder(i) for i in self.inputs_meta
+=======
+                    [_RootArgPlaceholder(i) for i in self.inputs_meta]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         # Send info during forward for each activation
@@ -1570,11 +1655,24 @@ class PipelineStage(_PipelineStageBase):
             # Receiving gradients from multiple sources is not supported
             # hence we only take the first destination
             grad_recv_info = tuple(
+<<<<<<< HEAD
                 _RecvInfo(
                     f"recv_grad_for_{self.stage_index}_from_{dst_list[0]}",
                     dst_list[0],
                     _make_tensor_from_meta(self.get_outputs_meta()[idx], self.device),
                 )
                 for idx, dst_list in act_send_info.items()
+=======
+                [
+                    _RecvInfo(
+                        f"recv_grad_for_{self.stage_index}_from_{dst_list[0]}",
+                        dst_list[0],
+                        _make_tensor_from_meta(
+                            self.get_outputs_meta()[idx], self.device
+                        ),
+                    )
+                    for idx, dst_list in act_send_info.items()
+                ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return grad_recv_info

@@ -157,7 +157,11 @@ void pushPyOutToStack(
     const char* msg) {
   TORCH_CHECK(
       PyGILState_Check(), "GIL must be held before you call pushPyOutToStack");
+<<<<<<< HEAD
   const auto& schema_returns = op.schema().returns();
+=======
+  auto schema_returns = op.schema().returns();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto num_returns = schema_returns.size();
   if (num_returns == 0) {
     // Check that we got a None return from Python. Anything else is an error.
@@ -209,11 +213,19 @@ PyObject* ParameterClass = nullptr;
 static PyObject* THPVariable_NewWithVar(
     PyTypeObject* type,
     const at::TensorBase& _var,
+<<<<<<< HEAD
     bool allow_preexisting_pyobj = false,
     std::optional<bool> has_torch_dispatch_if_known = std::nullopt);
 
 // clang-tidy gets confused by static const
 static constexpr const char* VOLATILE_WARNING =
+=======
+    c10::impl::PyInterpreterStatus status,
+    bool allow_preexisting_pyobj = false);
+
+// clang-tidy gets confused by static const
+static const char* VOLATILE_WARNING =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "volatile was removed and now has no effect. Use "
     "`with torch.no_grad():` instead.";
 
@@ -261,12 +273,24 @@ PyObject* THPVariable_Wrap(const at::TensorBase& var) {
   }
 
   if (c10::impl::HermeticPyObjectTLS::get_state()) {
+<<<<<<< HEAD
     return THPVariable_NewWithVar((PyTypeObject*)THPVariableClass, var);
+=======
+    return THPVariable_NewWithVar(
+        (PyTypeObject*)THPVariableClass,
+        var,
+        c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::optional<PyObject*> mb_obj =
       var.unsafeGetTensorImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
           /*ignore_hermetic_tls=*/false);
+=======
+          getPyInterpreter(), /*ignore_hermetic_tls=*/false);
+  c10::impl::PyInterpreterStatus status{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (mb_obj.has_value()) {
     auto obj = *mb_obj;
     if (obj) {
@@ -291,6 +315,7 @@ PyObject* THPVariable_Wrap(const at::TensorBase& var) {
     // (https://github.com/pytorch/pytorch/pull/56017).  Prior to this PR
     // being a thing, the PyObject field will get cleared when all references
     // to the Python object are removed.
+<<<<<<< HEAD
   }
 
   if (C10_LIKELY(var.device().type() != c10::kXLA)) {
@@ -302,6 +327,29 @@ PyObject* THPVariable_Wrap(const at::TensorBase& var) {
   }
 
   return THPVariable_NewWithVar((PyTypeObject*)THPVariableClass, var);
+=======
+    status = c10::impl::PyInterpreterStatus::TAGGED_BY_US;
+  } else {
+    // Assumption: if a Tensor has been shared across threads, this induces
+    // a refcount bump.  Therefore, if the use count 1, we are the sole thread
+    // with access to this tensor and no race is possible.
+    if (var.use_count() <= 1) {
+      status = c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED;
+    } else {
+      status = c10::impl::PyInterpreterStatus::MAYBE_UNINITIALIZED;
+    }
+  }
+
+  if (C10_LIKELY(var.device().type() != c10::kXLA)) {
+    return THPVariable_NewWithVar((PyTypeObject*)THPVariableClass, var, status);
+  }
+
+  if (auto clazz = getPythonTensorClass(var.device())) {
+    return THPVariable_NewWithVar((PyTypeObject*)clazz, var, status);
+  }
+
+  return THPVariable_NewWithVar((PyTypeObject*)THPVariableClass, var, status);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static bool isResurrectable(THPVariable* self) {
@@ -330,7 +378,12 @@ static bool isResurrectable(THPVariable* self) {
   }
   // Check if this is hermetic. If it is, no resurrection.
   if (tensor.unsafeGetTensorImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
           /*ignore_hermetic_tls=*/false) != (PyObject*)self) {
+=======
+          getPyInterpreter(), /*ignore_hermetic_tls=*/false) !=
+      (PyObject*)self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
   return true;
@@ -356,6 +409,10 @@ static bool THPVariable_tryResurrect(THPVariable* self) {
 
   c10::TensorImpl* tensor_impl = tensor.unsafeGetTensorImpl();
   auto maybe_pyobj = tensor_impl->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
+=======
+      getPyInterpreter(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       /*ignore_hermetic_tls=*/false);
 
   TORCH_INTERNAL_ASSERT(
@@ -571,7 +628,14 @@ static PyObject* THPVariable_as_subclass(
   // stack
   torch_dispatch_mode::StashTorchDispatchStackGuard td_g;
   c10::impl::DisablePythonDispatcher dpd_g;
+<<<<<<< HEAD
   return THPVariable_NewWithVar((PyTypeObject*)cls, self.alias());
+=======
+  return THPVariable_NewWithVar(
+      (PyTypeObject*)cls,
+      self.alias(),
+      c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -623,6 +687,7 @@ static PyObject* THPVariable_make_subclass(
     data.unsafeGetTensorImpl()->_change_backend_component_keys(r.device(6));
   }
 
+<<<<<<< HEAD
   return THPVariable_NewWithVar((PyTypeObject*)cls, data);
   END_HANDLE_TH_ERRORS
 }
@@ -687,6 +752,17 @@ static Tensor make_tensor_for_subclass_helper(
 
 static PyObject* THPVariable_make_wrapper_subclass(
     PyObject* /*unused*/,
+=======
+  return THPVariable_NewWithVar(
+      (PyTypeObject*)cls,
+      data,
+      c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+  END_HANDLE_TH_ERRORS
+}
+
+static PyObject* THPVariable_make_wrapper_subclass(
+    PyObject*,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* args,
     PyObject* kwargs) {
   HANDLE_TH_ERRORS
@@ -752,6 +828,7 @@ static PyObject* THPVariable_make_wrapper_subclass(
 
   // don't bother releasing GIL here, as we are not allocating any nontrivial
   // data
+<<<<<<< HEAD
   auto sym_sizes = r.symintlist(1);
   auto sym_strides_own = r.symintlistOptional(2);
   Tensor tensor = make_tensor_for_subclass_helper(
@@ -766,6 +843,71 @@ static PyObject* THPVariable_make_wrapper_subclass(
   if (sizes_strides_policy.has_value()) {
     tensor.unsafeGetTensorImpl()->set_python_custom_sizes_strides(
         parseSizesStridesPolicyArgument(*sizes_strides_policy));
+=======
+  Tensor tensor;
+
+  {
+    AutoDispatchBelowADInplaceOrView guard{}; // TODO: Remove.
+    tracer::impl::NoTracerDispatchMode tracer_guard{};
+
+    auto sym_sizes = r.symintlist(1);
+    auto sym_strides_own = r.symintlistOptional(2);
+    auto sym_strides =
+        static_cast<std::optional<c10::SymIntArrayRef>>(sym_strides_own);
+    auto sym_storage_offset = r.toSymIntOptional(3);
+
+    c10::SymInt size_bytes;
+    auto dtype_itemsize = static_cast<int64_t>(options.dtype().itemsize());
+    auto storage_size = r.toSymIntOptional(14);
+
+    if (storage_size.has_value()) {
+      size_bytes = storage_size.value();
+    } else if (sym_strides.has_value()) {
+      size_bytes = at::detail::computeStorageNbytes(
+          sym_sizes,
+          sym_strides.value(),
+          dtype_itemsize,
+          sym_storage_offset.value_or(0));
+    } else {
+      size_bytes = at::detail::computeStorageNbytesContiguous(
+          sym_sizes, dtype_itemsize, sym_storage_offset.value_or(0));
+    }
+
+    // We use storages **only** to track aliasing of subclasses during tracing.
+    // The actual data pointers are not valid.
+    Storage storage{
+        Storage::use_byte_size_t{},
+        size_bytes,
+        /*allocator=*/c10::GetAllocator(c10::kMeta),
+        /*resizable=*/true};
+    // TODO: constructor should probably accept data pointer
+    storage.set_data_ptr_noswap(at::DataPtr{nullptr, r.device(7)});
+
+    auto keys = c10::DispatchKeySet({options.computeDispatchKey()});
+    if (auto mb_extra_keys = r.toDispatchKeySetOptional(13)) {
+      keys = keys | *mb_extra_keys;
+    }
+    tensor = at::detail::make_tensor<TensorImpl>(
+        std::move(storage), keys, options.dtype());
+
+    TensorImpl* tensor_impl = tensor.unsafeGetTensorImpl();
+
+    if (sym_strides.has_value()) {
+      tensor_impl->set_sizes_and_strides(
+          sym_sizes, sym_strides.value(), sym_storage_offset);
+    } else {
+      TORCH_CHECK(
+          !sym_storage_offset.has_value(),
+          "setting storage offset without stride not supported");
+      tensor_impl->generic_set_sizes_contiguous(sym_sizes);
+    }
+
+    const auto sizes_strides_policy = r.stringViewOptional(10);
+    if (sizes_strides_policy.has_value()) {
+      tensor.unsafeGetTensorImpl()->set_python_custom_sizes_strides(
+          parseSizesStridesPolicyArgument(*sizes_strides_policy));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   tensor.set_requires_grad(r.toBool(9));
@@ -780,6 +922,7 @@ static PyObject* THPVariable_make_wrapper_subclass(
   return THPVariable_NewWithVar(
       (PyTypeObject*)cls,
       tensor,
+<<<<<<< HEAD
       // false is the default
       /*allow_preexisting_pyobj=*/false,
       // we checked __torch_dispatch__ above; avoid checking again.
@@ -1129,6 +1272,9 @@ static PyObject* DTensor_OpSchema_post_init(PyObject* mod, PyObject* self) {
   }
   self_handle.attr(dtensor_interned_strings.has_symints) = has_symints;
   Py_RETURN_NONE;
+=======
+      c10::impl::PyInterpreterStatus::DEFINITELY_UNINITIALIZED);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -1236,7 +1382,11 @@ static PyObject* THPVariable_get_version(THPVariable* self, void* unused) {
     return handle_torch_function_getter(self, "_version");
   }
   const auto& var = THPVariable_Unpack(self);
+<<<<<<< HEAD
   return THPUtils_packInt64(var._version());
+=======
+  return PyInt_FromLong(var._version());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -1319,6 +1469,7 @@ static int THPVariable_set_grad(
       self != (THPVariable*)py_grad, "can't assign Variable as its own grad");
 
   const auto& grad = THPVariable_Unpack(py_grad);
+<<<<<<< HEAD
   if (var.grad_dtype().has_value()) {
     TORCH_CHECK(
         grad.dtype() == var.grad_dtype().value(),
@@ -1331,6 +1482,15 @@ static int THPVariable_set_grad(
         "None to allow any dtype. Set grad_dtype with caution. Diverging the dtypes of "
         "a tensor and its gradient may break downstream systems that assume they match.");
   }
+=======
+  TORCH_CHECK(
+      var.dtype() == grad.dtype(),
+      "attempting to assign a gradient with dtype '",
+      grad.dtype(),
+      "' to a tensor with dtype '",
+      var.dtype(),
+      "'. Please ensure that the gradient and the tensor have the same dtype");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       var.device().type() == grad.device().type(),
       "attempting to assign a gradient with device type '",
@@ -1339,11 +1499,16 @@ static int THPVariable_set_grad(
       var.device().type(),
       "'. Please ensure that the gradient and the tensor are on the same device");
   if (grad.layout() != kSparse) {
+<<<<<<< HEAD
     auto expected_options = var.options().dtype(
         var.grad_dtype().has_value() ? var.grad_dtype().value()
                                      : grad.scalar_type());
     TORCH_CHECK(
         grad.options().type_equal(expected_options),
+=======
+    TORCH_CHECK(
+        grad.options().type_equal(var.options()),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "attempting to assign a gradient to a tensor that has data of a different type");
   }
   TORCH_CHECK(
@@ -1399,8 +1564,14 @@ static PyObject* THPVariable_get_output_nr(THPVariable* self, void* unused) {
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "output_nr");
   }
+<<<<<<< HEAD
   const auto output_nr = THPVariable_Unpack(self).output_nr();
   return THPUtils_packInt64(output_nr);
+=======
+  const auto output_nr =
+      static_cast<long>(THPVariable_Unpack(self).output_nr());
+  return PyInt_FromLong(output_nr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -1437,7 +1608,11 @@ static PyObject* THPVariable_get_ndim(THPVariable* self, void* unused) {
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "ndim");
   }
+<<<<<<< HEAD
   return THPUtils_packInt64(THPVariable_Unpack(self).dim());
+=======
+  return PyInt_FromLong(THPVariable_Unpack(self).dim());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -1849,6 +2024,7 @@ static PyObject* THPVariable_get_nbytes(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPVariable_get_grad_dtype(THPVariable* self, void* unused) {
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
@@ -1899,6 +2075,8 @@ static int THPVariable_set_grad_dtype(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static PyObject* THPVariable_get_itemsize(THPVariable* self, void* unused) {
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
@@ -2057,11 +2235,14 @@ static struct PyGetSetDef THPVariable_properties[] = {
      (setter)THPVariable_set_imag,
      nullptr,
      nullptr},
+<<<<<<< HEAD
     {"grad_dtype",
      (getter)THPVariable_get_grad_dtype,
      (setter)THPVariable_set_grad_dtype,
      nullptr,
      nullptr},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 static PyMappingMethods THPVariable_as_mapping = {
@@ -2084,10 +2265,13 @@ static PyMethodDef extra_methods[] = {
      castPyCFunctionWithKeywords(THPVariable_make_wrapper_subclass),
      METH_STATIC | METH_VARARGS | METH_KEYWORDS,
      nullptr},
+<<<<<<< HEAD
     {"_dtensor__new__",
      castPyCFunctionWithKeywords(THPVariable_dtensor_new),
      METH_STATIC | METH_VARARGS | METH_KEYWORDS,
      nullptr},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_fix_weakref", THPVariable_fix_weakref, METH_NOARGS, nullptr},
     {"_view_func",
      castPyCFunctionWithKeywords(THPVariable_view_func),
@@ -2104,6 +2288,7 @@ static PyMethodDef extra_methods[] = {
     {"_use_count", THPVariable__use_count, METH_NOARGS, nullptr},
     {nullptr}};
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
 static PyMethodDef extra_functions[] = {
     {"_DTensor_OpSchema_post_init",
@@ -2116,6 +2301,8 @@ static PyMethodDef extra_functions[] = {
      nullptr},
     {nullptr}};
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct THPVariableMeta {
   PyHeapTypeObject base;
 };
@@ -2234,6 +2421,10 @@ PyObject* THPVariable_pynew(
   return THPVariable_NewWithVar(
       type,
       tensor,
+<<<<<<< HEAD
+=======
+      c10::impl::PyInterpreterStatus::MAYBE_UNINITIALIZED,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       /*allow_preexisting_pyobj=*/true);
   END_HANDLE_TH_ERRORS
 }
@@ -2286,7 +2477,12 @@ static int THPVariable_subclass_clear(THPVariable* self) {
 
     if (!self->cdata.unsafeIsBorrowed() &&
         tensor.unsafeGetTensorImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
             /*ignore_hermetic_tls=*/false) == (PyObject*)self) {
+=======
+            getPyInterpreter(), /*ignore_hermetic_tls=*/false) ==
+            (PyObject*)self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // TODO: empirically, on OS X this assert appears to be untrue
       // In test_py_tensors_multi_async_call - ProcessGroupRpcTestWithSpawn
       // distributed/rpc/test_process_group_agent.py
@@ -2458,6 +2654,7 @@ static void THPVariable_subclass_dealloc(PyObject* self) {
   Py_DECREF(type);
 }
 
+<<<<<<< HEAD
 // Creates a new Python object for a Variable.
 static PyObject* THPVariable_NewWithVar(
     PyTypeObject* type,
@@ -2467,13 +2664,34 @@ static PyObject* THPVariable_NewWithVar(
   // Make sure that the reinterpret into a THPVariable* will be valid
   TORCH_CHECK(
       type == &THPVariableType || PyType_IsSubtype(type, &THPVariableType),
+=======
+// Creates a new Python object for a Variable.  The status parameter
+// specifies what the interpreter tag status on the object is; for
+// example, if you ran check_pyobj, the return optional of this object
+// tells you if the tensor was already tagged or not so you can pass
+// TAGGED_BY_US or MAYBE_UNINITIALIZED; in other cases, you know where
+// var came from and can directly assert that it's DEFINITELY_UNINITIALIZED.
+// It's ALWAYS safe (albeit slower) to call this with MAYBE_UNINITIALIZED.
+static PyObject* THPVariable_NewWithVar(
+    PyTypeObject* type,
+    const at::TensorBase& _var,
+    c10::impl::PyInterpreterStatus status,
+    bool allow_preexisting_pyobj) {
+  // Make sure that the reinterpret into a THPVariable* will be valid
+  TORCH_CHECK(
+      PyType_IsSubtype(type, &THPVariableType),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Creating a Tensor subclass from a class ",
       "that does not inherit from Tensor is not possible. Make sure your class inherits from Tensor.");
 
   // This function overwrite the Tensor's pyobj field without extra checks
   // Make sure it is not set otherwise we would leak memory
   auto mb_obj = _var.unsafeGetTensorImpl()->pyobj_slot()->check_pyobj(
+<<<<<<< HEAD
       /*ignore_hermetic_tls=*/false);
+=======
+      getPyInterpreter(), /*ignore_hermetic_tls=*/false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Under some circumstances, we may attempt to create a new Python
   // object for a variable that already has a Python object.  The most common
@@ -2555,10 +2773,16 @@ static PyObject* THPVariable_NewWithVar(
       // Normal codepath
       v->cdata = MaybeOwned<Variable>::owned(Variable(_var));
       const auto& var = THPVariable_Unpack(v);
+<<<<<<< HEAD
       var.unsafeGetTensorImpl()->pyobj_slot()->init_pyobj(obj);
       if (has_torch_dispatch_if_known.has_value()
               ? *has_torch_dispatch_if_known
               : check_has_torch_dispatch(obj)) {
+=======
+      var.unsafeGetTensorImpl()->pyobj_slot()->init_pyobj(
+          getPyInterpreter(), obj, status);
+      if (check_has_torch_dispatch(obj)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var.unsafeGetTensorImpl()->set_python_dispatch(true);
       }
     }
@@ -2843,10 +3067,13 @@ bool THPVariable_initModule(PyObject* module) {
   torch::autograd::initTorchFunctions(module);
   torch::autograd::initTensorImplConversion(module);
   torch::utils::validate_numpy_for_dlpack_deleter_bug();
+<<<<<<< HEAD
 
   if (!intern_dtensor_strings()) {
     return false;
   }
   PyModule_AddFunctions(module, extra_functions);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }

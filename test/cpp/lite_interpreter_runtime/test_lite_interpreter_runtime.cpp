@@ -106,7 +106,11 @@ TEST(RunTimeTest, DelegateException) {
    * inputs.emplace_back(torch::rand({2, 4}));
    * inputs.emplace_back(torch::rand({13, 9}));
    * Run with inputs and expect exception
+<<<<<<< HEAD
    * Error stack trace will look like this:
+=======
+   * Erro stack trace will look like this:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    * Module hierarchy:top(C).A0(backend_with_compiler_demoLoweredModule).AA0(AA)
    * Traceback of TorchScript (most recent call last):
    *  File "<string>", line 3, in FunctionName_UNKNOWN

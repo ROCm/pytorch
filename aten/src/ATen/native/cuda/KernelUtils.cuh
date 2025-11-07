@@ -6,7 +6,11 @@
 #endif
 
 // ROCm 6.3 is planned to have these functions, but until then here they are.
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && ROCM_VERSION >= 60201
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <device_functions.h>
 #include <hip/hip_fp16.h>
 #include <hip/hip_bf16.h>
@@ -115,7 +119,13 @@ __device__ __forceinline__ void fastSpecializedAtomicAdd(
     index_t index,
     const index_t numel,
     scalar_t value) {
+<<<<<<< HEAD
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700))
+=======
+#if (                      \
+    (defined(USE_ROCM) && ROCM_VERSION < 60201) || \
+    (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   gpuAtomicAddNoReturn(
       reinterpret_cast<at::Half*>(tensor) + index,
       static_cast<at::Half>(value));
@@ -158,7 +168,13 @@ __device__ __forceinline__ void fastSpecializedAtomicAdd(
     index_t index,
     const index_t numel,
     scalar_t value) {
+<<<<<<< HEAD
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
+=======
+#if (                      \
+    (defined(USE_ROCM) && ROCM_VERSION < 60201) || \
+    (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   gpuAtomicAddNoReturn(
       reinterpret_cast<at::BFloat16*>(tensor) + index,
       static_cast<at::BFloat16>(value));
@@ -312,8 +328,11 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
         }
     }
 
+<<<<<<< HEAD
     // not coalsced, so now let try to capture lane-matches...
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (numel > 16 /*<-hueristic threshold*/ * 64 ) {
       // well shucks, unlikely to capture same-dest atomics in a wave.
       // fall back to direct fastAtomic...
@@ -321,6 +340,10 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // not coalsced, so now let try to capture lane-matches...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // __activemask() -- finds the set of threads in the warp that are about to perform atomicAdd
     // __match_any_sync() -- returns bit mask of the threads that have same dest addr
     auto mask = __match_any_sync(__activemask(), (int64_t)dst);

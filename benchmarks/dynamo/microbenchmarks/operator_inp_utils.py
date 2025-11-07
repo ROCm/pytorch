@@ -296,8 +296,13 @@ class OperatorInputsLoader:
         for key in self.operator_db.keys():
             try:
                 op = eval(key)
+<<<<<<< HEAD
             except AttributeError:
                 log.warning("Evaluating an op name into an OpOverload", exc_info=True)
+=======
+            except AttributeError as ae:
+                log.warning("Evaluating an op name into an OpOverload: %s", ae)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             yield op
 

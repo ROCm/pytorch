@@ -54,7 +54,10 @@ class Event:
         if isinstance(data, str):
             data_dict = json.loads(data)
         data_dict["source"] = EventSource[data_dict["source"]]  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return Event(**data_dict)
 
     def serialize(self) -> str:
@@ -109,7 +112,10 @@ class RdzvEvent:
         if isinstance(data, str):
             data_dict = json.loads(data)
         data_dict["node_state"] = NodeState[data_dict["node_state"]]  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return RdzvEvent(**data_dict)
 
     def serialize(self) -> str:

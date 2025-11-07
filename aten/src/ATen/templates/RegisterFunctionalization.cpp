@@ -4,7 +4,11 @@
 #include <ATen/core/LegacyTypeDispatch.h>
 #include <ATen/EmptyTensor.h>
 #include <ATen/FunctionalTensorWrapper.h>
+<<<<<<< HEAD
 #include <ATen/ViewMetaClasses.h>
+=======
+#include <ATen/FunctionalInverses.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/MemoryOverlap.h>
 #include <torch/library.h>
 

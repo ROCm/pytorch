@@ -2,6 +2,10 @@
 import collections
 import functools
 import inspect
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import types
 import warnings
@@ -157,6 +161,11 @@ class SourceContext(torch._C._jit_tree_views.SourceRangeFactory):
 
 
 def get_annotations(obj):
+<<<<<<< HEAD
+=======
+    if sys.version_info < (3, 10):
+        return getattr(obj, "__annotations__", {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # In Python-3.10+ it is recommended to use inspect.get_annotations
     # See https://docs.python.org/3.10/howto/annotations.html
     # But also, in 3.10 annotations from base class are not inherited
@@ -309,8 +318,12 @@ def infer_concrete_type_builder(nn_module, share_types=True):
 
             warnings.warn(
                 f"'{name}' was found in ScriptModule constants, "
+<<<<<<< HEAD
                 f" but it is a non-constant {hint}. Consider removing it.",
                 stacklevel=2,
+=======
+                f" but it is a non-constant {hint}. Consider removing it."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             continue
         if not hasattr(nn_module, name):
@@ -319,8 +332,12 @@ def infer_concrete_type_builder(nn_module, share_types=True):
             warnings.warn(
                 f"'{name}' was found in ScriptModule constants, "
                 "but was not actually set in __init__. "
+<<<<<<< HEAD
                 "Consider removing it.",
                 stacklevel=2,
+=======
+                "Consider removing it."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             continue
         value = getattr(nn_module, name)
@@ -370,7 +387,11 @@ def infer_concrete_type_builder(nn_module, share_types=True):
                 hint = (
                     "(This function exists as an attribute on the Python module, "
                     "but we failed to compile it to a TorchScript function. "
+<<<<<<< HEAD
                     f"\nThe error stack is reproduced here:\n{e})"
+=======
+                    f"\nThe error stack is reproduced here:\n{e}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 concrete_type_builder.add_failed_attribute(name, hint)
 
@@ -430,7 +451,11 @@ class ConcreteTypeStore:
         self.methods_compiled = set()
 
     def get_or_create_concrete_type(self, nn_module):
+<<<<<<< HEAD
         """Infer a ConcreteType from this `nn.Module` instance. Underlying JIT types are reused if possible."""
+=======
+        """Infer a ConcreteType from this `nn.Module` instance. Underlying JIT types are re-used if possible."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         concrete_type_builder = infer_concrete_type_builder(nn_module)
 
         nn_module_type = type(nn_module)
@@ -501,7 +526,11 @@ def get_module_concrete_type(nn_module, share_types=True):
         # Look into the store of cached JIT types
         concrete_type = concrete_type_store.get_or_create_concrete_type(nn_module)
     else:
+<<<<<<< HEAD
         # Get a concrete type directly, without trying to reuse an existing JIT
+=======
+        # Get a concrete type directly, without trying to re-use an existing JIT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # type from the type store.
         concrete_type_builder = infer_concrete_type_builder(nn_module, share_types)
         concrete_type_builder.set_poisoned()
@@ -749,7 +778,10 @@ def get_overload_annotations(mod, jit_ignored_properties):
             if method_overloads is None:
                 continue
 
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if item.__func__ in method_overloads:
                 raise RuntimeError(
                     _jit_internal.get_overload_no_implementation_error_message(

@@ -11,7 +11,10 @@ from unittest.mock import patch
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.utils import get_free_symbols
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import free_symbols, free_unbacked_symbols
 from torch.utils._ordered_set import OrderedSet
 
@@ -22,6 +25,10 @@ from .utils import (
     get_dtype_size,
     reduction_num_outputs,
     sympy_index_symbol,
+<<<<<<< HEAD
+=======
+    sympy_str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_subs,
     VarRanges,
 )
@@ -39,12 +46,15 @@ class Dep(abc.ABC):
     index: sympy.Expr
 
     @abc.abstractmethod
+<<<<<<< HEAD
     def get_free_symbol_uses(
         self, unbacked_only: bool = False
     ) -> OrderedSet[sympy.Symbol]:
         pass
 
     @abc.abstractmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def rename(self, renames: dict[str, str]) -> Self:
         pass
 
@@ -70,14 +80,19 @@ class Dep(abc.ABC):
 
 @dataclasses.dataclass(frozen=True)
 class MemoryDep(Dep):
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     name: str
     # pyrefly: ignore [bad-override]
+=======
+    name: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     index: sympy.Expr
     var_names: tuple[sympy.Symbol, ...]
     size: tuple[sympy.Expr, ...]
     mode: Optional[str] = None
 
+<<<<<<< HEAD
     def get_free_symbol_uses(
         self, unbacked_only: bool = False
     ) -> OrderedSet[sympy.Symbol]:
@@ -87,6 +102,8 @@ class MemoryDep(Dep):
             | get_free_symbols(self.var_names, unbacked_only)
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __repr__(self) -> str:
         maybe_mode = ""
         if self.mode is not None:
@@ -151,7 +168,11 @@ class MemoryDep(Dep):
         stride_to_index = {s: i for i, s in enumerate(self_strides)}
         order = [stride_to_index[s] for s in other_strides]
 
+<<<<<<< HEAD
         assert OrderedSet(order) == OrderedSet(range(self.num_vars))
+=======
+        assert OrderedSet(order) == OrderedSet(range(0, self.num_vars))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return order
 
     def get_offset(self) -> sympy.Expr:
@@ -308,13 +329,19 @@ class MemoryDep(Dep):
 
 @dataclasses.dataclass(frozen=True)
 class StarDep(Dep):
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     name: str
     mode: Optional[str] = None
 
     # depends on the entire buffer
     @property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def index(self) -> sympy.Expr:
         raise NotImplementedError("StarDep does not have an index")
 
@@ -326,11 +353,14 @@ class StarDep(Dep):
             return StarDep(renames[self.name], self.mode)
         return self
 
+<<<<<<< HEAD
     def get_free_symbol_uses(
         self, unbacked_only: bool = False
     ) -> OrderedSet[sympy.Symbol]:
         return OrderedSet()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def numbytes_hint(self) -> int:
         try:
             return V.graph.sizevars.size_hint(self.get_numel()) * get_dtype_size(
@@ -363,6 +393,7 @@ class StarDep(Dep):
 @dataclasses.dataclass(frozen=True)
 class WeakDep(Dep):
     # Fake dependency on unused buffer
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     name: str
     # Buffer that is doing the mutation
@@ -381,6 +412,13 @@ class WeakDep(Dep):
 
     @property
     # pyrefly: ignore [bad-override]
+=======
+    name: str
+    # Buffer that is doing the mutation
+    mutating_buf: str
+
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def index(self) -> sympy.Expr:
         raise NotImplementedError("WeakDep does not have an index")
 
@@ -389,7 +427,11 @@ class WeakDep(Dep):
 
     def rename(self, renames: dict[str, str]) -> "WeakDep":
         if self.name in renames:
+<<<<<<< HEAD
             return WeakDep(renames[self.name], self.mutating_buf, self.is_fake)
+=======
+            return WeakDep(renames[self.name], self.mutating_buf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self
 
     def numbytes_hint(self) -> int:
@@ -477,6 +519,7 @@ class ReadWrites:
                 names.add(dep.name)
         return names
 
+<<<<<<< HEAD
     def get_free_symbol_uses(
         self, unbacked_only: bool = False
     ) -> OrderedSet[sympy.Symbol]:
@@ -486,6 +529,8 @@ class ReadWrites:
             result |= dep.get_free_symbol_uses(unbacked_only)
         return result
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _RecordLoadStoreInner(V.MockHandler):  # type: ignore[name-defined]
     def __init__(self, var_ranges: VarRanges, normalize: bool) -> None:
@@ -559,6 +604,7 @@ class _RecordLoadStoreInner(V.MockHandler):  # type: ignore[name-defined]
         }
         return self._normalize(index, var_ranges)
 
+<<<<<<< HEAD
     def load(self, name: str, index: sympy.Expr) -> None:
         self._reads.add(MemoryDep(name, *self.canonicalize(index)))
 
@@ -576,6 +622,28 @@ class _RecordLoadStoreInner(V.MockHandler):  # type: ignore[name-defined]
 
     def index_expr(self, index: sympy.Expr, dtype: Optional[torch.dtype]) -> None:
         self._index_exprs.add(IndexExprDep(*self.canonicalize(index)))
+=======
+    def load(self, name: str, index: sympy.Expr) -> str:
+        self._reads.add(MemoryDep(name, *self.canonicalize(index)))
+        return f"load({name}, {sympy_str(index)})"
+
+    def load_seed(self, name: str, index: int) -> str:
+        assert isinstance(index, int)
+        return self.load(name, sympy.Integer(index))
+
+    def store(
+        self, name: str, index: sympy.Expr, value: str, mode: Optional[str] = None
+    ) -> str:
+        self._writes.add(MemoryDep(name, *self.canonicalize(index), mode=mode))
+        return f"store({name}, {sympy_str(index)}, {value}, {mode})"
+
+    def store_reduction(self, name: str, index: sympy.Expr, value: str) -> str:
+        return self.store(name, index, f"store_reduction({value})")
+
+    def index_expr(self, index: sympy.Expr, dtype: Optional[torch.dtype]) -> str:
+        self._index_exprs.add(IndexExprDep(*self.canonicalize(index)))
+        return f"index_expr({sympy_str(index)}, {dtype})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def bucketize(
         self,
@@ -624,12 +692,21 @@ def index_vars_no_squeeze(
 
 def index_vars_squeeze(
     *argsizes: Sequence[sympy.Expr], prefix: str = "d"
+<<<<<<< HEAD
 ) -> tuple[list[Sequence[sympy.Expr]], VarRanges]:
     from .ir import SqueezeView
 
     var_ranges, add_var = var_builder(prefix)
     args: list[Sequence[sympy.Expr]] = []
     new_sizes: list[Sequence[sympy.Expr]] = []
+=======
+) -> tuple[list[list[sympy.Expr]], VarRanges]:
+    from .ir import SqueezeView
+
+    var_ranges, add_var = var_builder(prefix)
+    args: list[list[sympy.Expr]] = []
+    new_sizes: list[list[sympy.Expr]] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for size in argsizes:
         new_size, reindex = SqueezeView.squeezer(size)
         new_sizes.append(new_size)
@@ -650,10 +727,14 @@ def extract_read_writes(
 
     if isinstance(fn, LoopBody):
         inner = extract_loop_body_with_args(
+<<<<<<< HEAD
             fn,
             [*args, *hidden_args],  # type: ignore[list-item]
             var_ranges,
             normalize,
+=======
+            fn, [*args, *hidden_args], var_ranges, normalize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     else:
         # Slow path tracing the function
@@ -668,11 +749,16 @@ def extract_read_writes(
         range_vars = [*itertools.chain.from_iterable(args)]
 
     return ReadWrites(
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         OrderedSet(inner._reads),
         # pyrefly: ignore [missing-attribute]
         OrderedSet(inner._writes),
         # pyrefly: ignore [missing-attribute]
+=======
+        OrderedSet(inner._reads),
+        OrderedSet(inner._writes),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inner._index_exprs,
         range_vars,
         var_ranges,

@@ -4,6 +4,10 @@
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/util/UniqueVoidPtr.h>
 #include <c10/util/flat_hash_map.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/irange.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <unordered_set>
 #include <vector>
@@ -13,6 +17,10 @@ namespace c10::cuda::CUDACachingAllocator::CudaMallocAsync {
 using namespace c10::CachingAllocator;
 using namespace c10::CachingDeviceAllocator;
 
+<<<<<<< HEAD
+=======
+#if CUDA_VERSION >= 11040 || defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // CUDA device allocator that uses cudaMallocAsync to implement
 // the same interface as CUDACachingAllocator.cpp.
 
@@ -46,7 +54,11 @@ bool operator==(const UsageStream& lhs, const UsageStream& rhs) {
 
 struct UsageStreamHash {
   size_t operator()(const UsageStream& us) const noexcept {
+<<<<<<< HEAD
     return std::hash<void*>{}(us.stream) + static_cast<size_t>(us.device);
+=======
+    return std::hash<void*>{}(us.stream) + size_t(us.device);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -445,7 +457,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
     return !devs_initialized_flags.empty();
   }
 
+<<<<<<< HEAD
   static void assertValidDevice(c10::DeviceIndex device) {
+=======
+  static inline void assertValidDevice(c10::DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         0 <= device && device < device_count, "Invalid device argument.");
   }
@@ -494,6 +510,7 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
     // introduces performance nondeterminism.
   }
 
+<<<<<<< HEAD
   std::vector<StreamSegmentSize> getExpandableSegmentSizes(
       c10::DeviceIndex device) override {
     TORCH_CHECK(
@@ -501,6 +518,8 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
         "CUDAMallocAsyncAllocator does not yet support getExpandableSegmentSizes.");
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void emptyCache(/*unused*/ MempoolId_t mempool_id) override {
     std::lock_guard<std::mutex> lk(general_mutex);
 
@@ -516,7 +535,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
     }
   }
 
+<<<<<<< HEAD
   void enable(bool /*value*/) override {
+=======
+  void enable(bool) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // cannot disable
   }
 
@@ -798,7 +821,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
   void beginAllocateToPool(
       c10::DeviceIndex device,
       MempoolId_t mempool_id,
+<<<<<<< HEAD
       std::function<bool(cudaStream_t)> /*filter*/) override {
+=======
+      std::function<bool(cudaStream_t)>) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::lock_guard<std::mutex> lk(general_mutex);
 
     TORCH_INTERNAL_ASSERT(capture_free_streams.empty());
@@ -913,9 +940,13 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
     }
   }
   std::string name() override {
+<<<<<<< HEAD
     // break up token to trick hipify
     return "c"
            "udaMallocAsync";
+=======
+    return "cudaMallocAsync";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   void copy_data(void* dest, const void* src, std::size_t count) const final {
     C10_CUDA_CHECK(
@@ -933,4 +964,16 @@ CUDAAllocator* allocator() {
   return &device_allocator;
 }
 
+<<<<<<< HEAD
+=======
+#else
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+CUDAAllocator* allocator() {
+  TORCH_CHECK(false, "Cannot use CudaMallocAsyncAllocator with cuda < 11.4.");
+  return nullptr;
+}
+
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::cuda::CUDACachingAllocator::CudaMallocAsync

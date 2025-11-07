@@ -1,7 +1,10 @@
 # Owner(s): ["oncall: distributed"]
 
 import os
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from copy import deepcopy
 
 import torch
@@ -15,11 +18,15 @@ from torch.testing._internal.common_distributed import (
     MultiProcessTestCase,
     skip_if_lt_x_gpu,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, TEST_XPU
 
 
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 device_module = torch.get_device_module(device_type)
+=======
+from torch.testing._internal.common_utils import run_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Net(nn.Module):
@@ -74,7 +81,11 @@ class ReplicateStateDictTest(MultiProcessTestCase):
 
     def test_replicate_non_root_multiple_save_load(self):
         """
+<<<<<<< HEAD
         Tests the replicate() on multiple submodules matches
+=======
+        Tests tha replicate() on multiple submodules matches
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local module state_dict.
         """
         self._init_pg()
@@ -159,7 +170,10 @@ class ReplicateTest(MultiProcessTestCase):
         self._compare_module(model, replicate_model)
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_XPU, "XPU does not support gloo backend")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_replicate_move_args_kwargs_to_device(self):
         class MyNet(nn.Module):
             def __init__(self) -> None:
@@ -172,14 +186,21 @@ class ReplicateTest(MultiProcessTestCase):
                 return self.a(inp)
 
         self._init_pg()
+<<<<<<< HEAD
         torch.accelerator.set_device_index(self.rank)
         model = MyNet().to(device_type)
         replicate(model, device_id=torch.accelerator.current_device_index())
+=======
+        torch.cuda.set_device(self.rank)
+        model = MyNet().cuda()
+        replicate(model, device_id=torch.cuda.current_device())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # CPU input ensures replicate can move arg and kwargs to device.
         a, b = torch.randn(2, 2), torch.randn(2, 2)
         model(a, kwarg=b).sum().backward()
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_XPU, "XPU does not support gloo backend")
     def test_replicate_ignore_module(self):
         self._init_pg()
@@ -191,6 +212,18 @@ class ReplicateTest(MultiProcessTestCase):
         replicate(model, ignored_modules=[model.fc1])
         # CPU input ensures that replicate can move input to GPU as DDP does.
         inp = torch.randn(5, 2, device=device_type) * (self.rank + 1)
+=======
+    def test_replicate_ignore_module(self):
+        self._init_pg()
+        torch.cuda.set_device(self.rank)
+        # Seed ensures diff input and thus different local grads across ranks.
+        torch.manual_seed(self.rank)
+        torch.cuda.manual_seed(self.rank)
+        model = Net().cuda()
+        replicate(model, ignored_modules=[model.fc1])
+        # CPU input ensures that replicate can move input to GPU as DDP does.
+        inp = torch.randn(5, 2, device="cuda") * (self.rank + 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out = model(inp) * 10
         out.sum().backward()
         # FC1 grads should not be synchronized, FC2 and 3 should be.
@@ -228,11 +261,18 @@ class ReplicateTest(MultiProcessTestCase):
         self._compare_module(model, replicate_model)
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_XPU, "XPU does not support gloo backend")
     def test_replicate_device_id(self):
         self._init_pg()
         model = Net()
         model_cuda = deepcopy(model).to(device_type)
+=======
+    def test_replicate_device_id(self):
+        self._init_pg()
+        model = Net()
+        model_cuda = deepcopy(model).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_cuda2 = deepcopy(model_cuda)
         replicate(model, device_id=torch.device("cpu"))
         # DDP instance is attached in first pre forward
@@ -241,15 +281,23 @@ class ReplicateTest(MultiProcessTestCase):
         # Should be None for CPU training
         self.assertEqual(None, replicate_ddp_weakref.device_ids)
 
+<<<<<<< HEAD
         replicate(
             model_cuda, device_id=torch.device(torch.accelerator.current_device_index())
         )
+=======
+        replicate(model_cuda, device_id=torch.device(torch.cuda.current_device()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # DDP instance is attached in first pre forward
         model_cuda(torch.randn(2, 2))
         replicate_ddp_weakref = replicate.state(model_cuda)._ddp_weakref()
         self.assertEqual([0], replicate_ddp_weakref.device_ids)
         # Pass in int as device_id
+<<<<<<< HEAD
         replicate(model_cuda2, device_id=int(torch.accelerator.current_device_index()))
+=======
+        replicate(model_cuda2, device_id=int(torch.cuda.current_device()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # DDP instance is attached in first pre forward
         model_cuda2(torch.randn(2, 2))
         replicate_ddp_weakref = replicate.state(model_cuda2)._ddp_weakref()
@@ -266,7 +314,10 @@ class ReplicateTest(MultiProcessTestCase):
 
 class ReplicateFullyShardInit(ReplicateTest):
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_XPU, "XPU does not support gloo backend")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_replicate_fully_shard_init(self):
         class ToyModel(nn.Module):
             def __init__(self, dim: int):
@@ -284,6 +335,7 @@ class ReplicateFullyShardInit(ReplicateTest):
                 return y
 
         self._init_pg()
+<<<<<<< HEAD
         torch.accelerator.set_device_index(self.rank)
         dim = 3
         bz = 2
@@ -292,6 +344,16 @@ class ReplicateFullyShardInit(ReplicateTest):
             fully_shard(linear)
         fully_shard(model.linears)
         replicate(model, device_id=torch.accelerator.current_device_index())
+=======
+        torch.cuda.set_device(self.rank)
+        dim = 3
+        bz = 2
+        model = ToyModel(dim).cuda()
+        for linear in model.linears:
+            fully_shard(linear)
+        fully_shard(model.linears)
+        replicate(model, device_id=torch.cuda.current_device())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for linear in model.linears:
             self.assertTrue(isinstance(linear.weight, DTensor))
         inp = torch.rand(bz, dim)

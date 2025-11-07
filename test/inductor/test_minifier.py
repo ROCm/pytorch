@@ -249,7 +249,11 @@ with torch.no_grad():
         assert res is not None
         ep_file_path = res.get_exported_program_path()
         assert ep_file_path is not None
+<<<<<<< HEAD
         gm = export_load(ep_file_path).module(check_guards=False)
+=======
+        gm = export_load(ep_file_path).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(gm.code).strip(),
             """\

@@ -63,13 +63,22 @@ struct BuiltinOpFunction : public Function {
 
   bool call(
       Stack& stack,
+<<<<<<< HEAD
       std::optional<size_t> /*unused*/,
       c10::function_ref<void(const Code&)> /*unused*/) override {
+=======
+      std::optional<size_t>,
+      c10::function_ref<void(const Code&)>) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run(stack);
     return false;
   }
 
+<<<<<<< HEAD
   bool call(Stack& stack, c10::function_ref<void(const mobile::Code&)> /*unused*/)
+=======
+  bool call(Stack& stack, c10::function_ref<void(const mobile::Code&)>)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       override {
     run(stack);
     return false;

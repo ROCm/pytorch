@@ -18,8 +18,13 @@ import logging
 import math
 import operator
 import types
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Literal, TypeAlias, Union
+=======
+from typing import Callable, Literal, Union
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._ops
@@ -64,11 +69,16 @@ class OnnxDecompMeta:
                 if isinstance(self.onnx_function, onnxscript.OnnxFunction):
                     signature = _schemas.OpSignature.from_function(  # type: ignore[attr-defined]
                         self.onnx_function,
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
                         self.onnx_function.function_ir.domain,
                         # pyrefly: ignore [missing-attribute]
                         self.onnx_function.name,
                         # pyrefly: ignore [missing-attribute]
+=======
+                        self.onnx_function.function_ir.domain,
+                        self.onnx_function.name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         opset_version=self.onnx_function.opset.version,
                     )
                 else:
@@ -83,7 +93,11 @@ class OnnxDecompMeta:
                     # When the function is targeting an HOP, for example, it will accept
                     # functions as arguments and fail to generate an ONNX signature.
                     # In this case we set signature to None and dispatch to this function always.
+<<<<<<< HEAD
                     logger.warning(  # noqa: G200
+=======
+                    logger.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         "Failed to infer the signature for function '%s' because '%s'"
                         "All nodes targeting `%s` will be dispatched to this function",
                         self.onnx_function,

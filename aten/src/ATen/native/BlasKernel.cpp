@@ -286,7 +286,11 @@ template void scal_fast_path<scalar_t>(int *n, scalar_t *a, scalar_t *x, int *in
 #if AT_BUILD_WITH_BLAS()
 template <>
 bool scal_use_fast_path<double>(int64_t n, int64_t incx) {
+<<<<<<< HEAD
   auto constexpr intmax = std::numeric_limits<int>::max();
+=======
+  auto intmax = std::numeric_limits<int>::max();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return n <= intmax && incx <= intmax;
 }
 
@@ -315,7 +319,11 @@ bool gemv_use_fast_path<float>(
     int64_t incx,
     [[maybe_unused]] float beta,
     int64_t incy) {
+<<<<<<< HEAD
   auto constexpr intmax = std::numeric_limits<int>::max();
+=======
+  auto intmax = std::numeric_limits<int>::max();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (m <= intmax) && (n <= intmax) && (lda <= intmax) &&
          (incx > 0) && (incx <= intmax) && (incy > 0) && (incy <= intmax);
 }
@@ -375,7 +383,11 @@ static void bf16_gemv_trans(
   const at::BFloat16 beta,
   at::BFloat16* y,
   const int incy) {
+<<<<<<< HEAD
   bf16_gemv_trans_stub(kCPU, m, n, alpha, a, lda, x, incx, beta, y, incy);
+=======
+  return bf16_gemv_trans_stub(kCPU, m, n, alpha, a, lda, x, incx, beta, y, incy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>

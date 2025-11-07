@@ -184,7 +184,11 @@ std::unique_ptr<Graph> jsonToSubgraph(
     graphInputs = std::move(reorderedGraphInputs);
     auto reorderedSignature = *signature;
     reorderedSignature.set_input_specs(reorderedInputSpecs);
+<<<<<<< HEAD
     graph->setSignature(GraphSignature{reorderedSignature});
+=======
+    graph->setSignature(torch::nativert::GraphSignature{reorderedSignature});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   for (const auto& input : graphInputs) {
@@ -408,7 +412,11 @@ std::unique_ptr<Graph> jsonToSubgraph(
     }
     sig.set_output_specs(std::move(outputSpecs));
 
+<<<<<<< HEAD
     graph->setSignature(GraphSignature{sig});
+=======
+    graph->setSignature(torch::nativert::GraphSignature{sig});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // weightsTensorMeta are indexed by weight's name, not graph input's name
@@ -422,11 +430,17 @@ std::unique_ptr<Graph> jsonToSubgraph(
     }
 
     auto it = jsonTensorValue.find(inputName);
+<<<<<<< HEAD
     TORCH_CHECK(
         it != jsonTensorValue.end(),
         "Missing tensor metadata for ",
         inputName,
         "in thriftGraph.tensorValue");
+=======
+    CHECK(it != jsonTensorValue.end())
+        << "Missing tensor metadata for " << inputName
+        << "in thriftGraph.tensorValue";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     weightsTensorMeta[weightName] = it->second;
   }
   graph->setWeightsMeta(weightsTensorMeta);
@@ -464,7 +478,11 @@ Constant constantToValue(
     bool loadNodeMetadata) {
   switch (jsonArg.tag()) {
     case torch::_export::Argument::Tag::AS_NONE:
+<<<<<<< HEAD
       return None();
+=======
+      return torch::nativert::None();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case torch::_export::Argument::Tag::AS_INT:
       return jsonArg.get_as_int();
     case torch::_export::Argument::Tag::AS_INTS: {
@@ -493,6 +511,7 @@ Constant constantToValue(
       return ret;
     }
     case torch::_export::Argument::Tag::AS_SCALAR_TYPE:
+<<<<<<< HEAD
       return convertJsonScalarType(jsonArg.get_as_scalar_type());
     case torch::_export::Argument::Tag::AS_MEMORY_FORMAT:
       return convertJsonMemoryFormat(jsonArg.get_as_memory_format());
@@ -500,6 +519,17 @@ Constant constantToValue(
       return convertJsonLayout(jsonArg.get_as_layout());
     case torch::_export::Argument::Tag::AS_DEVICE:
       return convertJsonDevice(jsonArg.get_as_device());
+=======
+      return torch::nativert::convertJsonScalarType(
+          jsonArg.get_as_scalar_type());
+    case torch::_export::Argument::Tag::AS_MEMORY_FORMAT:
+      return torch::nativert::convertJsonMemoryFormat(
+          jsonArg.get_as_memory_format());
+    case torch::_export::Argument::Tag::AS_LAYOUT:
+      return torch::nativert::convertJsonLayout(jsonArg.get_as_layout());
+    case torch::_export::Argument::Tag::AS_DEVICE:
+      return torch::nativert::convertJsonDevice(jsonArg.get_as_device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case torch::_export::Argument::Tag::AS_BOOL:
       return jsonArg.get_as_bool();
     case torch::_export::Argument::Tag::AS_BOOLS: {

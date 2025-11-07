@@ -63,7 +63,11 @@ if errorlevel 1 exit /b 1
 call %CONDA_HOME%\condabin\activate.bat testenv
 if errorlevel 1 exit /b 1
 
+<<<<<<< HEAD
 call conda install  -y -q -c conda-forge libuv=1.51
+=======
+call conda install  -y -q -c conda-forge libuv=1.39
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 call conda install -y -q intel-openmp
 
 echo "install and test libtorch"

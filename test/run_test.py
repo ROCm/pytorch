@@ -12,17 +12,28 @@ import shutil
 import signal
 import subprocess
 import sys
+<<<<<<< HEAD
 import sysconfig
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import tempfile
 import time
 from collections import defaultdict
 from collections.abc import Sequence
 from contextlib import ExitStack
 from datetime import datetime
+<<<<<<< HEAD
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, cast, NamedTuple, Optional, Union
 
+=======
+from pathlib import Path
+from typing import Any, cast, NamedTuple, Optional, Union
+
+import pkg_resources
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch.distributed as dist
 from torch.multiprocessing import current_process, get_context
@@ -36,9 +47,15 @@ from torch.testing._internal.common_utils import (
     TEST_CUDA,
     TEST_SAVE_XML,
     TEST_WITH_ASAN,
+<<<<<<< HEAD
     TEST_WITH_ROCM,
     TEST_WITH_SLOW_GRADCHECK,
     TEST_XPU,
+=======
+    TEST_WITH_CROSSREF,
+    TEST_WITH_ROCM,
+    TEST_WITH_SLOW_GRADCHECK,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -169,37 +186,75 @@ WINDOWS_BLOCKLIST = [
 
 ROCM_BLOCKLIST = [
     "distributed/rpc/test_faulty_agent",
+<<<<<<< HEAD
     "distributed/rpc/test_share_memory",
     "distributed/rpc/cuda/test_tensorpipe_agent",
     "inductor/test_max_autotune",  # taking excessive time, many tests >30 min
+=======
+    "distributed/rpc/test_tensorpipe_agent",
+    "distributed/rpc/test_share_memory",
+    "distributed/rpc/cuda/test_tensorpipe_agent",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_determination",
     "test_jit_legacy",
     "test_cuda_nvml_based_avail",
     "test_jit_cuda_fuser",
+<<<<<<< HEAD
     "test_openreg",
 ]
 
 if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor <= 9):
     ROCM_BLOCKLIST.append("test_typing")
     
+=======
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 S390X_BLOCKLIST = [
     # these tests fail due to various reasons
     "dynamo/test_misc",
     "inductor/test_cpu_repro",
     "inductor/test_cpu_select_algorithm",
+<<<<<<< HEAD
+=======
+    "inductor/test_aot_inductor_arrayref",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "inductor/test_torchinductor_codegen_dynamic_shapes",
     "lazy/test_meta_kernel",
     "onnx/test_utility_funs",
     "profiler/test_profiler",
+<<<<<<< HEAD
     "test_jit",
     "dynamo/test_utils",
     "test_nn",
+=======
+    "test_ao_sparsity",
+    "test_cpp_extensions_open_device_registration",
+    "test_jit",
+    "test_metal",
+    "test_mps",
+    "dynamo/test_torchrec",
+    "inductor/test_aot_inductor_utils",
+    "inductor/test_coordinate_descent_tuner",
+    "test_jiterator",
+    "inductor/test_cpu_cpp_wrapper",
+    "export/test_converter",
+    "inductor/test_inductor_freezing",
+    "dynamo/test_utils",
+    "test_nn",
+    "functorch/test_ops",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # these tests run long and fail in addition to that
     "dynamo/test_dynamic_shapes",
     "test_quantization",
     "inductor/test_torchinductor",
     "inductor/test_torchinductor_dynamic_shapes",
     "inductor/test_torchinductor_opinfo",
+<<<<<<< HEAD
+=======
+    "test_binary_ufuncs",
+    "test_unary_ufuncs",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # these tests fail when cuda is not available
     "inductor/test_aot_inductor",
     "inductor/test_best_config",
@@ -218,12 +273,18 @@ S390X_BLOCKLIST = [
     # these tests fail when mkldnn is not available
     "inductor/test_custom_post_grad_passes",
     "inductor/test_mkldnn_pattern_matcher",
+<<<<<<< HEAD
     "test_metal",
     # lacks quantization support
     "onnx/test_models_quantized_onnxruntime",
     "onnx/test_pytorch_onnx_onnxruntime",
     # sysctl -n hw.memsize is not available
     "test_mps",
+=======
+    # lacks quantization support
+    "onnx/test_models_quantized_onnxruntime",
+    "onnx/test_pytorch_onnx_onnxruntime",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # https://github.com/pytorch/pytorch/issues/102078
     "test_decomp",
     # https://github.com/pytorch/pytorch/issues/146698
@@ -234,6 +295,10 @@ S390X_BLOCKLIST = [
     # some false errors
     "doctests",
     # new failures to investigate and fix
+<<<<<<< HEAD
+=======
+    "cpp_extensions/libtorch_agnostic_extension/test/test_libtorch_agnostic",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_tensorboard",
     # onnx + protobuf failure, see
     # https://github.com/protocolbuffers/protobuf/issues/22104
@@ -242,10 +307,13 @@ S390X_BLOCKLIST = [
     "inductor/test_config",
     "test_public_bindings",
     "test_testing",
+<<<<<<< HEAD
     # depend on z3-solver
     "fx/test_z3_gradual_types",
     "test_proxy_tensor",
     "test_openreg",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 XPU_BLOCKLIST = [
@@ -257,7 +325,10 @@ XPU_BLOCKLIST = [
     "profiler/test_profiler_tree",
     "profiler/test_record_function",
     "profiler/test_torch_tidy",
+<<<<<<< HEAD
     "test_openreg",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 XPU_TEST = [
@@ -268,6 +339,10 @@ XPU_TEST = [
 RUN_PARALLEL_BLOCKLIST = [
     "test_extension_utils",
     "test_cpp_extensions_jit",
+<<<<<<< HEAD
+=======
+    "test_cpp_extensions_open_device_registration",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_cpp_extensions_stream_and_event",
     "test_cpp_extensions_mtia_backend",
     "test_jit_disabled",
@@ -286,7 +361,10 @@ RUN_PARALLEL_BLOCKLIST = [
     # temporarily sets a global config
     "test_autograd_fallback",
     "inductor/test_compiler_bisector",
+<<<<<<< HEAD
     "test_privateuseone_python_backend",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ] + FSDP_TEST
 
 # Test files that should always be run serially with other test files,
@@ -403,7 +481,10 @@ AOT_DISPATCH_TESTS = [
 ]
 FUNCTORCH_TESTS = [test for test in TESTS if test.startswith("functorch")]
 ONNX_TESTS = [test for test in TESTS if test.startswith("onnx")]
+<<<<<<< HEAD
 QUANTIZATION_TESTS = [test for test in TESTS if test.startswith("test_quantization")]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _is_cpp_test(test):
@@ -657,6 +738,7 @@ def run_test(
     return ret_code
 
 
+<<<<<<< HEAD
 def install_cpp_extensions(extensions_dir, env=os.environ):
     # Wipe the build folder, if it exists already
     build_dir = os.path.join(extensions_dir, "build")
@@ -684,6 +766,28 @@ def install_cpp_extensions(extensions_dir, env=os.environ):
         platlib_path, os.path.splitdrive(platlib_path)[0] + os.sep
     )
     install_directory = os.path.join(extensions_dir, "install", platlib_rel)
+=======
+def install_cpp_extensions(cpp_extensions_test_dir, env=os.environ):
+    # Wipe the build folder, if it exists already
+    cpp_extensions_test_build_dir = os.path.join(cpp_extensions_test_dir, "build")
+    if os.path.exists(cpp_extensions_test_build_dir):
+        shutil.rmtree(cpp_extensions_test_build_dir)
+
+    # Build the test cpp extensions modules
+    cmd = [sys.executable, "setup.py", "install", "--root", "./install"]
+    return_code = shell(cmd, cwd=cpp_extensions_test_dir, env=env)
+    if return_code != 0:
+        return None, return_code
+
+    install_directory = ""
+    # install directory is the one that is named site-packages
+    for root, directories, _ in os.walk(
+        os.path.join(cpp_extensions_test_dir, "install")
+    ):
+        for directory in directories:
+            if "-packages" in directory:
+                install_directory = os.path.join(root, directory)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert install_directory, "install_directory must not be empty"
     return install_directory, 0
@@ -757,8 +861,11 @@ def run_test_retries(
                 REPO_ROOT / ".pytest_cache/v/cache/stepcurrent" / stepcurrent_key
             ) as f:
                 current_failure = f.read()
+<<<<<<< HEAD
                 if current_failure == "null":
                     current_failure = f"'{test_file}'"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except FileNotFoundError:
             print_to_file(
                 "No stepcurrent file found. Either pytest didn't get to run (e.g. import error)"
@@ -778,9 +885,12 @@ def run_test_retries(
                 "Test succeeeded in new process, continuing with the rest of the tests"
             )
         elif num_failures[current_failure] >= 3:
+<<<<<<< HEAD
             # This is for log classifier so it can prioritize consistently
             # failing tests instead of reruns. [1:-1] to remove quotes
             print_to_file(f"FAILED CONSISTENTLY: {current_failure[1:-1]}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not continue_through_error:
                 print_to_file("Stopping at first consistent failure")
                 break
@@ -795,6 +905,11 @@ def run_test_retries(
             print_to_file("Retrying single test...")
         print_items = []  # do not continue printing them, massive waste of space
 
+<<<<<<< HEAD
+=======
+    if "null" in num_failures:
+        num_failures[f"'{test_file}'"] = num_failures.pop("null")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     consistent_failures = [x[1:-1] for x in num_failures.keys() if num_failures[x] >= 3]
     flaky_failures = [x[1:-1] for x in num_failures.keys() if 0 < num_failures[x] < 3]
     if len(flaky_failures) > 0:
@@ -833,6 +948,7 @@ def _test_cpp_extensions_aot(test_directory, options, use_ninja):
     # Build the test cpp extensions modules
     shell_env = os.environ.copy()
     shell_env["USE_NINJA"] = str(1 if use_ninja else 0)
+<<<<<<< HEAD
     install_cmd = [
         sys.executable,
         "-m",
@@ -844,6 +960,10 @@ def _test_cpp_extensions_aot(test_directory, options, use_ninja):
         "./install",
     ]
     wheel_cmd = [sys.executable, "-m", "build", "--wheel", "--no-isolation"]
+=======
+    install_cmd = [sys.executable, "setup.py", "install", "--root", "./install"]
+    wheel_cmd = [sys.executable, "setup.py", "bdist_wheel"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return_code = shell(install_cmd, cwd=cpp_extensions_test_dir, env=shell_env)
     if return_code != 0:
         return return_code
@@ -851,9 +971,14 @@ def _test_cpp_extensions_aot(test_directory, options, use_ninja):
         exts_to_build = [
             (install_cmd, "no_python_abi_suffix_test"),
         ]
+<<<<<<< HEAD
         if TEST_CUDA or TEST_XPU:
             exts_to_build.append((wheel_cmd, "python_agnostic_extension"))
         if TEST_CUDA:
+=======
+        if TEST_CUDA:
+            exts_to_build.append((wheel_cmd, "python_agnostic_extension"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             exts_to_build.append((install_cmd, "libtorch_agnostic_extension"))
         for cmd, extension_dir in exts_to_build:
             return_code = shell(
@@ -929,6 +1054,7 @@ def _test_autoload(test_directory, options, enable=True):
         os.environ.pop("TORCH_DEVICE_BACKEND_AUTOLOAD")
 
 
+<<<<<<< HEAD
 # test_openreg is designed to run all tests under torch_openreg, which
 # is an torch backend similar to CUDA or MPS and implemented by using
 # third-party accelerator integration mechanism. Therefore, if all the
@@ -937,12 +1063,18 @@ def _test_autoload(test_directory, options, enable=True):
 def test_openreg(test_module, test_directory, options):
     openreg_dir = os.path.join(
         test_directory, "cpp_extensions", "open_registration_extension", "torch_openreg"
+=======
+def run_test_with_openreg(test_module, test_directory, options):
+    openreg_dir = os.path.join(
+        test_directory, "cpp_extensions", "open_registration_extension"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     install_dir, return_code = install_cpp_extensions(openreg_dir)
     if return_code != 0:
         return return_code
 
     with extend_python_path([install_dir]):
+<<<<<<< HEAD
         cmd = [
             sys.executable,
             "-m",
@@ -957,6 +1089,16 @@ def test_openreg(test_module, test_directory, options):
 
 def test_distributed(test_module, test_directory, options):
     mpi_available = shutil.which("mpiexec")
+=======
+        return run_test(test_module, test_directory, options)
+
+
+def test_distributed(test_module, test_directory, options):
+    # MPI tests are broken with Python-3.9
+    mpi_available = subprocess.call(
+        "command -v mpiexec", shell=True
+    ) == 0 and sys.version_info < (3, 9)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if options.verbose and not mpi_available:
         print_to_stderr("MPI not available -- MPI backend tests will be skipped")
 
@@ -1125,9 +1267,12 @@ def run_doctests(test_module, test_directory, options):
     if torch.mps.is_available():
         os.environ["TORCH_DOCTEST_MPS"] = "1"
 
+<<<<<<< HEAD
     if torch.distributed.is_available():
         os.environ["TORCH_DOCTEST_DISTRIBUTED"] = "1"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if 0:
         # TODO: could try to enable some of these
         os.environ["TORCH_DOCTEST_QUANTIZED_DYNAMIC"] = "1"
@@ -1190,11 +1335,14 @@ def handle_log_file(
             if re.search("Running .* items in this shard:", line):
                 print_to_stderr(line.rstrip())
         print_to_stderr("")
+<<<<<<< HEAD
 
         # Temporary dumping the log file into stderr for QA reference
         print_to_stderr(f"\n START of temporary dumping of {test} execution log file from ({file_path})")
         print_to_stderr(full_text)
         print_to_stderr(f"END of temporary dumping of {test} execution log file form ({file_path})\n")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     # otherwise: print entire file
@@ -1204,6 +1352,7 @@ def handle_log_file(
 
 
 def get_pytest_args(options, is_cpp_test=False, is_distributed_test=False):
+<<<<<<< HEAD
     if is_distributed_test:
         # Distributed tests do not support rerun, see https://github.com/pytorch/pytorch/issues/162978
         rerun_options = ["-x", "--reruns=0"]
@@ -1212,6 +1361,14 @@ def get_pytest_args(options, is_cpp_test=False, is_distributed_test=False):
         # 3+ hours. So, let's opt for less number of reruns. We need at least 150 instances of the
         # test every 2 weeks to satisfy the SQL query (15 x 14 = 210).
         count = 15 if TEST_WITH_ASAN else 50
+=======
+    if RERUN_DISABLED_TESTS:
+        # Distributed tests are too slow, so running them x50 will cause the jobs to timeout after
+        # 3+ hours. So, let's opt for less number of reruns. We need at least 150 instances of the
+        # test every 2 weeks to satisfy the SQL query (15 x 14 = 210). The same logic applies
+        # to ASAN, which is also slow
+        count = 15 if is_distributed_test or TEST_WITH_ASAN else 50
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # When under rerun-disabled-tests mode, run the same tests multiple times to determine their
         # flakiness status. Default to 50 re-runs
         rerun_options = ["--flake-finder", f"--flake-runs={count}"]
@@ -1288,7 +1445,13 @@ CUSTOM_HANDLERS = {
     "test_ci_sanity_check_fail": run_ci_sanity_check,
     "test_autoload_enable": test_autoload_enable,
     "test_autoload_disable": test_autoload_disable,
+<<<<<<< HEAD
     "test_openreg": test_openreg,
+=======
+    "test_cpp_extensions_open_device_registration": run_test_with_openreg,
+    "test_openreg": run_test_with_openreg,
+    "test_transformers_privateuse1": run_test_with_openreg,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -1441,6 +1604,7 @@ def parse_args():
         action="store_true",
         help="Enables removing tests based on TD",
         default=IS_CI
+<<<<<<< HEAD
         and get_pr_number() is not None
         and not strtobool(os.environ.get("NO_TD", "False"))
         and not IS_MACOS
@@ -1448,6 +1612,20 @@ def parse_args():
         and "onnx" not in BUILD_ENVIRONMENT
         and os.environ.get("GITHUB_WORKFLOW", "slow")
         in ("trunk", "pull", "rocm", "rocm-mi300"),
+=======
+        and (
+            TEST_WITH_CROSSREF
+            or TEST_CONFIG == "distributed"
+            or TEST_CONFIG == "default"
+        )
+        and get_pr_number() is not None
+        and not strtobool(os.environ.get("NO_TD", "False"))
+        and not TEST_WITH_ROCM
+        and not IS_MACOS
+        and "xpu" not in BUILD_ENVIRONMENT
+        and "onnx" not in BUILD_ENVIRONMENT
+        and os.environ.get("GITHUB_WORKFLOW", "slow") in ("trunk", "pull"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     parser.add_argument(
         "--shard",
@@ -1483,11 +1661,14 @@ def parse_args():
         help="exclude inductor tests",
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--exclude-quantization-tests",
         action="store_true",
         help="exclude quantization tests",
     )
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--dry-run",
         action="store_true",
         help="Only list the test that will run.",
@@ -1510,7 +1691,10 @@ def parse_args():
     parser.add_argument(
         "--upload-artifacts-while-running",
         action="store_true",
+<<<<<<< HEAD
         default=IS_CI,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     group = parser.add_mutually_exclusive_group()
@@ -1597,7 +1781,11 @@ def get_selected_tests(options) -> list[str]:
     if options.einops:
         selected_tests = list(
             filter(
+<<<<<<< HEAD
                 lambda test_name: test_name.startswith("dynamo/test_einops"),
+=======
+                lambda test_name: test_name.startswith("test/dynamo/test_einops"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 selected_tests,
             )
         )
@@ -1623,8 +1811,11 @@ def get_selected_tests(options) -> list[str]:
             "test_nn",
             "inductor/test_mps_basic",
             "inductor/test_torchinductor",
+<<<<<<< HEAD
             "inductor/test_aot_inductor",
             "inductor/test_torchinductor_dynamic_shapes",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     else:
         # Exclude all mps tests otherwise
@@ -1633,7 +1824,11 @@ def get_selected_tests(options) -> list[str]:
     if options.xpu:
         selected_tests = exclude_tests(XPU_BLOCKLIST, selected_tests, "on XPU")
     else:
+<<<<<<< HEAD
         # Exclude all xpu specific tests otherwise
+=======
+        # Exclude all xpu specifc tests otherwise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         options.exclude.extend(XPU_TEST)
 
     # Filter to only run onnx tests when --onnx option is specified
@@ -1660,9 +1855,12 @@ def get_selected_tests(options) -> list[str]:
     if options.exclude_aot_dispatch_tests:
         options.exclude.extend(AOT_DISPATCH_TESTS)
 
+<<<<<<< HEAD
     if options.exclude_quantization_tests:
         options.exclude.extend(QUANTIZATION_TESTS)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # these tests failing in CUDA 11.6 temporary disabling. issue https://github.com/pytorch/pytorch/issues/75375
     if torch.version.cuda is not None:
         options.exclude.extend(["distributions/test_constraints"])
@@ -1901,7 +2099,10 @@ def run_tests(
         "If running on CI, add the 'keep-going' label to your PR and rerun your jobs."
     )
 
+<<<<<<< HEAD
     pool = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         for test in selected_tests_serial:
             options_clone = copy.deepcopy(options)
@@ -1964,9 +2165,14 @@ def run_tests(
         del os.environ["NUM_PARALLEL_PROCS"]
 
     finally:
+<<<<<<< HEAD
         if pool:
             pool.terminate()
             pool.join()
+=======
+        pool.terminate()
+        pool.join()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return
 
@@ -1977,6 +2183,7 @@ def check_pip_packages() -> None:
         "pytest-flakefinder",
         "pytest-xdist",
     ]
+<<<<<<< HEAD
     try:
         for pkg in packages:
             version(pkg)
@@ -1985,6 +2192,15 @@ def check_pip_packages() -> None:
             f"Missing pip dependency: {pkg}, please run `pip install -r .ci/docker/requirements-ci.txt`"
         )
         sys.exit(1)
+=======
+    installed_packages = [i.key for i in pkg_resources.working_set]
+    for package in packages:
+        if package not in installed_packages:
+            print_to_stderr(
+                f"Missing pip dependency: {package}, please run `pip install -r .ci/docker/requirements-ci.txt`"
+            )
+            sys.exit(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def main():

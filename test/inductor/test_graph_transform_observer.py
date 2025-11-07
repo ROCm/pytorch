@@ -11,7 +11,11 @@ import torch._inductor.config as inductor_config
 from torch._inductor.test_case import run_tests, TestCase
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FUSED_ATTENTION
 from torch.testing._internal.common_utils import IS_LINUX
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -22,16 +26,24 @@ except ImportError:
     HAS_PYDOT = False
 
 
+<<<<<<< HEAD
 HAS_DOT = shutil.which("dot") is not None
+=======
+HAS_DOT = True if shutil.which("dot") is not None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestGraphTransformObserver(TestCase):
     def test_sdpa_rewriter(self):
         if not (
+<<<<<<< HEAD
             HAS_CUDA_AND_TRITON
             and PLATFORM_SUPPORTS_FUSED_ATTENTION
             and HAS_PYDOT
             and HAS_DOT
+=======
+            HAS_CUDA and PLATFORM_SUPPORTS_FUSED_ATTENTION and HAS_PYDOT and HAS_DOT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return
 

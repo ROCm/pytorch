@@ -179,7 +179,11 @@ void propagate_names_except(const Tensor& result, const Tensor& src, IntArrayRef
     return;
   }
   const auto src_names = src.names();
+<<<<<<< HEAD
   const auto result_dim = result.dim();
+=======
+  const auto result_dim = static_cast<int64_t>(result.dim());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto src_dim = static_cast<int64_t>(src_names.size());
   const auto excluded_dim = static_cast<int64_t>(excluded_idxs.size());
   TORCH_INTERNAL_ASSERT(src_dim - excluded_dim == result_dim);

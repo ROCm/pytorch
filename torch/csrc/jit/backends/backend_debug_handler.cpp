@@ -26,7 +26,11 @@ int64_t BackendDebugInfoRecorder::getNextDebugHandle(const Node* node) {
 BackendDebugInfoMapType BackendDebugInfoRecorder::stopRecording() {
   // Note that this is return by copy and since
   // InlinedCallStackPtrs are intrusive ptr it will result in
+<<<<<<< HEAD
   // bump of refcount. Not performant, but this is not intended
+=======
+  // bump of refcount. Not performant, but this is not intented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // to be used in perf critical path.
   // Alternate might be do move but that will be destructive
   return handles_to_inlined_callstack_ptrs_;

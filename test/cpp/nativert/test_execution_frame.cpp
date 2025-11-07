@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
+<<<<<<< HEAD
 
 #include <ATen/ops/tensor.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/nativert/executor/ExecutionFrame.h>
 
 namespace torch::nativert {
@@ -92,9 +95,13 @@ TEST(ExecutionFrameTest, TestPersistentValue) {
   auto wid = graph->getValue("my_weight")->id();
 
   EXPECT_NO_THROW(frame.getTensor(wid));
+<<<<<<< HEAD
   // can't release persistent value
   frame.releaseValueIfNeeded(wid);
   EXPECT_FALSE(frame.getIValue(wid).isNone());
+=======
+  EXPECT_DEATH(frame.releaseValue(wid), "Cannot release persistent value");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace torch::nativert

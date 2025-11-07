@@ -1,5 +1,8 @@
 #include <c10/core/ScalarType.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/lazy/ts_backend/ts_backend_impl.h>
 #include <torch/csrc/lazy/ts_backend/ts_lowering_context.h>
 #include <torch/csrc/lazy/ts_backend/ts_node.h>
@@ -45,8 +48,13 @@ void TSLoweringContext::Lower(const Node* node) {
       AssignOutputOp(torch::lazy::Output(node, i), ops[i]);
     }
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(
         false, "Expected torch::lazy::TsNode but could not dynamic cast");
+=======
+    throw std::runtime_error(
+        "Expected torch::lazy::TsNode but could not dynamic cast");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

@@ -251,7 +251,11 @@ TEST(OperatorRegistrationTest, whenRegisteringCPUTensorType_thenCanOnlyCallUnbox
   callOpUnboxedWithPrecomputedDispatchKeySet<void, Tensor>(*op, c10::DispatchKeySet(c10::DispatchKey::CPU), dummyTensor(c10::DispatchKey::CUDA));
   EXPECT_TRUE(called_kernel_cpu);
 
+<<<<<<< HEAD
   // Ensure that dispatch key from tensor is not used here.
+=======
+  // Ensure that disptach key from tensor is not used here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   called_kernel_cpu = false;
   expectThrows<c10::Error>([&] {
     callOpUnboxedWithPrecomputedDispatchKeySet<void, Tensor>(*op, c10::DispatchKeySet(c10::DispatchKey::CUDA), dummyTensor(c10::DispatchKey::CPU));

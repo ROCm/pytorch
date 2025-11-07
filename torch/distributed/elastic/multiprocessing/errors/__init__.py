@@ -54,12 +54,19 @@ import os
 import signal
 import socket
 import time
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass, field
 from datetime import datetime
 from functools import wraps
 from string import Template
+<<<<<<< HEAD
 from typing import Any, Optional, TypeVar, Union
+=======
+from typing import Any, Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 from torch.distributed.elastic.utils.logging import get_logger
@@ -79,9 +86,15 @@ __all__ = [
 logger = get_logger(__name__)
 
 
+<<<<<<< HEAD
 JSON = dict[str, Any]
 
 _EMPTY_ERROR_DATA: dict[str, Any] = {"message": "<NONE>"}
+=======
+JSON = dict
+
+_EMPTY_ERROR_DATA = {"message": "<NONE>"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _NOT_AVAILABLE = "<N/A>"
 
 _R = TypeVar("_R")
@@ -143,10 +156,13 @@ class ProcessFailure:
                     f" received by PID {self.pid}"
                 )
             else:
+<<<<<<< HEAD
                 self.error_file_data["errorTraits"] = {
                     "category": "system_terminated_error",
                     "retryability": "False",
                 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.message = "To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html"
 
     def _get_error_data(self, error_file_data: dict[str, Any]) -> tuple[str, int]:

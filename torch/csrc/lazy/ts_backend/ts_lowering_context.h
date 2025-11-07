@@ -2,7 +2,10 @@
 
 #include <sstream>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/api/include/torch/jit.h>
 #include <torch/csrc/jit/runtime/graph_executor.h>
 #include <torch/csrc/lazy/backend/lowering_context.h>
@@ -27,8 +30,13 @@ class TORCH_API TSComputation : public Computation {
   }
 
   const std::vector<Shape>& parameter_shapes() const override {
+<<<<<<< HEAD
     TORCH_CHECK(
         false, "TODO(whc) implement TS computation shapes or change interface");
+=======
+    throw std::runtime_error(
+        "TODO(whc) implement TS computation shapes or change interface");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return parameter_shapes_;
   }
 
@@ -37,8 +45,13 @@ class TORCH_API TSComputation : public Computation {
   }
 
   const Shape& result_shape() const override {
+<<<<<<< HEAD
     TORCH_CHECK(
         false, "TODO(whc) implement TS computation shapes or change interface");
+=======
+    throw std::runtime_error(
+        "TODO(whc) implement TS computation shapes or change interface");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result_shape_;
   }
 
@@ -92,7 +105,11 @@ class TORCH_API TSLoweringContext : public LoweringContext {
     for (torch::jit::Value* output : root_tuple_) {
       graph_->block()->registerOutput(output);
     }
+<<<<<<< HEAD
     return std::make_shared<TSComputation>(graph_);
+=======
+    return std::shared_ptr<Computation>(new TSComputation(graph_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Retrieves the lowered operation for an output. If the requested output is

@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import contextlib
 from collections.abc import Iterator
 from typing import Literal
+=======
+# mypy: allow-untyped-defs
+import contextlib
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -15,10 +20,14 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 ProfilerMode = Literal["interval", "event", "interval,event"]
 
 
 def start(mode: ProfilerMode = "interval", wait_until_completed: bool = False) -> None:
+=======
+def start(mode: str = "interval", wait_until_completed: bool = False) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Start OS Signpost tracing from MPS backend.
 
     The generated OS Signposts could be recorded and viewed in
@@ -39,6 +48,7 @@ def start(mode: ProfilerMode = "interval", wait_until_completed: bool = False) -
        https://developer.apple.com/documentation/os/logging/recording_performance_data
     """
     mode_normalized = mode.lower().replace(" ", "")
+<<<<<<< HEAD
     torch._C._mps_profilerStartTrace(  # type: ignore[attr-defined]
         mode_normalized, wait_until_completed
     )
@@ -53,6 +63,18 @@ def stop() -> None:
 def profile(
     mode: ProfilerMode = "interval", wait_until_completed: bool = False
 ) -> Iterator[None]:
+=======
+    torch._C._mps_profilerStartTrace(mode_normalized, wait_until_completed)
+
+
+def stop():
+    r"""Stops generating OS Signpost tracing from MPS backend."""
+    torch._C._mps_profilerStopTrace()
+
+
+@contextlib.contextmanager
+def profile(mode: str = "interval", wait_until_completed: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Context Manager to enabling generating OS Signpost tracing from MPS backend.
 
     Args:
@@ -80,6 +102,7 @@ def is_metal_capture_enabled() -> bool:
     """Checks if `metal_capture` context manager is usable
     To enable metal capture, set MTL_CAPTURE_ENABLED envvar
     """
+<<<<<<< HEAD
     return torch._C._mps_isCaptureEnabled()  # type: ignore[attr-defined, no-any-return]
 
 
@@ -91,6 +114,19 @@ def is_capturing_metal() -> bool:
 @contextlib.contextmanager
 def metal_capture(fname: str) -> Iterator[None]:
     """Context manager that enables capturing of Metal calls into gputrace"""
+=======
+    return torch._C._mps_isCaptureEnabled()  # type: ignore[attr-defined]
+
+
+def is_capturing_metal() -> bool:
+    """Cheks if metal capture is in progress"""
+    return torch._C._mps_isCapturing()  # type: ignore[attr-defined]
+
+
+@contextlib.contextmanager
+def metal_capture(fname: str):
+    """Conext manager that enables capturing of Metal calls into gputrace"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         torch._C._mps_startCapture(fname)  # type: ignore[attr-defined]
         yield

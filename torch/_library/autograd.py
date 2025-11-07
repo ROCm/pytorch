@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 import dataclasses
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Protocol
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch import _C, _ops, autograd, Tensor
 from torch.utils import _pytree

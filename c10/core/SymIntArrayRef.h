@@ -86,6 +86,7 @@ inline SymIntArrayRef fromIntArrayRefSlow(IntArrayRef array_ref) {
       reinterpret_cast<const SymInt*>(array_ref.data()), array_ref.size());
 }
 
+<<<<<<< HEAD
 inline c10::SymBool sym_equals(SymIntArrayRef LHS, SymIntArrayRef RHS) {
   if (LHS.size() != RHS.size()) {
     return c10::SymBool(false);
@@ -105,4 +106,6 @@ inline c10::SymBool sym_equals(SymIntArrayRef LHS, SymIntArrayRef RHS) {
   return result;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10

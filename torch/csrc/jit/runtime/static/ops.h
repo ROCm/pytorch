@@ -22,7 +22,11 @@ namespace torch::jit {
 
 using SROpFunctor = SROperator (*)(Node* n);
 struct SROperatorFunctor {
+<<<<<<< HEAD
   virtual SROperator Generate(Node* /*unused*/) {
+=======
+  virtual SROperator Generate(Node*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SROperator out;
     return out;
   }
@@ -165,7 +169,11 @@ inline void LogAndDumpSchema(const Node* node) {
   VLOG(1) << "Found schema mismatch for: " << node->schema();
 }
 
+<<<<<<< HEAD
 inline bool sr_schema_check(torch::jit::Node* /*unused*/) {
+=======
+inline bool sr_schema_check(torch::jit::Node*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }
 

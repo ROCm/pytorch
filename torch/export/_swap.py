@@ -107,11 +107,16 @@ def _try_remove_connecting_pytrees(curr_module_node: torch.fx.Node) -> None:
             return
 
         if not (
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             arg.op == "call_function"
             # pyrefly: ignore [missing-attribute]
             and arg.target == operator.getitem
             # pyrefly: ignore [missing-attribute]
+=======
+            arg.op == "call_function"
+            and arg.target == operator.getitem
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and arg.args[1] == i
         ):
             log.debug(
@@ -142,7 +147,11 @@ def _try_remove_connecting_pytrees(curr_module_node: torch.fx.Node) -> None:
         return
 
     next_module_node = next(iter(unflatten_getitem_getitem_users))
+<<<<<<< HEAD
     if next_module_node.op != "call_module":
+=======
+    if not (next_module_node.op == "call_module"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug(
             "Unflatten node %s's user is not a call_module. "
             "Instead it is: %s. Passing...",
@@ -166,7 +175,11 @@ def _remove_extraneous_pytrees(gm: torch.fx.GraphModule) -> None:
     """
 
     for node in gm.graph.nodes:
+<<<<<<< HEAD
         if node.op == "call_module" and node.target != "_guards_fn":
+=======
+        if node.op == "call_module":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _try_remove_connecting_pytrees(node)
 
     gm.graph.eliminate_dead_code()
@@ -195,16 +208,28 @@ def _construct_inputs(
     unflatten_node = _generate_unflatten(gm, tree_unflatten_args, signature.in_spec)
 
     assert signature.in_spec.num_children == 2
+<<<<<<< HEAD
     assert signature.in_spec.type is tuple
     args_spec, kwargs_spec = signature.in_spec.children()
     assert args_spec.type is tuple
     assert kwargs_spec.type is dict
 
+=======
+
+    args_spec = signature.in_spec.children_specs[0]
+    assert args_spec.context is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     args_node = gm.graph.call_function(operator.getitem, (unflatten_node, 0))
     args_nodes = [
         gm.graph.call_function(operator.getitem, (args_node, i))
         for i in range(args_spec.num_children)
     ]
+<<<<<<< HEAD
+=======
+
+    kwargs_spec = signature.in_spec.children_specs[1]
+    assert kwargs_spec.context is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     kwargs_node = gm.graph.call_function(operator.getitem, (unflatten_node, 1))
     kwargs_nodes = {
         k: gm.graph.call_function(operator.getitem, (kwargs_node, k))
@@ -371,10 +396,17 @@ def _fix_input_output_signature(
     if forward_arg_names is None:
         forward_arg_names = []
         assert signature.in_spec.num_children == 2
+<<<<<<< HEAD
         arg_spec = signature.in_spec.child(0)
         kwarg_spec = signature.in_spec.child(1)
         assert arg_spec.type is tuple
         assert kwarg_spec.type is dict
+=======
+        arg_spec = signature.in_spec.children_specs[0]
+        kwarg_spec = signature.in_spec.children_specs[1]
+        assert arg_spec.type == tuple
+        assert kwarg_spec.type == dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i in range(arg_spec.num_children):
             forward_arg_names.append(f"arg_{i}")
         forward_arg_names.extend(kwarg_spec.context)

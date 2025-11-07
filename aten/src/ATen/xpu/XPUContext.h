@@ -17,6 +17,9 @@ TORCH_XPU_API DeviceProp* getDeviceProperties(DeviceIndex device);
 
 TORCH_XPU_API int32_t getGlobalIdxFromDevice(DeviceIndex device);
 
+<<<<<<< HEAD
 TORCH_XPU_API bool canDeviceAccessPeer(DeviceIndex device, DeviceIndex peer);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::xpu

@@ -378,7 +378,11 @@ void nnc_aten_quantized_conv1d(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -408,7 +412,11 @@ void nnc_aten_quantized_conv1d_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double x_qscale = ((double*)extra_args)[0];
@@ -442,7 +450,11 @@ void nnc_aten_quantized_conv2d(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -470,7 +482,11 @@ void nnc_aten_quantized_conv2d_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double x_qscale = ((double*)extra_args)[0];
@@ -502,7 +518,11 @@ void nnc_aten_quantized_conv2d_relu(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -530,7 +550,11 @@ void nnc_aten_quantized_conv2d_relu_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double x_qscale = ((double*)extra_args)[0];
@@ -562,7 +586,11 @@ void nnc_aten_quantized_linear(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -590,7 +618,11 @@ void nnc_aten_quantized_linear_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double x_qscale = ((double*)extra_args)[0];
@@ -622,7 +654,11 @@ void nnc_aten_quantized_linear_relu(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -651,7 +687,11 @@ void nnc_aten_quantized_add(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   // TORCH_INTERNAL_ASSERT(tensors.size() == 3);
 
@@ -684,7 +724,11 @@ void nnc_aten_quantized_mul(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double a_qscale = ((double*)extra_args)[0];
   const int64_t a_qzero = extra_args[1];
@@ -714,7 +758,11 @@ void nnc_aten_quantized_mul_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double a_qscale = ((double*)extra_args)[0];
@@ -748,7 +796,11 @@ void nnc_aten_quantized_mul_scalar(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -773,7 +825,11 @@ void nnc_aten_quantized_mul_scalar_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double x_qscale = ((double*)extra_args)[0];
@@ -802,7 +858,11 @@ void nnc_aten_quantized_relu(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -826,7 +886,11 @@ void nnc_aten_quantized_sigmoid(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -851,7 +915,11 @@ void nnc_aten_quantized_sigmoid_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double x_qscale = ((double*)extra_args)[0];
   const int64_t x_qzero = extra_args[1];
@@ -880,7 +948,11 @@ void nnc_aten_quantized_cat(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   std::vector<std::pair<size_t, QIData>> qdata;
   const auto in_bufs_num = bufs_num - 1;
@@ -914,7 +986,11 @@ void nnc_aten_upsample_nearest2d(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
   const double x_qscale = ((double*)extra_args)[0];
@@ -956,7 +1032,11 @@ void nnc_aten_upsample_nearest2d_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
@@ -1008,7 +1088,11 @@ void nnc_aten_quantize_per_tensor(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   auto tensors = constructTensors(
       bufs_num, buf_data, buf_ranks, buf_dims, buf_strides, buf_dtypes);
@@ -1028,7 +1112,11 @@ void nnc_aten_quantize_per_tensor_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   auto tensors = constructTensors2(
@@ -1058,7 +1146,11 @@ void nnc_aten_dequantize(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const double qscale = ((double*)extra_args)[0];
   const int64_t qzero = extra_args[1];
@@ -1083,7 +1175,11 @@ void nnc_aten_dequantize_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   const size_t bufs_out_num = 1u;
   const double qscale = ((double*)extra_args)[0];
@@ -1275,7 +1371,11 @@ void nnc_aten_max_red_out(
     int64_t* buf_dims,
     int64_t* buf_strides,
     int8_t* buf_dtypes,
+<<<<<<< HEAD
     int64_t /*unused*/,
+=======
+    int64_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t* extra_args) {
   size_t bufs_out_num = 1u;
   auto tensors = constructTensors2(
@@ -1437,7 +1537,11 @@ void nnc_aten_embedding(
     r = at::embedding(weight, indices);
   } catch (...) {
   }
+<<<<<<< HEAD
   // TODO: have to copy output because at::embedding doesn't have an out
+=======
+  // TODO: have to copy output because at::embedding doesnt have an out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // variant and NNC's external calls don't support allocations
   memcpy(buf_data[0], r.const_data_ptr(), r.element_size() * r.numel());
 }

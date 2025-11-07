@@ -1,5 +1,6 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 import functools
 import operator
 import warnings
@@ -7,6 +8,13 @@ from collections import namedtuple
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Optional, Union
+=======
+import operator
+import warnings
+from collections import namedtuple
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -164,7 +172,11 @@ def get_qconv_prepack_op(conv_op: Callable) -> Callable:
         torch.nn.functional.conv_transpose2d: torch.ops.quantized.conv_transpose2d_prepack,
         torch.nn.functional.conv_transpose3d: torch.ops.quantized.conv_transpose3d_prepack,
     }
+<<<<<<< HEAD
     prepack_op = prepack_ops.get(conv_op)
+=======
+    prepack_op = prepack_ops.get(conv_op, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert prepack_op, f"Didn't find prepack op for {conv_op}"
     return prepack_op
 
@@ -192,7 +204,11 @@ def get_new_attr_name_with_prefix(prefix: str) -> Callable:
 
 
 def collect_producer_nodes(node: Node) -> Optional[list[Node]]:
+<<<<<<< HEAD
     r"""Starting from a target node, trace back until we hit input or
+=======
+    r"""Starting from a target node, trace back until we hit inpu or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     getattr node. This is used to extract the chain of operators
     starting from getattr to the target node, for example
     def forward(self, x):
@@ -247,7 +263,10 @@ def graph_module_from_producer_nodes(
 
 
 # TODO: delete
+<<<<<<< HEAD
 @functools.cache
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def assert_and_get_unique_device(module: torch.nn.Module) -> Any:
     """
     Returns the unique device for a module, or None if no device is found.
@@ -257,11 +276,15 @@ def assert_and_get_unique_device(module: torch.nn.Module) -> Any:
 
 
 def create_getattr_from_value(
+<<<<<<< HEAD
     module: torch.nn.Module,
     graph: Graph,
     prefix: str,
     value: Any,
     device: Optional[torch.device] = None,
+=======
+    module: torch.nn.Module, graph: Graph, prefix: str, value: Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Node:
     """
     Given a value of any type, creates a getattr node corresponding to the value and
@@ -269,8 +292,12 @@ def create_getattr_from_value(
     """
     get_new_attr_name = get_new_attr_name_with_prefix(prefix)
     attr_name = get_new_attr_name(module)
+<<<<<<< HEAD
     if device is None:
         device = assert_and_get_unique_device(module)
+=======
+    device = assert_and_get_unique_device(module)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_value = (
         value.detach().clone()
         if isinstance(value, torch.Tensor)
@@ -704,7 +731,11 @@ def _maybe_get_custom_module_lstm_from_node_arg(
         return a.op == "call_function" and a.target == operator.getitem
 
     def match_tuple(a):
+<<<<<<< HEAD
         return a.op == "call_function" and a.target is tuple
+=======
+        return a.op == "call_function" and a.target == tuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _match_pattern(match_pattern: list[Callable]) -> Optional[Node]:
         """
@@ -721,7 +752,10 @@ def _maybe_get_custom_module_lstm_from_node_arg(
                     a = a.args[0][0]  # type: ignore[assignment,index]
                 else:
                     a = a.args[0]  # type: ignore[assignment]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return a
 
     all_match_patterns = [
@@ -797,7 +831,11 @@ def _reroute_tuple_getitem_pattern(graph: Graph):
 
         # Iterate through users of this node to find tuple/getitem nodes to match
         for user in node.users:
+<<<<<<< HEAD
             if user.op == "call_function" and user.target is tuple:
+=======
+            if user.op == "call_function" and user.target == tuple:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for i, user_arg in enumerate(user.args[0]):  # type: ignore[arg-type]
                     if user_arg == node:
                         index_stack.append(i)
@@ -826,7 +864,11 @@ def _reroute_tuple_getitem_pattern(graph: Graph):
     for pattern in matched_patterns:
         first_tuple = pattern[0]
         last_getitem = pattern[-1]
+<<<<<<< HEAD
         assert first_tuple.op == "call_function" and first_tuple.target is tuple
+=======
+        assert first_tuple.op == "call_function" and first_tuple.target == tuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert (
             last_getitem.op == "call_function"
             and last_getitem.target == operator.getitem
@@ -890,8 +932,12 @@ def _qconfig_satisfies_dtype_config_constraints(
         if backend_quant_min is not None and backend_quant_max is not None:
             if app_quant_min is None or app_quant_max is None:
                 warnings.warn(
+<<<<<<< HEAD
                     f"QConfig {debug_string} must specify 'quant_min' and 'quant_max', ignoring {qconfig}",
                     stacklevel=2,
+=======
+                    f"QConfig {debug_string} must specify 'quant_min' and 'quant_max', ignoring {qconfig}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
             elif app_quant_min < backend_quant_min or app_quant_max > backend_quant_max:
@@ -899,23 +945,35 @@ def _qconfig_satisfies_dtype_config_constraints(
                     f"QConfig {debug_string} quantization range must fall within the backend's:\n"
                     f"QConfig range = ({app_quant_min}, {app_quant_max}), "
                     f"BackendConfig range = ({backend_quant_min}, {backend_quant_max}), "
+<<<<<<< HEAD
                     f"ignoring {qconfig}",
                     stacklevel=2,
+=======
+                    f"ignoring {qconfig}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
         # check scale min
         if backend_scale_min is not None:
             if app_scale_min is None:
                 warnings.warn(
+<<<<<<< HEAD
                     f"QConfig {debug_string} must specify 'eps', ignoring {qconfig}",
                     stacklevel=2,
+=======
+                    f"QConfig {debug_string} must specify 'eps', ignoring {qconfig}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
             if app_scale_min < backend_scale_min:
                 warnings.warn(
                     f"QConfig {debug_string} eps ({app_scale_min}) must be greater than or equal to "
+<<<<<<< HEAD
                     f"the backend's min scale value ({backend_scale_min}), ignoring {qconfig}",
                     stacklevel=2,
+=======
+                    f"the backend's min scale value ({backend_scale_min}), ignoring {qconfig}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
         # check fixed scale and zero point
@@ -939,8 +997,12 @@ def _qconfig_satisfies_dtype_config_constraints(
             ) and not isinstance(activation_post_process, FixedQParamsFakeQuantize):
                 warnings.warn(
                     f"QConfig must specify a FixedQParamsObserver or a FixedQParamsFakeQuantize "
+<<<<<<< HEAD
                     f"for fixed qparams ops, ignoring {qconfig}.\n{suggestion_str}",
                     stacklevel=2,
+=======
+                    f"for fixed qparams ops, ignoring {qconfig}.\n{suggestion_str}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
             if (
@@ -950,8 +1012,12 @@ def _qconfig_satisfies_dtype_config_constraints(
                 warnings.warn(
                     f"QConfig fixed scale ({observer.scale}) and zero point ({observer.zero_point}) "
                     f"do not match the backend's ({backend_scale_exact_match} and {backend_zero_point_exact_match}), "
+<<<<<<< HEAD
                     f"ignoring {qconfig}.\n{suggestion_str}",
                     stacklevel=2,
+=======
+                    f"ignoring {qconfig}.\n{suggestion_str}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 return False
         return True

@@ -295,8 +295,13 @@ def _barrier(worker_names):
     """
     try:
         _all_gather(None, set(worker_names))
+<<<<<<< HEAD
     except RuntimeError:
         logger.exception("Failed to complete barrier")
+=======
+    except RuntimeError as ex:
+        logger.error("Failed to complete barrier, got error %s", ex)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_require_initialized
@@ -311,7 +316,13 @@ def _wait_all_workers(timeout=DEFAULT_SHUTDOWN_TIMEOUT):
     try:
         _all_gather(None, timeout=timeout)
     except RuntimeError as ex:
+<<<<<<< HEAD
         logger.exception("Failed to respond to 'Shutdown Proceed' in time")
+=======
+        logger.error(
+            "Failed to respond to 'Shutdown Proceed' in time, got error %s", ex
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise ex
 
 
@@ -471,7 +482,10 @@ def _rref_typeof_on_user(
 
 
 T = TypeVar("T")
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-annotation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 GenericWithOneTypeVar = Generic[T]
 
 
@@ -718,7 +732,10 @@ def _invoke_rpc(
         is_async_exec = hasattr(func, "_wrapped_async_rpc_function")
 
         if is_async_exec:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             wrapped = func._wrapped_async_rpc_function
             if isinstance(wrapped, torch.jit.ScriptFunction):
                 func = wrapped

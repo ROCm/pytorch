@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 r"""Utility classes & functions for data loading. Code in this folder is mostly used by ../dataloder.py.
 
 A lot of multiprocessing is used in data loading, which only supports running
@@ -42,7 +46,11 @@ except ModuleNotFoundError:
     HAS_NUMPY = False
 
 
+<<<<<<< HEAD
 def _set_python_exit_flag() -> None:
+=======
+def _set_python_exit_flag():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global python_exit_status
     python_exit_status = True
 

@@ -1,8 +1,13 @@
 #ifndef AOTI_TORCH_SHIM
 #define AOTI_TORCH_SHIM
 
+<<<<<<< HEAD
 #include <torch/csrc/inductor/aoti_torch/c/macros.h>
 #include <torch/csrc/inductor/aoti_torch/c/shim_deprecated.h>
+=======
+#include <stddef.h>
+#include <stdint.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // This header defines a stable C API for certain ATen functionality in
 // libtorch. The AOTInductor compiled model.so will only refer to this header
@@ -36,6 +41,32 @@
 // maintain the old and new versions of the APIs until all old model.so
 // go out of use.
 
+<<<<<<< HEAD
+=======
+#ifdef __GNUC__
+#define AOTI_TORCH_EXPORT __attribute__((__visibility__("default")))
+#else // !__GNUC__
+#ifdef _WIN32
+// PyTorch2 doesn't currently work on Windows. Exporting these APIs can lead
+// to symbol clashes at link time if libtorch is included in a DLL and binary
+// that depends on the DLL. As a short term fix, we don't export the symbols.
+// In the long term, this will need to be addressed when Windows is supported.
+#ifdef OVRSOURCE
+// Do not export AOTI on Windows for internal builds
+#define AOTI_TORCH_EXPORT
+#else /* OVRSOURCE */
+#ifdef EXPORT_AOTI_FUNCTIONS
+#define AOTI_TORCH_EXPORT __declspec(dllexport)
+#else
+#define AOTI_TORCH_EXPORT __declspec(dllimport)
+#endif
+#endif /* OVRSOURCE */
+#else // !_WIN32
+#define AOTI_TORCH_EXPORT
+#endif // _WIN32
+#endif // __GNUC__
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // The following files are implemented in a header-only way and are guarded by
 // test/cpp/aoti_abi_check
 #include <c10/util/BFloat16.h>
@@ -46,6 +77,36 @@
 extern "C" {
 #endif
 
+<<<<<<< HEAD
+=======
+// AtenTensorHandle represents an abstract notion of Tensor that can be passed
+// between model.so and libtorch.so.  The contents of the structure itself
+// are private; model.so is not allowed to access any fields directly, it must
+// go through functions defined in this ABI.  Under the hood, this is
+// represented as at::Tensor*, but we reserve the right to change this (and in
+// fact, we probably should change it to at::TensorImpl* at least).
+//
+// An AtenTensorHandle can be owning (please check the API reference for exact
+// ownership/borrow semantics).  If you have an owning AtenTensorHandle
+// in model.so, you are obligated to aoti_torch_delete_tensor_object when you
+// are done.  You can use the helper C++ class RAIIAtenTensorHandle
+// (see aot_runtime/model.h) to ensure the deallocator is called in RAII style
+// (note that RAIIAtenTensorHandle is private to model.so, and never crosses
+// the ABI boundary.)
+struct AtenTensorOpaque;
+using AtenTensorHandle = AtenTensorOpaque*;
+
+struct AtenGeneratorOpaque;
+using AtenGeneratorHandle = AtenGeneratorOpaque*;
+
+struct AOTIProxyExecutorOpaque;
+using AOTIProxyExecutorHandle = AOTIProxyExecutorOpaque*;
+
+using AOTITorchError = int32_t;
+#define AOTI_TORCH_SUCCESS 0
+#define AOTI_TORCH_FAILURE 1
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Getter functions for retrieving various constants from the runtime, that
 // can subsequently be passed to other aoti_* functions.  By hiding these
 // behind functions, the precise value of device/dtype is NOT part of the
@@ -176,6 +237,7 @@ AOTI_TORCH_EXPORT void aoti_torch_grad_mode_set_enabled(bool enabled);
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_delete_tensor_object(AtenTensorHandle tensor);
 
+<<<<<<< HEAD
 // c10::IValue <int64_t> object conversion
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_int64_to_ivalue(int64_t val, C10IValueHandle* ivalue);
@@ -198,6 +260,8 @@ aoti_torch_tensor_to_ivalue(AtenTensorHandle val, C10IValueHandle* ivalue);
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_delete_c10_value_object(C10IValueHandle handle);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Get a pointer to the underlying storage data
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_get_data_ptr(
     AtenTensorHandle tensor,
@@ -242,9 +306,12 @@ aoti_torch_get_device_type(AtenTensorHandle tensor, int32_t* ret_device_type);
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_get_device_index(AtenTensorHandle tensor, int32_t* ret_device_index);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_get_layout(AtenTensorHandle tensor, int32_t* ret_layout);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_get_storage_offset(
     AtenTensorHandle tensor,
     int64_t* ret_storage_offset);
@@ -252,9 +319,12 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_get_storage_offset(
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_is_contiguous(AtenTensorHandle tensor, bool* ret_is_contiguous);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_is_defined(AtenTensorHandle tensor, bool* ret_is_defined);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_new_tensor_handle(
     AtenTensorHandle orig_handle,
     AtenTensorHandle* new_handle);
@@ -295,6 +365,7 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_empty_strided(
     AtenTensorHandle* ret_new_tensor // returns new reference
 );
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_empty_strided_pinned(
     int64_t ndim,
     const int64_t* sizes_ptr,
@@ -305,6 +376,8 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_empty_strided_pinned(
     AtenTensorHandle* ret_new_tensor // returns new reference
 );
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_as_strided(
     AtenTensorHandle self,
     const int64_t* sizes_ptr,
@@ -337,6 +410,130 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_create_tensor_from_blob_v2(
     const uint8_t* opaque_metadata,
     int64_t opaque_metadata_size);
 
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch__embedding_bag(
+    AtenTensorHandle weight,
+    AtenTensorHandle indices,
+    AtenTensorHandle offsets,
+    int32_t scale_grad_by_freq,
+    int32_t mode,
+    int32_t sparse,
+    AtenTensorHandle per_sample_weights, // optional argument
+    int32_t include_last_offset,
+    int32_t padding_idx,
+    AtenTensorHandle* ret0, // returns new reference
+    AtenTensorHandle* ret1, // returns new reference
+    AtenTensorHandle* ret2, // returns new reference
+    AtenTensorHandle* ret3 // returns new reference
+);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch__fft_c2c(
+    AtenTensorHandle self,
+    const int64_t* dim_ptr,
+    int64_t dim_size,
+    int64_t normalization,
+    int32_t forward,
+    AtenTensorHandle* ret // returns new reference
+);
+
+// This version is deprecated. We will remove it later
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch__scaled_dot_product_flash_attention(
+    AtenTensorHandle query,
+    AtenTensorHandle key,
+    AtenTensorHandle value,
+    double dropout_p,
+    bool is_causal,
+    bool return_debug_mask,
+    double scale,
+    AtenTensorHandle* ret0, // returns new reference
+    AtenTensorHandle* ret1, // returns new reference
+    AtenTensorHandle* ret2, // returns new reference
+    AtenTensorHandle* ret3, // returns new reference
+    int64_t* ret4,
+    int64_t* ret5,
+    AtenTensorHandle* ret6, // returns new reference
+    AtenTensorHandle* ret7, // returns new reference
+    AtenTensorHandle* ret8 // returns new reference
+);
+
+AOTI_TORCH_EXPORT AOTITorchError
+aoti_torch__scaled_dot_product_flash_attention_v2(
+    AtenTensorHandle query,
+    AtenTensorHandle key,
+    AtenTensorHandle value,
+    double dropout_p,
+    int is_causal,
+    int return_debug_mask,
+    double* scale, // optional argument
+    AtenTensorHandle* ret0, // returns new reference
+    AtenTensorHandle* ret1, // returns new reference
+    AtenTensorHandle* ret2, // returns new reference
+    AtenTensorHandle* ret3, // returns new reference
+    int64_t* ret4,
+    int64_t* ret5,
+    AtenTensorHandle* ret6, // returns new reference
+    AtenTensorHandle* ret7, // returns new reference
+    AtenTensorHandle* ret8 // returns new reference
+);
+
+AOTI_TORCH_EXPORT AOTITorchError
+aoti_torch__scaled_dot_product_efficient_attention(
+    AtenTensorHandle query,
+    AtenTensorHandle key,
+    AtenTensorHandle value,
+    AtenTensorHandle attn_bias, // optional argument
+    int compute_log_sumexp,
+    double dropout_p,
+    int is_causal,
+    double* scale, // optional argument
+    AtenTensorHandle* ret0, // returns new reference
+    AtenTensorHandle* ret1, // returns new reference
+    AtenTensorHandle* ret2, // returns new reference
+    AtenTensorHandle* ret3 // returns new reference
+);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch__scaled_mm(
+    AtenTensorHandle self,
+    AtenTensorHandle mat2,
+    AtenTensorHandle bias,
+    int32_t* out_dtype,
+    AtenTensorHandle scale_a,
+    AtenTensorHandle scale_b,
+    AtenTensorHandle scale_result,
+    int8_t use_fast_accum,
+    AtenTensorHandle* ret0,
+    AtenTensorHandle* ret1);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch__scaled_mm_v2(
+    AtenTensorHandle self,
+    AtenTensorHandle mat2,
+    AtenTensorHandle scale_a,
+    AtenTensorHandle scale_b,
+    AtenTensorHandle bias,
+    AtenTensorHandle scale_result,
+    int32_t* out_dtype,
+    int8_t use_fast_accum,
+    AtenTensorHandle* ret0);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_convolution(
+    AtenTensorHandle input,
+    AtenTensorHandle weight,
+    AtenTensorHandle bias, // optional argument
+    const int64_t* stride_ptr,
+    int64_t stride_size,
+    const int64_t* padding_ptr,
+    int64_t padding_size,
+    const int64_t* dilation_ptr,
+    int64_t dilation_size,
+    int transposed,
+    const int64_t* output_padding_ptr,
+    int64_t output_padding_size,
+    int64_t groups,
+    AtenTensorHandle* ret // returns new reference
+);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // This function will create a new uninitialized tensor object
 // and its pointer is returned through *ret.
 AOTI_TORCH_EXPORT AOTITorchError
@@ -369,11 +566,35 @@ aoti_torch_clone(AtenTensorHandle self, AtenTensorHandle* ret);
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_clone_preserve_strides(AtenTensorHandle self, AtenTensorHandle* ret);
 
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_addmm_out(
+    AtenTensorHandle out,
+    AtenTensorHandle self,
+    AtenTensorHandle mat1,
+    AtenTensorHandle mat2,
+    float beta,
+    float alpha);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_bmm_out(
+    AtenTensorHandle out,
+    AtenTensorHandle self,
+    AtenTensorHandle mat2);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_copy_(
     AtenTensorHandle self,
     AtenTensorHandle src,
     int32_t non_blocking);
 
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_mm_out(
+    AtenTensorHandle out,
+    AtenTensorHandle self,
+    AtenTensorHandle mat2);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch__mm_plus_mm_out(
     AtenTensorHandle out,
     AtenTensorHandle a,
@@ -403,7 +624,11 @@ AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_cpu_wrapped_fbgemm_linear_fp16_weight(
     AtenTensorHandle input,
     AtenTensorHandle weight,
+<<<<<<< HEAD
     AtenTensorHandle bias, // optional argument
+=======
+    AtenTensorHandle bias,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t out_channel,
     AtenTensorHandle* out);
 
@@ -420,6 +645,7 @@ aoti_torch_cpu__wrapped_quantized_linear_prepacked(
     int64_t out_channel,
     AtenTensorHandle* out);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_zero_(AtenTensorHandle self);
 
 AOTI_TORCH_EXPORT AOTITorchError
@@ -441,6 +667,21 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_record_function_start(
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_record_function_end(AtenRecordFunctionHandle guard);
 
+=======
+AOTI_TORCH_EXPORT AOTITorchError
+aoti_torch_nonzero(AtenTensorHandle self, AtenTensorHandle* out);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_zero_(AtenTensorHandle self);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_repeat_interleave_Tensor(
+    AtenTensorHandle repeats,
+    int64_t* output_size,
+    AtenTensorHandle* out);
+
+AOTI_TORCH_EXPORT AOTITorchError
+aoti_torch_check_inf_and_nan(const char* tensor_name, AtenTensorHandle tensor);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_scatter_out(
     AtenTensorHandle out,
     AtenTensorHandle self,
@@ -465,6 +706,20 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_index_put_out(
     const AtenTensorHandle values,
     bool accumulate);
 
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_view_as_real(
+    AtenTensorHandle self,
+    AtenTensorHandle* ret // returns new reference
+);
+
+AOTI_TORCH_EXPORT AOTITorchError aoti_torch_view_dtype(
+    AtenTensorHandle self,
+    int32_t dtype,
+    AtenTensorHandle* ret // returns new reference
+);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT void aoti_torch_print_tensor_handle(
     AtenTensorHandle self,
     const char* msg);
@@ -537,6 +792,7 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_call_dispatcher(
     const char* overloadName,
     StableIValue* stack);
 
+<<<<<<< HEAD
 // Device-generic guard for managing device context
 struct DeviceGuardOpaque;
 using DeviceGuardHandle = DeviceGuardOpaque*;
@@ -570,6 +826,8 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_get_current_stream(
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_get_current_device_index(int32_t* ret_device_index);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_CUDA
 
 struct CUDAGuardOpaque;
@@ -601,6 +859,7 @@ aoti_torch_delete_cuda_stream_guard(CUDAStreamGuardHandle guard);
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_get_current_cuda_stream(int32_t device_index, void** ret_stream);
 
+<<<<<<< HEAD
 // CUDA memory allocation using CUDACachingAllocator
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_cuda_caching_allocator_raw_alloc(
     uint64_t nbytes,
@@ -610,6 +869,8 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_cuda_caching_allocator_raw_alloc(
 AOTI_TORCH_EXPORT AOTITorchError
 aoti_torch_cuda_caching_allocator_raw_delete(void* ptr);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // USE_CUDA
 
 // See `ProxyExecutor Design Note` in ir.py for more details

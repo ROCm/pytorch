@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <ATen/native/mps/kernels/LinearAlgebra.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/metal/utils.h>
 #include <metal_array>
 #include <metal_simdgroup>
@@ -70,6 +73,7 @@ kernel void matmul(
 }
 
 template <typename T>
+<<<<<<< HEAD
 kernel void addmm(
     constant T* mat1Data [[buffer(0)]],
     constant T* mat2Data [[buffer(1)]],
@@ -101,6 +105,8 @@ kernel void addmm(
 }
 
 template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 kernel void naive_bmm(
     constant T* mat1Data [[buffer(0)]],
     constant T* mat2Data [[buffer(1)]],
@@ -442,7 +448,11 @@ kernel void applySYRK(
     uint3 tid [[thread_position_in_threadgroup]],
     uint3 tgid [[threadgroup_position_in_grid]],
     uint3 tpg [[threads_per_threadgroup]],
+<<<<<<< HEAD
     uint warp_id [[simdgroup_index_in_threadgroup]]) {
+=======
+    uint sgitg [[simdgroup_index_in_threadgroup]]) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint tx = tid.x;
   const uint ty = tid.y;
   const uint simdGroupsPerThreadgroup = (tpg.x * tpg.y + 31) / 32;
@@ -475,8 +485,16 @@ kernel void applySYRK(
       (actSize_j % 8 == 0) && (actSize_h % 8 == 0) && (actSize_k % 8 == 0);
 
   if (use_simdgroup) {
+<<<<<<< HEAD
     simdgroup_matrix<float, 8, 8> negative_identity =
         simdgroup_matrix<float, 8, 8>(-1.0);
+=======
+    uint warp_id = sgitg;
+
+    simdgroup_matrix<float, 8, 8> negative_identity =
+        simdgroup_matrix<float, 8, 8>(-1.0);
+    simdgroup_matrix<float, 8, 8> identity = simdgroup_matrix<float, 8, 8>(1.0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     simdgroup_matrix<float, 8, 8> Prod;
     simdgroup_matrix<float, 8, 8> Afrag;
     simdgroup_matrix<float, 8, 8> Bfrag;
@@ -519,7 +537,12 @@ kernel void applySYRK(
             /* transpose = */ upper);
 
         simdgroup_multiply(Prod, Afrag, Bfrag);
+<<<<<<< HEAD
         simdgroup_multiply_accumulate(Cfrag, Prod, negative_identity, Cfrag);
+=======
+        simdgroup_multiply(Prod, Prod, negative_identity);
+        simdgroup_multiply_accumulate(Cfrag, Cfrag, identity, Prod);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
 
       simdgroup_store(
@@ -641,6 +664,7 @@ kernel void applyPivots(
   }
 }
 
+<<<<<<< HEAD
 template <typename T>
 static T bool_to_float(bool b) {
   return static_cast<T>(b);
@@ -808,6 +832,19 @@ kernel void orgqr(
       constant uint3 & sizes [[buffer(4)]],                                 \
       uint2 tid [[thread_position_in_threadgroup]],                         \
       uint2 group_id [[threadgroup_position_in_grid]]);                     \
+=======
+#define INSTANTIATE_NAIVE_MM(DTYPE)                                   \
+  template [[host_name("matmul_" #DTYPE)]] kernel void matmul<DTYPE>( \
+      constant DTYPE * mat1Data [[buffer(0)]],                        \
+      constant DTYPE * mat2Data [[buffer(1)]],                        \
+      device DTYPE * outputData [[buffer(2)]],                        \
+      constant array<ulong2, 3> & strides [[buffer(3)]],              \
+      constant uint3 & sizes [[buffer(4)]],                           \
+      uint2 tid [[thread_position_in_threadgroup]],                   \
+      uint2 group_id [[threadgroup_position_in_grid]])
+
+#define INSTANTIATE_NAIVE_BMM(DTYPE)                                        \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   template [[host_name("naive_bmm_" #DTYPE)]] kernel void naive_bmm<DTYPE>( \
       constant DTYPE * mat1Data [[buffer(0)]],                              \
       constant DTYPE * mat2Data [[buffer(1)]],                              \
@@ -815,6 +852,7 @@ kernel void orgqr(
       constant array<ulong, 9> & strides [[buffer(3)]],                     \
       constant uint4 & sizes [[buffer(4)]],                                 \
       uint3 tid [[thread_position_in_threadgroup]],                         \
+<<<<<<< HEAD
       uint3 group_id [[threadgroup_position_in_grid]]);                     \
   template [[host_name("addmm_" #DTYPE)]] kernel void addmm<DTYPE>(         \
       constant DTYPE * mat1Data [[buffer(0)]],                              \
@@ -854,3 +892,24 @@ REGISTER_ORGQR(half);
 REGISTER_ORGQR(bfloat);
 REGISTER_ORGQR(float2);
 REGISTER_ORGQR(half2);
+=======
+      uint3 group_id [[threadgroup_position_in_grid]])
+
+INSTANTIATE_NAIVE_MM(float);
+INSTANTIATE_NAIVE_MM(half);
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_NAIVE_MM(bfloat);
+#endif
+
+// Integral MM
+INSTANTIATE_NAIVE_MM(short);
+INSTANTIATE_NAIVE_MM(int);
+INSTANTIATE_NAIVE_MM(long);
+INSTANTIATE_NAIVE_MM(char);
+INSTANTIATE_NAIVE_MM(uchar);
+INSTANTIATE_NAIVE_BMM(short);
+INSTANTIATE_NAIVE_BMM(int);
+INSTANTIATE_NAIVE_BMM(long);
+INSTANTIATE_NAIVE_BMM(char);
+INSTANTIATE_NAIVE_BMM(uchar);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

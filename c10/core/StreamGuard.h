@@ -143,7 +143,11 @@ struct OptionalStreamGuard {
   }
 
  private:
+<<<<<<< HEAD
   c10::impl::InlineOptionalStreamGuard<impl::VirtualGuardImpl> guard_;
+=======
+  c10::impl::InlineOptionalStreamGuard<impl::VirtualGuardImpl> guard_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 /**

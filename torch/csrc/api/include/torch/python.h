@@ -26,7 +26,11 @@ inline Device py_object_to_device(py::object object) {
   if (THPDevice_Check(obj)) {
     return reinterpret_cast<THPDevice*>(obj)->device;
   }
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(false, "Expected device");
+=======
+  throw TypeError("Expected device");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline Dtype py_object_to_dtype(py::object object) {
@@ -34,7 +38,11 @@ inline Dtype py_object_to_dtype(py::object object) {
   if (THPDtype_Check(obj)) {
     return reinterpret_cast<THPDtype*>(obj)->scalar_type;
   }
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(false, "Expected dtype");
+=======
+  throw TypeError("Expected dtype");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename ModuleType>

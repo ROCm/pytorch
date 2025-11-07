@@ -68,8 +68,11 @@ struct TORCH_API VariableHooksInterface {
       const c10::OperatorHandle& op,
       c10::DispatchKeySet dispatch_keys,
       torch::jit::Stack* stack) const = 0;
+<<<<<<< HEAD
   virtual std::optional<c10::ScalarType> grad_dtype(const TensorBase&) const = 0;
   virtual void set_grad_dtype(const TensorBase&, const std::optional<c10::ScalarType>&) const = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 TORCH_API void SetVariableHooks(VariableHooksInterface* hooks);

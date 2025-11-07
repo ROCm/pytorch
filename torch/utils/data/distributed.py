@@ -125,6 +125,7 @@ class DistributedSampler(Sampler[_T_co]):
         else:
             # remove tail of data to make it evenly divisible.
             indices = indices[: self.total_size]
+<<<<<<< HEAD
         if len(indices) != self.total_size:
             raise AssertionError(
                 f"Number of indices ({len(indices)}) does not match total_size ({self.total_size})"
@@ -138,6 +139,14 @@ class DistributedSampler(Sampler[_T_co]):
             )
 
         # pyrefly: ignore [bad-return]
+=======
+        assert len(indices) == self.total_size
+
+        # subsample
+        indices = indices[self.rank : self.total_size : self.num_replicas]
+        assert len(indices) == self.num_samples
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return iter(indices)
 
     def __len__(self) -> int:

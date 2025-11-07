@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# flake8: noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 r"""Intrinsic QAT Modules.
 
 This file is in the process of migration to `torch/ao/nn/intrinsic/qat`, and

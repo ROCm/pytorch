@@ -37,14 +37,21 @@ class LayerNorm(torch.nn.LayerNorm):
             normalized_shape,
             eps=eps,
             elementwise_affine=elementwise_affine,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **factory_kwargs,
         )
         self.weight = weight
         self.bias = bias
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("zero_point", torch.tensor(zero_point, **factory_kwargs))
 
     def forward(self, input):
@@ -116,9 +123,13 @@ class GroupNorm(torch.nn.GroupNorm):
         super().__init__(num_groups, num_channels, eps, affine, **factory_kwargs)
         self.weight = weight
         self.bias = bias
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("zero_point", torch.tensor(zero_point, **factory_kwargs))
 
     def forward(self, input):
@@ -180,9 +191,13 @@ class InstanceNorm1d(torch.nn.InstanceNorm1d):
         )
         self.weight = weight
         self.bias = bias
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("zero_point", torch.tensor(zero_point, **factory_kwargs))
 
     def forward(self, input):
@@ -249,9 +264,13 @@ class InstanceNorm2d(torch.nn.InstanceNorm2d):
         )
         self.weight = weight
         self.bias = bias
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("zero_point", torch.tensor(zero_point, **factory_kwargs))
 
     def forward(self, input):
@@ -318,9 +337,13 @@ class InstanceNorm3d(torch.nn.InstanceNorm3d):
         )
         self.weight = weight
         self.bias = bias
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.register_buffer("scale", torch.tensor(scale, **factory_kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("zero_point", torch.tensor(zero_point, **factory_kwargs))
 
     def forward(self, input):

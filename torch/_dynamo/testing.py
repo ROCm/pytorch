@@ -23,8 +23,13 @@ import re
 import sys
 import types
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, overload, TypeVar, Union
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 from unittest.mock import patch
 
@@ -42,7 +47,11 @@ from .bytecode_transformation import (
 )
 from .guards import CheckFunctionManager, CompileId, GuardedCode
 from .types import ConvertFrameReturn, DynamoFrameType, wrap_guarded_code
+<<<<<<< HEAD
 from .utils import CompileCounterInt, same
+=======
+from .utils import same
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 np: Optional[types.ModuleType] = None
@@ -200,6 +209,7 @@ def debug_insert_nops(
             return ConvertFrameReturn()
 
         debug_checks(frame.f_code)
+<<<<<<< HEAD
         code, _ = transform_code_object(frame.f_code, insert_nops)
         graph = OutputGraph(
             code_options={},
@@ -207,6 +217,15 @@ def debug_insert_nops(
             root_tx=None,  # type: ignore[arg-type]
             export=False,
             export_constraints=[],
+=======
+        code = transform_code_object(frame.f_code, insert_nops)
+        graph = OutputGraph(
+            code_options={},
+            compiler_fn=None,
+            root_tx=None,
+            export=False,
+            export_constraints=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             frame_state={"_id": 0},
             # TODO: shouldn't this be f_locals/f_globals from frame?
             local_scope=locals(),
@@ -227,8 +246,13 @@ def debug_insert_nops(
 
 class CompileCounter:
     def __init__(self) -> None:
+<<<<<<< HEAD
         self.frame_count: Union[int, CompileCounterInt] = 0
         self.clear()
+=======
+        self.frame_count = 0
+        self.op_count = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(
         self, gm: torch.fx.GraphModule, example_inputs: list[torch.Tensor]
@@ -240,19 +264,30 @@ class CompileCounter:
         return gm.forward
 
     def clear(self) -> None:
+<<<<<<< HEAD
         if config.debug_disable_compile_counter:
             self.frame_count = CompileCounterInt(0)
         else:
             self.frame_count = 0
+=======
+        self.frame_count = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.op_count = 0
 
 
 class CompileCounterWithBackend:
     def __init__(self, backend: str) -> None:
+<<<<<<< HEAD
         self.frame_count: Union[int, CompileCounterInt] = 0
         self.backend = backend
         self.graphs: list[torch.fx.GraphModule] = []
         self.clear()
+=======
+        self.frame_count = 0
+        self.op_count = 0
+        self.backend = backend
+        self.graphs: list[torch.fx.GraphModule] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(
         self, gm: torch.fx.GraphModule, example_inputs: list[torch.Tensor]
@@ -267,10 +302,14 @@ class CompileCounterWithBackend:
         return lookup_backend(self.backend)(gm, example_inputs)
 
     def clear(self) -> None:
+<<<<<<< HEAD
         if config.debug_disable_compile_counter:
             self.frame_count = CompileCounterInt(0)
         else:
             self.frame_count = 0
+=======
+        self.frame_count = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.op_count = 0
         self.graphs = []
 
@@ -420,12 +459,20 @@ def rand_strided(
     device: Union[str, torch.device] = "cpu",
     extra_size: int = 0,
 ) -> torch.Tensor:
+<<<<<<< HEAD
     needed_size = extra_size
     if all(s > 0 for s in size):
         # only need to allocate if all sizes are non-zero
         needed_size += (
             sum((shape - 1) * stride for shape, stride in zip(size, stride)) + 1
         )
+=======
+    needed_size = (
+        sum((shape - 1) * stride for shape, stride in zip(size, stride))
+        + 1
+        + extra_size
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if dtype.is_floating_point:
         if dtype.itemsize == 1:
             """
@@ -496,7 +543,10 @@ def make_test_cls_with_patches(
 def skipIfNotPy311(fn: Callable[_P, _T]) -> Callable[_P, _T]:
     if sys.version_info >= (3, 11):
         return fn
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return, bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return unittest.skip(fn)
 
 
@@ -506,12 +556,15 @@ def skipIfNotPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
     return unittest.skip("Requires Python 3.12+")(fn)
 
 
+<<<<<<< HEAD
 def skipIfOnlyNotPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
     if sys.version_info >= (3, 13) or sys.version_info < (3, 12):
         return unittest.skip("Requires Python 3.12")(fn)
     return fn
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def xfailIfPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
     if sys.version_info >= (3, 12):
         return unittest.expectedFailure(fn)
@@ -524,6 +577,16 @@ def skipIfPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
     return fn
 
 
+<<<<<<< HEAD
+=======
+def requiresPy310(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+    if sys.version_info >= (3, 10):
+        return fn
+    else:
+        return unittest.skip("Requires Python 3.10+")(fn)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Controls tests generated in test/inductor/test_torchinductor_dynamic_shapes.py
 # and test/dynamo/test_dynamic_shapes.py
 def expectedFailureDynamic(fn: Callable[_P, _T]) -> Callable[_P, _T]:

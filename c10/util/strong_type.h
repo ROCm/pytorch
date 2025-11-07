@@ -65,7 +65,11 @@ struct default_constructible
 
 namespace impl {
   template <typename T>
+<<<<<<< HEAD
   constexpr bool supports_default_construction(const ::strong::default_constructible::modifier<T>* /*unused*/)
+=======
+  constexpr bool supports_default_construction(const ::strong::default_constructible::modifier<T>*)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   {
     return true;
   }
@@ -76,7 +80,11 @@ class type : public modifier<M, type<T, Tag, M...>>...
 {
 public:
   template <typename TT = T, typename = std::enable_if_t<std::is_trivially_constructible<TT>{}>>
+<<<<<<< HEAD
   explicit type(uninitialized_t /*unused*/)
+=======
+  explicit type(uninitialized_t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     noexcept
   {
   }
@@ -138,7 +146,11 @@ private:
 
 namespace impl {
   template <typename T, typename Tag, typename ... Ms>
+<<<<<<< HEAD
   constexpr bool is_strong_type_func(const strong::type<T, Tag, Ms...>* /*unused*/) { return true;}
+=======
+  constexpr bool is_strong_type_func(const strong::type<T, Tag, Ms...>*) { return true;}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr bool is_strong_type_func(...) { return false;}
   template <typename T, typename Tag, typename ... Ms>
   constexpr T underlying_type(strong::type<T, Tag, Ms...>*);

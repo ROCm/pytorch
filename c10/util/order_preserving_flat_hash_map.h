@@ -560,6 +560,7 @@ class sherwood_v3_table : private EntryAlloc, private Hasher, private Equal {
     return emplace(std::move(value));
   }
   template <typename... Args>
+<<<<<<< HEAD
   iterator emplace_hint(const_iterator /*unused*/, Args&&... args) {
     return emplace(std::forward<Args>(args)...).first;
   }
@@ -567,6 +568,15 @@ class sherwood_v3_table : private EntryAlloc, private Hasher, private Equal {
     return emplace(value).first;
   }
   iterator insert(const_iterator /*unused*/, value_type&& value) {
+=======
+  iterator emplace_hint(const_iterator, Args&&... args) {
+    return emplace(std::forward<Args>(args)...).first;
+  }
+  iterator insert(const_iterator, const value_type& value) {
+    return emplace(value).first;
+  }
+  iterator insert(const_iterator, value_type&& value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return emplace(std::move(value)).first;
   }
 
@@ -1013,7 +1023,11 @@ class sherwood_v3_table : private EntryAlloc, private Hasher, private Equal {
 } // namespace detailv3
 
 struct prime_number_hash_policy {
+<<<<<<< HEAD
   static uint64_t mod0(uint64_t /*unused*/) {
+=======
+  static uint64_t mod0(uint64_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return 0llu;
   }
   static uint64_t mod2(uint64_t hash) {
@@ -2000,7 +2014,11 @@ struct power_of_two_hash_policy {
     size = detailv3::next_power_of_two(size);
     return 0;
   }
+<<<<<<< HEAD
   void commit(int8_t /*unused*/) {}
+=======
+  void commit(int8_t) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void reset() {}
 };
 
@@ -2106,14 +2124,22 @@ class order_preserving_flat_hash_map
   }
   template <typename M>
   typename Table::iterator insert_or_assign(
+<<<<<<< HEAD
       typename Table::const_iterator /*unused*/,
+=======
+      typename Table::const_iterator,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const key_type& key,
       M&& m) {
     return insert_or_assign(key, std::forward<M>(m)).first;
   }
   template <typename M>
   typename Table::iterator insert_or_assign(
+<<<<<<< HEAD
       typename Table::const_iterator /*unused*/,
+=======
+      typename Table::const_iterator,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       key_type&& key,
       M&& m) {
     return insert_or_assign(std::move(key), std::forward<M>(m)).first;

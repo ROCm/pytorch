@@ -307,6 +307,7 @@ PyObject* THPAutograd_initExtension(PyObject* _unused, PyObject* unused) {
                 e.activityType() ==
                 (uint8_t)libkineto::ActivityType::GPU_USER_ANNOTATION;
           })
+<<<<<<< HEAD
       .def("nbytes", [](const KinetoEvent& e) { return e.nBytes(); })
       // whether the event is hidden
       .def(
@@ -316,6 +317,9 @@ PyObject* THPAutograd_initExtension(PyObject* _unused, PyObject* unused) {
       .def("metadata_json", [](const KinetoEvent& e) {
         return e.metadataJson();
       });
+=======
+      .def("nbytes", [](const KinetoEvent& e) { return e.nBytes(); });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def("_soft_assert_raises", &setSoftAssertRaises);
   m.def("_get_sequence_nr", &at::sequence_number::peek);
@@ -598,6 +602,7 @@ PyObject* THPAutograd_initExtension(PyObject* _unused, PyObject* unused) {
             s.register_hooks(
                 std::make_unique<torch::autograd::PySavedVariableHooks>(
                     pack_hook, unpack_hook));
+<<<<<<< HEAD
           })
       .def_property_readonly(
           "data",
@@ -625,6 +630,8 @@ PyObject* THPAutograd_initExtension(PyObject* _unused, PyObject* unused) {
             const auto& [unpack_safe, _unused_data] = *opt;
             auto* unpack_ptr = unpack_safe.ptr(getPyInterpreter());
             return py::reinterpret_borrow<py::function>(unpack_ptr);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           });
 
   torch::autograd::profiler::python_tracer::init();
@@ -1113,7 +1120,11 @@ static PyObject* any_output_is_alias_to_input_or_output(
     if (!t.storage()) {
       return false;
     }
+<<<<<<< HEAD
     auto* cp = t.storage().unsafeGetStorageImpl();
+=======
+    auto* cp = t.storage().data_ptr().get_context();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (cp) {
       s.insert(cp);
     }
@@ -1124,7 +1135,11 @@ static PyObject* any_output_is_alias_to_input_or_output(
     if (!t.storage()) {
       return false;
     }
+<<<<<<< HEAD
     auto* cp = t.storage().unsafeGetStorageImpl();
+=======
+    auto* cp = t.storage().data_ptr().get_context();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!cp) {
       return false;
     }

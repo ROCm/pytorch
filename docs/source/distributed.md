@@ -20,6 +20,7 @@ for a brief introduction to all features related to distributed training.
 
 ## Backends
 
+<<<<<<< HEAD
 `torch.distributed` supports four built-in backends, each with
 different capabilities. The table below shows which functions are available
 for use with a CPU or GPU for each backend. For NCCL, GPU refers to CUDA GPU
@@ -55,18 +56,61 @@ MPI supports CUDA only if the implementation used to build PyTorch supports it.
 +----------------+-----+-----+-----+-----+-----+-----+-----+-----+
 | barrier        | ✓   | ✘   | ✓   | ?   | ✘   | ✓   | ✘   | ✓   |
 +----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+=======
+`torch.distributed` supports three built-in backends, each with
+different capabilities. The table below shows which functions are available
+for use with CPU / CUDA tensors.
+MPI supports CUDA only if the implementation used to build PyTorch supports it.
+
+```{eval-rst}
++----------------+-----------+-----------+-----------+
+| Backend        | ``gloo``  | ``mpi``   | ``nccl``  |
++----------------+-----+-----+-----+-----+-----+-----+
+| Device         | CPU | GPU | CPU | GPU | CPU | GPU |
++================+=====+=====+=====+=====+=====+=====+
+| send           | ✓   | ✘   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| recv           | ✓   | ✘   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| broadcast      | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| all_reduce     | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| reduce         | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| all_gather     | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| gather         | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| scatter        | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| reduce_scatter | ✓   | ✓   | ✘   | ✘   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| all_to_all     | ✓   | ✓   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+| barrier        | ✓   | ✘   | ✓   | ?   | ✘   | ✓   |
++----------------+-----+-----+-----+-----+-----+-----+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ### Backends that come with PyTorch
 
+<<<<<<< HEAD
 PyTorch distributed package supports Linux (stable), macOS (stable), and Windows (prototype).
+=======
+PyTorch distributed package supports Linux (stable), MacOS (stable), and Windows (prototype).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 By default for Linux, the Gloo and NCCL backends are built and included in PyTorch
 distributed (NCCL only when building with CUDA). MPI is an optional backend that can only be
 included if you build PyTorch from source. (e.g. building PyTorch on a host that has MPI
 installed.)
 
 :::{note}
+<<<<<<< HEAD
 As of PyTorch v1.8, Windows supports all collective communications backends but NCCL,
+=======
+As of PyTorch v1.8, Windows supports all collective communications backend but NCCL,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 If the `init_method` argument of {func}`init_process_group` points to a file it must adhere
 to the following schema:
 
@@ -83,9 +127,14 @@ In the past, we were often asked: "which backend should I use?".
 
 - Rule of thumb
 
+<<<<<<< HEAD
   - Use the NCCL backend for distributed training with CUDA **GPU**.
   - Use the XCCL backend for distributed training with XPU **GPU**.
   - Use the Gloo backend for distributed training with **CPU**.
+=======
+  - Use the NCCL backend for distributed **GPU** training
+  - Use the Gloo backend for distributed **CPU** training.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - GPU hosts with InfiniBand interconnect
 
@@ -221,6 +270,7 @@ inconsistent 'UUID' assignment across ranks, and to prevent races during initial
 
 ```{eval-rst}
 .. autofunction:: torch.distributed.distributed_c10d.is_xccl_available
+<<<<<<< HEAD
 .. autofunction:: torch.distributed.distributed_c10d.batch_isend_irecv
 .. autofunction:: torch.distributed.distributed_c10d.destroy_process_group
 .. autofunction:: torch.distributed.distributed_c10d.is_backend_available
@@ -231,6 +281,8 @@ inconsistent 'UUID' assignment across ranks, and to prevent races during initial
 .. autofunction:: torch.distributed.distributed_c10d.is_nccl_available
 .. autofunction:: torch.distributed.distributed_c10d.is_torchelastic_launched
 .. autofunction:: torch.distributed.distributed_c10d.is_ucc_available
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ```{eval-rst}
@@ -1150,10 +1202,13 @@ If you are running single node training, it may be convenient to interactively b
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. py:module:: torch.distributed.checkpoint.quantized_hf_storage
 ```
 
 ```{eval-rst}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.distributed.checkpoint.metadata
 ```
 
@@ -1492,9 +1547,12 @@ If you are running single node training, it may be convenient to interactively b
 ```{eval-rst}
 .. py:module:: torch.distributed.checkpoint.state_dict
 ```
+<<<<<<< HEAD
 
 ```{toctree}
 :hidden:
 
 distributed._dist2
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

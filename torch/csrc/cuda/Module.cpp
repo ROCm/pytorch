@@ -4,8 +4,13 @@
 #include <ATen/native/ConvUtils.h>
 #include <c10/core/Device.h>
 #include <c10/core/TensorImpl.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 #include <c10/util/UniqueVoidPtr.h>
+=======
+#include <c10/util/UniqueVoidPtr.h>
+#include <fmt/core.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <pybind11/pytypes.h>
 #include <torch/csrc/utils/python_arg_parser.h>
 #include <unordered_set>
@@ -20,8 +25,13 @@
 #include <ATen/cuda/detail/CUDAHooks.h>
 #include <ATen/cuda/jiterator.h>
 #include <ATen/cuda/tunable/Tunable.h>
+<<<<<<< HEAD
 #include <c10/core/AllocatorConfig.h>
 #include <c10/core/StorageImpl.h>
+=======
+#include <c10/core/StorageImpl.h>
+#include <c10/cuda/CUDAAllocatorConfig.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <ATen/cuda/CUDAGraphsUtils.cuh>
@@ -304,7 +314,11 @@ at::Scalar as_scalar(PyObject* arg) {
   }
 
   if (THPUtils_checkLong(arg)) {
+<<<<<<< HEAD
     return at::Scalar(THPUtils_unpackLong(arg));
+=======
+    return at::Scalar(static_cast<int64_t>(THPUtils_unpackLong(arg)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (PyBool_Check(arg)) {
@@ -422,6 +436,19 @@ PyObject* THCPModule_cudaCachingAllocator_enable(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
+=======
+PyObject* THCPModule_cudaCachingAllocator_set_allocator_settings(
+    PyObject* _unused,
+    PyObject* env) {
+  HANDLE_TH_ERRORS
+  c10::cuda::CUDACachingAllocator::setAllocatorSettings(
+      THPUtils_unpackString(env));
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyObject* THCPModule_getAllocatorBackend(PyObject* _unused, PyObject* noargs) {
   HANDLE_TH_ERRORS
   return THPUtils_packString(c10::cuda::CUDACachingAllocator::name());
@@ -672,10 +699,17 @@ PyObject* THCPModule_hostMemoryStats(PyObject* _unused, PyObject* noargs) {
   py::dict result;
   result["num_host_alloc"] = stats.num_host_alloc;
   result["num_host_free"] = stats.num_host_free;
+<<<<<<< HEAD
   result["allocations"] = statToDict(stats.allocations);
   result["active_requests"] = statToDict(stats.active_requests);
   result["allocated_bytes"] = statToDict(stats.allocated_bytes);
   result["active_bytes"] = statToDict(stats.active_bytes);
+=======
+  result["allocation"] = statToDict(stats.allocation);
+  result["segment"] = statToDict(stats.segment);
+  result["allocated_bytes"] = statToDict(stats.allocated_bytes);
+  result["reserved_bytes"] = statToDict(stats.reserved_bytes);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   result["host_alloc_time"] = durationStatToDict(stats.host_alloc_time);
   result["host_free_time"] = durationStatToDict(stats.host_free_time);
 
@@ -726,7 +760,12 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
         "mempool_id elements must be integers");
 
     mempool_id = c10::cuda::MempoolId_t(
+<<<<<<< HEAD
         THPUtils_unpackLong(id1), THPUtils_unpackLong(id2));
+=======
+        static_cast<int64_t>(THPUtils_unpackLong(id1)),
+        static_cast<int64_t>(THPUtils_unpackLong(id2)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   using c10::cuda::CUDACachingAllocator::BlockInfo;
@@ -755,7 +794,10 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
   py::str frames_s = "frames";
   py::str time_us_s = "time_us";
   py::str compile_context_s = "compile_context";
+<<<<<<< HEAD
   py::str user_metadata_s = "user_metadata";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   py::list empty_frames;
   std::vector<CapturedTraceback*> to_gather_frames;
@@ -853,7 +895,11 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
       case TraceEntry::SEGMENT_MAP:
         return segment_map_s;
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, "unreachable");
+=======
+    throw std::runtime_error("unreachable");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   for (const auto& traceInfo : snapshot.device_traces) {
@@ -873,7 +919,10 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
       trace_entry[stream_s] = int64_t(te.stream_);
       trace_entry[time_us_s] = te.time_.t_;
       trace_entry[compile_context_s] = te.compile_context_;
+<<<<<<< HEAD
       trace_entry[user_metadata_s] = te.user_metadata_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       trace.append(trace_entry);
     }
     traces.append(trace);
@@ -899,8 +948,11 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
   py::str release_lock_on_malloc_s = "release_lock_on_cudamalloc";
   py::str pinned_use_host_register_s = "pinned_use_cuda_host_register";
   py::str roundup_power2_divisions_s = "roundup_power2_divisions";
+<<<<<<< HEAD
   py::str graph_capture_record_stream_reuse_s =
       "graph_capture_record_stream_reuse";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   allocator_settings[last_allocator_settings_s] =
       snapshot.config_metadata.last_allocator_settings;
@@ -916,8 +968,11 @@ PyObject* THCPModule_memorySnapshot(PyObject* _unused, PyObject* arg) {
       snapshot.config_metadata.release_lock_on_malloc;
   allocator_settings[pinned_use_host_register_s] =
       snapshot.config_metadata.pinned_use_host_register;
+<<<<<<< HEAD
   allocator_settings[graph_capture_record_stream_reuse_s] =
       snapshot.config_metadata.graph_capture_record_stream_reuse;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   unsigned int roundup_key = 1;
   py::dict roundup_settings;
   for (const auto& v : snapshot.config_metadata.roundup_power2_divisions) {
@@ -1012,6 +1067,37 @@ PyObject* THCPModule_cudaGetSyncDebugMode(PyObject* self, PyObject* noargs) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
+=======
+std::string uuid_to_string(const char* uuid_bytes) {
+  // UUIDs are a 128-bit label. CUDA and HIP store this as char[16].
+  // For string representation, the code here expands this to
+  // 8-4-4-4-12 hex format, so each byte becomes 2 hex characters.
+  return fmt::format(
+      "{:02x}{:02x}{:02x}{:02x}-"
+      "{:02x}{:02x}-"
+      "{:02x}{:02x}-"
+      "{:02x}{:02x}-"
+      "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+      (uint8_t)uuid_bytes[0],
+      (uint8_t)uuid_bytes[1],
+      (uint8_t)uuid_bytes[2],
+      (uint8_t)uuid_bytes[3],
+      (uint8_t)uuid_bytes[4],
+      (uint8_t)uuid_bytes[5],
+      (uint8_t)uuid_bytes[6],
+      (uint8_t)uuid_bytes[7],
+      (uint8_t)uuid_bytes[8],
+      (uint8_t)uuid_bytes[9],
+      (uint8_t)uuid_bytes[10],
+      (uint8_t)uuid_bytes[11],
+      (uint8_t)uuid_bytes[12],
+      (uint8_t)uuid_bytes[13],
+      (uint8_t)uuid_bytes[14],
+      (uint8_t)uuid_bytes[15]);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ////////////////////////////////////////////////////////////////////////////////
 // Cuda module initialization
 ////////////////////////////////////////////////////////////////////////////////
@@ -1045,6 +1131,7 @@ static void registerCudaDeviceProperties(PyObject* module) {
       .def_readonly("warp_size", &cudaDeviceProp::warpSize)
 #ifndef USE_ROCM
       // NVIDIA-only properties
+<<<<<<< HEAD
       .def_property_readonly(
           "clock_rate",
           [](const cudaDeviceProp&) {
@@ -1064,6 +1151,8 @@ static void registerCudaDeviceProperties(PyObject* module) {
             return mem_clk;
           })
       .def_readonly("memory_bus_width", &cudaDeviceProp::memoryBusWidth)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_readonly(
           "shared_memory_per_block", &cudaDeviceProp::sharedMemPerBlock)
       .def_readonly(
@@ -1129,6 +1218,7 @@ static void registerCudaDeviceProperties(PyObject* module) {
     return c10::cuda::CUDACachingAllocator::isHistoryEnabled();
   });
 
+<<<<<<< HEAD
   m.def("_cuda_setMemoryMetadata", [](const std::string& metadata) {
     c10::cuda::CUDACachingAllocator::setUserMetadata(metadata);
   });
@@ -1137,6 +1227,8 @@ static void registerCudaDeviceProperties(PyObject* module) {
     return c10::cuda::CUDACachingAllocator::getUserMetadata();
   });
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_cuda_get_conv_benchmark_empty_cache", []() {
     return at::native::_cudnn_get_conv_benchmark_empty_cache();
   });
@@ -1293,16 +1385,24 @@ static void registerCudaPluggableAllocator(PyObject* module) {
             self.set_release_pool(func);
           });
   m.def("_cuda_customAllocator", [](uint64_t malloc_ptr, uint64_t free_ptr) {
+<<<<<<< HEAD
     using MallocFuncType = void*(size_t, int, cudaStream_t);
     using FreeFuncType = void(void*, size_t, int, cudaStream_t);
+=======
+    using namespace torch::cuda::CUDAPluggableAllocator;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::function<MallocFuncType> malloc_fn =
         // NOLINTNEXTLINE(performance-no-int-to-ptr)
         reinterpret_cast<MallocFuncType*>(malloc_ptr);
     std::function<FreeFuncType> free_fn =
         // NOLINTNEXTLINE(performance-no-int-to-ptr)
         reinterpret_cast<FreeFuncType*>(free_ptr);
+<<<<<<< HEAD
     return torch::cuda::CUDAPluggableAllocator::createCustomAllocator(
         malloc_fn, free_fn);
+=======
+    return createCustomAllocator(malloc_fn, free_fn);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 
   // NOLINTNEXTLINE(bugprone-unused-raii)
@@ -1653,6 +1753,23 @@ PyObject* THCPModule_cuda_record_untuned_is_enabled(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
+=======
+PyObject* THCPModule_cuda_tunableop_write_file_on_exit(
+    PyObject* _unused,
+    PyObject* arg) {
+  HANDLE_TH_ERRORS
+  TORCH_CHECK(
+      THPUtils_checkBool(arg),
+      "cuda_tunableop_write_file_on_exit expects a bool, but got ",
+      THPUtils_typename(arg));
+  at::cuda::tunable::getTuningContext()->WriteFileOnExit(
+      THPUtils_unpackBool(arg));
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyObject* THCPModule_cuda_tunableop_set_max_tuning_duration(
     PyObject* _unused,
     PyObject* arg) {
@@ -1734,6 +1851,35 @@ PyObject* THCPModule_cuda_tunableop_get_filename(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
+=======
+PyObject* THCPModule_cuda_tunableop_write_file(
+    PyObject* _unused,
+    PyObject* args) {
+  HANDLE_TH_ERRORS
+  PyObject* str = nullptr;
+  bool success = false;
+  if (!PyArg_ParseTuple(args, "|O", &str)) {
+  }
+  if (str) {
+    TORCH_CHECK(
+        THPUtils_checkString(str),
+        "cuda_tunableop_write_file expects a string, but got ",
+        THPUtils_typename(str));
+    auto filename = THPUtils_unpackString(str);
+    success = at::cuda::tunable::getTuningContext()->WriteFile(filename);
+  } else {
+    success = at::cuda::tunable::getTuningContext()->WriteFile();
+  }
+  if (success) {
+    Py_RETURN_TRUE;
+  } else {
+    Py_RETURN_FALSE;
+  }
+  END_HANDLE_TH_ERRORS
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyObject* THCPModule_cuda_tunableop_read_file(
     PyObject* _unused,
     PyObject* args) {
@@ -1857,6 +2003,7 @@ PyObject* THCPModule_cuda_tunableop_get_rotating_buffer_size(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THCPModule_cuda_tunableop_set_numerical_check_tolerances(
     PyObject* unused,
     PyObject* args) {
@@ -1915,6 +2062,8 @@ PyObject* THCPModule_cuda_tunableop_set_numerical_check_tolerances(
   END_HANDLE_TH_ERRORS
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static PyObject* THCPModule_isCurrentStreamCapturing_wrap(
     PyObject* self,
     PyObject* noargs) {
@@ -2067,6 +2216,13 @@ static struct PyMethodDef _THCPModule_methods[] = {
      THCPModule_cudaCachingAllocator_enable,
      METH_O,
      nullptr},
+<<<<<<< HEAD
+=======
+    {"_cuda_cudaCachingAllocator_set_allocator_settings",
+     THCPModule_cudaCachingAllocator_set_allocator_settings,
+     METH_O,
+     nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_cuda_getAllocatorBackend",
      THCPModule_getAllocatorBackend,
      METH_NOARGS,
@@ -2141,6 +2297,13 @@ static struct PyMethodDef _THCPModule_methods[] = {
      THCPModule_cuda_record_untuned_is_enabled,
      METH_NOARGS,
      nullptr},
+<<<<<<< HEAD
+=======
+    {"_cuda_tunableop_write_file_on_exit",
+     THCPModule_cuda_tunableop_write_file_on_exit,
+     METH_O,
+     nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_cuda_tunableop_set_max_tuning_duration",
      THCPModule_cuda_tunableop_set_max_tuning_duration,
      METH_O,
@@ -2165,6 +2328,13 @@ static struct PyMethodDef _THCPModule_methods[] = {
      THCPModule_cuda_tunableop_get_filename,
      METH_NOARGS,
      nullptr},
+<<<<<<< HEAD
+=======
+    {"_cuda_tunableop_write_file",
+     THCPModule_cuda_tunableop_write_file,
+     METH_VARARGS,
+     nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_cuda_tunableop_read_file",
      THCPModule_cuda_tunableop_read_file,
      METH_VARARGS,
@@ -2185,10 +2355,13 @@ static struct PyMethodDef _THCPModule_methods[] = {
      THCPModule_cuda_tunableop_get_rotating_buffer_size,
      METH_NOARGS,
      nullptr},
+<<<<<<< HEAD
     {"_cuda_tunableop_set_numerical_check_tolerances",
      THCPModule_cuda_tunableop_set_numerical_check_tolerances,
      METH_VARARGS,
      nullptr},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 PyMethodDef* THCPModule_methods() {
@@ -2196,6 +2369,10 @@ PyMethodDef* THCPModule_methods() {
 }
 
 namespace torch::cuda {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace shared {
 
 void initCudartBindings(PyObject* module);

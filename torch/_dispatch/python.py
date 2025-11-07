@@ -1,9 +1,15 @@
 # mypy: allow-untyped-defs
 import itertools
 import unittest.mock
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import TypeVar, Union
+=======
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Callable, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -154,7 +160,11 @@ def make_crossref_functionalize(
                 maybe_detach, (f_args, f_kwargs)
             )
             with fake_mode:
+<<<<<<< HEAD
                 f_r = op(*f_args, **f_kwargs)  # pyrefly: ignore [invalid-param-spec]
+=======
+                f_r = op(*f_args, **f_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r = op._op_dk(final_key, *args, **kwargs)
 
         def desc():

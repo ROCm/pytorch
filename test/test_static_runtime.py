@@ -60,7 +60,11 @@ class MultiHeadAttentionLayer(nn.Module):
 # Taken from https://github.com/facebookresearch/dlrm/blob/master/dlrm_s_pytorch.py
 def create_mlp(ln, sigmoid_layer):
     layers = nn.ModuleList()
+<<<<<<< HEAD
     for i in range(len(ln) - 1):
+=======
+    for i in range(0, len(ln) - 1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         n = ln[i]
         m = ln[i + 1]
 

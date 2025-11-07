@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 (torch.compiler_ir)=
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # IRs
 
 PyTorch 2.0 offers two set of IRs for backends to interface with: Core Aten IR and Prims IR.

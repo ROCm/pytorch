@@ -96,15 +96,25 @@ struct TORCH_API Function {
   // Overload for server interpreter, a bailout size is needed for graph
   // executor.
   virtual bool call(
+<<<<<<< HEAD
       Stack& /*unused*/,
       std::optional<size_t> /*unused*/,
       c10::function_ref<void(const Code&)> /*unused*/) {
+=======
+      Stack&,
+      std::optional<size_t>,
+      c10::function_ref<void(const Code&)>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(false);
     return false;
   }
 
   // Overload for mobile interpreter.
+<<<<<<< HEAD
   virtual bool call(Stack& /*unused*/, c10::function_ref<void(const mobile::Code&)> /*unused*/) {
+=======
+  virtual bool call(Stack&, c10::function_ref<void(const mobile::Code&)>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(false);
     return false;
   }

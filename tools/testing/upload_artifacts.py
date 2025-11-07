@@ -36,13 +36,19 @@ def concated_logs() -> str:
     for log_file in glob.glob(
         f"{REPO_ROOT}/test/test-reports/**/*.log", recursive=True
     ):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         logs.append(f"=== {log_file} ===")
         with open(log_file) as f:
             # For every line, prefix with fake timestamp for log classifier
             for line in f:
                 line = line.rstrip("\n")  # Remove any trailing newline
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 logs.append(f"2020-01-01T00:00:00.0000000Z {line}")
     return "\n".join(logs)
 

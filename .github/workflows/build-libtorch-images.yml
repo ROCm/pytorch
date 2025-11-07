@@ -32,7 +32,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -48,17 +52,29 @@ jobs:
       fail-fast: false
       matrix:
         include: [
+<<<<<<< HEAD
           { tag: "cuda13.0" },
           { tag: "cuda12.9" },
           { tag: "cuda12.8" },
           { tag: "cuda12.6" },
           { tag: "rocm6.4"  },
           { tag: "rocm7.0"  },
+=======
+          { tag: "cuda12.9" },
+          { tag: "cuda12.8" },
+          { tag: "cuda12.6" },
+          { tag: "rocm6.3"  },
+          { tag: "rocm6.4"  },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           { tag: "cpu"      },
         ]
     steps:
       - name: Build docker image
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/binary-docker-build@main
+=======
+        uses: pytorch/pytorch/.github/actions/binary-docker-build@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image-name: libtorch-cxx11-builder
           custom-tag-prefix: ${{ matrix.tag }}

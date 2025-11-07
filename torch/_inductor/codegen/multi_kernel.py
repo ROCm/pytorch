@@ -1,12 +1,18 @@
 # mypy: allow-untyped-defs
 import functools
 import logging
+<<<<<<< HEAD
 import math
 import os
 import pathlib
 from typing import Any, Optional, Union
 
 from torch._inductor.ir import MultiTemplateBuffer
+=======
+import os
+import pathlib
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.metrics import get_metric_table, is_metric_table_enabled
 from torch.utils._ordered_set import OrderedSet
 
@@ -33,6 +39,7 @@ class MultiKernelState:
         self.subkernel_to_kernel_name = {}
         self.kernel_defs = IndentedBuffer()
 
+<<<<<<< HEAD
     def define_kernel(
         self,
         kernels: list[Any],
@@ -40,6 +47,9 @@ class MultiKernelState:
             list[Union[None, tuple[tuple[int, ...], ...]]]
         ] = None,
     ) -> str:
+=======
+    def define_kernel(self, kernels):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Previously we name the multi kernel as "multi_kernel_{kernel_names[0]}".
         This has some minor issue.
@@ -53,6 +63,7 @@ class MultiKernelState:
         The only different is cache eviction policy.
 
         We should name the multi-kernel differently in these 2 cases.
+<<<<<<< HEAD
 
         kernels:
             A list of kernels
@@ -63,6 +74,9 @@ class MultiKernelState:
         # Prevent circular import
         from ..select_algorithm import TritonTemplateKernel
 
+=======
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kernel_names = tuple(k.kernel_name for k in kernels)
         if kernel_names in self.subkernel_to_kernel_name:
             return self.subkernel_to_kernel_name[kernel_names]
@@ -76,6 +90,7 @@ class MultiKernelState:
             # the second pass of cpp-wrapper.
             return multi_kernel_name
 
+<<<<<<< HEAD
         arg_index: dict[int, list[slice]] = {}
         _, call_args, _, arg_types = kernels[0].args.python_argdefs()
         if isinstance(kernels[0], TritonTemplateKernel) and isinstance(
@@ -125,6 +140,17 @@ class MultiKernelState:
                 for shape_key, name in zip(kernel_shape_keys, kernel_names):
                     buf.writeline(f"{shape_key}: {name},")
             buf.writeline("}, arg_index=arg_index)")
+=======
+        buf = self.kernel_defs
+        buf.writeline("")
+        buf.writeline(
+            f"{multi_kernel_name} = async_compile.multi_kernel({multi_kernel_name!r}, ["
+        )
+        with buf.indent():
+            for name in kernel_names:
+                buf.writeline(f"{name},")
+        buf.writeline("])")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if config.triton.autotune_at_compile_time:
             V.graph.wrapper_code.src_to_kernel["\n".join(kernel_names)] = (
@@ -193,9 +219,12 @@ class MultiKernel:
         Collect the union of arguments from all subkernels as the arguments
         for the multi-kernel.
         """
+<<<<<<< HEAD
         # Prevent circular import
         from ..select_algorithm import TritonTemplateKernel
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert kernel_name == self.kernel_name
         V.graph.wrapper_code.write_triton_header_once()
         _, call_args, _, arg_types = self.kernels[0].args.python_argdefs()
@@ -209,6 +238,7 @@ class MultiKernel:
             # the fast kernel directly
             kernel_name = MultiKernelCall.lookup_choice(self.kernel_name)
 
+<<<<<<< HEAD
         if isinstance(self.kernels[0], TritonTemplateKernel) and isinstance(
             self.kernels[0].output_node, MultiTemplateBuffer
         ):
@@ -229,10 +259,15 @@ class MultiKernel:
             self.kernels[0].add_numel_to_call_args(kernel_name, call_args, arg_types)
             multi_call_args = call_args
             multi_call_arg_types = arg_types
+=======
+        # numels for all subkernels should be the same. Use kernels[0] here
+        self.kernels[0].add_numel_to_call_args(kernel_name, call_args, arg_types)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for ws in self.kernels[0].args.workspace_args:
             V.graph.wrapper_code.generate_workspace_allocation(ws)
 
+<<<<<<< HEAD
         if V.graph.cpp_wrapper:
             # We have already selected the best kernel at compile time
             # so we only have one set of call args. NB: this currently
@@ -245,6 +280,13 @@ class MultiKernel:
             V.graph.wrapper_code.generate_kernel_call(
                 kernel_name, multi_call_args, arg_types=multi_call_arg_types
             )
+=======
+        V.graph.wrapper_code.generate_kernel_call(
+            kernel_name,
+            call_args,
+            arg_types=arg_types,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for ws in reversed(self.kernels[0].args.workspace_args):
             V.graph.wrapper_code.generate_workspace_deallocation(ws)
@@ -291,8 +333,13 @@ class MultiKernelCall:
     This class is called at run time to actually run the kernel
     """
 
+<<<<<<< HEAD
     def __init__(self, multi_kernel_name, kernels, arg_index):
         assert len(kernels) >= 1
+=======
+    def __init__(self, multi_kernel_name, kernels):
+        assert len(kernels) >= 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._kernels = kernels
         self.multi_kernel_name = multi_kernel_name
 
@@ -301,12 +348,18 @@ class MultiKernelCall:
         ) == "1" or is_metric_table_enabled("persistent_red_perf")
 
         self.picked_kernel = None
+<<<<<<< HEAD
         self.arg_index = arg_index
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config.triton.multi_kernel > 1:
             # manually force a subkernel to ease perf testing
             picked_by_config = config.triton.multi_kernel - 2
             assert picked_by_config < len(self._kernels)
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.picked_kernel = picked_by_config
         elif not self.disable_cache:
             self.load_cache()
@@ -330,9 +383,13 @@ class MultiKernelCall:
         path = self.cache_file_path()
         if path.exists():
             with path.open() as fd:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
                 self.picked_kernel = int(fd.read())
                 # pyrefly: ignore [unsupported-operation]
+=======
+                self.picked_kernel = int(fd.read())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert self.picked_kernel >= 0 and self.picked_kernel < len(
                     self._kernels
                 )
@@ -372,15 +429,22 @@ class MultiKernelCall:
         be picked.
         """
 
+<<<<<<< HEAD
         def wrap_fn(kernel, index):
             def inner():
                 filtered_args = self._get_filtered_args(args, index)
                 args_clone, kwargs_clone = kernel.clone_args(*filtered_args, **kwargs)
+=======
+        def wrap_fn(kernel):
+            def inner():
+                args_clone, kwargs_clone = kernel.clone_args(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return kernel.run(*args_clone, **kwargs_clone)
 
             return inner
 
         return [
+<<<<<<< HEAD
             benchmarker.benchmark_gpu(wrap_fn(kernel, index), rep=40)
             for index, kernel in enumerate(self.kernels)
         ]
@@ -400,6 +464,12 @@ class MultiKernelCall:
             return args
         return [item for s in self.arg_index[index] for item in args[s]]
 
+=======
+            benchmarker.benchmark_gpu(wrap_fn(kernel), rep=40)
+            for kernel in self.kernels
+        ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # record_choice and lookup_choice are helper functions for cpp-wrapper
     # codegen. The first pass use record_choice to keep the choice and
     # the second pass do lookup by calling lookup_choice.
@@ -451,7 +521,10 @@ class MultiKernelCall:
             get_metric_table("persistent_red_perf").add_row(
                 functools.partial(self._metrics_table_row, timings)
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not self.disable_cache:
                 self.store_cache()
 
@@ -462,10 +535,15 @@ class MultiKernelCall:
             )
             assert picked_kernel_name is not None
             self.record_choice(self.multi_kernel_name, picked_kernel_name)
+<<<<<<< HEAD
 
         run = self.kernels[self.picked_kernel].run  # type: ignore[method-assign]
         filtered_args = self._get_filtered_args(args, self.picked_kernel)
         run(*filtered_args, **kwargs)
+=======
+        self.run = self.kernels[self.picked_kernel].run  # type: ignore[method-assign]
+        self.run(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _metrics_table_row(self, timings):
         def get_kernel_path(k):
@@ -486,6 +564,7 @@ class MultiKernelCall:
                 row[f"kernel{i}_path"] = ""
                 row[f"kernel{i}_latency"] = ""
         return row
+<<<<<<< HEAD
 
 
 class SizeHintMultiKernel(MultiKernel):
@@ -605,3 +684,5 @@ class SizeHintMultiKernelCall(MultiKernelCall):
         # pyrefly: ignore [bad-assignment]
         self.picked_kernel = dists.index(min(dists))
         self._cache_shape_choice(shape_key, self.picked_kernel)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

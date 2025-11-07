@@ -5,7 +5,10 @@ import random
 import unittest
 import warnings
 from functools import reduce
+<<<<<<< HEAD
 from itertools import product
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 
@@ -16,14 +19,19 @@ from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfCPU,
     dtypesIfCUDA,
+<<<<<<< HEAD
     dtypesIfMPS,
     expectedFailureMPS,
     instantiate_device_type_tests,
     onlyCPU,
+=======
+    instantiate_device_type_tests,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     onlyCUDA,
     onlyNativeDeviceTypes,
     skipXLA,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_dtype import (
     all_mps_types_and,
     all_types_and,
@@ -33,11 +41,18 @@ from torch.testing._internal.common_dtype import (
 from torch.testing._internal.common_utils import (
     DeterministicGuard,
     parametrize,
+=======
+from torch.testing._internal.common_utils import (
+    DeterministicGuard,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run_tests,
     serialTest,
     skipIfTorchDynamo,
     TEST_CUDA,
+<<<<<<< HEAD
     TEST_MPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
     xfailIfTorchDynamo,
 )
@@ -152,10 +167,14 @@ class TestIndexing(TestCase):
         )
 
         lst = [list(range(i, i + 10)) for i in range(0, 100, 10)]
+<<<<<<< HEAD
         _make_tensor = (
             torch.DoubleTensor if not device.startswith("mps") else torch.FloatTensor
         )
         tensor = _make_tensor(lst).to(device)
+=======
+        tensor = torch.DoubleTensor(lst).to(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _i in range(100):
             idx1_start = random.randrange(10)
             idx1_end = idx1_start + random.randrange(1, 10 - idx1_start + 1)
@@ -171,7 +190,11 @@ class TestIndexing(TestCase):
             else:
                 lst_indexed = lst[idx1]
                 tensor_indexed = tensor[idx1]
+<<<<<<< HEAD
             self.assertEqual(_make_tensor(lst_indexed), tensor_indexed)
+=======
+            self.assertEqual(torch.DoubleTensor(lst_indexed), tensor_indexed)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(ValueError, lambda: reference[1:9:0])
         self.assertRaises(ValueError, lambda: reference[1:9:-1])
@@ -194,7 +217,10 @@ class TestIndexing(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(torch.half, torch.double)
+<<<<<<< HEAD
     @dtypesIfMPS(torch.half)  # TODO: add bf16 there?
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_advancedindex(self, device, dtype):
         # Tests for Integer Array Indexing, Part I - Purely integer array
         # indexing
@@ -247,7 +273,11 @@ class TestIndexing(TestCase):
                 x[ri([0, 2, 4]),], torch.tensor([5, 4, 3], dtype=dtype, device=device)
             )
 
+<<<<<<< HEAD
         # Only validates indexing and setting for Halves
+=======
+        # Only validates indexing and setting for halfs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if dtype == torch.half:
             reference = consec((10,))
             validate_indexing(reference)
@@ -902,7 +932,11 @@ class TestIndexing(TestCase):
         # Set window size
         W = 10
         # Generate a list of lists, containing overlapping window indices
+<<<<<<< HEAD
         indices = [range(i, i + W) for i in range(N - W)]
+=======
+        indices = [range(i, i + W) for i in range(0, N - W)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for i in [len(indices), 100, 32]:
             windowed_data = t[indices[:i]]
@@ -924,6 +958,7 @@ class TestIndexing(TestCase):
         mask2 = torch.tensor([1, 1, 1], dtype=torch.bool, device=device)
         self.assertEqual(v[mask1, :, mask2].shape, (3, 7))
 
+<<<<<<< HEAD
     def test_multi_dimensional_bool_mask(self, device):
         x = torch.randn(2, 2, 3, device=device)
         b = ((True, False), (False, False))
@@ -984,6 +1019,8 @@ class TestIndexing(TestCase):
         torch.ops.aten.index_put_(v, [None, mask, None], torch.tensor(0))
         self.assertEqual(v, torch.tensor([[[[0], [2]], [[3], [0]]]], device=device))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_byte_mask(self, device):
         v = torch.randn(5, 7, 3, device=device)
         mask = torch.ByteTensor([1, 0, 1, 1, 0]).to(device)
@@ -1005,11 +1042,18 @@ class TestIndexing(TestCase):
             self.assertEqual(y, torch.ones(size=(10, 10), device=device))
             self.assertEqual(len(w), 2)
 
+<<<<<<< HEAD
     # MPS: Fails locally, but passes in CI...
     @skipIfTorchDynamo(
         "This test causes SIGKILL when running with dynamo, https://github.com/pytorch/pytorch/issues/88472"
     )
     @serialTest(TEST_CUDA or TEST_MPS)
+=======
+    @skipIfTorchDynamo(
+        "This test causes SIGKILL when running with dynamo, https://github.com/pytorch/pytorch/issues/88472"
+    )
+    @serialTest(TEST_CUDA)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_put_accumulate_large_tensor(self, device):
         # This test is for tensors with number of elements >= INT_MAX (2^31 - 1).
         N = (1 << 31) + 5
@@ -1208,11 +1252,18 @@ class TestIndexing(TestCase):
 
     @onlyNativeDeviceTypes
     def test_index_put_accumulate_duplicate_indices(self, device):
+<<<<<<< HEAD
         dtype = torch.float if device.startswith("mps") else torch.double
         for i in range(1, 512):
             # generate indices by random walk, this will create indices with
             # lots of duplicates interleaved with each other
             delta = torch.empty(i, dtype=dtype, device=device).uniform_(-1, 1)
+=======
+        for i in range(1, 512):
+            # generate indices by random walk, this will create indices with
+            # lots of duplicates interleaved with each other
+            delta = torch.empty(i, dtype=torch.double, device=device).uniform_(-1, 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             indices = delta.cumsum(0).long()
 
             input = torch.randn(indices.abs().max() + 1, device=device)
@@ -1321,7 +1372,10 @@ class TestIndexing(TestCase):
         torch.float8_e5m2,
         torch.float8_e4m3fn,
     )
+<<<<<<< HEAD
     @dtypesIfMPS(torch.float, torch.float16, torch.long, torch.bool)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_put_src_datatype(self, device, dtype):
         src = torch.ones(3, 2, 4, device=device, dtype=dtype)
         vals = torch.ones(3, 2, 4, device=device, dtype=dtype)
@@ -1797,6 +1851,7 @@ class TestIndexing(TestCase):
         self.assertRaises(IndexError, lambda: t[idx_min])
         self.assertRaises(IndexError, lambda: t[idx_max])
 
+<<<<<<< HEAD
     @parametrize("reduce", ["prod", "amin", "amax", "mean"])
     @dtypes(*all_types_and(torch.half, torch.bfloat16))
     @expectedFailureMPS  # Unimplemented for MPS device
@@ -2125,6 +2180,8 @@ class TestIndexing(TestCase):
             out = source.index_select(0, idx)
             self.assertEqual(out.item(), source.item())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The tests below are from NumPy test_indexing.py with some modifications to
 # make them compatible with PyTorch. It's licensed under the BDS license below:
@@ -2396,9 +2453,13 @@ class NumpyTests(TestCase):
         self.assertEqual(kernel, kernel2)
 
 
+<<<<<<< HEAD
 instantiate_device_type_tests(
     TestIndexing, globals(), except_for="meta", allow_mps=True
 )
+=======
+instantiate_device_type_tests(TestIndexing, globals(), except_for="meta")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_device_type_tests(NumpyTests, globals(), except_for="meta")
 
 if __name__ == "__main__":

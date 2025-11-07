@@ -11,6 +11,7 @@ from torch._C import (
     _pop_torch_function_stack,
     _push_on_torch_function_stack,
 )
+<<<<<<< HEAD
 from torch._dynamo.utils import counters
 from torch.overrides import (
     _get_current_function_mode_stack,
@@ -20,15 +21,22 @@ from torch.overrides import (
 from torch.testing._internal.common_utils import skipIfXpu
 from torch.testing._internal.inductor_utils import GPU_TYPE
 from torch.testing._internal.triton_utils import requires_gpu
+=======
+from torch.overrides import _get_current_function_mode_stack, BaseTorchFunctionMode
+from torch.testing._internal.triton_utils import requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._device import DeviceContext
 from torch.utils._python_dispatch import TorchDispatchMode
 
 
+<<<<<<< HEAD
 device_type = (
     acc.type if (acc := torch.accelerator.current_accelerator(True)) else "cpu"
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestMode(BaseTorchFunctionMode):
     def __torch_function__(self, func, types, args, kwargs=None):
         if not kwargs:
@@ -40,6 +48,7 @@ class TestMode(BaseTorchFunctionMode):
         return super().__torch_function__(func, types, args, kwargs)
 
 
+<<<<<<< HEAD
 class HopDetectionError(Exception):
     pass
 
@@ -57,6 +66,8 @@ class TestModeRaises(BaseTorchFunctionMode):
         return super().__torch_function__(func, types, args, kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TorchDispatchModeTests(torch._dynamo.test_case.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -66,6 +77,7 @@ class TorchDispatchModeTests(torch._dynamo.test_case.TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
 
+<<<<<<< HEAD
     def test_torch_dispatch_ignore_compile_internals(self):
         counters.clear()
         from torch.utils._python_dispatch import TorchDispatchMode
@@ -114,6 +126,8 @@ class TorchDispatchModeTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(counters["frames"]["total"], 1)
         self.assertEqual(counters["frames"]["ok"], 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_skip_torch_dispatch_modes(self):
         class RewriteAddToMul(TorchDispatchMode):
             def __torch_dispatch__(self, func, types, args=(), kwargs=None):
@@ -194,6 +208,7 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
     def test_torch_function_mode_guards_cpp(self):
         self._run_torch_function_mode_guard_test()
 
+<<<<<<< HEAD
     @requires_gpu
     def test_torch_function_mode_preserves_cuda_rng_state(self):
         class ConstantReturnMode(TorchFunctionMode):
@@ -207,6 +222,8 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(fn(), 123)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_stack_state_mutation_default_device(self):
         m = BaseTorchFunctionMode()
         m1 = BaseTorchFunctionMode()
@@ -317,7 +334,11 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
 
         self.assertRaisesRegex(
             torch._dynamo.exc.Unsupported,
+<<<<<<< HEAD
             "Attempted to pop from empty torch function mode stack",
+=======
+            "Popping from an empty torch function mode stack",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             lambda: fn(torch.ones(2, 2)),
         )
 
@@ -589,6 +610,7 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
     # Needs larger cache size since we recompile for each op
     @patch.object(torch._dynamo.config, "recompile_limit", 48)
     def test_builtin_equivalent_funcs(self):
+<<<<<<< HEAD
         from torch._dynamo.variables.builtin import (
             BUILTIN_TO_TENSOR_FN_MAP,
             BUILTIN_TO_TENSOR_RFN_MAP,
@@ -596,6 +618,13 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
         from torch._dynamo.variables.torch_function import (
             bin_int_ops,
             bin_ops,
+=======
+        from torch._dynamo.variables.torch_function import (
+            bin_int_ops,
+            bin_ops,
+            BUILTIN_TO_TENSOR_FN_MAP,
+            BUILTIN_TO_TENSOR_RFN_MAP,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tensor_and_int_ops,
             un_int_ops,
             un_ops,
@@ -705,12 +734,20 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
 
             func(torch.randn(3))
 
+<<<<<<< HEAD
     @requires_gpu
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_flex_attention(self):
         import torch
         from torch.nn.attention.flex_attention import create_block_mask, flex_attention
 
+<<<<<<< HEAD
         torch.set_default_device(device_type)
+=======
+        torch.set_default_device("cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         flex_attention = torch.compile(flex_attention, dynamic=False)
 
@@ -720,9 +757,13 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
             return prefix_lengths[b] >= kv
 
         # This runs in fullgraph already
+<<<<<<< HEAD
         create_block_mask(
             prefix_lm, 8, None, 512, 512, _compile=True, device=device_type
         )
+=======
+        create_block_mask(prefix_lm, 8, None, 512, 512, _compile=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_register_hook(self):
         import functools
@@ -745,6 +786,7 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
         with torch.device("cpu"):
             torch.compile(mod, fullgraph=True)(x)
 
+<<<<<<< HEAD
     @requires_gpu
     @skipIfXpu(msg="XPU does not support flex attention")
     def test_hop(self):
@@ -790,6 +832,8 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
                         torch.ones(2, 2, 2, 2),
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

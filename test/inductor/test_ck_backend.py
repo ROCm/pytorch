@@ -12,12 +12,16 @@ except ImportError:
 import torch
 from torch._inductor import config
 from torch._inductor.test_case import run_tests, TestCase
+<<<<<<< HEAD
 from torch._inductor.utils import try_import_ck_lib
 from torch.testing._internal.common_cuda import tf32_off
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     _quantize_rowwise,
     _quantize_tensorwise,
@@ -27,13 +31,36 @@ from torch.testing._internal.inductor_utils import (
 
 
 if HAS_CUDA_AND_TRITON:
+=======
+from torch.testing._internal.inductor_utils import HAS_CPU, HAS_CUDA
+
+
+try:
+    from .test_fp8 import _quantize_rowwise, _quantize_tensorwise
+except ImportError:
+    from test_fp8 import _quantize_rowwise, _quantize_tensorwise
+
+
+torch.set_float32_matmul_precision("high")
+if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.cuda.memory._set_allocator_settings("expandable_segments:False")
 
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 # patch env for tests if needed
 _test_env = {}
+=======
+def _get_path_without_sccache() -> str:
+    """
+    Get the PATH environment variable without sccache.
+    """
+    path_envs = os.environ.get("PATH", "").split(":")
+    path_envs = [env for env in path_envs if "/opt/cache/bin" not in env]
+    return ":".join(path_envs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @instantiate_parametrized_tests
@@ -49,10 +76,20 @@ class TestCKBackend(TestCase):
         )
 
         torch.random.manual_seed(1234)
+<<<<<<< HEAD
 
         self.ck_dir, _, _, _ = try_import_ck_lib()
         if not self.ck_dir:
             raise unittest.SkipTest("Composable Kernel library is not installed")
+=======
+        try:
+            import ck4inductor  # @manual
+
+            self.ck_dir = os.path.dirname(ck4inductor.__file__)
+            os.environ["TORCHINDUCTOR_CK_DIR"] = self.ck_dir
+        except ImportError as e:
+            raise unittest.SkipTest("Composable Kernel library not installed") from e
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         try:
             os.environ["INDUCTOR_TEST_DISABLE_FRESH_CACHE"] = "1"
@@ -63,7 +100,11 @@ class TestCKBackend(TestCase):
             )
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
+<<<<<<< HEAD
     @unittest.mock.patch.dict(os.environ, _test_env)
+=======
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("max_autotune_gemm_backends", ("CK", "CKTILE", "ATen,Triton,CK"))
     @parametrize("autotune_in_subproc", (True, False))
     @parametrize("use_aoti", (True, False))
@@ -74,6 +115,11 @@ class TestCKBackend(TestCase):
         Make sure autotuning mm doesn't crash.
         """
 
+<<<<<<< HEAD
+=======
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def mm(a, b):
             return a @ b
 
@@ -84,6 +130,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -97,6 +144,18 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": autotune_in_subproc,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 16,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+                "rocm.ck_dir": self.ck_dir,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             if use_aoti:
                 Y_compiled = AOTIRunnerUtil.run(
@@ -115,7 +174,11 @@ class TestCKBackend(TestCase):
             torch.testing.assert_close(Y_compiled, Y)
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
+<<<<<<< HEAD
     @unittest.mock.patch.dict(os.environ, _test_env)
+=======
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("max_autotune_gemm_backends", ("CK",))
     @parametrize("autotune_in_subproc", (True,))
     def test_max_autotune_precompile_matmul_dynamic(
@@ -125,6 +188,11 @@ class TestCKBackend(TestCase):
         Test matmul with dynamic shapes
         """
 
+<<<<<<< HEAD
+=======
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_options = {"device": "cuda", "dtype": torch.bfloat16}
 
         a = torch.randn(2240, 256, **tensor_options)
@@ -134,6 +202,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -147,6 +216,18 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": autotune_in_subproc,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 16,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+                "rocm.ck_dir": self.ck_dir,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile(dynamic=True)
@@ -163,13 +244,22 @@ class TestCKBackend(TestCase):
             torch.testing.assert_close(Y1_compiled, Y1)
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
+<<<<<<< HEAD
     @unittest.mock.patch.dict(os.environ, _test_env)
+=======
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
     def test_max_autotune_precompile_preselected(self, max_autotune_gemm_backends):
         """
         End to end test for picking preselected ck instances
         """
 
+<<<<<<< HEAD
+=======
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def mm(a, b):
             return a @ b
 
@@ -180,6 +270,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -192,12 +283,24 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": True,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 12,
+                "rocm.ck_dir": self.ck_dir,
+                "rocm.use_preselected_instances": True,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             Y_compiled = torch.compile(mm, dynamic=False)(a, b)
             Y = mm(a, b)
             torch.testing.assert_close(Y_compiled, Y)
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
+<<<<<<< HEAD
     @unittest.mock.patch.dict(os.environ, _test_env)
     @parametrize("max_autotune_gemm_backends", ("Aten,CK",))
     def test_max_autotune_precompile_non_contiguous(self, max_autotune_gemm_backends):
@@ -205,6 +308,17 @@ class TestCKBackend(TestCase):
         Make sure the matmul with non-contiguous inputs can fallback
         """
 
+=======
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
+    def test_max_autotune_precompile_non_contiguous(self, max_autotune_gemm_backends):
+        """
+        Make sure the ck template can work with non-contiguous inputs
+        """
+
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_options = {"device": "cuda", "dtype": torch.float16}
 
         a = torch.empty_strided((50257, 32768), (1, 50304), **tensor_options)
@@ -212,6 +326,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -225,6 +340,18 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": True,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 16,
+                "rocm.ck_dir": self.ck_dir,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile(dynamic=False)
@@ -233,6 +360,7 @@ class TestCKBackend(TestCase):
 
             Y_compiled = mm(a, b)
             Y_eager = a @ b
+<<<<<<< HEAD
             torch.testing.assert_close(Y_compiled, Y_eager, equal_nan=True)
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
@@ -240,6 +368,17 @@ class TestCKBackend(TestCase):
     @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
     @parametrize("x_shape", ([4096, 2048], [2048], [4096, 1]))
     def test_max_autotune_addmm(self, max_autotune_gemm_backends, x_shape):
+=======
+            torch.testing.assert_close(Y_compiled, Y_eager)
+
+    @unittest.skipIf(not torch.version.hip, "ROCM only")
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
+    @parametrize("x_shape", ([4096, 2048], [2048], [4096, 1]))
+    def test_max_autotune_addmm(self, max_autotune_gemm_backends, x_shape):
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m, k, n = 4096, 224, 2048
         alpha, beta = 1.0, 1.0
 
@@ -250,6 +389,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -262,6 +402,17 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": True,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 2,
+                "rocm.ck_dir": self.ck_dir,
+                "rocm.ck_max_profiling_configs": 2,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile(dynamic=False)
@@ -273,6 +424,7 @@ class TestCKBackend(TestCase):
 
             torch.testing.assert_close(Y_compiled, Y_eager)
 
+<<<<<<< HEAD
     @unittest.skip(
         "FIXME(tenpercent): kernel compilation errors on gfx942 as of 09/01/25"
     )
@@ -290,6 +442,18 @@ class TestCKBackend(TestCase):
             self.skipTest(f"Unsupported arch {runtime_arch}")
         # output dtype
         dtype = torch.bfloat16
+=======
+    @unittest.skipIf(not torch.version.hip, "ROCM only")
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
+    @parametrize("dtype", (torch.bfloat16,))
+    @parametrize("use_fast_accum", (True,))
+    @parametrize("quantize_type", ("tensorwise", "rowwise"))
+    @parametrize("has_bias", (True, False))
+    def test_max_autotune_scaled_mm(
+        self, max_autotune_gemm_backends, dtype, use_fast_accum, quantize_type, has_bias
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_options = {"device": "cuda", "dtype": dtype}
 
         M = 2240
@@ -303,9 +467,13 @@ class TestCKBackend(TestCase):
         if has_bias:
             bias = torch.randn(N, **tensor_options)
 
+<<<<<<< HEAD
         dtype_float8 = (
             torch.float8_e4m3fnuz if "gfx94" in runtime_arch else torch.float8_e4m3fn
         )
+=======
+        dtype_float8 = torch.float8_e4m3fnuz
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         f_quantize = (
             _quantize_tensorwise if quantize_type == "tensorwise" else _quantize_rowwise
@@ -333,6 +501,7 @@ class TestCKBackend(TestCase):
             )
             return y
 
+<<<<<<< HEAD
         y_eager = linear(
             x_fp8,
             x_inverse_scale,
@@ -340,6 +509,29 @@ class TestCKBackend(TestCase):
             w_inverse_scale_t,
             bias,
         )
+=======
+        if quantize_type == "tensorwise":
+            y_eager = linear(
+                x_fp8,
+                x_inverse_scale,
+                w_t_fp8,
+                w_inverse_scale_t,
+                bias,
+            )
+        else:
+            # FIXME when rowwise quantize is supported by pt eager on ROCm
+            w_fp8_tw, w_inverse_scale_tw = _quantize_tensorwise(w, dtype_float8)
+            w_fp8_tw_t = w_fp8_tw.t()
+            w_inverse_scale_tw_t = w_inverse_scale_tw.t()
+            x_fp8_tw, x_inverse_scale_tw = _quantize_tensorwise(x, dtype_float8)
+            y_eager = linear(
+                x_fp8_tw,
+                x_inverse_scale_tw,
+                w_fp8_tw_t,
+                w_inverse_scale_tw_t,
+                bias,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -368,10 +560,19 @@ class TestCKBackend(TestCase):
     @unittest.skipIf(not torch.version.hip, "ROCM only")
     @unittest.mock.patch.dict(
         os.environ,
+<<<<<<< HEAD
         {**_test_env, "PYTORCH_MIOPEN_SUGGEST_NHWC": "1"},
     )
     @parametrize("max_autotune_conv_backends", ("CK", "ATEN,CK,TRITON"))
     def test_max_autotune_conv2d(self, max_autotune_conv_backends):
+=======
+        {"PATH": _get_path_without_sccache(), "PYTORCH_MIOPEN_SUGGEST_NHWC": "1"},
+    )
+    @parametrize("max_autotune_conv_backends", ("CK", "ATEN,CK,TRITON"))
+    def test_max_autotune_conv2d(self, max_autotune_conv_backends):
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_options = {"device": "cuda", "dtype": torch.float32}
 
         x = torch.randn(1, 8, 224, 224, **tensor_options)
@@ -381,6 +582,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -393,6 +595,17 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "autotune_in_subproc": False,
+                "max_autotune_conv_backends": max_autotune_conv_backends,
+                "compile_threads": 4,
+                "rocm.ck_dir": self.ck_dir,
+                "rocm.ck_max_profiling_configs": 4,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile(dynamic=False)
@@ -405,7 +618,11 @@ class TestCKBackend(TestCase):
             torch.testing.assert_close(Y_compiled, Y_eager, atol=2e-4, rtol=2e-4)
 
     @unittest.skipIf(not torch.version.hip, "ROCM only")
+<<<<<<< HEAD
     @unittest.mock.patch.dict(os.environ, _test_env)
+=======
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
     def test_max_autotune_precompile_bmm(
         self,
@@ -415,6 +632,11 @@ class TestCKBackend(TestCase):
         Test gemm-max-autotune torch.bmm with CK backend
         """
 
+<<<<<<< HEAD
+=======
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def bmm(a, b):
             return torch.bmm(a, b)
 
@@ -425,6 +647,7 @@ class TestCKBackend(TestCase):
 
         assert "rocm" in dir(config)
 
+<<<<<<< HEAD
         with (
             config.patch(
                 {
@@ -436,6 +659,16 @@ class TestCKBackend(TestCase):
                 }
             ),
             tf32_off(),
+=======
+        with config.patch(
+            {
+                "max_autotune": True,
+                "max_autotune_gemm_backends": max_autotune_gemm_backends,
+                "compile_threads": 2,
+                "rocm.ck_max_profiling_configs": 2,
+                "rocm.ck_dir": self.ck_dir,
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile(dynamic=False)
@@ -452,5 +685,9 @@ if __name__ == "__main__":
     from torch._inductor.utils import is_big_gpu
 
     # Set env to make it work in CI.
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON and HAS_CPU and is_big_gpu():
+=======
+    if HAS_CUDA and HAS_CPU and is_big_gpu():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

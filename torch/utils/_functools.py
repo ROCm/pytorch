@@ -1,7 +1,12 @@
 import functools
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Concatenate, TypeVar
 from typing_extensions import ParamSpec
+=======
+from typing import Callable, TypeVar
+from typing_extensions import Concatenate, ParamSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _P = ParamSpec("_P")
@@ -13,7 +18,11 @@ _cache_sentinel = object()
 
 
 def cache_method(
+<<<<<<< HEAD
     f: Callable[Concatenate[_C, _P], _T],
+=======
+    f: Callable[Concatenate[_C, _P], _T]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[Concatenate[_C, _P], _T]:
     """
     Like `@functools.cache` but for methods.
@@ -31,17 +40,27 @@ def cache_method(
 
     @functools.wraps(f)
     def wrap(self: _C, *args: _P.args, **kwargs: _P.kwargs) -> _T:
+<<<<<<< HEAD
         if kwargs:
             raise AssertionError("cache_method does not accept keyword arguments")
         if not (cache := getattr(self, cache_name, None)):
             cache = {}
             setattr(self, cache_name, cache)
         # pyrefly: ignore [unbound-name]
+=======
+        assert not kwargs
+        if not (cache := getattr(self, cache_name, None)):
+            cache = {}
+            setattr(self, cache_name, cache)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cached_value = cache.get(args, _cache_sentinel)
         if cached_value is not _cache_sentinel:
             return cached_value
         value = f(self, *args, **kwargs)
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cache[args] = value
         return value
 

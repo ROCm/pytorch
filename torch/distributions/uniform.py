@@ -79,7 +79,10 @@ class Uniform(Distribution):
         return new
 
     @constraints.dependent_property(is_discrete=False, event_dim=0)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         return constraints.interval(self.low, self.high)
 

@@ -32,7 +32,10 @@ import io
 import itertools
 import logging
 import os
+<<<<<<< HEAD
 import platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import shutil
 import subprocess
@@ -375,7 +378,10 @@ def get_skip_tests(suite, device, is_training: bool):
     original_dir = abspath(os.getcwd())
     module = importlib.import_module(suite)
     os.chdir(original_dir)
+<<<<<<< HEAD
     arch = platform.machine()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if suite == "torchbench":
         skip_tests.update(module.TorchBenchmarkRunner().skip_models)
@@ -385,10 +391,13 @@ def get_skip_tests(suite, device, is_training: bool):
             )
         if device == "cpu":
             skip_tests.update(module.TorchBenchmarkRunner().skip_models_for_cpu)
+<<<<<<< HEAD
             if arch == "aarch64":
                 skip_tests.update(
                     module.TorchBenchmarkRunner().skip_models_for_cpu_aarch64
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif device == "cuda":
             skip_tests.update(module.TorchBenchmarkRunner().skip_models_for_cuda)
 

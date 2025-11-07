@@ -13,8 +13,11 @@ mappings between nodes and their duplicates, enabling efficient graph analysis a
 optimization operations.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copyreg
 import io
 import logging
@@ -23,7 +26,11 @@ import operator
 import pickle
 from collections import defaultdict, deque
 from dataclasses import fields
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, TypeVar
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._logging
 import torch.fx
@@ -38,14 +45,18 @@ T = TypeVar("T")
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .symbolic_convert import InstructionTranslatorBase
 
 
 Node = torch.fx.Node
 Region = list[Node]
 IdenticalNodes = list[Node]
+<<<<<<< HEAD
 GlobalStateKey = tuple[
     bool,
     bool,
@@ -58,6 +69,9 @@ GlobalStateKey = tuple[
     bool,
     bool,
 ]
+=======
+GlobalStateKey = tuple[bool, bool, int, bool, bool, torch.dtype, bool, bool, bool, bool]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 graph_expansion_log = torch._logging.getArtifactLogger(
@@ -138,6 +152,7 @@ def _normalize_args(
     return (sorted_keys, tuple(_extract_args(arg) for arg in all_args))
 
 
+<<<<<<< HEAD
 def _sort_with_ref_region(
     index_to_rank: dict[int, int], regions: list[list[Any]]
 ) -> None:
@@ -150,6 +165,8 @@ def _sort_with_ref_region(
         region[:] = [region[i] for i in sorted_indices]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_global_state_key() -> GlobalStateKey:
     return (
         torch.is_grad_enabled(),
@@ -178,7 +195,11 @@ class BackwardBfsArgIter:
         self._queue: deque[Optional[Node]] = deque()
 
     @staticmethod
+<<<<<<< HEAD
     def create(origin: Node) -> BackwardBfsArgIter:
+=======
+    def create(origin: Node) -> "BackwardBfsArgIter":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         it = BackwardBfsArgIter(origin)
         it.add_children(origin)
         # pop the origin node, since it is the origin of
@@ -253,13 +274,18 @@ class GraphRegionTracker:
             and n0 is not n1
         )
 
+<<<<<<< HEAD
     def track_node(self, tx: InstructionTranslatorBase, node: Node) -> None:
+=======
+    def track_node(self, tx: "InstructionTranslatorBase", node: Node) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         The main entry point for tracking a node. This function will hash the node argument and group
         nodes with the same hash together. It updates the hash_to_duplicates and node_to_duplicates dictionaries
         to track the new node.
         """
         try:
+<<<<<<< HEAD
             if (
                 node not in self.node_to_duplicates
             ):  # don't allow nodes to be added twice
@@ -272,6 +298,17 @@ class GraphRegionTracker:
                 self.node_to_duplicates[node] = duplicates
         except NodeHashException as e:
             log.debug("Unable to hash node %s with exception %s", node, e)  # noqa: G200
+=======
+            duplicates = self.hash_to_duplicates[
+                self._hash_node(
+                    tx.f_code.co_filename, tx.lineno, tx.instruction_pointer, node
+                )
+            ]
+            duplicates.append(node)
+            self.node_to_duplicates[node] = duplicates
+        except NodeHashException as e:
+            log.debug("Unable to hash node %s with exception %s", node, e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def track_node_mutations(
         self,
@@ -333,7 +370,10 @@ class GraphRegionTracker:
             if len(group) > 1:
                 region_group = []
                 min_rank = math.inf
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for node in group:
                     # some nodes aren't in the topo ranking?
                     if node in topological_ranking:
@@ -358,6 +398,7 @@ class GraphRegionTracker:
                 self._is_identical,
             )
             # sort topologically
+<<<<<<< HEAD
             # we need to handle edge cases where some nodes have no dependencies
             # so first we map each node to its ranking,
             ref_region = region_group[0]
@@ -365,6 +406,10 @@ class GraphRegionTracker:
                 index: topological_ranking[n] for index, n in enumerate(ref_region)
             }
             _sort_with_ref_region(index_to_rank, region_group)
+=======
+            for region in region_group:
+                region.sort(key=lambda n: topological_ranking[n])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return [
             region_group for region_group in region_groups if len(region_group[0]) > 1
@@ -458,7 +503,10 @@ def fully_expand_region_group(
                 candidate not in seen_nodes
                 and candidate not in nodes_to_add
                 and candidate.op != "placeholder"
+<<<<<<< HEAD
                 and candidate.op != "get_attr"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and is_identical_fn(candidate, current_node)
                 and not region_wrapper.will_inclusion_create_cycle(candidate)
             )

@@ -4,7 +4,11 @@
     "code": "DOCSTRING_LINTER",
     "description": null,
     "line": 17,
+<<<<<<< HEAD
     "name": "No docstring found for class 'LongWithoutDocstring' (6 lines)",
+=======
+    "name": "No docstring found for class 'LongWithoutDocstring' (4 lines)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "original": null,
     "path": "tools/test/docstring_linter_testdata/python_code.py.txt",
     "replacement": null,
@@ -22,6 +26,7 @@
     "severity": "error"
   },
   {
+<<<<<<< HEAD
     "char": 0,
     "code": "DOCSTRING_LINTER",
     "description": null,
@@ -33,6 +38,8 @@
     "severity": "error"
   },
   {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "char": 4,
     "code": "DOCSTRING_LINTER",
     "description": null,

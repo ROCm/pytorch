@@ -90,7 +90,11 @@ IValue toIValue(py::handle obj, const TypePtr& type, std::optional<int32_t> N) {
         if (PyBool_Check(obj.ptr())) {
           scalar = at::Scalar(THPUtils_unpackBool(obj.ptr()));
         } else if (THPUtils_checkLong(obj.ptr())) {
+<<<<<<< HEAD
           scalar = THPUtils_unpackInteger<at::Scalar>(obj.ptr());
+=======
+          scalar = at::Scalar(THPUtils_unpackLong(obj.ptr()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         } else if (PyComplex_Check(obj.ptr())) {
           scalar = at::Scalar(THPUtils_unpackComplexDouble(obj.ptr()));
         } else if (THPUtils_checkDouble(obj.ptr())) {
@@ -313,7 +317,11 @@ IValue toIValue(py::handle obj, const TypePtr& type, std::optional<int32_t> N) {
           bool is_symbolic = false;
           for (auto it = obj.begin(); it != obj.end(); it++) {
             auto elm = *it;
+<<<<<<< HEAD
             if (torch::is_symint(elm) || THPVariable_Check(elm.ptr())) {
+=======
+            if (torch::is_symint(elm)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               is_symbolic = true;
               break;
             }
@@ -512,7 +520,11 @@ IValue toIValue(py::handle obj, const TypePtr& type, std::optional<int32_t> N) {
       if (py::isinstance<py::bool_>(obj)) {
         return py::cast<bool>(obj);
       } else if (py::isinstance<py::int_>(obj)) {
+<<<<<<< HEAD
         return THPUtils_unpackInteger<IValue>(obj.ptr());
+=======
+        return py::cast<int64_t>(obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else if (py::isinstance<py::float_>(obj)) {
         return py::cast<double>(obj);
       } else if (PyComplex_CheckExact(obj.ptr())) {
@@ -598,8 +610,11 @@ py::object toPyObject(IValue ivalue) {
           return py::cast(*tensor.const_data_ptr<bool>());
         case at::ScalarType::Long:
           return py::cast(*tensor.const_data_ptr<int64_t>());
+<<<<<<< HEAD
         case at::ScalarType::UInt64:
           return py::cast(*tensor.const_data_ptr<uint64_t>());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         case at::ScalarType::Double:
           return py::cast(*tensor.const_data_ptr<double>());
         case at::ScalarType::ComplexDouble:
@@ -765,8 +780,11 @@ py::object toPyObject(IValue ivalue) {
     return py::cast(std::move(ivalue).toSymFloat());
   } else if (ivalue.isSymBool()) {
     return py::cast(std::move(ivalue).toSymBool());
+<<<<<<< HEAD
   } else if (ivalue.isUnsigned()) {
     return py::cast(std::move(ivalue).toUInt());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(
         false,
@@ -780,6 +798,7 @@ std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
     const std::vector<std::shared_ptr<Operator>>& operations,
     const py::args& args,
     const py::kwargs& kwargs) {
+<<<<<<< HEAD
   return getOpWithStack(
       c10::ArrayRef<std::shared_ptr<Operator>>(operations), args, kwargs);
 }
@@ -791,6 +810,11 @@ std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
   Stack stack;
   if (operations.size() == 1) {
     std::shared_ptr<Operator> op = operations[0];
+=======
+  Stack stack;
+  if (operations.size() == 1) {
+    std::shared_ptr<Operator> op = operations.at(0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Create a stack full of the arguments and keyword arguments.
     stack = createStackForSchema(op->schema(), args, kwargs, std::nullopt);
 
@@ -821,7 +845,11 @@ std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
 }
 
 // This function is used to check if the schema is valid for the given args and
+<<<<<<< HEAD
 // kwargs. It checks script object by checking whether the FakeScriptObject is
+=======
+// kwargs. It checks script object by checking wether the FakeScriptObject is
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // an instance of the corresponding fake class for the actual class used in
 // schema.
 bool checkSchemaAllowFakeScriptObject(
@@ -842,6 +870,7 @@ py::object invokeOperatorFromPython(
     const py::args& args,
     const py::kwargs& kwargs,
     std::optional<c10::DispatchKey> dk) {
+<<<<<<< HEAD
   return invokeOperatorFromPython(
       c10::ArrayRef<std::shared_ptr<Operator>>(operations), args, kwargs, dk);
 }
@@ -851,6 +880,8 @@ py::object invokeOperatorFromPython(
     const py::args& args,
     const py::kwargs& kwargs,
     std::optional<c10::DispatchKey> dk) {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto [found_op, stack] = getOpWithStack(operations, args, kwargs);
   {
     pybind11::gil_scoped_release no_gil_guard;
@@ -872,6 +903,7 @@ std::optional<py::object> _maybe_handle_torch_function(
     const py::args& args,
     const py::kwargs& kwargs) {
   std::vector<PyObject*> overloaded_args;
+<<<<<<< HEAD
   const auto args_size = args.size();
   size_t total_arg_num = args_size + kwargs.size();
   PyObject* const args_ptr = args.ptr();
@@ -895,6 +927,13 @@ std::optional<py::object> _maybe_handle_torch_function(
     is_tensor_and_append_overloaded(args_i_ptr, &overloaded_args);
     is_tensor_list_and_append_overloaded(
         args_i_ptr,
+=======
+  size_t total_arg_num = args.size() + kwargs.size();
+  for (const auto i : c10::irange(args.size())) {
+    is_tensor_and_append_overloaded(args[i].ptr(), &overloaded_args);
+    is_tensor_list_and_append_overloaded(
+        args[i].ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         &overloaded_args,
         static_cast<int>(total_arg_num),
         false /* throw_error */);
@@ -946,6 +985,7 @@ py::object _get_operation_for_overload_or_packet(
     const py::kwargs& kwargs,
     bool is_overload,
     std::optional<c10::DispatchKey> dk) {
+<<<<<<< HEAD
   return _get_operation_for_overload_or_packet(
       c10::ArrayRef(operations), symbol, args, kwargs, is_overload, dk);
 }
@@ -957,6 +997,8 @@ py::object _get_operation_for_overload_or_packet(
     const py::kwargs& kwargs,
     bool is_overload,
     std::optional<c10::DispatchKey> dk) {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string ns = symbol.ns().toUnqualString();
   std::string method_name = symbol.toUnqualString();
   std::string overload_name = operations[0]->schema().overload_name();

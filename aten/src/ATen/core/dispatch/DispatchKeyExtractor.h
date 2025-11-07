@@ -80,8 +80,12 @@ struct MultiDispatchKeySet : at::IterArgs<MultiDispatchKeySet> {
       ts = ts | x.key_set();
     }
   }
+<<<<<<< HEAD
   [[noreturn]] void operator()(
       at::ArrayRef<std::optional<at::Tensor>> /*unused*/) {
+=======
+  [[noreturn]] void operator()(at::ArrayRef<std::optional<at::Tensor>>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Just checking that the handling of Tensor?[] didn't change.
     TORCH_INTERNAL_ASSERT(false);
   }
@@ -96,7 +100,11 @@ struct MultiDispatchKeySet : at::IterArgs<MultiDispatchKeySet> {
     }
   }
   template <typename T>
+<<<<<<< HEAD
   void operator()(const T& /*unused*/) {
+=======
+  void operator()(const T&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // do nothing
   }
 };

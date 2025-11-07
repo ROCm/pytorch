@@ -9,7 +9,11 @@ using namespace at;
 TEST(TestUndefined, UndefinedTest) {
   manual_seed(123);
 
+<<<<<<< HEAD
   // mainly test ops on undefined tensors don't segfault and give a reasonable error message.
+=======
+  // mainly test ops on undefined tensors don't segfault and give a reasonable errror message.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor und;
   Tensor ft = ones({1}, CPU(kFloat));
 

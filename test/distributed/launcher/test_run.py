@@ -273,18 +273,23 @@ class ElasticLaunchTest(TestCase):
     )
     @patch("torch.cuda.is_available", return_value=True)
     @patch("torch.cuda.device_count", return_value=3)
+<<<<<<< HEAD
     @patch("torch.accelerator.is_available", return_value=True)
     @patch("torch.accelerator.device_count", return_value=3)
     @patch("torch.accelerator.current_accelerator", return_value=MagicMock(type="gpu"))
     def test_nproc_gpu_launch_configurations(
         self, _mock1, _mock2, _mock3, _mock4, _mock5
     ):
+=======
+    def test_nproc_gpu_launch_configurations(self, _mock1, _mock2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_nproc_launch_configuration("auto", 3)
         self._test_nproc_launch_configuration("gpu", 3)
 
     @skip_but_pass_in_sandcastle_if(
         TEST_WITH_DEV_DBG_ASAN, "test incompatible with dev/dbg asan"
     )
+<<<<<<< HEAD
     @patch("torch.xpu.is_available", return_value=True)
     @patch("torch.xpu.device_count", return_value=3)
     @patch("torch.accelerator.is_available", return_value=True)
@@ -299,6 +304,8 @@ class ElasticLaunchTest(TestCase):
     @skip_but_pass_in_sandcastle_if(
         TEST_WITH_DEV_DBG_ASAN, "test incompatible with dev/dbg asan"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_launch_elastic(self):
         run_id = str(uuid.uuid4().int)
         min_nodes = 1

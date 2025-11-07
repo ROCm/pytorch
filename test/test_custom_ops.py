@@ -21,6 +21,10 @@ import torch._custom_ops as custom_ops
 import torch.testing._internal.optests as optests
 import torch.utils._pytree as pytree
 import torch.utils.cpp_extension
+<<<<<<< HEAD
+=======
+from functorch import make_fx
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch import Tensor
 from torch._custom_op.impl import CustomOp, infer_schema
 from torch._library.fake_profile import (
@@ -33,9 +37,13 @@ from torch._library.fake_profile import (
     TensorMetadata,
 )
 from torch._library.infer_schema import tuple_to_list
+<<<<<<< HEAD
 from torch._library.opaque_object import make_opaque, OpaqueType
 from torch._utils_internal import get_file_path_2  # @manual
 from torch.fx.experimental.proxy_tensor import make_fx
+=======
+from torch._utils_internal import get_file_path_2  # @manual
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import ShapeEnv
 from torch.testing._internal import custom_op_db
 from torch.testing._internal.common_cuda import TEST_CUDA
@@ -56,7 +64,10 @@ from torch.testing._internal.common_utils import (
     TestCase,
 )
 from torch.testing._internal.custom_op_db import numpy_nonzero
+<<<<<<< HEAD
 from torch.testing._internal.two_tensor import TwoTensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Shadowed by `torch.testing._internal.common_utils.custom_op`
@@ -169,7 +180,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
         lib.impl("foo", Foo.apply, "Autograd")
         lib.impl("foo", foo_impl, "CPU")
         lib.impl("foo", foo_impl, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", foo_impl, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.tensor(3.14159 / 3, requires_grad=True, device=device)
         with self.assertRaisesRegex(
@@ -274,7 +288,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
         lib.impl("foo", Foo.apply, "Autograd")
         lib.impl("foo", foo_impl, "CPU")
         lib.impl("foo", foo_impl, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", foo_impl, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.tensor([0, 1.0], requires_grad=True)
         with self.assertRaisesRegex(
@@ -316,7 +333,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
         lib.impl("foo", Foo.apply, "Autograd")
         lib.impl("foo", foo_impl, "CPU")
         lib.impl("foo", foo_impl, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", foo_impl, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lib.impl("foo", foo_meta, "Meta")
 
         x = torch.tensor([0, 1.0], requires_grad=True)
@@ -348,7 +368,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
         lib.impl("foo", Foo.apply, "Autograd")
         lib.impl("foo", foo_impl, "CPU")
         lib.impl("foo", foo_impl, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", foo_impl, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lib.impl("foo", foo_meta, "Meta")
 
         x = torch.tensor([0, 1.0])
@@ -375,7 +398,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
 
         lib.impl("foo", Foo.apply, "CPU")
         lib.impl("foo", Foo.apply, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", Foo.apply, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lib.impl("foo", lambda x: x.clone(), "Meta")
 
         x = torch.randn([], requires_grad=True)
@@ -469,7 +495,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
         lib.impl("foo", Foo.apply, "Autograd")
         lib.impl("foo", foo_impl, "CPU")
         lib.impl("foo", foo_impl, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", foo_impl, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.randn(3, requires_grad=True, device=device)
         # Should not raise
@@ -519,7 +548,10 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
 
         lib.impl("foo", Foo.apply, "CPU")
         lib.impl("foo", Foo.apply, "CUDA")
+<<<<<<< HEAD
         lib.impl("foo", Foo.apply, "XPU")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.randn(3, requires_grad=True, device=device)
         with self.assertRaisesRegex(AssertionError, "incorrectly registered"):
@@ -546,6 +578,65 @@ class TestCustomOpTesting(CustomOpTestCaseBase):
 class TestCustomOp(CustomOpTestCaseBase):
     test_ns = "_test_custom_op"
 
+<<<<<<< HEAD
+=======
+    def test_deploy_interaction(self):
+        # run in a different process to avoid parallel issues when we monkeypatch torch._running_with_deploy
+        script = """
+import torch
+torch._running_with_deploy = lambda: True
+
+# creating the library is a no-op, so you can DEF multiple times
+m1 = torch.library.Library("mylib4392", "DEF")  # noqa: TOR901
+m2 = torch.library.Library("mylib4392", "DEF")  # noqa: TOR901
+
+m = torch.library.Library("aten", "FRAGMENT")  # noqa: TOR901
+
+# define is a no-op
+m.define("foobarbaz9996(Tensor x) -> Tensor")
+assert not hasattr(torch.ops.aten, "foobarbaz9996"), "m.define should have been a noop"
+
+def sin_override(x):
+    raise AssertionError("m.impl should have been a noop")
+
+# impl is a no-op
+m.impl("sin", sin_override, "CompositeImplicitAutograd")
+x = torch.randn(3)
+y = torch.sin(x)
+
+# should be a no-op
+@torch.library.custom_op("mylib::foobar", mutates_args={})
+def foobar(x: torch.Tensor) -> torch.Tensor:
+    return x.sin()
+
+# should be a no-op
+@foobar.register_fake
+def _(x):
+    return torch.empty_like(x)
+
+# should be a no-op
+m2.define("foobarbaz9996(Tensor x) -> Tensor")
+
+# should be a no-op
+@torch.library.register_fake("mylib4392::foobarbaz9996")
+def _(x):
+    return torch.empty_like(x)
+        """
+        script = script.strip()
+        env = os.environ.copy()
+        try:
+            subprocess.check_output(
+                [sys.executable, "-c", script],
+                stderr=subprocess.STDOUT,
+                # On Windows, opening the subprocess with the default CWD makes `import torch`
+                # fail, so just set CWD to this script's directory
+                cwd=os.path.dirname(os.path.realpath(__file__)),
+                env=env,
+            )
+        except subprocess.CalledProcessError as e:
+            self.fail(msg=("Subprocess exception:\n" + e.output.decode("utf-8")))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_compile
     def test_functionalize_error(self):
         with torch.library._scoped_library(self.test_ns, "FRAGMENT") as lib:
@@ -583,7 +674,11 @@ class TestCustomOp(CustomOpTestCaseBase):
                 g(x)
 
     def test_invalid_schemas(self):
+<<<<<<< HEAD
         # function schema validation goes through torchgen, so this is just a
+=======
+        # function schmea validation goes through torchgen, so this is just a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # basic test.
         with self.assertRaisesRegex(AssertionError, "Invalid function schema: foo"):
             custom_ops.custom_op(f"{TestCustomOp.test_ns}::foo", "(")
@@ -902,8 +997,11 @@ class TestCustomOp(CustomOpTestCaseBase):
             return [torch.tensor(3)]
         if typ == Optional[torch.types.Number]:
             return [None, 2.718]
+<<<<<<< HEAD
         if typ == OpaqueType:
             return [make_opaque("moo")]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         origin = typing.get_origin(typ)
         if origin is Union:
             args = typing.get_args(typ)
@@ -1068,6 +1166,7 @@ class TestCustomOp(CustomOpTestCaseBase):
 
             del foo
 
+<<<<<<< HEAD
         # Define a named tuple for a Point with x and y coordinates
         Point = collections.namedtuple("Point", ["x", "y"])
         with self.assertRaisesRegex(ValueError, "unsupported type"):
@@ -1078,6 +1177,8 @@ class TestCustomOp(CustomOpTestCaseBase):
 
             del foo
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_supported_schemas(self):
         # All of these should already be tested by PyTorch codegen
         # (we share the same mechanism), but here's a sanity check.
@@ -1622,7 +1723,11 @@ class TestCustomOp(CustomOpTestCaseBase):
         lib = self.lib()
         lib.define("sin.blah(Tensor x) -> Tensor")
 
+<<<<<<< HEAD
         torch.library.register_fake(
+=======
+        torch.library.impl_abstract(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{self.test_ns}::sin.blah", torch.empty_like, lib=lib
         )
 
@@ -1635,7 +1740,11 @@ class TestCustomOp(CustomOpTestCaseBase):
         def foo(x: torch.Tensor, dim: int) -> torch.Tensor:
             raise NotImplementedError
 
+<<<<<<< HEAD
         @torch.library.register_fake(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+=======
+        @torch.library.impl_abstract(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def foo_meta(x, dim):
             output_shape = list(x.shape)
             del output_shape[dim]
@@ -1651,7 +1760,11 @@ class TestCustomOp(CustomOpTestCaseBase):
         def foo(x: torch.Tensor, dim: int) -> torch.Tensor:
             raise NotImplementedError
 
+<<<<<<< HEAD
         @torch.library.register_fake(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+=======
+        @torch.library.impl_abstract(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def foo_meta(x, dim):
             output_shape = list(x.shape)
             del output_shape[dim]
@@ -1659,7 +1772,11 @@ class TestCustomOp(CustomOpTestCaseBase):
 
         with self.assertRaisesRegex(RuntimeError, r"test_custom_ops.py:\d+"):
 
+<<<<<<< HEAD
             @torch.library.register_fake(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+=======
+            @torch.library.impl_abstract(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo_meta2(x, dim):
                 output_shape = list(x.shape)
                 del output_shape[dim]
@@ -1670,7 +1787,11 @@ class TestCustomOp(CustomOpTestCaseBase):
         def foo(x: torch.Tensor) -> torch.Tensor:
             raise NotImplementedError
 
+<<<<<<< HEAD
         @torch.library.register_fake(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+=======
+        @torch.library.impl_abstract(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def foo_meta(x):
             ctx = torch.library.get_ctx()
             r = ctx.new_dynamic_size(min=1)
@@ -1697,7 +1818,11 @@ class TestCustomOp(CustomOpTestCaseBase):
         def foo(x: torch.Tensor) -> torch.Tensor:
             raise NotImplementedError
 
+<<<<<<< HEAD
         @torch.library.register_fake(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+=======
+        @torch.library.impl_abstract(f"{TestCustomOp.test_ns}::foo", lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def foo_meta(x):
             return x.sum()
 
@@ -1782,8 +1907,12 @@ Dynamic shape operator
   Hint: Enable tracing of dynamic shape operators with `torch._dynamo.config.capture_dynamic_output_shape_ops = True`
 
   Developer debug context: _torch_testing.numpy_nonzero.default
+<<<<<<< HEAD
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0036.html""",
+=======
+""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     # pre-existing problem: torch.compile(dynamic=True) will, by default,
@@ -1841,7 +1970,11 @@ Dynamic shape operator
         lib.define("foo(Tensor x) -> Tensor")
         qualname = f"{self.test_ns}::foo"
 
+<<<<<<< HEAD
         @torch.library.register_fake(qualname, lib=self.lib())
+=======
+        @torch.library.impl_abstract(qualname, lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def foo_impl(x):
             return x.sin()
 
@@ -1864,7 +1997,11 @@ Dynamic shape operator
         op = self.get_op(qualname)
 
         with self.assertRaisesRegex(RuntimeError, r"already has .*Meta implementation"):
+<<<<<<< HEAD
             torch.library.register_fake(qualname, foo_impl, lib=self.lib())
+=======
+            torch.library.impl_abstract(qualname, func=foo_impl, lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_abstract_impl_on_existing_op_with_CompositeImplicitAutograd(self):
         lib = self.lib()
@@ -1878,7 +2015,11 @@ Dynamic shape operator
         op = self.get_op(qualname)
 
         with self.assertRaisesRegex(RuntimeError, "CompositeImplicitAutograd"):
+<<<<<<< HEAD
             torch.library.register_fake(qualname, foo_impl, lib=self.lib())
+=======
+            torch.library.impl_abstract(qualname, func=foo_impl, lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_abstract_impl_on_existing_op_with_CompositeExplicitAutograd(self):
         lib = self.lib()
@@ -1891,7 +2032,11 @@ Dynamic shape operator
         lib.impl("foo", foo_impl, "CompositeExplicitAutograd")
         op = self.get_op(qualname)
 
+<<<<<<< HEAD
         torch.library.register_fake(qualname, lambda x: x.sum(), lib=self.lib())
+=======
+        torch.library.impl_abstract(qualname, func=lambda x: x.sum(), lib=self.lib())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch._subclasses.FakeTensorMode():
             x = torch.randn(10)
             result = op(x)
@@ -2347,6 +2492,7 @@ TORCH_LIBRARY(test_autograd_function_backed_op, m) {
         loss.backward()
         self.assertEqual(x.grad, temp)
 
+<<<<<<< HEAD
     # Using a non-existent DSO is a quick way to trigger an OSError,
     # which can be used to not break BC.
     def test_load_library(self):
@@ -2355,6 +2501,8 @@ TORCH_LIBRARY(test_autograd_function_backed_op, m) {
         ):
             torch.ops.load_library("libnoexist.so")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def op_with_incorrect_schema(testcase, name):
     lib = testcase.lib()
@@ -2564,6 +2712,7 @@ class TestCustomOpAPI(TestCase):
         self.assertEqual(x, expected)
 
     @skipIfTorchDynamo("Expected to fail due to no FakeTensor support; not a bug")
+<<<<<<< HEAD
     def test_subclass_accessor_view_error(self):
         @torch.library.custom_op(
             "_torch_testing::_failing_two_tensor_accessor",
@@ -2669,6 +2818,8 @@ class TestCustomOpAPI(TestCase):
         self.assertEqual(leaf.grad, MyTwoTensor(2 * torch.ones(3), torch.ones(3)))
 
     @skipIfTorchDynamo("Expected to fail due to no FakeTensor support; not a bug")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_kwarg_only_tensors(self):
         with self.assertRaisesRegex(NotImplementedError, "kwarg-only Tensor args"):
 
@@ -2791,7 +2942,11 @@ class TestCustomOpAPI(TestCase):
                 self.assertEqual(ctx.needs_input_grad, expected)
                 return list(grad.unbind(0))
 
+<<<<<<< HEAD
         # call two applies, do a backward on the first
+=======
+        # call two applys, do a backward on the first
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def t():
             return torch.randn([], requires_grad=True)
 
@@ -4756,10 +4911,15 @@ class TestOpProfiles(TestCase):
             loaded = read_profiles_from_yaml(yaml_str)
 
 
+<<<<<<< HEAD
 only_for = ("cpu", "cuda", "xpu")
 instantiate_device_type_tests(
     TestCustomOpTesting, globals(), only_for=only_for, allow_xpu=True
 )
+=======
+only_for = ("cpu", "cuda")
+instantiate_device_type_tests(TestCustomOpTesting, globals(), only_for=only_for)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_parametrized_tests(TestCustomOp)
 instantiate_parametrized_tests(TestCustomOpAPI)
 

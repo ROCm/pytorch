@@ -478,6 +478,7 @@ torch::CppFunction autogradNotImplementedFallback() {
       &autogradNotImplementedFallbackImpl>();
 }
 
+<<<<<<< HEAD
 struct GenericViewFunc : public ViewFunc {
   GenericViewFunc(
       torch::jit::Stack non_tensor_stack,
@@ -530,6 +531,8 @@ struct GenericViewFunc : public ViewFunc {
   c10::OperatorHandle op_;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static void autogradNotImplementedInplaceOrViewFallbackImpl(
     const c10::OperatorHandle& op,
     c10::DispatchKeySet dispatch_keys,
@@ -605,6 +608,7 @@ static void autogradNotImplementedInplaceOrViewFallbackImpl(
       "input and the first output (the output can be a vector of tensors). Please change the "
       "order of your operator's parameters so that this is the case.");
   const bool is_view = aliased_input_idx.has_value();
+<<<<<<< HEAD
   size_t aliased_input_idx_val;
 
   // Save inputs before we redispatch down
@@ -617,6 +621,8 @@ static void autogradNotImplementedInplaceOrViewFallbackImpl(
       non_tensor_stack.push_back((*stack)[stack_start + i]);
     }
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   {
     at::AutoDispatchBelowADInplaceOrView guard;
@@ -672,6 +678,7 @@ static void autogradNotImplementedInplaceOrViewFallbackImpl(
       auto result = std::move(aliased_output);
       stack->at(stack->size() - num_returns + aliased_output_idx) = result;
     } else {
+<<<<<<< HEAD
       c10::IValue& aliased_output_iv =
           (*stack)[stack->size() - num_returns + aliased_output_idx];
       TORCH_CHECK(aliased_output_iv.isTensor());
@@ -692,12 +699,19 @@ static void autogradNotImplementedInplaceOrViewFallbackImpl(
       auto view_func = std::make_unique<GenericViewFunc>(
           non_tensor_stack, aliased_input_idx_val, op);
 
+=======
+      TORCH_CHECK(aliased_output_iv.isTensor());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto result = as_view(
           /* base=*/aliased_input,
           /* tensor=*/std::move(aliased_output_iv).toTensor(),
           /* is_bw_differentiable=*/true,
           /* is_fw_differentiable=*/true,
+<<<<<<< HEAD
           /* view_func=*/std::move(view_func),
+=======
+          /* view_func=*/std::move(erroring_view_func),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           /* rev_view_func=*/erroring_rev_view_func,
           /* creation_meta=*/
           InferenceMode::is_enabled()

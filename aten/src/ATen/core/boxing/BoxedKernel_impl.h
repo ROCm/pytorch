@@ -2,7 +2,11 @@
 
 namespace c10 {
 
+<<<<<<< HEAD
 inline BoxedKernel::BoxedKernel() : boxed_kernel_func_(nullptr) {}
+=======
+inline BoxedKernel::BoxedKernel() : functor_(), boxed_kernel_func_(nullptr) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 inline BoxedKernel::BoxedKernel(
     std::unique_ptr<OperatorKernel> functor,
@@ -11,9 +15,15 @@ inline BoxedKernel::BoxedKernel(
 
 template <BoxedKernel::BoxedKernelFunction* func>
 inline void BoxedKernel::make_boxed_function(
+<<<<<<< HEAD
     OperatorKernel* /*unused*/,
     const OperatorHandle& opHandle,
     DispatchKeySet /*unused*/,
+=======
+    OperatorKernel*,
+    const OperatorHandle& opHandle,
+    DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Stack* stack) {
   // Note that we're dropping the DispatchKeySet argument.
   // See Note [Plumbing Keys Through The Dispatcher 2] for details.
@@ -22,7 +32,11 @@ inline void BoxedKernel::make_boxed_function(
 
 template <BoxedKernel::BoxedKernelFunction_withDispatchKeys* func>
 inline void BoxedKernel::make_boxed_function(
+<<<<<<< HEAD
     OperatorKernel* /*unused*/,
+=======
+    OperatorKernel*,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const OperatorHandle& opHandle,
     DispatchKeySet ks,
     Stack* stack) {

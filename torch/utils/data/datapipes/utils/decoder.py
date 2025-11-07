@@ -45,8 +45,13 @@ def basichandlers(extension: str, data):
 
     Example:
         >>> import pickle
+<<<<<<< HEAD
         >>> data = pickle.dumps("some data")
         >>> new_data = basichandlers("pickle", data)
+=======
+        >>> data = pickle.dumps('some data')
+        >>> new_data = basichandlers('pickle', data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> new_data
         some data
 
@@ -61,7 +66,11 @@ def basichandlers(extension: str, data):
     if extension in "txt text transcript":
         return data.decode("utf-8")
 
+<<<<<<< HEAD
     if extension in ["cls", "cls2", "class", "count", "index", "inx", "id"]:
+=======
+    if extension in "cls cls2 class count index inx id".split():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             return int(data)
         except ValueError:
@@ -70,10 +79,17 @@ def basichandlers(extension: str, data):
     if extension in "json jsn":
         return json.loads(data)
 
+<<<<<<< HEAD
     if extension in ["pyd", "pickle"]:
         return pickle.loads(data)
 
     if extension in ["pt"]:
+=======
+    if extension in "pyd pickle".split():
+        return pickle.loads(data)
+
+    if extension in "pt".split():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stream = io.BytesIO(data)
         return torch.load(stream)
 
@@ -169,12 +185,22 @@ class ImageHandler:
     """
 
     def __init__(self, imagespec):
+<<<<<<< HEAD
         if imagespec not in list(imagespecs.keys()):
             raise AssertionError(f"unknown image specification: {imagespec}")
         self.imagespec = imagespec.lower()
 
     def __call__(self, extension, data):
         if extension.lower() not in ["jpg", "jpeg", "png", "ppm", "pgm", "pbm", "pnm"]:
+=======
+        assert imagespec in list(
+            imagespecs.keys()
+        ), f"unknown image specification: {imagespec}"
+        self.imagespec = imagespec.lower()
+
+    def __call__(self, extension, data):
+        if extension.lower() not in "jpg jpeg png ppm pgm pbm pnm".split():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
 
         try:
@@ -204,20 +230,32 @@ class ImageHandler:
                 return img
             elif atype == "numpy":
                 result = np.asarray(img)
+<<<<<<< HEAD
                 if result.dtype != np.uint8:
                     raise AssertionError(
                         f"numpy image array should be type uint8, but got {result.dtype}"
                     )
+=======
+                assert (
+                    result.dtype == np.uint8
+                ), f"numpy image array should be type uint8, but got {result.dtype}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if etype == "uint8":
                     return result
                 else:
                     return result.astype("f") / 255.0
             elif atype == "torch":
                 result = np.asarray(img)
+<<<<<<< HEAD
                 if result.dtype != np.uint8:
                     raise AssertionError(
                         f"numpy image array should be type uint8, but got {result.dtype}"
                     )
+=======
+                assert (
+                    result.dtype == np.uint8
+                ), f"numpy image array should be type uint8, but got {result.dtype}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 if etype == "uint8":
                     result = np.array(result.transpose(2, 0, 1))
@@ -236,6 +274,7 @@ def imagehandler(imagespec):
 # torch video
 ################################################################
 def videohandler(extension, data):
+<<<<<<< HEAD
     if extension not in [
         "mp4",
         "ogv",
@@ -247,6 +286,9 @@ def videohandler(extension, data):
         "webm",
         "wmv",
     ]:
+=======
+    if extension not in "mp4 ogv mjpeg avi mov h264 mpg webm wmv".split():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
     try:

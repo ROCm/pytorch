@@ -23,11 +23,19 @@ mm_short_configs = op_bench.config_list(
 )
 
 mm_long_configs = op_bench.cross_product_configs(
+<<<<<<< HEAD
     M=[256, 1024, 3000],
     N=[512, 4096],
     K=[512, 4096],
     device=["cuda"],
     dtype=[torch.float16, torch.bfloat16, torch.float32],
+=======
+    M=[8, 128],
+    N=[32, 64],
+    K=[256, 512],
+    device=["cpu", "cuda"],
+    dtype=[torch.float, torch.bfloat16],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tags=["long"],
 )
 
@@ -35,12 +43,17 @@ mm_long_configs = op_bench.cross_product_configs(
 class MmOpBenchmark(op_bench.TorchBenchmarkBase):
     def init(self, M, N, K, device, dtype, op_func):
         self.inputs = {
+<<<<<<< HEAD
             "input_one": torch.randn(
                 M, N, device=device, requires_grad=self.auto_set(), dtype=dtype
             ),
             "input_two": torch.randn(
                 N, K, device=device, requires_grad=self.auto_set(), dtype=dtype
             ),
+=======
+            "input_one": torch.randn(M, N, device=device).to(dtype=dtype),
+            "input_two": torch.randn(N, K, device=device).to(dtype=dtype),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         self.op_func = op_func
 
@@ -51,9 +64,12 @@ class MmOpBenchmark(op_bench.TorchBenchmarkBase):
 op_bench.generate_pt_tests_from_op_list(
     ops_list, mm_short_configs + mm_long_configs, MmOpBenchmark
 )
+<<<<<<< HEAD
 op_bench.generate_pt_gradient_tests_from_op_list(
     ops_list, mm_long_configs, MmOpBenchmark
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

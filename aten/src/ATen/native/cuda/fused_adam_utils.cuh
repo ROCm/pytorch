@@ -108,7 +108,11 @@ struct FusedAdamMathFunctor {
       "depth of 4 for Adam, depth of 5 for Adam with AMSGrad.");
   using opmath_t = at::opmath_type<scalar_type>;
   C10_DEVICE __forceinline__ void operator()(
+<<<<<<< HEAD
       int64_t chunk_size,
+=======
+      int chunk_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       FusedOptimizerTensorListMetadata<depth>& tl,
       const float* lr_ptr,
       const double& lr,

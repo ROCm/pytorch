@@ -2,8 +2,11 @@
 import itertools
 import logging
 import os
+<<<<<<< HEAD
 import pathlib
 import subprocess
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import tempfile
 import unittest
@@ -22,6 +25,7 @@ from torch._dynamo.device_interface import get_interface_for_device
 from torch._dynamo.testing import rand_strided, same
 from torch._dynamo.utils import counters
 from torch._inductor import config
+<<<<<<< HEAD
 from torch._inductor.codecache import WritableTempFile
 from torch._inductor.cpp_builder import normalize_path_separator
 from torch._inductor.package import package_aoti
@@ -37,22 +41,41 @@ from torch._utils_internal import full_aoti_runtime_assert
 from torch.ao.quantization.quantize_pt2e import convert_pt2e, prepare_pt2e
 from torch.ao.quantization.quantizer.x86_inductor_quantizer import X86InductorQuantizer
 from torch.export import Dim, export
+=======
+from torch._inductor.package import package_aoti
+from torch._inductor.runtime.runtime_utils import cache_dir
+from torch._inductor.test_case import TestCase
+from torch._inductor.utils import is_big_gpu, run_and_get_cpp_code
+from torch._utils_internal import full_aoti_runtime_assert
+from torch.ao.quantization.quantize_pt2e import convert_pt2e, prepare_pt2e
+from torch.ao.quantization.quantizer.x86_inductor_quantizer import X86InductorQuantizer
+from torch.export import Dim, export, export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.export.pt2_archive._package import load_pt2
 from torch.testing import FileCheck
 from torch.testing._internal import common_utils
 from torch.testing._internal.common_cuda import (
+<<<<<<< HEAD
     _get_torch_cuda_version,
     CDNA2OrLater,
     IS_SM90,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_FP8,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
     SM80OrLater,
+<<<<<<< HEAD
     tf32_on_and_off,
 )
 from torch.testing._internal.common_device_type import (
     _has_sufficient_memory,
     e4m3_type,
+=======
+)
+from torch.testing._internal.common_device_type import (
+    _has_sufficient_memory,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipCUDAIf,
 )
 from torch.testing._internal.common_quantization import (
@@ -66,6 +89,7 @@ from torch.testing._internal.common_utils import (
     IS_FBCODE,
     IS_MACOS,
     IS_WINDOWS,
+<<<<<<< HEAD
     MACOS_VERSION,
     MI300_ARCH,
     parametrize,
@@ -86,6 +110,15 @@ from torch.testing._internal.inductor_utils import (
     HAS_XPU_AND_TRITON,
     IS_BIG_GPU,
 )
+=======
+    parametrize,
+    skipIfRocm,
+    skipIfXpu,
+    TEST_WITH_ROCM,
+)
+from torch.testing._internal.custom_tensor import CustomTensorPlainOut
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU, IS_BIG_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.logging_utils import LoggingTestCase, make_logging_test
 from torch.testing._internal.triton_utils import requires_gpu
 from torch.utils import _pytree as pytree
@@ -106,7 +139,10 @@ if HAS_GPU:
         add_kernel_autotuned_weird_param_order,
         add_kernel_on_device_tma_new_api,
         add_kernel_on_device_tma_old_api,
+<<<<<<< HEAD
         add_kernel_with_boolean_param,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         add_kernel_with_none_param_and_equal_to_1_arg,
         add_kernel_with_optional_param,
         add_kernel_with_scaling,
@@ -167,6 +203,7 @@ except (unittest.SkipTest, ImportError):
     raise
 
 
+<<<<<<< HEAD
 def get_module_ext_type():
     if IS_WINDOWS:
         return "pyd"
@@ -180,6 +217,11 @@ class AOTInductorTestsTemplate:
     @common_utils.parametrize("embed_kernel_binary", [False, True])
     @common_utils.parametrize("max_autotune", [False, True])
     @skipIfRocmArch(MI300_ARCH)
+=======
+class AOTInductorTestsTemplate:
+    @common_utils.parametrize("embed_kernel_binary", [False, True])
+    @common_utils.parametrize("max_autotune", [False, True])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_simple(self, embed_kernel_binary, max_autotune):
         if self.device == "cpu" and IS_MACOS and max_autotune:
             raise unittest.SkipTest("max_autotune not supported on macos")
@@ -208,9 +250,13 @@ class AOTInductorTestsTemplate:
             _, code = run_and_get_cpp_code(
                 AOTIRunnerUtil.compile, model, example_inputs
             )
+<<<<<<< HEAD
             if self.device == "mps":
                 FileCheck().check("aoti_torch_mps_get_kernel_function(").run(code)
             elif self.device == GPU_TYPE:
+=======
+            if self.device == GPU_TYPE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 FileCheck().check("launchKernel(").run(code)
                 if config.aot_inductor.embed_kernel_binary:
                     # Not expect to see launchKernel("CUBIN_FILE_NAME"
@@ -221,6 +267,7 @@ class AOTInductorTestsTemplate:
                 model, example_inputs, "AOTInductorModelRunMinimalArrayrefInterface(", 1
             )
 
+<<<<<<< HEAD
     def test_triton_kernel_bool_param(self):
         if self.device != GPU_TYPE or self.device == "mps":
             raise unittest.SkipTest("requires GPU")
@@ -241,10 +288,13 @@ class AOTInductorTestsTemplate:
         inputs = (torch.randn(4, device=self.device),)
         self.check_model(Model(), inputs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         IS_FBCODE,
         "toolchain doesn't support ptx to fatbin",
     )
+<<<<<<< HEAD
     @skipIfMPS
     @skipIfRocm
     # Skip embed_kernel_binary == True for now as it shows random
@@ -253,6 +303,10 @@ class AOTInductorTestsTemplate:
     @unittest.skipIf(
         _get_torch_cuda_version() < (12, 6), "Test is only supported on CUDA 12.6+"
     )
+=======
+    @skipIfRocm
+    @common_utils.parametrize("embed_kernel_binary", [True, False])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_simple_multi_arch(self, embed_kernel_binary):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU_TYPE")
@@ -327,20 +381,27 @@ class AOTInductorTestsTemplate:
             torch.randn(10, 10, device=self.device),
             torch.randn(10, 10, device=self.device),
         )
+<<<<<<< HEAD
         expected_path = normalize_path_separator(
             os.path.join(
                 tempfile.mkdtemp(dir=cache_dir()), f"model.{get_module_ext_type()}"
             )
         )
+=======
+        expected_path = os.path.join(tempfile.mkdtemp(dir=cache_dir()), "model.so")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         actual_path = AOTIRunnerUtil.legacy_compile(
             model, example_inputs, options={"aot_inductor.output_path": expected_path}
         )
         self.assertTrue(actual_path == expected_path)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "different # of input/output/constants in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_empty_constant_folding(self):
         class Model(torch.nn.Module):
             def __init__(self, device):
@@ -498,6 +559,7 @@ class AOTInductorTestsTemplate:
             ep, inductor_configs={"aot_inductor.use_runtime_constant_folding": True}
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_MPS and MACOS_VERSION < 14.0,
         "Compilation error",
@@ -531,6 +593,8 @@ class AOTInductorTestsTemplate:
             },
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("dynamic", [False, True])
     @common_utils.parametrize("tma_version", ["new", "old"])
     def test_triton_kernel_on_device_tma(self, dynamic, tma_version):
@@ -583,7 +647,11 @@ class AOTInductorTestsTemplate:
 
         triton.set_allocator(
             lambda size, align, stream: torch.empty(
+<<<<<<< HEAD
                 size, dtype=torch.int8, device=GPU_TYPE
+=======
+                size, dtype=torch.int8, device="cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
@@ -622,9 +690,12 @@ class AOTInductorTestsTemplate:
         example_inputs = (torch.randn(32, 64, device=self.device),)
         self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
     @unittest.skip(
         "install_free_tensors leads to OOM - https://github.com/pytorch/pytorch/issues/164062"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_large_weight(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -712,6 +783,7 @@ class AOTInductorTestsTemplate:
         with config.patch({"aot_inductor.force_mmap_weights": True}):
             self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
     def test_large_mmaped_weights_on_disk(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -730,6 +802,8 @@ class AOTInductorTestsTemplate:
         ):
             self.check_model(Model(), example_inputs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_with_offset(self):
         class Model(torch.nn.Module):
             def __init__(self, device):
@@ -804,7 +878,10 @@ class AOTInductorTestsTemplate:
         IS_FBCODE,
         "Not yet runnable in fbcode when the model.so is newly generated while older PyTorch is used",
     )
+<<<<<<< HEAD
     @tf32_on_and_off(0.005)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_deconv_freezing(self):
         dtypes = [torch.float]
         if torch._C._has_mkldnn and torch.ops.mkldnn._is_mkldnn_bf16_supported():
@@ -880,10 +957,13 @@ class AOTInductorTestsTemplate:
             inp = (torch.ones(3, device=self.device), torch.ones(3, device=self.device))
             self.check_model(M(), inp)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_MPS and MACOS_VERSION < 14.0,
         "MPS BFloat16 is only supported on MacOS 14+",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_empty_cat_dtype_promotion(self):
         class Foo(torch.nn.Module):
             def forward(self, x, y):
@@ -1173,7 +1253,10 @@ class AOTInductorTestsTemplate:
             options={"debug_check_inf_and_nan": True},
         )
 
+<<<<<<< HEAD
     @skipIfWindowsXPU(msg="crash on Windows XPU.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_assert_async(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU_TYPE")
@@ -1207,7 +1290,10 @@ class AOTInductorTestsTemplate:
         example_inputs = (x, y)
         self.check_model(Model(), example_inputs, dynamic_shapes=dynamic_shapes)
 
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) confirm, Crash: access violation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_large_dynamic_dim(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -1229,6 +1315,10 @@ class AOTInductorTestsTemplate:
         not PLATFORM_SUPPORTS_FP8,
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
+<<<<<<< HEAD
+=======
+    @skipIfRocm  # _scaled_mm_out_cuda  is not compiled for ROCm platform
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu
     def test_fp8(self):
         # cuda only
@@ -1241,7 +1331,11 @@ class AOTInductorTestsTemplate:
                 self.out_dtype = dtype
 
             def forward(self, x, weight, bias, scale_a, scale_b):
+<<<<<<< HEAD
                 weight = weight.to(e4m3_type)
+=======
+                weight = weight.to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 output = torch._scaled_mm(
                     x,
                     weight,
@@ -1263,7 +1357,11 @@ class AOTInductorTestsTemplate:
         b_inverse_scale = 1 / b_scale
 
         x_shape = (16, 16)
+<<<<<<< HEAD
         x = torch.rand(*x_shape, device=GPU_TYPE, dtype=dtype).to(e4m3_type)
+=======
+        x = torch.rand(*x_shape, device=GPU_TYPE, dtype=dtype).to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim0_x = Dim("dim0_x", min=1, max=2048)
         dynamic_shapes = ({0: dim0_x}, None, None, None, None)
         self.check_model(
@@ -1273,6 +1371,7 @@ class AOTInductorTestsTemplate:
         )
 
     @unittest.skipIf(
+<<<<<<< HEAD
         TEST_WITH_ROCM or not IS_SM90,
         "scaled_grouped_mm is only supported on SM90",
     )
@@ -1342,6 +1441,12 @@ class AOTInductorTestsTemplate:
         not PLATFORM_SUPPORTS_FP8,
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
+=======
+        not PLATFORM_SUPPORTS_FP8,
+        "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
+    )
+    @skipIfRocm  # _scaled_mm_out_cuda  is not compiled for ROCm platform
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu
     def test_fp8_view_of_param(self):
         # cuda only
@@ -1376,13 +1481,23 @@ class AOTInductorTestsTemplate:
         input_bias = torch.rand(32, device=self.device, dtype=dtype)
         weight_shape = (32, 16)
         weight = torch.rand(*weight_shape, device=self.device, dtype=dtype).to(
+<<<<<<< HEAD
             e4m3_type
+=======
+            torch.float8_e4m3fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         a_inverse_scale = 1 / a_scale
         b_inverse_scale = 1 / b_scale
 
         x_shape = (16, 16)
+<<<<<<< HEAD
         x = torch.rand(*x_shape, device=self.device, dtype=dtype).to(e4m3_type)
+=======
+        x = torch.rand(*x_shape, device=self.device, dtype=dtype).to(
+            torch.float8_e4m3fn
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim0_x = Dim("dim0_x", min=1, max=2048)
         dynamic_shapes = ({0: dim0_x}, None, None, None)
         self.check_model(
@@ -1512,7 +1627,10 @@ class AOTInductorTestsTemplate:
             dynamic_shapes=dynamic_shapes,
         )
 
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) confirm, Crash: access violation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_multiple_dynamic(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -1549,9 +1667,13 @@ class AOTInductorTestsTemplate:
         )
 
     # scaled_dot_product_flash_attention
+<<<<<<< HEAD
     @unittest.skipIf(
         not HAS_XPU_AND_TRITON and not SM80OrLater, "bfloat16 only supported in sm80+"
     )
+=======
+    @unittest.skipIf(not SM80OrLater, "bfloat16 only supported in sm80+")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sdpa(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -1611,6 +1733,7 @@ class AOTInductorTestsTemplate:
             self.check_model(Model(self.device), example_inputs)
 
     @skipIfNoFBGEMM
+<<<<<<< HEAD
     def test_quantized_linear_bias_none(self):
         class Model(torch.nn.Module):
             def __init__(self, device):
@@ -1627,6 +1750,8 @@ class AOTInductorTestsTemplate:
             self.check_model(Model(self.device), example_inputs)
 
     @skipIfNoFBGEMM
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_quanatized_int8_linear(self):
         class Model(torch.nn.Module):
             def __init__(self, device):
@@ -1677,6 +1802,7 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(Repro(), example_inputs)
 
+<<<<<<< HEAD
     @skipIfMPS
     @config.patch({"unbacked_symint_fallback": 12})
     @parametrize("shift_k", [0, 1, 2, 3])
@@ -1808,6 +1934,8 @@ class AOTInductorTestsTemplate:
         self.check_model(model, example_inputs, dynamic_shapes=spec)
         torch.cuda.caching_allocator_enable(True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch({"triton.autotune_at_compile_time": None})
     def test_stride_with_unbacked_expr(self):
         class Repro(torch.nn.Module):
@@ -1827,10 +1955,13 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(Repro(), example_inputs)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_MPS and MACOS_VERSION < 14.0,
         "bfloat16 is only supported on MacOS 14+",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_size_with_unbacked_add_expr(self):
         # Tests AOTI autotuning to make sure the correct input tensor sizes
         # are generated for sizes that include an expr such as s0 + u0.
@@ -1843,6 +1974,10 @@ class AOTInductorTestsTemplate:
 
                 backed = z.size(0)
                 unbacked = scalar.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(unbacked)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 unbacked_add_expr = backed + unbacked
                 repeated = x.repeat(unbacked_add_expr, 1)
@@ -1868,7 +2003,10 @@ class AOTInductorTestsTemplate:
         }
         self.check_model(Repro(), example_inputs, dynamic_shapes=spec)
 
+<<<<<<< HEAD
     @skipIfWindowsXPU(msg="crash on Windows XPU.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_size_with_unbacked_add_expr_transitive(self):
         # Edge case with torch._check(expr1, expr2) + torch._check(expr2, unbacked).
         # When generating example input sizes for autotuning, it should coalesce
@@ -1882,6 +2020,11 @@ class AOTInductorTestsTemplate:
                 index_select = torch.index_select(embeddings, 0, index)
 
                 u0, u1 = lst.tolist()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(u0)
+                torch._check_is_size(u1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 backed0, backed1 = z.size(0), z.size(1)
 
                 repeated0 = y.repeat(backed0 + u0, 1)
@@ -1931,6 +2074,12 @@ class AOTInductorTestsTemplate:
         class Repro(torch.nn.Module):
             def forward(self, values, repeats, mask, embeddings, x, y, z, lst):
                 u0, u1, u2 = lst.tolist()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(u0)
+                torch._check_is_size(u1)
+                torch._check_is_size(u2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 backed = z.size(0)
                 backed1 = z.size(1)
 
@@ -2057,7 +2206,11 @@ class AOTInductorTestsTemplate:
                 self.user_float_feature_idx = user_float_feature_idx
                 self.register_buffer(
                     "_tensor_constant0",
+<<<<<<< HEAD
                     torch.ones(5, device=device, dtype=torch.float32),
+=======
+                    torch.ones(1, device=device, dtype=torch.float32),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     persistent=True,
                 )
                 self.register_buffer(
@@ -2068,7 +2221,10 @@ class AOTInductorTestsTemplate:
                 self.sub_mod = SubModule(device)
 
             def forward(self, x):
+<<<<<<< HEAD
                 self._tensor_constant0[1:2] = 1
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return (
                     torch.index_select(
                         x, 1, torch.tensor(self.user_float_feature_idx, device=x.device)
@@ -2085,7 +2241,11 @@ class AOTInductorTestsTemplate:
             Foo(user_float_feature_idx, self.device), example_inputs, strict=False
         ).run_decompositions()
         gm = ep.module()
+<<<<<<< HEAD
         self.check_model(gm.to(self.device), example_inputs)
+=======
+        self.check_model(gm, example_inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_large_grid(self):
         if self.device != GPU_TYPE:
@@ -2288,7 +2448,10 @@ class AOTInductorTestsTemplate:
             dynamic_shapes=dynamic_shapes,
         )
 
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) confirm, Crash: access violation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("dynamic", [False, True])
     def test_cond_mismatched_branch_output(self, dynamic):
         inputs = (
@@ -2301,7 +2464,11 @@ class AOTInductorTestsTemplate:
             # Note the minimum has to be 4 because the model
             # is slicing over the first dim with [2:], if first
             # dim is 2 or 3, the slicing will be 0/1 specialized,
+<<<<<<< HEAD
             # causing a constraint violation error.
+=======
+            # causing a constraint violation eror.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dim0_a = Dim("s0", min=4, max=1024)
             dim0_b = Dim("s1", min=4, max=1024)
             dynamic_shapes = {
@@ -2348,6 +2515,7 @@ class AOTInductorTestsTemplate:
             dynamic_shapes=dynamic_shapes,
         )
 
+<<<<<<< HEAD
     def test_cond_symint_input_disable_one_pass(self):
         class M(torch.nn.Module):
             def forward(self, x, y, z):
@@ -2381,6 +2549,8 @@ class AOTInductorTestsTemplate:
                 dynamic_shapes=dynamic_shapes,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_while_loop_simple(self):
         inputs = (
             torch.randn((10, 20), device=self.device),
@@ -2433,6 +2603,7 @@ class AOTInductorTestsTemplate:
             dynamic_shapes=dynamic_shapes,
         )
 
+<<<<<<< HEAD
     # mps doesn't support float64
     @skipIfMPS
     @unittest.skipIf(
@@ -2450,6 +2621,10 @@ class AOTInductorTestsTemplate:
                 device=self.device,
             ),
         )
+=======
+    def test_while_loop_with_parameters(self):
+        inputs = (torch.randn((10, 20), device=self.device),)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim0_a = Dim("s0", min=2, max=1024)
         dynamic_shapes = {
             "c": {},
@@ -2703,9 +2878,12 @@ class AOTInductorTestsTemplate:
         example_inputs = (torch.randn(10, device=self.device),)
         self.check_model(Model(self.device), example_inputs)
 
+<<<<<<< HEAD
     @skipIfWindows(
         msg="OpenMP crashed application on windows"
     )  # TODO: (xuhancn) need to root cause and fix.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_buffer_mutation_3(self):
         class KVCache(torch.nn.Module):
             def __init__(
@@ -2771,6 +2949,10 @@ class AOTInductorTestsTemplate:
         torch._export.aot_compile(Model(), example_inputs)
 
     @skipCUDAIf(True, "Test for x86 backend")
+<<<<<<< HEAD
+=======
+    @skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(IS_FBCODE, "Need newer ideep")
     def test_buffer_mutation_and_force_mmap_weights(self):
         class Model(nn.Module):
@@ -2790,7 +2972,13 @@ class AOTInductorTestsTemplate:
             config.patch({"freezing": True, "aot_inductor.force_mmap_weights": True}),
             torch.no_grad(),
         ):
+<<<<<<< HEAD
             exported_model = export(model, example_inputs, strict=True).module()
+=======
+            exported_model = export_for_training(
+                model, example_inputs, strict=True
+            ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             quantizer = X86InductorQuantizer()
             quantizer.set_global(
                 xiq.get_default_x86_inductor_quantization_config(reduce_range=True)
@@ -2802,7 +2990,10 @@ class AOTInductorTestsTemplate:
 
             self.check_model(converted_model, example_inputs)
 
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fallback_mem_leak_fix(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -2847,7 +3038,10 @@ class AOTInductorTestsTemplate:
         torch.testing.assert_close(actual, expected)
 
     @requires_multigpu()
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_replicate_on_devices(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -2887,7 +3081,10 @@ class AOTInductorTestsTemplate:
             self.assertTrue(same(result_cpu, result_gpu.cpu()))
 
     @requires_multigpu()
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_on_gpu_device1(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -3016,9 +3213,12 @@ class AOTInductorTestsTemplate:
                 result_package = model_package(*inputs_on_device)
             self.assertTrue(same(result_ref.cpu(), result_package.cpu()))
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul, "sin and mm are fused in native matmul"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reuse_kernel(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -3036,6 +3236,7 @@ class AOTInductorTestsTemplate:
             torch.randn(87, 87, device=self.device),
         )
         model = Model()
+<<<<<<< HEAD
 
         # 1e-4 is the tol value used in pytorch/torch/_dynamo/utils.py
         self.check_model(model, example_inputs, atol=1e-4, rtol=1e-4)
@@ -3045,6 +3246,13 @@ class AOTInductorTestsTemplate:
                 model, example_inputs, "aoti_torch_mps_get_kernel_function(", 1
             )
         elif self.device == GPU_TYPE:
+=======
+        self.check_model(
+            model, example_inputs, atol=1e-4, rtol=1e-4
+        )  # 1e-4 is the tol value used in pytorch/torch/_dynamo/utils.py
+
+        if self.device == GPU_TYPE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.code_check_count(
                 model, example_inputs, "triton_poi_fused_sin_0 = loadKernel(", 1
             )
@@ -3111,6 +3319,7 @@ class AOTInductorTestsTemplate:
 
         example_inputs = (x, y, z)
         model = Model(self.device).to(dtype=torch.float)
+<<<<<<< HEAD
         self.check_model(
             model,
             example_inputs,
@@ -3118,6 +3327,9 @@ class AOTInductorTestsTemplate:
             atol=1e-5,
             rtol=1e-5,
         )
+=======
+        self.check_model(model, example_inputs, dynamic_shapes=dynamic_shapes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_fake_tensor_device_validation(self):
         if self.device != GPU_TYPE:
@@ -3449,9 +3661,16 @@ class AOTInductorTestsTemplate:
 
         # Call eval() here so that batch_norm won't update the running stats
         # Use float64 to avoid numeric difference failure
+<<<<<<< HEAD
         dtype = torch.float32 if self.device == "mps" else torch.float64
         model = Model().to(device=self.device, dtype=dtype).eval()
         example_inputs = (torch.randn(4, 3, 64, 64, device=self.device, dtype=dtype),)
+=======
+        model = Model().to(device=self.device, dtype=torch.float64).eval()
+        example_inputs = (
+            torch.randn(4, 3, 64, 64, device=self.device, dtype=torch.float64),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.check_model(model, example_inputs)
 
     def test_triton_next_power_of_2(self):
@@ -3482,7 +3701,10 @@ class AOTInductorTestsTemplate:
         self.check_model(Model(), example_inputs)
 
     @common_utils.parametrize("minmax", [min, max])
+<<<<<<< HEAD
     @skipIfWindowsXPU(msg="crash on Windows XPU.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sympy_cpp_printer_min_max(self, minmax):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -3513,7 +3735,10 @@ class AOTInductorTestsTemplate:
         torch._dynamo.mark_dynamic(example_inputs[1], 0)
         self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("grid_type", [1, 2, 3])
     @common_utils.parametrize("num_dims", [1, 2])
     @common_utils.parametrize("dynamic", [False, True])
@@ -3972,7 +4197,10 @@ class AOTInductorTestsTemplate:
         x = torch.randn(16, 16, device=self.device)
         self.check_model(Model(), (x,))
 
+<<<<<<< HEAD
     @skipIfWindowsXPU(msg="crash on Windows XPU.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_dynamic_grid(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -4317,7 +4545,11 @@ class AOTInductorTestsTemplate:
         expected_original_fqns = {
             "L__self___test_param": "test_param",
             "L__self___test_buf": "test_buf",
+<<<<<<< HEAD
             "L__self___foo_bar_0": "foo_bar.0",
+=======
+            "getattr_L__self___foo_bar___0__": "foo_bar.0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "L__self___foo_bar_test_param": "foo_bar.test_param",
             "L__self___foo_bar_test_buf": "foo_bar.test_buf",
         }
@@ -4328,7 +4560,11 @@ class AOTInductorTestsTemplate:
         expected_dtypes = {
             "L__self___test_param": 6,
             "L__self___test_buf": 6,
+<<<<<<< HEAD
             "L__self___foo_bar_0": 6,
+=======
+            "getattr_L__self___foo_bar___0__": 6,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "L__self___foo_bar_test_param": 6,
             "L__self___foo_bar_test_buf": 6,
         }
@@ -4470,7 +4706,10 @@ class AOTInductorTestsTemplate:
         model.weight += 1
         self.check_model(model, example_inputs)
 
+<<<<<<< HEAD
     @skipIfWindowsXPU(msg="crash on Windows XPU.")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_extern_kernel_arg(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
@@ -4507,6 +4746,10 @@ class AOTInductorTestsTemplate:
 
         self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
+=======
+    # @skipIfXpu(msg="torch.xpu.memory_allocated not supported yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_reinterpret_view_mem_leak(self):
         # Check for memory leak when using user-defined Triton Kernel + AOTI.
         if self.device != GPU_TYPE:
@@ -4546,7 +4789,10 @@ class AOTInductorTestsTemplate:
         expected = Model()(*example_inputs)
         torch.testing.assert_close(actual, expected)
 
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     @common_utils.parametrize("dynamic", [False, True])
     @common_utils.parametrize("autotuning", [False, True])
@@ -4638,7 +4884,11 @@ class AOTInductorTestsTemplate:
             def foo(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
                 return a[: b.item()]
 
+<<<<<<< HEAD
             @torch.library.register_fake("mylib::foo", lib=lib)
+=======
+            @torch.library.impl_abstract("mylib::foo", lib=lib)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo_fake_impl(a, b):
                 ctx = torch.library.get_ctx()
                 u = ctx.new_dynamic_size()
@@ -4702,7 +4952,10 @@ class AOTInductorTestsTemplate:
         with self.assertRaisesRegex(Exception, "run_func_(.*) API call failed "):
             optimized(*input2)
 
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) confirm, Crash: access violation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_put_with_none_index(self):
         # index_put falls back in the deterministic mode
         with DeterministicGuard(True):
@@ -4727,6 +4980,7 @@ class AOTInductorTestsTemplate:
     @patch.dict(os.environ, {"AOTI_RUNTIME_CHECK_INPUTS": "1"})
     def test_runtime_checks(self):
         class Model(torch.nn.Module):
+<<<<<<< HEAD
             def forward(self, inputs):
                 return list(inputs.values())
 
@@ -4734,6 +4988,26 @@ class AOTInductorTestsTemplate:
         dtypes = [
             torch.float16,
             torch.float32,
+=======
+            def __init__(self) -> None:
+                super().__init__()
+
+            if SM80OrLater:
+
+                def forward(self, x0, x1, x2, x3, x4, x5, x6, x7, x8, x9):
+                    return (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
+
+            else:
+
+                def forward(self, x0, x1, x2, x4, x5, x6, x7, x8, x9):
+                    return (x0, x1, x2, x4, x5, x6, x7, x8, x9)
+
+        inputs = []
+        dtypes = [
+            torch.float16,
+            torch.float32,
+            torch.float64,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.bool,
             torch.int8,
             torch.int16,
@@ -4741,6 +5015,7 @@ class AOTInductorTestsTemplate:
             torch.int64,
             torch.uint8,
         ]
+<<<<<<< HEAD
 
         if not TEST_MPS:
             dtypes.append(torch.float64)
@@ -4751,11 +5026,18 @@ class AOTInductorTestsTemplate:
             inputs[f"x_{str(dtype)}"] = torch.ones(
                 4, 8, 10, dtype=dtype, device=self.device
             )
+=======
+        if SM80OrLater:
+            dtypes.append(torch.bfloat16)
+        for dtype in dtypes:
+            inputs.append(torch.ones(4, 8, 10, dtype=dtype, device=self.device))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dim0 = Dim("s0", min=2, max=1024)
         dim1 = Dim("s1", min=2, max=512)
         dim2 = Dim("s2", min=2, max=128)
         dynamic_shapes = {
+<<<<<<< HEAD
             "x_torch.float16": {0: dim0},
             "x_torch.float32": {0: dim0},
             "x_torch.bool": {1: dim1},
@@ -4773,10 +5055,28 @@ class AOTInductorTestsTemplate:
         m = Model()
         inputs = (inputs,)
         dynamic_shapes = (dynamic_shapes,)
+=======
+            "x0": {0: dim0},
+            "x1": {0: dim0},
+            "x2": {0: dim0},
+            "x4": {1: dim1},
+            "x5": {1: dim1},
+            "x6": {},
+            "x7": {2: dim2},
+            "x8": {2: dim2},
+            "x9": {2: dim2},
+        }
+        if SM80OrLater:
+            dynamic_shapes["x3"] = {1: dim1}
+
+        m = Model()
+        inputs = tuple(inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch.no_grad():
             so_path = AOTIRunnerUtil.legacy_compile(
                 m, inputs, dynamic_shapes=dynamic_shapes
             )
+<<<<<<< HEAD
 
         # Expected results for the following checks:
         # ("unmatched dtype", "unmatched dim value at", "dim value is too", "unmatched stride value at")
@@ -4790,26 +5090,50 @@ class AOTInductorTestsTemplate:
             # 9 dynamic dims
             expected_results = (9, 19, 16, 19)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with open(os.path.splitext(so_path)[0] + ".cpp") as cpp:
             src_code = cpp.read()
             FileCheck().check_count(
                 "unmatched dtype",
+<<<<<<< HEAD
                 expected_results[0],
+=======
+                10 if SM80OrLater else 9,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 exactly=True,
             ).run(src_code)
             FileCheck().check_count(
                 "unmatched dim value at",
+<<<<<<< HEAD
                 expected_results[1],
+=======
+                21
+                if SM80OrLater
+                else 19,  # we have 9 dynamic dims for which we generate different checks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 exactly=True,
             ).run(src_code)
             FileCheck().check_count(
                 "dim value is too",
+<<<<<<< HEAD
                 expected_results[2],
+=======
+                18
+                if SM80OrLater
+                else 16,  # we have 9 dynamic dims for which we generate two checks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 exactly=True,
             ).run(src_code)
             FileCheck().check_count(
                 "unmatched stride value at",
+<<<<<<< HEAD
                 expected_results[3],
+=======
+                21
+                if SM80OrLater
+                else 19,  # we have 9 symbolic strides for which we don't generate checks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 exactly=True,
             ).run(src_code)
 
@@ -4983,7 +5307,11 @@ class AOTInductorTestsTemplate:
         self.assertTrue(result[0].data_ptr() != result[1].data_ptr())
 
     def test_multiple_output_alias(self):
+<<<<<<< HEAD
         # Test when multiple outputs alias the same tensor
+=======
+        # Test when mutliple outputs alias the same tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Model(torch.nn.Module):
             def forward(self, x):
                 squared = x * x
@@ -5073,10 +5401,13 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_MPS and MACOS_VERSION < 14.0,
         "FFT operations are only supported on MacOS 14+",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fft_c2c(self):
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -5161,10 +5492,14 @@ class AOTInductorTestsTemplate:
             )
             self.assertTrue(same(model(*example_input), actual))
 
+<<<<<<< HEAD
     # Temporarily skipping test as pytorch/cpuinfo not able to retrieve cache size for
     # AMD EPYC 9575F 64-Core Processor CPU in gfx942 VM Runners
     @common_utils.parametrize("max_autotune", [True, False])
     @skipIfRocmArch(MI300_ARCH)
+=======
+    @common_utils.parametrize("max_autotune", [True, False])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_misc_1(self, max_autotune):
         if self.device == "cpu" and IS_MACOS and max_autotune:
             raise unittest.SkipTest("max_autotune not supported on macos")
@@ -5227,7 +5562,10 @@ class AOTInductorTestsTemplate:
         }
         self.check_model(model, example_inputs, dynamic_shapes=dynamic_shapes)
 
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "matmul is generated")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_aoti_debug_printer_codegen(self):
         # basic addmm model to test codegen for aoti intermediate debug printer
         class Model(torch.nn.Module):
@@ -5247,6 +5585,7 @@ class AOTInductorTestsTemplate:
         a = torch.randn(batch, M, K, device=self.device)
         example_inputs = (a,)
 
+<<<<<<< HEAD
         if self.device == "mps":
             kernel_calls = [("aoti_torch_mps_addmm_out", 2)]
         elif self.device == GPU_TYPE:
@@ -5256,6 +5595,18 @@ class AOTInductorTestsTemplate:
             ]
         else:
             kernel_calls = [("aoti_torch_cpu_addmm_out", 2)]
+=======
+        kernel_calls = (
+            [
+                ("triton_poi_fused_0", 1),
+                (f"aoti_torch_{GPU_TYPE}_addmm_out", 2),
+            ]
+            if self.device == GPU_TYPE
+            else [
+                ("aoti_torch_cpu_addmm_out", 2),
+            ]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # test default debug printing all tensor values codegen
         with config.patch({"aot_inductor.debug_intermediate_value_printer": "2"}):
@@ -5311,9 +5662,12 @@ class AOTInductorTestsTemplate:
                 FileCheck().check_not(f"before_launch - {kernel_name}").run(code)
                 FileCheck().check_not(f"after_launch - {kernel_name}").run(code)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul, "different kernel name when native matmul"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("enable_kernel_profile", (True, False))
     def test_aoti_profiler(self, enable_kernel_profile):
         # basic addmm model
@@ -5347,6 +5701,7 @@ class AOTInductorTestsTemplate:
             _, code = run_and_get_cpp_code(
                 AOTIRunnerUtil.compile, model, example_inputs
             )
+<<<<<<< HEAD
             shim_fn_codes = f'RAIIAtenRecordFunctionHandle .*\\("{kernel_calls}"'
             if enable_kernel_profile:
                 FileCheck().check_regex(shim_fn_codes).run(code)
@@ -5400,6 +5755,15 @@ class AOTInductorTestsTemplate:
                     op_events[0]["args"].get("Input Args", ""),
                     ["in_ptr0", "in_ptr1", "out_ptr", "n_elements"],
                 )
+=======
+            shim_fn_codes = (
+                f'RECORD_FUNCTION("{kernel_calls}", c10::ArrayRef<c10::IValue>());'
+            )
+            if enable_kernel_profile:
+                FileCheck().check(shim_fn_codes).run(code)
+            else:
+                FileCheck().check_not(shim_fn_codes).run(code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_aoti_debug_printer_user_defined_triton_kernel(self):
         if self.device != GPU_TYPE:
@@ -5501,7 +5865,11 @@ class AOTInductorTestsTemplate:
 
         expected_scalar_args = [
             "triton_poi_fused_zeros_like_0_xnumel",
+<<<<<<< HEAD
             "triton_poi_fused_ones_1_xnumel",
+=======
+            "triton_poi_fused_1_xnumel",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "std::max(static_cast<int64_t>(512L), static_cast<int64_t>(u0))",
         ]
 
@@ -5520,6 +5888,10 @@ class AOTInductorTestsTemplate:
         not PLATFORM_SUPPORTS_FP8,
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
+<<<<<<< HEAD
+=======
+    @skipIfRocm  # _scaled_mm_out_cuda  is not compiled for ROCm platform
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu
     def test_aoti_debug_printer_fp8_dtype(self):
         if self.device != GPU_TYPE:
@@ -5531,7 +5903,11 @@ class AOTInductorTestsTemplate:
                 self.out_dtype = dtype
 
             def forward(self, x, weight, bias, scale_a, scale_b):
+<<<<<<< HEAD
                 weight = weight.to(e4m3_type)
+=======
+                weight = weight.to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 output = torch._scaled_mm(
                     x,
                     weight,
@@ -5553,7 +5929,11 @@ class AOTInductorTestsTemplate:
         b_inverse_scale = 1 / b_scale
 
         x_shape = (16, 16)
+<<<<<<< HEAD
         x = torch.rand(*x_shape, device=GPU_TYPE, dtype=dtype).to(e4m3_type)
+=======
+        x = torch.rand(*x_shape, device=GPU_TYPE, dtype=dtype).to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kernel_calls = [
             (f"aoti_torch_{GPU_TYPE}__scaled_mm_out", 5),
@@ -5582,8 +5962,13 @@ class AOTInductorTestsTemplate:
                 ).run(code)
 
     def test_aoti_debug_printing_model_inputs_codegen(self):
+<<<<<<< HEAD
         if self.device not in ["cuda", "xpu"]:
             raise unittest.SkipTest("requires CUDA/XPU")
+=======
+        if self.device != "cuda":
+            raise unittest.SkipTest("requires CUDA")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def __init__(self):
@@ -5596,9 +5981,15 @@ class AOTInductorTestsTemplate:
                 return z
 
         example_inputs = (
+<<<<<<< HEAD
             torch.randn(10, 20, device=GPU_TYPE),
             torch.randn(20, 30, device=GPU_TYPE),
             torch.randn(10, 30, device=GPU_TYPE),
+=======
+            torch.randn(10, 20, device="cuda"),
+            torch.randn(20, 30, device="cuda"),
+            torch.randn(10, 30, device="cuda"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = Model()
         kernel_calls = [
@@ -5814,6 +6205,7 @@ class AOTInductorTestsTemplate:
         self.check_model(sin_triton, none_inputs)
         self.check_model(sin_triton, not_none_inputs)
 
+<<<<<<< HEAD
     @skipIfRocm  # RoCM does not support the config block size in test suite.
     def test_autotune_int64_user_defined_triton_kernel(self):
         if self.device != GPU_TYPE:
@@ -5879,6 +6271,8 @@ class AOTInductorTestsTemplate:
     @skipIfWindows(
         msg="OpenMP crashed application on windows"
     )  # TODO: (xuhancn) need to root cause and fix.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_issue_140766(self):
         class Model(torch.nn.Module):
             def __init__(self):
@@ -5919,6 +6313,7 @@ class AOTInductorTestsTemplate:
         example_inputs = (torch.randn(2, 128, 4096, device=self.device),)
         self.check_model(Model(), example_inputs, dynamic_shapes={"x": {0: bs}})
 
+<<<<<<< HEAD
     @requires_gpu
     def test_d2h_copy(self):
         # device to copy host should always have the same stride
@@ -5956,6 +6351,8 @@ class AOTInductorTestsTemplate:
         all_ops = [event.key for event in prof.key_averages()]
         self.assertTrue(not any("aten::contiguous" in op for op in all_ops))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_so_without_weight(self):
         class Model(torch.nn.Module):
             def __init__(self, n, k, device):
@@ -6030,9 +6427,13 @@ class AOTInductorTestsTemplate:
         runner.update_constant_buffer(attach_weights, False, False)
         expected = model(test_inputs)
         output = runner_call(test_inputs)
+<<<<<<< HEAD
 
         atol, rtol = 3e-4, 3e-4
         self.assertEqual(expected, output, atol=atol, rtol=rtol)
+=======
+        self.assertEqual(expected, output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_weight_on_disk_legacy(self):
         class Model(torch.nn.Module):
@@ -6055,7 +6456,11 @@ class AOTInductorTestsTemplate:
                 {
                     "always_keep_tensor_constants": True,
                     "aot_inductor.package_constants_in_so": False,
+<<<<<<< HEAD
                     "aot_inductor.package_constants_on_disk_format": "pickle_weights",
+=======
+                    "aot_inductor.package_constants_on_disk": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "aot_inductor.package": True,
                 }
             ),
@@ -6065,7 +6470,11 @@ class AOTInductorTestsTemplate:
                 example_inputs=example_inputs,
             )
 
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(
                 f.name,
                 {"model": aoti_files},
@@ -6073,8 +6482,12 @@ class AOTInductorTestsTemplate:
             pt2_contents = load_pt2(package_path, load_weights_from_disk=True)
             loaded1 = pt2_contents.aoti_runners["model"]
 
+<<<<<<< HEAD
         atol, rtol = 3e-4, 3e-4
         self.assertEqual(loaded1(a), model(a), atol=atol, rtol=rtol)
+=======
+        self.assertEqual(loaded1(a), model(a))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_extract_constants_map(self):
         class Model(torch.nn.Module):
@@ -6199,6 +6612,7 @@ class AOTInductorTestsTemplate:
         )
         self.assertEqual(new_expected, new_output)
 
+<<<<<<< HEAD
     def test_update_constant_buffer_simple(self):
         class Model(torch.nn.Module):
             def __init__(self, device):
@@ -6246,6 +6660,8 @@ class AOTInductorTestsTemplate:
         output = runner_call(test_inputs)
         self.assertEqual(expected, output)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_update_inactive_constant_buffer(self):
         class Model(torch.nn.Module):
             def __init__(self, n, k, device):
@@ -6282,7 +6698,11 @@ class AOTInductorTestsTemplate:
         test_inputs = torch.randn(M, K, device=self.device)
         expected = model(test_inputs)
         output = runner_call(test_inputs)
+<<<<<<< HEAD
         self.assertEqual(expected, output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(expected, output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         new_weights = {
             "L__self___weight": torch.randn(N, K, device=self.device),
@@ -6375,8 +6795,13 @@ class AOTInductorTestsTemplate:
         runner.free_inactive_constant_buffer()
 
     def test_update_user_managed_buffer(self):
+<<<<<<< HEAD
         if self.device not in ["cuda", "xpu"]:
             raise unittest.SkipTest("requires CUDA/XPU")
+=======
+        if self.device != "cuda":
+            raise unittest.SkipTest("requires CUDA")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def __init__(self, n, k, device):
@@ -6414,16 +6839,27 @@ class AOTInductorTestsTemplate:
         test_inputs = torch.randn(M, K, device=self.device)
         expected = model(test_inputs)
         output = runner_call(test_inputs)
+<<<<<<< HEAD
         self.assertEqual(expected, output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(expected, output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         new_weights = {
             "L__self___weight": torch.randn(N, K, device=self.device),
             "L__self___bias": torch.randn(N, device=self.device),
         }
+<<<<<<< HEAD
         mem_before, _ = getattr(torch, GPU_TYPE).mem_get_info(self.device)
         # Do not use user managed_buffer, should have less free memory.
         runner.update_constant_buffer(new_weights, True, False, False)
         mem_after, _ = getattr(torch, GPU_TYPE).mem_get_info(self.device)
+=======
+        mem_before, _ = torch.cuda.mem_get_info(self.device)
+        # Do not use user managed_buffer, should have less free memory.
+        runner.update_constant_buffer(new_weights, True, False, False)
+        mem_after, _ = torch.cuda.mem_get_info(self.device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertGreater(mem_before, mem_after)
 
         runner.swap_constant_buffer()
@@ -6431,7 +6867,11 @@ class AOTInductorTestsTemplate:
         new_expected = torch.nn.functional.linear(
             test_inputs, new_weights["L__self___weight"], new_weights["L__self___bias"]
         )
+<<<<<<< HEAD
         self.assertEqual(new_expected, new_output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(new_expected, new_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Inplace substitube tensor, without user managed buffer, result should be different.
         new_weights["L__self___weight"].add_(1)
@@ -6439,7 +6879,11 @@ class AOTInductorTestsTemplate:
 
         new_output = runner_call(test_inputs)
         # Same as the previous result
+<<<<<<< HEAD
         self.assertEqual(new_expected, new_output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(new_expected, new_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_expected = torch.nn.functional.linear(
             test_inputs, new_weights["L__self___weight"], new_weights["L__self___bias"]
         )
@@ -6455,18 +6899,30 @@ class AOTInductorTestsTemplate:
             "L__self___weight": torch.randn(N, K, device=self.device),
             "L__self___bias": torch.randn(N, device=self.device),
         }
+<<<<<<< HEAD
         mem_before, _ = getattr(torch, GPU_TYPE).mem_get_info(self.device)
         # Try user managed_buffer, should have same free memory.
         runner.update_constant_buffer(new_weights, True, False, True)
         mem_after, _ = getattr(torch, GPU_TYPE).mem_get_info(self.device)
         self.assertEqual(mem_before, mem_after, atol=1e-3, rtol=1e-3)
+=======
+        mem_before, _ = torch.cuda.mem_get_info(self.device)
+        # Try user managed_buffer, should have same free memory.
+        runner.update_constant_buffer(new_weights, True, False, True)
+        mem_after, _ = torch.cuda.mem_get_info(self.device)
+        self.assertEqual(mem_before, mem_after)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         runner.swap_constant_buffer()
         new_output = runner_call(test_inputs)
         new_expected = torch.nn.functional.linear(
             test_inputs, new_weights["L__self___weight"], new_weights["L__self___bias"]
         )
+<<<<<<< HEAD
         self.assertEqual(new_expected, new_output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(new_expected, new_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Inplace substitube tensor, with user managed buffer, result should be the same.
         new_weights["L__self___weight"].add_(1)
@@ -6476,6 +6932,7 @@ class AOTInductorTestsTemplate:
         new_expected = torch.nn.functional.linear(
             test_inputs, new_weights["L__self___weight"], new_weights["L__self___bias"]
         )
+<<<<<<< HEAD
         self.assertEqual(new_expected, new_output, atol=1e-3, rtol=1e-3)
 
         new_weights = {
@@ -6502,6 +6959,9 @@ class AOTInductorTestsTemplate:
 
         with self.assertRaises(AssertionError):
             torch.testing.assert_close(new_expected, new_output, atol=1e-3, rtol=1e-3)
+=======
+        self.assertEqual(new_expected, new_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_cond_share_predicte(self):
         class Model(torch.nn.Module):
@@ -6530,8 +6990,13 @@ class AOTInductorTestsTemplate:
         "To enable after the C shim FC window ends",
     )
     def test_misaligned_input_1(self):
+<<<<<<< HEAD
         if self.device not in ["cuda", "xpu"]:
             raise unittest.SkipTest("CUDA/XPU test only")
+=======
+        if self.device != "cuda":
+            raise unittest.SkipTest("CUDA test only")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -6557,8 +7022,13 @@ class AOTInductorTestsTemplate:
         torch.testing.assert_close(actual, expected)
 
     def test_misaligned_input_2(self):
+<<<<<<< HEAD
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("GPU test only")
+=======
+        if self.device != "cuda":
+            raise unittest.SkipTest("CUDA test only")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -6616,17 +7086,24 @@ class AOTInductorTestsTemplate:
         )
 
     @unittest.skipIf(IS_FBCODE, "Not runnable in fbcode")
+<<<<<<< HEAD
     @unittest.skipIf(
         TEST_MPS and MACOS_VERSION < 14.0,
         "FFT operations are only supported on MacOS 14+",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_stft(self):
         N_FFT = 400
         HOP_LENGTH = 160
 
         class Model(torch.nn.Module):
             def forward(self, x):
+<<<<<<< HEAD
                 window = torch.hann_window(N_FFT, device=x.device)
+=======
+                window = torch.hann_window(N_FFT).to(x.device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 stft = torch.stft(
                     x, N_FFT, HOP_LENGTH, window=window, return_complex=True
                 )
@@ -6637,7 +7114,10 @@ class AOTInductorTestsTemplate:
         example_inputs = (torch.randn(500, device=self.device),)
         self.check_model(model, example_inputs)
 
+<<<<<<< HEAD
     @skipIfXpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv3d(self):
         if self.device != GPU_TYPE or not is_big_gpu():
             raise unittest.SkipTest("requires modern GPU to run max-autotune")
@@ -6694,6 +7174,12 @@ class AOTInductorTestsTemplate:
                 dynamic_shapes=dynamic_shapes,
             )
 
+<<<<<<< HEAD
+=======
+    @skipIfXpu(
+        msg="The operator 'aten::_int_mm' is not currently implemented for the XPU device"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test__int_mm(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -6708,7 +7194,10 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(Model(), example_inputs)
 
+<<<<<<< HEAD
     @skipIfMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu(
         msg="aten::convert_weight_to_int4pack is not currently implemented for XPU"
     )
@@ -6720,10 +7209,13 @@ class AOTInductorTestsTemplate:
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("requires GPU")
 
+<<<<<<< HEAD
         if TEST_WITH_ROCM:
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Model(torch.nn.Module):
             def __init__(self, weight, scale_and_zeros) -> None:
                 super().__init__()
@@ -6757,10 +7249,13 @@ class AOTInductorTestsTemplate:
         if "xpu" not in self.device:
             raise unittest.SkipTest("requires Intel GPU")
 
+<<<<<<< HEAD
         if TEST_WITH_ROCM:
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Model(torch.nn.Module):
             def __init__(self, weight, scale, zeros) -> None:
                 super().__init__()
@@ -6851,6 +7346,7 @@ class AOTInductorTestsTemplate:
                 rtol=1e-3,
             )
 
+<<<<<<< HEAD
     @runOnRocm
     def test_rocm_triton_autotuning(self):
         if self.device != GPU_TYPE:
@@ -6893,6 +7389,8 @@ class AOTInductorTestsTemplate:
         ):
             torch._export.aot_compile(Model(), (x, y, m))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfRocm  # RoCM does not support the config block size in test suite.
     def test_triton_autotuning(self):
         if self.device != GPU_TYPE:
@@ -7084,6 +7582,7 @@ class AOTInductorTestsTemplate:
         }
         self.check_model(Model(), example_inputs, dynamic_shapes=dynamic_shapes)
 
+<<<<<<< HEAD
     def test_boolean_indexing(self):
         class Model(torch.nn.Module):
             def forward(self, x, y, z, x1, z1):
@@ -7177,6 +7676,8 @@ class AOTInductorTestsTemplate:
         )
         self.check_model(m, example_inputs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_with_cudagraphs(self):
         if self.device != "cuda":
             raise unittest.SkipTest("requires CUDA")
@@ -7249,6 +7750,7 @@ class AOTInductorTestsTemplate:
         # compare against eager
         self.assertEqual(optimized(**model_kwargs), model(**model_kwargs))
 
+<<<<<<< HEAD
     def test_custom_op_in_subgraph(self):
         with torch.library._scoped_library("mylib", "FRAGMENT") as lib:
             torch.library.define(
@@ -7292,6 +7794,8 @@ class AOTInductorTestsTemplate:
                 M(), list_example_inputs, dynamic_shapes=({0: Dim.DYNAMIC},)
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_clamp_decomposition(self):
         class Model1(torch.nn.Module):
             def forward(self, x):
@@ -7308,6 +7812,7 @@ class AOTInductorTestsTemplate:
         # the output should have int type
         self.check_model(Model2(), (x,))
 
+<<<<<<< HEAD
     def test_upper_bound_i64(self):
         class Model(torch.nn.Module):
             def forward(self, x, y):
@@ -7336,6 +7841,8 @@ class AOTInductorTestsTemplate:
         # this test is mostly checking to ensure there's no IMA.
         m(*inp)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_using_model_name_for_files(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -7362,14 +7869,21 @@ class AOTInductorTestsTemplate:
         with zipfile.ZipFile(package_path, "r") as zip_ref:
             all_files = zip_ref.namelist()
             base_dir = "test_model.wrapper/data/aotinductor/model/test_model"
+<<<<<<< HEAD
             ext_type = get_module_ext_type()
             self.assertTrue(f"{base_dir}.wrapper.cpp" in all_files)
             self.assertTrue(f"{base_dir}.kernel.cpp" in all_files)
             self.assertTrue(f"{base_dir}.wrapper.{ext_type}" in all_files)
+=======
+            self.assertTrue(f"{base_dir}.wrapper.cpp" in all_files)
+            self.assertTrue(f"{base_dir}.kernel.cpp" in all_files)
+            self.assertTrue(f"{base_dir}.wrapper.so" in all_files)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         aot_inductor_module = torch._inductor.aoti_load_package(package_path)
         self.assertEqual(aot_inductor_module(*example_inputs), model(*example_inputs))
 
+<<<<<<< HEAD
     def test_copy_non_blocking_is_pinned(self):
         if self.device == "cpu" or self.device == "mps":
             raise unittest.SkipTest("only matters for device-to-cpu copy")
@@ -7518,6 +8032,8 @@ class AOTInductorTestsTemplate:
         eager_outputs = model(*example_inputs)
         torch.testing.assert_close(eager_outputs, compiled_outputs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AOTInductorLoggingTest(LoggingTestCase):
     @make_logging_test(dynamic=logging.DEBUG)
@@ -7536,6 +8052,7 @@ class AOTInductorLoggingTest(LoggingTestCase):
             torch._inductor.aot_compile(ep.module(), inputs)
         self.assertEqual([r.msg == "create_env" for r in records].count(True), 1)
 
+<<<<<<< HEAD
     @make_logging_test(dynamic=logging.DEBUG)
     def test_shape_env_reuse_zero_consts_use_consts_asm_false(self, records):
         # make sure ShapeEnv is only created once and reused afterwards
@@ -7613,6 +8130,8 @@ class TestAOTInductorConfig(TestCase):
         with self.assertRaises(RuntimeError):
             maybe_aoti_standalone_config(patches)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 common_utils.instantiate_parametrized_tests(AOTInductorTestsTemplate)
 
@@ -7624,6 +8143,7 @@ def fail_cpu(is_skip=False):
     )
 
 
+<<<<<<< HEAD
 def fail_mps(is_skip=False):
     return TestFailure(
         ("mps",),
@@ -7631,6 +8151,8 @@ def fail_mps(is_skip=False):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def fail_gpu(suffixes: tuple[str, ...], is_skip=False):
     return TestFailure(
         suffixes,
@@ -7649,6 +8171,7 @@ GPU_TEST_FAILURES = {
     # quantized unsupported for GPU
     "test_quantized_linear": fail_gpu(("cuda", "xpu")),
     "test_quanatized_int8_linear": fail_gpu(("cuda", "xpu")),
+<<<<<<< HEAD
     "test_quantized_linear_bias_none": fail_gpu(("cuda", "xpu")),
     # No scaled_dot_product_efficient_attention implementation for XPU yet.
     "test_scaled_dot_product_efficient_attention": fail_gpu(("xpu",)),
@@ -7724,6 +8247,14 @@ if TEST_WITH_ROCM:
     if "gfx95" in gcnArchName:
         GPU_TEST_FAILURES["test_stft"] = fail_gpu(("cuda", "xpu")) # override "test_stft" for MI35x also
 
+=======
+    # No scaled_dot_product_efficient_attention implementation for XPU yet.
+    "test_scaled_dot_product_efficient_attention": fail_gpu(("xpu",)),
+    # No fft implementation for XPU yet.
+    "test_fft_c2c": fail_gpu(("xpu",), is_skip=True),
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AOTInductorTestABICompatibleCpu(TestCase):
     device = "cpu"
@@ -7761,6 +8292,7 @@ copy_tests(
     GPU_TEST_FAILURES,
 )
 
+<<<<<<< HEAD
 
 @unittest.skipIf(not torch.backends.mps.is_available(), "No MPS backend available")
 class AOTInductorTestABICompatibleMps(TestCase):
@@ -7781,6 +8313,8 @@ copy_tests(
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 

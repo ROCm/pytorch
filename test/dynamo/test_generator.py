@@ -17,18 +17,28 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
 class GeneratorTestsBase(torch._dynamo.test_case.TestCaseWithNestedGraphBreaks):
+=======
+class GeneratorTestsBase(torch._dynamo.test_case.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def setUp(self):
         super().setUp()
         self._old = torch._dynamo.config.enable_faithful_generator_behavior
         torch._dynamo.config.enable_faithful_generator_behavior = True
+<<<<<<< HEAD
         self._unittest_old = torch._dynamo.config.enable_trace_unittest
         torch._dynamo.config.enable_trace_unittest = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def tearDown(self):
         super().tearDown()
         torch._dynamo.config.enable_faithful_generator_behavior = self._old
+<<<<<<< HEAD
         torch._dynamo.config.enable_trace_unittest = self._unittest_old
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _compile_check(self, fn, args=None, fullgraph=True):
         eager = EagerAndRecordGraphs()
@@ -355,7 +365,11 @@ class GraphModule(torch.nn.Module):
         ctx = whoo()
         next(ctx)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             Unsupported, "Detected a method call to a user-defined generator object."
+=======
+            Unsupported, "Generator as graph argument is not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             fn(t, ctx)
 
@@ -374,7 +388,11 @@ class GraphModule(torch.nn.Module):
         ctx = whoo(t)
         next(ctx)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             Unsupported, "Detected a method call to a user-defined generator object."
+=======
+            Unsupported, "Generator as graph argument is not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             fn(t, ctx)
 
@@ -395,7 +413,11 @@ class GraphModule(torch.nn.Module):
         t = torch.randn(2)
         ctx = whoo()
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             Unsupported, "Detected a method call to a user-defined generator object."
+=======
+            Unsupported, "Generator as graph argument is not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             fn(t, ctx)
 
@@ -413,8 +435,12 @@ class GraphModule(torch.nn.Module):
         t = torch.randn(2)
         ctx = whoo(t)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             Unsupported,
             "Detected a method call to a user-defined generator object.",
+=======
+            Unsupported, "Generator as graph argument is not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             fn(t, ctx)
 
@@ -890,6 +916,7 @@ class GraphModule(torch.nn.Module):
             torch.compile(f, backend="eager", fullgraph=True)(torch.ones(3)),
         )
 
+<<<<<<< HEAD
     @make_dynamo_test
     def test_generator___contains__(self):
         def whoo():
@@ -921,6 +948,8 @@ class GraphModule(torch.nn.Module):
         self.assertRaises(StopIteration, next, g)
         self.assertFalse(3 in whoo())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestGeneratorSend(GeneratorTestsBase):
     def test_send(self):
@@ -1515,6 +1544,7 @@ class TestGeneratorThrow(GeneratorTestsBase):
 
         self._compile_check(fn)
 
+<<<<<<< HEAD
     def test_return_const_value_in_except_and_finally(self):
         def whoo():
             try:
@@ -1585,6 +1615,8 @@ class TestGeneratorThrow(GeneratorTestsBase):
 
         self._compile_check(fn)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(GeneratorTests)
 instantiate_parametrized_tests(TestGeneratorSend)

@@ -23,10 +23,14 @@ from torch.distributed.checkpoint import (
 )
 from torch.distributed.checkpoint._extension import ZStandard
 from torch.distributed.checkpoint.default_planner import DefaultSavePlanner
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     requires_accelerator_dist_backend,
     skip_if_lt_x_gpu,
 )
+=======
+from torch.testing._internal.common_distributed import requires_nccl, skip_if_lt_x_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -48,9 +52,12 @@ from torch.testing._internal.distributed.checkpoint_utils import (
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TEST_WITH_DEV_DBG_ASAN:
     print(
         "Skip dev-asan as torch + multiprocessing spawn have known issues",
@@ -172,7 +179,11 @@ class TestDistributedStateDictSaveLoadWithSharedTensor(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("extensions", [None, [Rot13Example()], [ZStandard()]])
     def test_read_write_shard_tensor(self, extensions) -> None:
         paths = [tempfile.mkdtemp()]
@@ -184,8 +195,13 @@ class TestDistributedStateDictSaveLoadWithSharedTensor(ShardedTensorTestBase):
         spec = ChunkShardingSpec(
             dim=0,
             placements=[
+<<<<<<< HEAD
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -234,16 +250,24 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
 
     def load_tensor(self, tensor: ShardedTensor) -> torch.Tensor:
         res = (
+<<<<<<< HEAD
             torch.zeros(tensor.shape, device=f"{device_type}:0")
             if dist.get_rank() == 0
             else None
+=======
+            torch.zeros(tensor.shape, device="cuda:0") if dist.get_rank() == 0 else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         tensor.gather(out=res)
         return res
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_with_different_shard_plan(self) -> None:
         path = self.get_file_path()
 
@@ -255,18 +279,30 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
             ChunkShardingSpec(
                 dim=0,
                 placements=[
+<<<<<<< HEAD
                     f"rank:0/{device_type}:0",
                     f"rank:1/{device_type}:1",
+=======
+                    "rank:0/cuda:0",
+                    "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             ),
             # pyre-fixme [28]: Unexpected keyword argument `dim` to call `dist._sharding_spec.api.ChunkShardingSpec.__init__`.
             ChunkShardingSpec(
                 dim=0,
                 placements=[
+<<<<<<< HEAD
                     f"rank:0/{device_type}:0",
                     f"rank:1/{device_type}:1",
                     f"rank:1/{device_type}:1",
                     f"rank:0/{device_type}:0",
+=======
+                    "rank:0/cuda:0",
+                    "rank:1/cuda:1",
+                    "rank:1/cuda:1",
+                    "rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             ),
             # This requires the tensors to be [10, 20]
@@ -275,27 +311,47 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
                     ShardMetadata(
                         shard_offsets=[0, 0],
                         shard_sizes=[2, 20],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[2, 0],
                         shard_sizes=[1, 20],
+<<<<<<< HEAD
                         placement=f"rank:1/{device_type}:1",
+=======
+                        placement="rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[3, 0],
                         shard_sizes=[3, 20],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[6, 0],
                         shard_sizes=[3, 20],
+<<<<<<< HEAD
                         placement=f"rank:1/{device_type}:1",
+=======
+                        placement="rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[9, 0],
                         shard_sizes=[1, 20],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                 ]
             ),
@@ -305,12 +361,20 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
                     ShardMetadata(
                         shard_offsets=[0, 0],
                         shard_sizes=[8, 20],
+<<<<<<< HEAD
                         placement=f"rank:1/{device_type}:1",
+=======
+                        placement="rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[8, 0],
                         shard_sizes=[2, 20],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                 ]
             ),
@@ -358,7 +422,11 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_rowwise_to_colwise(self) -> None:
         path = self.get_file_path()
         self.assertEqual(self.world_size, dist.get_world_size())
@@ -367,8 +435,13 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
         src_spec = ChunkShardingSpec(
             dim=0,
             placements=[
+<<<<<<< HEAD
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -376,8 +449,13 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
         dst_spec = ChunkShardingSpec(
             dim=1,
             placements=[
+<<<<<<< HEAD
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -385,14 +463,22 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
             shutil.rmtree(path, ignore_errors=True)
             os.makedirs(path)
 
+<<<<<<< HEAD
         model_to_save = MyShardedModel3(src_spec).to(dist.get_rank())
+=======
+        model_to_save = MyShardedModel3(src_spec).cuda(dist.get_rank())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_to_save._register_state_dict_hook(state_dict_hook)
         state_dict_to_save = model_to_save.state_dict()
 
         fs_writer = FileSystemWriter(path=path)
         save_state_dict(state_dict=state_dict_to_save, storage_writer=fs_writer)
 
+<<<<<<< HEAD
         model_to_load = MyShardedModel3(dst_spec).to(dist.get_rank())
+=======
+        model_to_load = MyShardedModel3(dst_spec).cuda(dist.get_rank())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model_to_load._register_state_dict_hook(state_dict_hook)
         state_dict_to_load_to = model_to_load.state_dict()
 
@@ -409,7 +495,11 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_save_load_bytes(self) -> None:
         path = self.get_file_path()
 
@@ -428,7 +518,11 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_switch_between_sharded_tensor_to_tensor(self) -> None:
         path = self.get_file_path()
         tensor_size = 32
@@ -437,17 +531,29 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
             ChunkShardingSpec(
                 dim=0,
                 placements=[
+<<<<<<< HEAD
                     f"rank:0/{device_type}:0",
                     f"rank:1/{device_type}:1",
+=======
+                    "rank:0/cuda:0",
+                    "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             ),
             ChunkShardingSpec(
                 dim=0,
                 placements=[
+<<<<<<< HEAD
                     f"rank:0/{device_type}:0",
                     f"rank:1/{device_type}:1",
                     f"rank:1/{device_type}:1",
                     f"rank:0/{device_type}:0",
+=======
+                    "rank:0/cuda:0",
+                    "rank:1/cuda:1",
+                    "rank:1/cuda:1",
+                    "rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             ),
             EnumerableShardingSpec(
@@ -455,12 +561,20 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
                     ShardMetadata(
                         shard_offsets=[0],
                         shard_sizes=[8],
+<<<<<<< HEAD
                         placement=f"rank:1/{device_type}:1",
+=======
+                        placement="rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[8],
                         shard_sizes=[tensor_size - 8],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                 ]
             ),
@@ -469,12 +583,20 @@ class TestDistributedReshardOnLoad(ShardedTensorTestBase):
                     ShardMetadata(
                         shard_offsets=[0],
                         shard_sizes=[10],
+<<<<<<< HEAD
                         placement=f"rank:0/{device_type}:0",
+=======
+                        placement="rank:0/cuda:0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     ShardMetadata(
                         shard_offsets=[10],
                         shard_sizes=[tensor_size - 10],
+<<<<<<< HEAD
                         placement=f"rank:1/{device_type}:1",
+=======
+                        placement="rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                 ]
             ),
@@ -520,15 +642,24 @@ class TestDistributedStateDictSaveLoadWithCaching(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     def test_read_write_shard_tensor(self) -> None:
         # pyre-fixme [28]: Unexpected keyword argument `dim` to call `dist._sharding_spec.api.ChunkShardingSpec.__init__`.
         spec = ChunkShardingSpec(
             dim=0,
             placements=[
+<<<<<<< HEAD
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 

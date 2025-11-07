@@ -218,6 +218,7 @@ DataParallel functions (multi-GPU, distributed)
     :nosignatures:
 
     torch.nn.parallel.data_parallel
+<<<<<<< HEAD
 
 Low-Precision functions
 -----------------------
@@ -229,3 +230,5 @@ Low-Precision functions
     SwizzleType
     scaled_mm
     scaled_grouped_mm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

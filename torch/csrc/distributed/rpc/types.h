@@ -32,7 +32,11 @@ struct TORCH_API GloballyUniqueId final {
   bool operator!=(const GloballyUniqueId& other) const;
 
   at::IValue toIValue() const;
+<<<<<<< HEAD
   static GloballyUniqueId fromIValue(const at::IValue& /*ivalue*/);
+=======
+  static GloballyUniqueId fromIValue(const at::IValue&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   struct Hash {
     size_t operator()(const GloballyUniqueId& key) const {

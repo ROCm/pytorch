@@ -12,8 +12,11 @@ The profiler helps measure and optimize the performance of Dynamo-compiled code
 by tracking both captured and total operations, timing, and graph statistics.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import dataclasses
 import os
 from typing import Any
@@ -37,7 +40,11 @@ class ProfileMetrics:
         self.fusions += other.fusions
         return self
 
+<<<<<<< HEAD
     def __add__(self, other: ProfileMetrics) -> ProfileMetrics:
+=======
+    def __add__(self, other: "ProfileMetrics") -> "ProfileMetrics":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(other, ProfileMetrics)
         return ProfileMetrics(
             self.microseconds + other.microseconds,
@@ -45,6 +52,7 @@ class ProfileMetrics:
             self.fusions + other.fusions,
         )
 
+<<<<<<< HEAD
     def __truediv__(self, other: Any) -> ProfileMetrics:
         if isinstance(other, int):
             other = ProfileMetrics(other, other, other)
@@ -54,6 +62,14 @@ class ProfileMetrics:
             # pyrefly: ignore [bad-argument-type]
             self.operators / max(1, other.operators),
             # pyrefly: ignore [bad-argument-type]
+=======
+    def __truediv__(self, other: Any) -> "ProfileMetrics":
+        if isinstance(other, int):
+            other = ProfileMetrics(other, other, other)
+        return ProfileMetrics(
+            self.microseconds / max(1, other.microseconds),
+            self.operators / max(1, other.operators),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.fusions / max(1, other.fusions),
         )
 

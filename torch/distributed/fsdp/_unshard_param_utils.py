@@ -66,8 +66,12 @@ def _writeback_to_local_shard(
     if writeback_grad:
         existing_grad = handle.sharded_grad
         if existing_grad is not None:
+<<<<<<< HEAD
             if handle.flat_param.grad is None:
                 raise AssertionError("Expected handle.flat_param.grad to not be None")
+=======
+            assert handle.flat_param.grad is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             grad_shard = _get_shard(handle.flat_param.grad)
             existing_grad[: grad_shard.numel()].copy_(grad_shard)
 
@@ -153,8 +157,12 @@ def _validate_unshard_params_args(
             "offload_to_cpu=True and rank0_only=False may result in the"
             "unsharded parameters being redundantly copied to CPU memory for "
             "GPUs sharing the same CPU memory, which risks CPU OOM. We "
+<<<<<<< HEAD
             "recommend using offload_to_cpu=True with rank0_only=True.",
             stacklevel=2,
+=======
+            "recommend using offload_to_cpu=True with rank0_only=True."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -187,10 +195,16 @@ def _unshard_fsdp_state_params(
         yield
         return
 
+<<<<<<< HEAD
     if handle._training_state != HandleTrainingState.IDLE:
         raise AssertionError(
             f"Expects the handle training to be IDLE but got {handle._training_state}"
         )
+=======
+    assert handle._training_state == HandleTrainingState.IDLE, (
+        f"Expects the handle training to be IDLE but got {handle._training_state}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     handle._training_state = HandleTrainingState.SUMMON_FULL_PARAMS
 

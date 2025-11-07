@@ -62,7 +62,11 @@ inline void reduce_all_impl(
   output.fill_(result);
 }
 
+<<<<<<< HEAD
 void min_all_kernel_impl(Tensor& result, const Tensor& input) {
+=======
+static void min_all_kernel_impl(Tensor& result, const Tensor& input) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (input.scalar_type() == ScalarType::Bool) {
     TensorIterator iter = TensorIteratorConfig()
       .add_input(input)
@@ -87,7 +91,11 @@ void min_all_kernel_impl(Tensor& result, const Tensor& input) {
   }
 }
 
+<<<<<<< HEAD
 void max_all_kernel_impl(Tensor& result, const Tensor& input) {
+=======
+static void max_all_kernel_impl(Tensor& result, const Tensor& input) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (input.scalar_type() == ScalarType::Bool) {
     TensorIterator iter = TensorIteratorConfig()
       .add_input(input)
@@ -167,7 +175,11 @@ inline void reduce_all_impl_vec_two_outputs(
   output2.fill_(result.second);
 }
 
+<<<<<<< HEAD
 void aminmax_allreduce_kernel(
+=======
+static void aminmax_allreduce_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     Tensor& min_result,
     Tensor& max_result) {

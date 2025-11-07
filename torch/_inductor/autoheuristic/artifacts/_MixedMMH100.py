@@ -17,7 +17,11 @@ from torch._inductor.autoheuristic.learnedheuristic_interface import (
 class MixedMMH100(LearnedHeuristicDecision):
 
     def __init__(self) -> None:
+<<<<<<< HEAD
         self.choices: list[Choice] = []
+=======
+        self.choices: List[Choice] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.fill_choices()
 
     def check_precondition(self, metadata: AHMetadata, context: AHContext,) -> bool:
@@ -61,7 +65,11 @@ class MixedMMH100(LearnedHeuristicDecision):
     def get_name(self) -> str:
         return 'mixed_mm'
 
+<<<<<<< HEAD
     def get_best_choices(self, context: AHContext) -> Optional[list[tuple[float, int]]]:
+=======
+    def get_best_choices(self, context: AHContext) -> Optional[List[tuple[float, int]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if context.get_value('arith_intensity') <= 15.988086223602295:
             if context.get_value('n') <= 25280.0:
                 if context.get_value('n') <= 1344.0:

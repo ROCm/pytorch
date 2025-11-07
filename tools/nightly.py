@@ -7,12 +7,20 @@ binaries into the repo.
 You can use this script to check out a new nightly branch with the following::
 
     $ ./tools/nightly.py checkout -b my-nightly-branch
+<<<<<<< HEAD
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Or if you would like to check out the nightly commit in detached HEAD mode::
 
     $ ./tools/nightly.py checkout
+<<<<<<< HEAD
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Or if you would like to reuse an existing virtual environment, you can pass in
 the prefix argument (--prefix)::
@@ -23,17 +31,26 @@ the prefix argument (--prefix)::
 To install the nightly binaries built with CUDA, you can pass in the flag --cuda::
 
     $ ./tools/nightly.py checkout -b my-nightly-branch --cuda
+<<<<<<< HEAD
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 To install the nightly binaries built with ROCm, you can pass in the flag --rocm::
 
     $ ./tools/nightly.py checkout -b my-nightly-branch --rocm
+<<<<<<< HEAD
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 You can also use this tool to pull the nightly commits into the current branch as
 well. This can be done with::
 
     $ ./tools/nightly.py pull
+<<<<<<< HEAD
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
 
 To create the virtual environment with a specific Python interpreter, you can
@@ -41,6 +58,9 @@ pass in the --python argument::
 
     $ ./tools/nightly.py --python /path/to/python3.12
     $ source venv/bin/activate  # or `. .\venv\Scripts\activate` on Windows
+=======
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Pulling will recreate a fresh virtual environment and reinstall the development
 dependencies as well as the nightly binaries into the repo directory.
@@ -65,11 +85,18 @@ import textwrap
 import time
 import uuid
 from ast import literal_eval
+<<<<<<< HEAD
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from platform import system as platform_system
 from typing import Any, cast, NamedTuple, TYPE_CHECKING, TypeVar
+=======
+from datetime import datetime
+from pathlib import Path
+from platform import system as platform_system
+from typing import Any, Callable, cast, NamedTuple, TYPE_CHECKING, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -149,6 +176,7 @@ PIP_SOURCES = {
         supported_platforms={"Linux", "Windows"},
         accelerator="cuda",
     ),
+<<<<<<< HEAD
     "cuda-13.0": PipSource(
         name="cuda-13.0",
         index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/cu130",
@@ -165,6 +193,18 @@ PIP_SOURCES = {
     "rocm-7.0": PipSource(
         name="rocm-7.0",
         index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm7.0",
+=======
+    # NOTE: Sync with ROCM_ARCHES in .github/scripts/generate_binary_build_matrix.py
+    "rocm-6.3": PipSource(
+        name="rocm-6.3",
+        index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm6.3",
+        supported_platforms={"Linux"},
+        accelerator="rocm",
+    ),
+    "rocm-6.4": PipSource(
+        name="rocm-6.4",
+        index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm6.4",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         supported_platforms={"Linux"},
         accelerator="rocm",
     ),
@@ -255,6 +295,7 @@ class Venv:
         *,
         base_executable: Path | str | None = None,
     ) -> None:
+<<<<<<< HEAD
         base_executable = Path(base_executable or sys.executable)
         if not base_executable.is_absolute():
             base_exec = shutil.which(str(base_executable))
@@ -267,12 +308,20 @@ class Venv:
         self.prefix = Path(prefix).absolute()
         self.pip_source = pip_source
         self.base_executable = base_executable.absolute()
+=======
+        self.prefix = Path(prefix).absolute()
+        self.pip_source = pip_source
+        self.base_executable = Path(base_executable or sys.executable).absolute()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._executable: Path | None = None
         self._bindir: Path | None = None
         self._env = {
             "PIP_EXTRA_INDEX_URL": self.pip_source.index_url,
             "UV_INDEX": self.pip_source.index_url,
+<<<<<<< HEAD
             "UV_PYTHON_DOWNLOADS": "never",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "FORCE_COLOR": "1",
             "CLICOLOR_FORCE": "1",
         }
@@ -311,7 +360,10 @@ class Venv:
             python=python,
             capture_output=True,
         ).stdout
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         candidates = list(map(Path, filter(None, map(str.strip, output.splitlines()))))
         candidates = [p for p in candidates if p.is_dir() and p.name == "site-packages"]
         if not candidates:
@@ -325,7 +377,11 @@ class Venv:
         """Get the activation script for the virtual environment."""
         if WINDOWS:
             # Assume PowerShell
+<<<<<<< HEAD
             return self.prefix / "Scripts" / "activate"
+=======
+            return self.prefix / "Scripts" / "Activate.ps1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Assume POSIX-compliant shell: Bash, Zsh, etc.
         return self.prefix / "bin" / "activate"
 
@@ -334,18 +390,26 @@ class Venv:
         """Get the command to activate the virtual environment."""
         if WINDOWS:
             # Assume PowerShell
+<<<<<<< HEAD
             return f'. "{self.activate_script}"'
+=======
+            return f'& "{self.activate_script}"'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Assume Bash, Zsh, etc.
         # POSIX standard should use dot `. venv/bin/activate` rather than `source`
         return f"source {shlex.quote(str(self.activate_script))}"
 
     @timed("Creating virtual environment")
+<<<<<<< HEAD
     def create(
         self,
         *,
         remove_if_exists: bool = False,
         assume_yes: bool = False,
     ) -> Path:
+=======
+    def create(self, *, remove_if_exists: bool = False) -> Path:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Create a virtual environment."""
         if self.prefix.exists():
             if remove_if_exists:
@@ -355,42 +419,64 @@ class Venv:
                         f"The path {self.prefix} already exists and is not a virtual environment. "
                         "Please remove it manually or choose a different prefix."
                     )
+<<<<<<< HEAD
                 if any(
                     Path(p).absolute().samefile(self.prefix)
+=======
+                if self.prefix in [
+                    Path(p).absolute()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for p in [
                         sys.prefix,
                         sys.exec_prefix,
                         sys.base_prefix,
                         sys.base_exec_prefix,
                     ]
+<<<<<<< HEAD
                 ):
+=======
+                ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise RuntimeError(
                         f"The path {self.prefix} trying to remove is the same as the interpreter "
                         "to run this script. Please choose a different prefix or deactivate the "
                         "current virtual environment."
                     )
+<<<<<<< HEAD
                 if any(
+=======
+                if self.prefix in [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     Path(
                         self.base_python(
                             "-c",
                             f"import os, sys; print(os.path.abspath({p}))",
                             capture_output=True,
                         ).stdout.strip()
+<<<<<<< HEAD
                     )
                     .absolute()
                     .samefile(self.prefix)
+=======
+                    ).absolute()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for p in [
                         "sys.prefix",
                         "sys.exec_prefix",
                         "sys.base_prefix",
                         "sys.base_exec_prefix",
                     ]
+<<<<<<< HEAD
                 ):
+=======
+                ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise RuntimeError(
                         f"The Python executable {self.base_executable} trying to remove is the "
                         "same as the interpreter to create the virtual environment. Please choose "
                         "a different prefix or a different Python interpreter."
                     )
+<<<<<<< HEAD
                 if not assume_yes:
                     answer = input(
                         f"The virtual environment {self.prefix} already exists. "
@@ -405,6 +491,11 @@ class Venv:
 
                 print(f"Removing existing venv: {self.prefix}")
                 _remove_existing(self.prefix)
+=======
+                print(f"Removing existing venv: {self.prefix}")
+                _remove_existing(self.prefix)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 raise RuntimeError(f"Path {self.prefix} already exists.")
 
@@ -456,6 +547,7 @@ class Venv:
         """Ensure the virtual environment exists."""
         if not self.is_venv():
             return self.create(remove_if_exists=True)
+<<<<<<< HEAD
         if (
             self.python_version().split(".")[:2]
             != self.base_python_version().split(".")[:2]
@@ -465,6 +557,8 @@ class Venv:
                 f"but base Python is {self.base_python_version()}. "
                 "Please recreate the virtual environment with the correct Python version."
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.pip_install(*self.AGGRESSIVE_UPDATE_PACKAGES, upgrade=True)
         return self.prefix
@@ -481,13 +575,20 @@ class Venv:
         cmd = [str(python), *args]
         env = popen_kwargs.pop("env", None) or {}
         check = popen_kwargs.pop("check", True)
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return subprocess.run(
             cmd,
             check=check,
             text=True,
             encoding="utf-8",
+<<<<<<< HEAD
             env={**os.environ, **self._env, **env},
+=======
+            env={**self._env, **env},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **popen_kwargs,
         )
 
@@ -500,10 +601,14 @@ class Venv:
         return self.python(*args, python=self.base_executable, **popen_kwargs)
 
     def python_version(self, *, python: Path | str | None = None) -> str:
+<<<<<<< HEAD
         """Get the Python version for the virtual environment.
 
         Return a string like "3.13.7", "3.13.7t", "3.13.7d", "3.13.7td", etc.
         """
+=======
+        """Get the Python version for the virtual environment."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.python(
             "-c",
             (
@@ -515,10 +620,14 @@ class Venv:
         ).stdout.strip()
 
     def base_python_version(self) -> str:
+<<<<<<< HEAD
         """Get the Python version for the base environment.
 
         Return a string like "3.13.7", "3.13.7t", "3.13.7d", "3.13.7td", etc.
         """
+=======
+        """Get the Python version for the base environment."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.python_version(python=self.base_executable)
 
     def uv(
@@ -533,13 +642,21 @@ class Venv:
         cmd = [str(self.bindir / "uv"), *args]
         env = popen_kwargs.pop("env", None) or {}
         check = popen_kwargs.pop("check", True)
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+        env["UV_PYTHON"] = str(python)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return subprocess.run(
             cmd,
             check=check,
             text=True,
             encoding="utf-8",
+<<<<<<< HEAD
             env={**os.environ, **self._env, **env, "UV_PYTHON": str(python)},
+=======
+            env={**self._env, **env},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **popen_kwargs,
         )
 
@@ -744,7 +861,11 @@ def logging_manager(*, debug: bool = False) -> Generator[logging.Logger, None, N
         logging_record_exception(e)
         print(f"log file: {log_file}")
         sys.exit(1)
+<<<<<<< HEAD
     except BaseException as e:  # noqa: B036
+=======
+    except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # You could logging.debug here to suppress the backtrace
         # entirely, but there is no reason to hide it from technically
         # savvy users.
@@ -941,7 +1062,10 @@ def _move_single(
 
 def _copy_files(listing: list[Path], source_dir: Path, target_dir: Path) -> None:
     for src in listing:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _move_single(src, source_dir, target_dir, shutil.copy2, "Copying")
 
 
@@ -1027,6 +1151,7 @@ def install(
     packages: Iterable[str],
     subcommand: str = "checkout",
     branch: str | None = None,
+<<<<<<< HEAD
     fresh_venv: bool = False,
     assume_yes: bool = False,
 ) -> None:
@@ -1036,6 +1161,15 @@ def install(
         venv.ensure()
     else:
         venv.create(remove_if_exists=True, assume_yes=assume_yes)
+=======
+) -> None:
+    """Development install of PyTorch"""
+    use_existing = subcommand == "checkout"
+    if use_existing:
+        venv.ensure()
+    else:
+        venv.create(remove_if_exists=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     packages = [p for p in packages if p != "torch"]
 
@@ -1110,8 +1244,13 @@ def make_parser() -> argparse.ArgumentParser:
             metavar="PYTHON",
         )
         subparser.add_argument(
+<<<<<<< HEAD
             "--prefix",
             "-p",
+=======
+            "-p",
+            "--prefix",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             type=lambda p: Path(p).absolute(),
             help='Path to virtual environment directory (e.g. "./venv")',
             dest="prefix",
@@ -1119,6 +1258,7 @@ def make_parser() -> argparse.ArgumentParser:
             metavar="PATH",
         )
         subparser.add_argument(
+<<<<<<< HEAD
             "--fresh",
             help="Remove existing virtual environment if it exists",
             dest="fresh",
@@ -1139,6 +1279,10 @@ def make_parser() -> argparse.ArgumentParser:
         subparser.add_argument(
             "--verbose",
             "-v",
+=======
+            "-v",
+            "--verbose",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             help="Provide debugging info",
             dest="verbose",
             default=False,
@@ -1228,8 +1372,11 @@ def main() -> None:
             packages=PACKAGES_TO_INSTALL,
             subcommand=args.subcmd,
             branch=args.branch,
+<<<<<<< HEAD
             fresh_venv=args.fresh,
             assume_yes=args.yes,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 

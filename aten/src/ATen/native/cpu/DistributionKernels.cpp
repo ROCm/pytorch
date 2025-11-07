@@ -27,7 +27,11 @@
 namespace at::native {
 namespace {
 
+<<<<<<< HEAD
 void cauchy_kernel(TensorIteratorBase& iter, double median, double sigma, std::optional<Generator> gen) {
+=======
+static void cauchy_kernel(TensorIteratorBase& iter, double median, double sigma, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::cauchy_kernel(iter, median, sigma, generator);
 }
@@ -101,7 +105,11 @@ void bernoulli_scalar_kernel(const TensorBase &self, double p, std::optional<Gen
 }
 #endif
 
+<<<<<<< HEAD
 void exponential_kernel_default(TensorIteratorBase& iter, double lambda, std::optional<Generator> gen) {
+=======
+static void exponential_kernel_default(TensorIteratorBase& iter, double lambda, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::exponential_kernel(iter, lambda, generator);
 }
@@ -198,12 +206,20 @@ void exponential_kernel(TensorIteratorBase &iter, double lambda, std::optional<G
 }
 #endif
 
+<<<<<<< HEAD
 void geometric_kernel(TensorIteratorBase& iter, double p, std::optional<Generator> gen) {
+=======
+static void geometric_kernel(TensorIteratorBase& iter, double p, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::geometric_kernel(iter, p, generator);
 }
 
+<<<<<<< HEAD
 void log_normal_kernel(TensorIteratorBase& iter, double mean, double std, std::optional<Generator> gen) {
+=======
+static void log_normal_kernel(TensorIteratorBase& iter, double mean, double std, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::log_normal_kernel(iter, mean, std, generator);
 }
@@ -218,12 +234,20 @@ void normal_kernel(const TensorBase &self, double mean, double std, std::optiona
   templates::cpu::normal_kernel(self, mean, std, generator);
 }
 
+<<<<<<< HEAD
 void random_from_to_kernel(TensorIteratorBase& iter, uint64_t range, int64_t base, std::optional<Generator> gen) {
+=======
+static void random_from_to_kernel(TensorIteratorBase& iter, uint64_t range, int64_t base, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::random_from_to_kernel(iter, range, base, generator);
 }
 
+<<<<<<< HEAD
 void random_kernel(TensorIteratorBase& iter, std::optional<Generator> gen) {
+=======
+static void random_kernel(TensorIteratorBase& iter, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::random_kernel(iter, generator);
 }
@@ -231,7 +255,11 @@ void random_kernel(TensorIteratorBase& iter, std::optional<Generator> gen) {
 // This is the special kernel to handle single specific case:
 // from(inclusive) = std::numeric_limits<int64_t>::lowest()
 // to(exclusive) = None (= std::numeric_limits<int64_t>::max() + 1)
+<<<<<<< HEAD
 void random_full_64_bits_range_kernel(TensorIteratorBase& iter, std::optional<Generator> gen) {
+=======
+static void random_full_64_bits_range_kernel(TensorIteratorBase& iter, std::optional<Generator> gen) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CPUGeneratorImpl* generator = get_generator_or_default<CPUGeneratorImpl>(gen, detail::getDefaultCPUGenerator());
   templates::cpu::random_full_64_bits_range_kernel(iter, generator);
 }

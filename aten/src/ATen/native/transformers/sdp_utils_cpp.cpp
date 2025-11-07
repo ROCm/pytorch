@@ -43,7 +43,11 @@ bool use_flash_attention_cpp(sdp_params const& params, bool debug) {
       check_nested_tensor,
       check_for_dropout,
       check_tensor_shapes,
+<<<<<<< HEAD
       check_batch_size_and_num_heads_dense<true /*supports_grouped_query_attention*/>,
+=======
+      check_batch_size_and_num_heads_dense<false /*supports_grouped_query_attention*/>,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       check_attn_mask_shape,
       check_head_dim_size_cpp,
       check_nonzero_sequence_lengths_dense,

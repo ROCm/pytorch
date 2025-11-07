@@ -103,10 +103,17 @@ struct BuiltinFunctionRegistry {
     // re-lock, the mutex without waiting), and report no loaded builtins during
     // init.
     std::lock_guard<std::recursive_mutex> guard(mutex);
+<<<<<<< HEAD
     if (state == INITIALIZING) {
       return empty;
     } else if (state == UNINITIALIZED) {
       state = INITIALIZING;
+=======
+    if (state == INTIIALIZING) {
+      return empty;
+    } else if (state == UNINITIALIZED) {
+      state = INTIIALIZING;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       loadBuiltinFunctions();
       state = INITIALIZED;
     }
@@ -168,6 +175,7 @@ struct BuiltinFunctionRegistry {
     loadSource(aten_ops_additional, "aten");
 
     // These are under `prim` instead of `aten` since they exist to bind certain
+<<<<<<< HEAD
     // tensor property getters to corresponding methods
     loadSource(tensor_properties, "prim");
   }
@@ -178,6 +186,12 @@ struct BuiltinFunctionRegistry {
     INTIIALIZING = 1, // codespell:ignore
     INITIALIZED = 2
   } state = UNINITIALIZED;
+=======
+    // tensor property getters to correpsonding methods
+    loadSource(tensor_properties, "prim");
+  }
+  enum { UNINITIALIZED, INTIIALIZING, INITIALIZED } state = UNINITIALIZED;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::recursive_mutex mutex;
   std::vector<std::shared_ptr<CompilationUnit>> modules;
   std::unordered_map<Symbol, std::vector<Function*>> builtins_by_name_;

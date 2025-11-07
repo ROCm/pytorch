@@ -15,6 +15,7 @@ namespace c10::cuda {
 namespace {
 
 // Global stream state and constants
+<<<<<<< HEAD
 c10::once_flag init_flag;
 DeviceIndex num_gpus = -1;
 constexpr int kStreamsPerPoolBits = 5;
@@ -23,6 +24,16 @@ constexpr unsigned int kDefaultFlags = cudaStreamNonBlocking;
 constexpr int kStreamTypeBits = 4;
 
 int max_stream_priorities;
+=======
+static c10::once_flag init_flag;
+static DeviceIndex num_gpus = -1;
+static constexpr int kStreamsPerPoolBits = 5;
+static constexpr int kStreamsPerPool = 1 << kStreamsPerPoolBits;
+static constexpr unsigned int kDefaultFlags = cudaStreamNonBlocking;
+static constexpr int kStreamTypeBits = 4;
+
+static int max_stream_priorities;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Non-default streams
 // Note: the number of CUDA devices is determined at run time,
@@ -39,14 +50,24 @@ int max_stream_priorities;
 // the destruction.
 #if !defined(USE_ROCM)
 // CUDA-only: used to initializes the stream pools (once)
+<<<<<<< HEAD
 std::array<c10::once_flag, C10_COMPILE_TIME_MAX_GPUS> device_flags;
 #endif
 std::array<
+=======
+static std::array<c10::once_flag, C10_COMPILE_TIME_MAX_GPUS> device_flags;
+#endif
+static std::array<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::array<std::atomic<uint32_t>, C10_COMPILE_TIME_MAX_GPUS>,
     c10::cuda::max_compile_time_stream_priorities>
     priority_counters;
 
+<<<<<<< HEAD
 std::array<
+=======
+static std::array<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::array<
         std::array<cudaStream_t, kStreamsPerPool>,
         C10_COMPILE_TIME_MAX_GPUS>,
@@ -128,7 +149,11 @@ std::ostream& operator<<(std::ostream& stream, StreamIdType s) {
   } else if (s.isExt()) {
     stream << "EXT";
   } else {
+<<<<<<< HEAD
     stream << "PRIORITY " << static_cast<int>(s.getStreamType());
+=======
+    stream << "PRIORITY " << int(s.getStreamType());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return stream;
 }
@@ -137,7 +162,11 @@ std::ostream& operator<<(std::ostream& stream, StreamIdType s) {
 // We rely on streamIdIndex and streamIdType being non-negative;
 // see Note [Hazard when concatenating signed integers]
 
+<<<<<<< HEAD
 inline StreamIdType streamIdType(StreamId s) {
+=======
+static inline StreamIdType streamIdType(StreamId s) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Externally allocated streams have their id being the cudaStream_ptr
   // so the last bit will be 0
   if ((!(s & 1)) && s) {
@@ -147,11 +176,19 @@ inline StreamIdType streamIdType(StreamId s) {
   // rightmost bit
   int mask_for_type = (1 << kStreamTypeBits) - 1;
   auto val = (s >> 1) & mask_for_type;
+<<<<<<< HEAD
   TORCH_CHECK(val || !(s & 1), "invalid StreamId", s);
   return StreamIdType(val);
 }
 
 inline size_t streamIdIndex(StreamId s) {
+=======
+  TORCH_INTERNAL_ASSERT(val || !(s & 1), "invalid StreamId", s);
+  return StreamIdType(val);
+}
+
+static inline size_t streamIdIndex(StreamId s) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return static_cast<size_t>(
       (s >> (kStreamTypeBits + 1)) & ((1 << kStreamsPerPoolBits) - 1));
 }
@@ -166,11 +203,19 @@ StreamId makeStreamId(StreamIdType st, size_t si) {
 
 // Thread-local current streams
 // NOLINTNEXTLINE(*-arrays)
+<<<<<<< HEAD
 thread_local std::unique_ptr<StreamId[]> current_streams = nullptr;
 
 // Populates global values.
 // Warning: this function must only be called once!
 void initGlobalStreamState() {
+=======
+static thread_local std::unique_ptr<StreamId[]> current_streams = nullptr;
+
+// Populates global values.
+// Warning: this function must only be called once!
+static void initGlobalStreamState() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   num_gpus = device_count();
   // Check if the number of GPUs matches the expected compile-time max number
   // of GPUs.
@@ -199,7 +244,11 @@ void initGlobalStreamState() {
 
 // Init a single CUDA or HIP stream
 // See Note [HIP Lazy Streams]
+<<<<<<< HEAD
 void initSingleStream(int p, DeviceIndex device_index, int i) {
+=======
+static void initSingleStream(int p, DeviceIndex device_index, int i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CUDAGuard device_guard(device_index);
   auto& stream = streams[p][device_index][i];
   auto pri = -p; // lower number is higher priority
@@ -215,7 +264,14 @@ void initSingleStream(int p, DeviceIndex device_index, int i) {
 
 // Creates the low and high priority stream pools for the specified device
 // Warning: only call once per device!
+<<<<<<< HEAD
 void initDeviceStreamState(DeviceIndex device_index) {
+=======
+static void initDeviceStreamState(DeviceIndex device_index) {
+  // Switches to the requested device so streams are properly associated
+  // with it.
+  CUDAGuard device_guard{device_index};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto i : c10::irange(kStreamsPerPool)) {
     for (const auto p : c10::irange(max_stream_priorities)) {
       initSingleStream(p, device_index, i);
@@ -224,7 +280,11 @@ void initDeviceStreamState(DeviceIndex device_index) {
 }
 
 // Init front-end to ensure initialization only occurs once
+<<<<<<< HEAD
 void initCUDAStreamsOnce() {
+=======
+static void initCUDAStreamsOnce() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Inits default streams (once, globally)
   c10::call_once(init_flag, initGlobalStreamState);
 
@@ -241,7 +301,11 @@ void initCUDAStreamsOnce() {
 }
 
 // Helper to verify the GPU index is valid
+<<<<<<< HEAD
 inline void check_gpu(DeviceIndex device_index) {
+=======
+static inline void check_gpu(DeviceIndex device_index) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       device_index >= 0 && device_index < num_gpus,
       "Device index value ",
@@ -253,7 +317,11 @@ inline void check_gpu(DeviceIndex device_index) {
 
 // Helper to determine the index of the stream to return
 // Note: Streams are returned round-robin (see note in CUDAStream.h)
+<<<<<<< HEAD
 uint32_t get_idx(std::atomic<uint32_t>& counter) {
+=======
+static uint32_t get_idx(std::atomic<uint32_t>& counter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto raw_idx = counter++;
   return raw_idx % kStreamsPerPool;
 }
@@ -276,7 +344,11 @@ cudaStream_t CUDAStream::stream() const {
   StreamIdType st = streamIdType(stream_id);
   size_t si = streamIdIndex(stream_id);
   if (st.isDefault()) {
+<<<<<<< HEAD
     TORCH_CHECK(
+=======
+    TORCH_INTERNAL_ASSERT(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         si == 0,
         "Unrecognized stream ",
         stream_,
@@ -291,7 +363,11 @@ cudaStream_t CUDAStream::stream() const {
     return reinterpret_cast<cudaStream_t>(stream_id);
   } else {
     auto streamType = st.getStreamType();
+<<<<<<< HEAD
     TORCH_CHECK(
+=======
+    TORCH_INTERNAL_ASSERT(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         streamType >= 1 && streamType <= max_stream_priorities,
         "Unrecognized stream ",
         stream_,

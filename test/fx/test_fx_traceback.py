@@ -2,7 +2,10 @@
 
 import torch
 from torch._inductor.compile_fx import aot_export_module
+<<<<<<< HEAD
 from torch.export import default_decompositions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.traceback import get_graph_provenance_json, NodeSource, NodeSourceAction
 from torch.testing._internal.common_utils import TestCase
 
@@ -32,8 +35,11 @@ class TestFXNodeSource(TestCase):
             dummy_source_dict,
         )
 
+<<<<<<< HEAD
         self.assertEqual(node_source, NodeSource._from_dict(node_source.to_dict()))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Dummy node
         node = torch.fx.Node(
             graph=torch.fx.Graph(),
@@ -67,6 +73,7 @@ class TestFXNodeSource(TestCase):
             },
         )
 
+<<<<<<< HEAD
         # Test two node sources are same
         node_source1 = NodeSource(
             node=None, pass_name="test_pass", action=NodeSourceAction.CREATE
@@ -123,6 +130,8 @@ class TestFXNodeSource(TestCase):
         self.assertNotEqual(node_source_replace, node_source_create)
         self.assertNotEqual(hash(node_source_replace), hash(node_source_create))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_provenance(self):
         def check_node_source(node_source_dict, name, pass_name, action):
             self.assertEqual(node_source_dict["name"], name)
@@ -154,6 +163,7 @@ class TestFXNodeSource(TestCase):
         model = Model()
         example_inputs = (torch.randn(8, 10),)
         ep = torch.export.export(model, example_inputs, strict=True)
+<<<<<<< HEAD
 
         decomposed_ep = ep.run_decompositions(default_decompositions())
         # node decomposed from same ancestor node should have same from_node info
@@ -203,6 +213,8 @@ class TestFXNodeSource(TestCase):
                         node_name_to_from_node[node_name_2],
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gm = ep.module()
         provenance = get_graph_provenance_json(gm.graph)
         self.assertEqual(
@@ -225,7 +237,11 @@ class TestFXNodeSource(TestCase):
         check_node_source(
             key_provenance,
             "x",
+<<<<<<< HEAD
             "Interpreter_DynamoGraphTransformer",
+=======
+            "Interpreter_FlattenInputOutputSignature",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             CREATE_STR,
         )
 
@@ -274,7 +290,11 @@ class TestFXNodeSource(TestCase):
             check_node_source(
                 key_provenance,
                 "x",
+<<<<<<< HEAD
                 "Interpreter_DynamoGraphTransformer",
+=======
+                "Interpreter_FlattenInputOutputSignature",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 CREATE_STR,
             )
 

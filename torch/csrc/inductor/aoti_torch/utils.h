@@ -222,6 +222,7 @@ inline std::optional<c10::ArrayRef<T>> pointer_to_optional_list(
       : std::nullopt;
 }
 
+<<<<<<< HEAD
 template <typename T>
 static c10::List<T> convert_to_c10_List(const T* scalars, const int64_t len) {
   c10::List<T> scalars_list;
@@ -232,4 +233,6 @@ static c10::List<T> convert_to_c10_List(const T* scalars, const int64_t len) {
   return scalars_list;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::aot_inductor

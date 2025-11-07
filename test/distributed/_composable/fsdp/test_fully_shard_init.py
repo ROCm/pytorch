@@ -9,7 +9,11 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed._composable import replicate
 from torch.distributed.device_mesh import init_device_mesh
+<<<<<<< HEAD
 from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
+=======
+from torch.distributed.fsdp import fully_shard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp._fully_shard._fsdp_init import (
     _get_managed_modules,
     _get_managed_states,
@@ -644,6 +648,7 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
     def test_meta_device_1d_init(self):
         default_pg = torch.distributed.distributed_c10d._get_default_group()
         mesh = init_device_mesh(device_type.type, mesh_shape=(default_pg.size(),))
+<<<<<<< HEAD
         # Test both even sharding (8), uneven sharding (3), and empty local tensor (1)
         for mlp_dim in (8, 3, 1):
             # cover foreach_copy code path for bf16
@@ -666,6 +671,21 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
                 for param in model.parameters():
                     self.assertEqual(param.device, torch.device("meta"))
                 self._test_to_empty_and_reset_parameters(model, mesh, mlp_dim)
+=======
+
+        # Test both even sharding (8) and uneven sharding (3)
+        for mlp_dim in (8, 3):
+            with torch.device("meta"):
+                model = nn.Sequential(MLP(mlp_dim, with_buffer=True), MLP(mlp_dim))
+                for param in model.parameters():
+                    self.assertEqual(param.device, torch.device("meta"))
+                fully_shard(model[0], mesh=mesh)
+                fully_shard(model[1], mesh=mesh)
+                fully_shard(model, mesh=mesh)
+            for param in model.parameters():
+                self.assertEqual(param.device, torch.device("meta"))
+            self._test_to_empty_and_reset_parameters(model, mesh, mlp_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Test that we can call `fully_shard` under meta-device context and
         # that `init_device_mesh` call still works
@@ -1314,6 +1334,12 @@ class TestFullyShardOldImport(FSDPTestMultiThread):
 
     @skip_if_lt_x_gpu(1)
     def test_old_import_training(self):
+<<<<<<< HEAD
+=======
+        from torch.distributed._composable.fsdp import fully_shard, MixedPrecisionPolicy
+        from torch.distributed._composable.fsdp.fully_shard import FSDPModule
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = nn.Sequential(nn.Linear(16, 16), nn.Linear(16, 16))
         mp_policy = MixedPrecisionPolicy(param_dtype=torch.bfloat16)
         fully_shard(model[0], mp_policy=mp_policy)

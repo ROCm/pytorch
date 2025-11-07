@@ -5,7 +5,10 @@ from typing import Any, Optional, TYPE_CHECKING, Union
 
 import torch
 import torch.fx.traceback as fx_traceback
+<<<<<<< HEAD
 from torch._logging import trace_structured
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.hub import tqdm
 
 from . import config
@@ -33,7 +36,11 @@ class Interpreter:
     transformations as well as analysis passes.
 
     Methods in the Interpreter class can be overridden to customize
+<<<<<<< HEAD
     the behavior of execution. The map of overridable methods
+=======
+    the behavior of execution. The map of overrideable methods
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     in terms of call hierarchy::
 
         run()
@@ -176,12 +183,16 @@ class Interpreter:
                 if self.extra_traceback:
                     msg = f"While executing {node.format_node()}"
                     msg = f"{e.args[0]}\n\n{msg}" if e.args else str(msg)
+<<<<<<< HEAD
                     msg += f"\nOriginal traceback:\n{node.stack_trace}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if (
                         isinstance(self.module, GraphModule)
                         and self.module.graph is not None
                         and isinstance(self.module.graph, torch.fx.Graph)
                     ):
+<<<<<<< HEAD
                         trace_structured(
                             "artifact",
                             metadata_fn=lambda: {
@@ -196,6 +207,10 @@ class Interpreter:
 
                     msg += "\nUse tlparse to see full graph. "
                     msg += "(https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)"
+=======
+                        msg += f"\nGraphModule: {self.module.print_readable(print_output=False, include_stride=True)}\n"
+                    msg += f"\nOriginal traceback:\n{node.stack_trace}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     e.args = (msg,) + e.args[1:]
                     if isinstance(e, KeyError):
                         raise RuntimeError(*e.args) from e

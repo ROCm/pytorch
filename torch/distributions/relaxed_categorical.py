@@ -38,7 +38,10 @@ class ExpRelaxedCategorical(Distribution):
     (Jang et al., 2017)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"probs": constraints.simplex, "logits": constraints.real_vector}
     support = (
         constraints.real_vector
@@ -128,10 +131,15 @@ class RelaxedOneHotCategorical(TransformedDistribution):
     """
 
     arg_constraints = {"probs": constraints.simplex, "logits": constraints.real_vector}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     support = constraints.simplex
     has_rsample = True
     # pyrefly: ignore [bad-override]
+=======
+    support = constraints.simplex
+    has_rsample = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     base_dist: ExpRelaxedCategorical
 
     def __init__(

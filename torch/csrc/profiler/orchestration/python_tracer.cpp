@@ -11,11 +11,18 @@ struct NoOpPythonTracer : public PythonTracerBase {
 
   void stop() override {}
   void restart() override {}
+<<<<<<< HEAD
   void register_gc_callback() override {}
   std::vector<std::shared_ptr<Result>> getEvents(
       std::function<c10::time_t(c10::approx_time_t)> /*time_converter*/,
       std::vector<CompressedEvent>& /*enters*/,
       c10::time_t /*end_time_ns*/) override {
+=======
+  std::vector<std::shared_ptr<Result>> getEvents(
+      std::function<c10::time_t(c10::approx_time_t)>,
+      std::vector<CompressedEvent>&,
+      c10::time_t) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return {};
   }
 };
@@ -25,7 +32,11 @@ struct NoOpMemoryPythonTracer : public PythonMemoryTracerBase {
   ~NoOpMemoryPythonTracer() override = default;
   void start() override {}
   void stop() override {}
+<<<<<<< HEAD
   void export_memory_history(const std::string& /*path*/) override {}
+=======
+  void export_memory_history(const std::string&) override {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace

@@ -63,10 +63,15 @@ class AsyncClosureHandler(ClosureHandler):
                         self._closure_exception.put(e)
                         return
 
+<<<<<<< HEAD
             self._closure_event_loop = threading.Thread(
                 target=event_loop
             )  # pyrefly: ignore [bad-assignment]
             self._closure_event_loop.start()  # pyrefly: ignore [missing-attribute]
+=======
+            self._closure_event_loop = threading.Thread(target=event_loop)
+            self._closure_event_loop.start()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def run(self, closure):
         with self._closure_lock:

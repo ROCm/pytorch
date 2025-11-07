@@ -167,7 +167,11 @@ class CallTypeHelper final {
 //
 // During post processing we:
 //   1) Determine the type represented by a TraceKey by checking which
+<<<<<<< HEAD
 //      sub-cache it appears in the thread local cache.
+=======
+//      sub-cache it appears in in the thread local cache.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   2) Look up the pair of CallKeys from the thread local cache.
 //   3) Look up the expanded values of each CallKey from the global value cache.
 //
@@ -365,9 +369,13 @@ std::vector<std::pair<std::string, TensorMetadata>> ValueCache::unpackTensorMap(
 }
 
 template <>
+<<<<<<< HEAD
 void ValueCache::store<CallType::PyCall>(
     const PyCallKey& key,
     no_ephemeral_t /*unused*/) {
+=======
+void ValueCache::store<CallType::PyCall>(const PyCallKey& key, no_ephemeral_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& locations = std::get<CallType::PyCall>(state_);
   if (C10_UNLIKELY(locations.find(key) == locations.end())) {
     locations[key] = {
@@ -676,14 +684,18 @@ struct ThreadLocalResults {
   CallTypeHelper<TraceKeyCacheState>::tuple_type trace_keys_;
   AppendOnlyList<c10::approx_time_t, BLOCK_SIZE> exit_times_;
   AppendOnlyList<c10::approx_time_t, BLOCK_SIZE> c_exit_times_;
+<<<<<<< HEAD
 
   int active_frames_{0};
   int remaining_start_frames_{0};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // ============================================================================
 // == Tracing implementation ==================================================
 // ============================================================================
+<<<<<<< HEAD
 #define IS_PYTHON_3_12 (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 12)
 #if IS_PYTHON_3_12
 // forward declarations
@@ -695,6 +707,8 @@ static PyObject* c_call_callback(
     PyObject* kwnames);
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class PythonTracer final : public python_tracer::PythonTracerBase {
  public:
   PythonTracer(torch::profiler::impl::RecordQueue* queue);
@@ -706,7 +720,11 @@ class PythonTracer final : public python_tracer::PythonTracerBase {
       PyFrameObject* frame,
       int what,
       PyObject* arg);
+<<<<<<< HEAD
   void register_gc_callback() override;
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void stop() override;
   void restart() override;
   std::vector<std::shared_ptr<Result>> getEvents(
@@ -725,8 +743,11 @@ class PythonTracer final : public python_tracer::PythonTracerBase {
       PyFrameObject* frame,
       bool is_startup_frame);
 
+<<<<<<< HEAD
   static PyObject* gc_event_callback(PyObject* self, PyObject* args);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void recordCCall(
       ThreadLocalResults& tls,
       PyFrameObject* frame,
@@ -735,9 +756,16 @@ class PythonTracer final : public python_tracer::PythonTracerBase {
 
   const std::vector<PyThreadState*> interpreterThreads() const;
 
+<<<<<<< HEAD
   std::atomic<bool> active_lock_{false};
   bool active_{false};
   bool gc_callback_registered_{false};
+=======
+  PyObject* get_callable_from_frame(PyFrameObject* frame);
+
+  std::atomic<bool> active_lock_{false};
+  bool active_{false};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   torch::profiler::impl::RecordQueue* queue_;
   PyInterpreterState* interpreter_{nullptr};
@@ -747,6 +775,7 @@ class PythonTracer final : public python_tracer::PythonTracerBase {
   std::vector<StartFrame> start_frames_;
   std::deque<ThreadLocalResults> thread_local_results_;
   ValueCache value_cache_;
+<<<<<<< HEAD
 
 #if IS_PYTHON_3_12
   friend PyObject* c_call_callback(
@@ -965,6 +994,10 @@ static void unregisterMonitoringCallback() {
 }
 #endif
 
+=======
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const std::vector<PyThreadState*> PythonTracer::interpreterThreads() const {
   pybind11::gil_scoped_acquire gil;
   std::vector<PyThreadState*> out;
@@ -978,6 +1011,7 @@ const std::vector<PyThreadState*> PythonTracer::interpreterThreads() const {
   return out;
 }
 
+<<<<<<< HEAD
 // we are only registering on main thread while holding GIL so this should be
 // safe
 static PyObject* py_gc_callback = nullptr;
@@ -999,6 +1033,8 @@ PyObject* PythonTracer::gc_event_callback(PyObject* self, PyObject* args) {
   Py_RETURN_NONE;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PythonTracer::PythonTracer(torch::profiler::impl::RecordQueue* queue)
     : queue_(queue),
 
@@ -1028,8 +1064,12 @@ PythonTracer::PythonTracer(torch::profiler::impl::RecordQueue* queue)
     PyThreadState_Swap(thread_state);
 
     thread_local_results_.emplace_back(thread_state, &value_cache_, this);
+<<<<<<< HEAD
     auto& tls = thread_local_results_.back();
     auto* ctx = tls.ctx_;
+=======
+    auto* ctx = thread_local_results_.back().ctx_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // When we begin profiling there are already frames on the Python
     // interpreter stack. To ensure a complete trace, we must push calls
@@ -1051,7 +1091,21 @@ PythonTracer::PythonTracer(torch::profiler::impl::RecordQueue* queue)
     }
 
     for (auto it = current_stack.rbegin(); it != current_stack.rend(); it++) {
+<<<<<<< HEAD
       recordPyCall(tls, it->get(), true);
+=======
+      recordPyCall(thread_local_results_.back(), it->get(), true);
+      PyFrameObject* frame = it->get();
+      PyObject* callable = get_callable_from_frame(frame);
+      if (callable) {
+        // If the frame has a callable, record it as a C call since
+        // PyEval_GetFrame only gets the python frame. We need to record this C
+        // call so that when exiting the profiler we don't have a mismatched C
+        // call.
+        recordCCall(thread_local_results_.back(), it->get(), callable, true);
+      }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto frame_refcount = Py_REFCNT(it->get());
 
       // We hold one reference in `current_stack`, and the interpreter holds
@@ -1059,13 +1113,17 @@ PythonTracer::PythonTracer(torch::profiler::impl::RecordQueue* queue)
       TORCH_INTERNAL_ASSERT(frame_refcount >= 2, frame_refcount);
     }
 
+<<<<<<< HEAD
     tls.remaining_start_frames_ = tls.active_frames_;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Note:
     //   This profile will not compose with other CPython profilers, and
     //   cannot be round tripped via `sys.settrace(sys.gettrace())`
     PyEval_SetProfile(PythonTracer::pyProfileFn, (PyObject*)ctx);
   }
+<<<<<<< HEAD
 #if IS_PYTHON_3_12
   registerMonitoringCallback();
 #endif
@@ -1131,14 +1189,19 @@ void PythonTracer::register_gc_callback() {
   Py_DECREF(callbacks);
   Py_DECREF(gc_module);
   PyGILState_Release(gstate);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void PythonTracer::stop() {
   gil_and_restore_thread gil;
+<<<<<<< HEAD
   if (gc_callback_registered_) {
     unregister_gc_callback();
     gc_callback_registered_ = false;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (active_) {
     for (const auto thread_state : interpreterThreads()) {
       if (thread_state->c_profilefunc == &PythonTracer::pyProfileFn) {
@@ -1147,10 +1210,13 @@ void PythonTracer::stop() {
       }
     }
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_12
     unregisterMonitoringCallback();
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto lock_returned = active_lock_.compare_exchange_strong(active_, false);
     active_ = false;
     SOFT_ASSERT(lock_returned, "Failed to return python tracer lock.");
@@ -1174,9 +1240,12 @@ void PythonTracer::restart() {
       PyEval_SetProfile(PythonTracer::pyProfileFn, (PyObject*)ctx);
     }
   }
+<<<<<<< HEAD
 #if IS_PYTHON_3_12
   registerMonitoringCallback();
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
@@ -1239,7 +1308,10 @@ void PythonTracer::recordPyCall(
   const auto time = c10::getApproximateTime();
   is_startup_frame ? start_frames_.push_back({key, time})
                    : queue_->getSubqueue()->emplace_py_call(key, time);
+<<<<<<< HEAD
   ++tls.active_frames_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void PythonTracer::recordCCall(
@@ -1259,7 +1331,30 @@ void PythonTracer::recordCCall(
   auto key = tls.intern<CallType::PyCCall, EventType::PyCCall>(
       arg, (void*)(fn->m_ml), frame);
   queue_->getSubqueue()->emplace_py_call(key, c10::getApproximateTime());
+<<<<<<< HEAD
   ++tls.active_frames_;
+=======
+}
+
+PyObject* PythonTracer::get_callable_from_frame(PyFrameObject* frame) {
+  if (frame == nullptr) {
+    return nullptr;
+  }
+  // Get the code object associated with the frame
+  auto code = THPCodeObjectPtr(PyFrame_GetCode(frame));
+  if (code == nullptr) {
+    return nullptr;
+  }
+  // Get the function name (if needed)
+  auto name = THPUtils_unpackStringView(code->co_name).data();
+  // To get the function object, you will need to look in the globals or the
+  // frame's f_globals
+  PyObject* func = PyDict_GetItemString(PyFrame_GetGlobals(frame), name);
+  if (func) {
+    Py_INCREF(func); // Make sure the returned function has a reference
+  }
+  return func; // Returns a PyObject* (the function)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // ============================================================================
@@ -1363,7 +1458,13 @@ class PostProcess {
                state.exits_.top().t_ < enter.enter_t_) {
           auto& exit = state.exits_.top();
           auto& tstack = stacks[exit.python_tid_];
+<<<<<<< HEAD
           pop(tstack, exit.t_);
+=======
+          if (!tstack.empty()) {
+            pop(tstack, exit.t_);
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           state.exits_.pop();
         }
         out.push_back(Result::create(
@@ -1434,7 +1535,11 @@ struct PythonIDVisitor {
   }
 
   template <typename T>
+<<<<<<< HEAD
   void operator()(T& /*unused*/) {}
+=======
+  void operator()(T&) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   size_t current_python_id_{0};
   ska::flat_hash_map<PyModuleCls, ska::flat_hash_map<PyModuleSelf, size_t>>
@@ -1555,6 +1660,7 @@ int PythonTracer::pyProfileFn(
       local_results.active_tracer_->recordCCall(local_results, frame, arg);
       break;
 
+<<<<<<< HEAD
     case PyTrace_RETURN:
       local_results.exit_times_.emplace_back(c10::getApproximateTime());
       local_results.active_frames_--;
@@ -1562,15 +1668,24 @@ int PythonTracer::pyProfileFn(
           local_results.remaining_start_frames_) {
         local_results.remaining_start_frames_ = local_results.active_frames_;
       }
+=======
+    case PyTrace_EXCEPTION:
+    case PyTrace_RETURN:
+      local_results.exit_times_.emplace_back(c10::getApproximateTime());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       break;
 
     case PyTrace_C_EXCEPTION:
     case PyTrace_C_RETURN:
+<<<<<<< HEAD
       if (local_results.active_frames_ >
           local_results.remaining_start_frames_) {
         local_results.c_exit_times_.emplace_back(c10::getApproximateTime());
         local_results.active_frames_--;
       }
+=======
+      local_results.c_exit_times_.emplace_back(c10::getApproximateTime());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       break;
   }
   return 0;

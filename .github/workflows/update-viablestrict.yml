@@ -7,7 +7,11 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}
+<<<<<<< HEAD
   cancel-in-progress: true
+=======
+  cancel-in-progress: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   do_update_viablestrict:
@@ -18,12 +22,20 @@ jobs:
     environment: ${{ (github.event_name == 'schedule') && 'mergebot' || '' }}
     steps:
       - name: Update viable/strict
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-viablestrict@main
+=======
+        uses: pytorch/test-infra/.github/actions/update-viablestrict@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         id: update_viablestrict
         with:
           repository: pytorch/pytorch
           stable-branch: viable/strict
+<<<<<<< HEAD
           requires: '[\"pull\", \"trunk\", \"lint\",  \"linux-aarch64\"]'
+=======
+          requires: '[\"pull\", \"trunk\", \"lint\", \"linux-binary\"]'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           secret-bot-token: ${{ secrets.MERGEBOT_TOKEN }}
           clickhouse-url: ${{ secrets.CLICKHOUSE_URL }}
           clickhouse-username: ${{ secrets.CLICKHOUSE_VIABLESTRICT_USERNAME }}
@@ -48,7 +60,10 @@ jobs:
             echo "{\"sha\": \"${LATEST_SHA}\", \"repository\":\"pytorch/pytorch\", \"timestamp\": ${TIME}}" > "/tmp/${LATEST_SHA}.json"
             pip install awscli==1.29.40
             aws s3 cp "/tmp/${LATEST_SHA}.json" "s3://ossci-raw-job-status/stable_pushes/pytorch/pytorch/${LATEST_SHA}.json"
+<<<<<<< HEAD
             # Push new viable/strict tag
             cd pytorch/pytorch
             git push origin "${LATEST_SHA}:refs/tags/viable/strict/${TIME}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           fi

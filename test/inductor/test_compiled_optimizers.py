@@ -1,16 +1,23 @@
 # Owner(s): ["module: inductor"]
 
+<<<<<<< HEAD
 import random
 import sys
 import types
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 import weakref
 from contextlib import ExitStack
 from copy import deepcopy
 from typing import NamedTuple
 
+<<<<<<< HEAD
 from expecttest import assert_expected_inline
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch._inductor
 import torch._inductor.cudagraph_trees
@@ -58,14 +65,22 @@ from torch.testing._internal.common_optimizers import (
     optim_db,
     optims,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import parametrize, skipIfWindows
+=======
+from torch.testing._internal.common_utils import parametrize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CPU,
     HAS_GPU,
     has_triton,
 )
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton, requires_gpu
+=======
+from torch.testing._internal.triton_utils import requires_cuda, requires_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_inputs(optim):
@@ -190,6 +205,7 @@ class KernelCounts(NamedTuple):
 # tests you can get different kernel counts
 # This maps the test name to the
 # expected kernel count
+<<<<<<< HEAD
 
 # fmt: off
 # expecttest got error after PYFMT add line break for the triple quotes
@@ -260,6 +276,71 @@ KERNEL_COUNT_OVERRIDES = {
     "test_sgd_tensor_lr_xpu": lambda x: assert_expected_inline(x, """2"""),
 }
 # fmt: on
+=======
+KERNEL_COUNT_OVERRIDES = {
+    "test_rmsprop_foreach_weight_decay_cpu": 12,
+    "test_nadam_foreach_weight_decay_momentum_decay_cpu": 20,
+    "test_adamw_amsgrad_capturable_foreach_cuda": 3,
+    "test_adamw_amsgrad_capturable_foreach_xpu": 3,
+    "test_adamw_amsgrad_capturable_cuda": 6,
+    "test_adamw_amsgrad_capturable_xpu": 6,
+    "test_adamw_tensor_lr_tensor_betas_amsgrad_capturable_cuda": 6,
+    "test_adamw_tensor_lr_tensor_betas_capturable_cuda": 6,
+    "test_adamw_tensor_lr_tensor_betas_amsgrad_capturable_xpu": 6,
+    "test_adamw_tensor_lr_amsgrad_capturable_cuda": 6,
+    "test_adamw_tensor_lr_amsgrad_capturable_xpu": 6,
+    "test_adam_tensor_lr_amsgrad_capturable_cuda": 6,
+    "test_adam_tensor_lr_amsgrad_capturable_xpu": 6,
+    "test_adam_tensor_lr_tensor_betas_amsgrad_capturable_cuda": 6,
+    "test_adam_tensor_lr_tensor_betas_capturable_cuda": 6,
+    "test_adam_amsgrad_capturable_cuda": 6,
+    "test_adam_amsgrad_capturable_xpu": 6,
+    "test_adadelta_tensor_lr_capturable_cuda": 6,
+    "test_adadelta_tensor_lr_capturable_xpu": 6,
+    "test_rmsprop_tensor_lr_capturable_cuda": 6,
+    "test_rmsprop_tensor_lr_capturable_xpu": 6,
+    "test_adadelta_foreach_weight_decay_maximize_cpu": 12,
+    "test_adadelta_foreach_rho_weight_decay_cpu": 12,
+    "test_adadelta_foreach_weight_decay_cpu": 12,
+    "test_sgd_foreach_momentum_weight_decay_cpu": 16,
+    "test_sgd_foreach_momentum_nesterov_weight_decay_cpu": 16,
+    "test_sgd_momentum_dampening_foreach_cuda": 5,
+    "test_sgd_momentum_dampening_foreach_xpu": 5,
+    "test_sgd_momentum_foreach_cuda": 5,
+    "test_sgd_momentum_foreach_xpu": 5,
+    "test_sgd_weight_decay_maximize_cuda": 4,
+    "test_sgd_weight_decay_maximize_xpu": 4,
+    "test_sgd_weight_decay_maximize_cpu": 4,
+    "test_sgd_weight_decay_cpu": 4,
+    "test_sgd_weight_decay_cuda": 4,
+    "test_sgd_weight_decay_xpu": 4,
+    "test_sgd_momentum_weight_decay_foreach_cuda": 2,
+    "test_sgd_momentum_weight_decay_foreach_xpu": 2,
+    "test_sgd_momentum_nesterov_weight_decay_foreach_cuda": 2,
+    "test_sgd_momentum_nesterov_weight_decay_foreach_xpu": 2,
+    "test_sgd_cuda": 4,
+    "test_sgd_cpu": 4,
+    "test_sgd_xpu": 4,
+    "test_adagrad_initial_accumulator_value_weight_decay_foreach_xpu": 2,
+    "test_adagrad_lr_decay_weight_decay_foreach_xpu": 2,
+    "test_adagrad_weight_decay_foreach_xpu": 2,
+    "test_adagrad_weight_decay_maximize_foreach_xpu": 2,
+    "test_adagrad_tensor_lr_cpu": 6,
+    "test_adagrad_tensor_lr_cuda": 6,
+    "test_adagrad_tensor_lr_xpu": 6,
+    "test_adamax_tensor_lr_weight_decay_capturable_cuda": 6,
+    "test_adamax_tensor_lr_weight_decay_capturable_xpu": 6,
+    "test_asgd_tensor_lr_weight_decay_maximize_capturable_cuda": 5,
+    "test_asgd_tensor_lr_weight_decay_maximize_capturable_xpu": 8,
+    "test_nadam_tensor_lr_weight_decay_momentum_decay_decoupled_weight_decay_capturable_cuda": 6,
+    "test_nadam_tensor_lr_weight_decay_momentum_decay_decoupled_weight_decay_capturable_xpu": 9,
+    "test_radam_tensor_lr_capturable_weight_decay_decoupled_weight_decay_cuda": 6,
+    "test_radam_tensor_lr_capturable_weight_decay_decoupled_weight_decay_xpu": 6,
+    "test_sgd_tensor_lr_cpu": 2,
+    "test_sgd_tensor_lr_cuda": 2,
+    "test_sgd_tensor_lr_xpu": 2,
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # also tracks currently supported optimizers
 KERNEL_COUNTS = {
@@ -292,7 +373,11 @@ def build_opt_kwarg_db():
 
                 has_tensor_lr = False
                 for key, val in kwargs.items():
+<<<<<<< HEAD
                     if (key != "lr" and key != "betas") and (
+=======
+                    if (not key == "lr" and not key == "betas") and (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         not isinstance(val, bool) or (isinstance(val, bool) and val)
                     ):
                         name += "_" + key
@@ -439,7 +524,11 @@ def make_test(
     closure=None,
     scheduler_cls=None,
     kernel_count=2,
+<<<<<<< HEAD
     device=GPU_TYPE,
+=======
+    device="cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     **kwargs,
 ):
     @config.patch("score_fusion_memory_threshold", 1)
@@ -453,7 +542,11 @@ def make_test(
                 stack.enter_context(config.patch({"triton.cudagraphs": True}))
 
             kwargs_compiled = deepcopy(kwargs)
+<<<<<<< HEAD
             if isinstance(kwargs.get("lr"), torch.Tensor):
+=======
+            if isinstance(kwargs.get("lr", None), torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kwargs["lr"] = kwargs["lr"].to(device)
                 kwargs_compiled["lr"] = kwargs_compiled["lr"].to(device)
 
@@ -514,12 +607,18 @@ def make_test(
                 # currently, we compile the step and the rest of the computation
                 # separately because the step is a single element tensor
                 # hence, the usual kernel count is 2
+<<<<<<< HEAD
                 if isinstance(kernel_count, types.LambdaType):
                     kernel_count(str(torch._inductor.metrics.generated_kernel_count))
                 else:
                     self.assertEqual(
                         torch._inductor.metrics.generated_kernel_count, kernel_count
                     )
+=======
+                self.assertEqual(
+                    torch._inductor.metrics.generated_kernel_count, kernel_count
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         finally:
             stack.close()
 
@@ -587,9 +686,12 @@ class CompiledOptimizerParityTests(TestCase):
     @optims(optim_db, dtypes=[torch.float32])
     @parametrize("use_closure", [True, False])
     def test_correctness(self, device, dtype, optim_info, use_closure):
+<<<<<<< HEAD
         torch.cuda.manual_seed_all(0)
         torch.manual_seed(0)
         random.seed(0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optim_cls = optim_info.optim_cls
         all_optim_inputs = _get_optim_inputs_including_global_cliquey_kwargs(
             device, dtype, optim_info, skip=("differentiable",)
@@ -611,10 +713,14 @@ class CompiledOptimizerParityTests(TestCase):
                 torch._inductor.metrics.reset()
                 input = torch.ones([10, 10], device=device)
                 model_eager = torch.nn.Sequential(
+<<<<<<< HEAD
                     *[
                         torch.nn.Linear(10, 10, device=device, bias=False)
                         for _ in range(2)
                     ]
+=======
+                    *[torch.nn.Linear(10, 10, device=device) for _ in range(2)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 model_eager(input).sum().backward()
                 model_compiled = deepcopy(model_eager)
@@ -734,7 +840,10 @@ class CompiledOptimizerTests(TestCase):
         SGD, kernel_count=1, lr=0.01, foreach=True
     )
 
+<<<<<<< HEAD
     @skipIfWindows
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gpu
     def test_static_address_finalizer(self):
         import gc
@@ -902,7 +1011,11 @@ class CompiledOptimizerTests(TestCase):
         compiled = torch.compile(_get_value)
 
         x = torch.ones(2, 2)
+<<<<<<< HEAD
         mark_static_address(x, guard=True)
+=======
+        mark_static_address(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ret_val = compiled(x)
 
@@ -927,7 +1040,11 @@ class CompiledOptimizerTests(TestCase):
 
         self.assertLess(end - start, 90)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_S429861(self):
         # Just verify we can compile this function without error
         try:
@@ -946,7 +1063,11 @@ class CompiledOptimizerTests(TestCase):
             kwargs = aot_graph_input_parser(forward)
             torch.compile(forward)(**kwargs)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_map_adam(self):
         params = [
             torch.rand(

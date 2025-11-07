@@ -35,7 +35,10 @@ class Weibull(TransformedDistribution):
         "scale": constraints.positive,
         "concentration": constraints.positive,
     }
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     support = constraints.positive
 
     def __init__(
@@ -53,7 +56,10 @@ class Weibull(TransformedDistribution):
             PowerTransform(exponent=self.concentration_reciprocal),
             AffineTransform(loc=0, scale=self.scale),
         ]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(base_dist, transforms, validate_args=validate_args)
 
     def expand(self, batch_shape, _instance=None):

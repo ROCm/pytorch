@@ -8,12 +8,16 @@ import torch
 from torch.distributed.fsdp import CPUOffloadPolicy, fully_shard, OffloadPolicy
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import FSDPTest, get_devtype
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     run_tests,
     TEST_CUDA,
     TEST_HPU,
     TEST_XPU,
 )
+=======
+from torch.testing._internal.common_utils import run_tests, TEST_CUDA, TEST_HPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
     Transformer,
@@ -67,6 +71,7 @@ class TestFullyShardMemory(FSDPTest):
         # allocate the cuBLAS workspaces before measuring the memory usage
         # since the workspace size can differ between hardwares
         lin = torch.nn.Linear(768, 768, device=device_type)
+<<<<<<< HEAD
         # NOTE: before https://github.com/pytorch/pytorch/pull/163955,
         # the input shape was (1, 768), so that the forward gemm used
         # cublaslt, and the backward used cublas.
@@ -82,6 +87,9 @@ class TestFullyShardMemory(FSDPTest):
         # since the input preparation can swap matrices based on output
         # row-/col-majorness.
         inp = torch.randn(2, 768, device=device_type)
+=======
+        inp = torch.randn(1, 768, device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lin(inp).sum().backward()
         torch.get_device_module(device_type).empty_cache()
         base_mem_mb = self._get_peak_active_memory_mb()
@@ -255,15 +263,23 @@ class TestFullyShardMemory(FSDPTest):
 
     def _get_peak_active_memory_mb(self) -> int:
         mem_stats = torch.get_device_module(device_type).memory_stats()
+<<<<<<< HEAD
 
         if TEST_CUDA or TEST_XPU:
+=======
+        if TEST_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return round(mem_stats["active_bytes.all.peak"] / 1e6)
         if TEST_HPU:
             return round(mem_stats["MaxInUse"] / 1e6)
 
     def _get_curr_active_memory_mb(self) -> int:
         mem_stats = torch.get_device_module(device_type).memory_stats()
+<<<<<<< HEAD
         if TEST_CUDA or TEST_XPU:
+=======
+        if TEST_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return round(mem_stats["active_bytes.all.current"] / 1e6)
         if TEST_HPU:
             return round(mem_stats["InUse"] / 1e6)

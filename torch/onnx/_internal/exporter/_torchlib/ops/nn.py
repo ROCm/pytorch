@@ -50,16 +50,22 @@ def aten_group_norm(
 
     c = op21.Shape(input, start=1, end=2)
     if weight is None:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         weight = op21.ConstantOfShape(c, value=ir.tensor(1.0, dtype=input.dtype))
     if bias is None:
         # pyrefly: ignore [missing-attribute]
+=======
+        weight = op21.ConstantOfShape(c, value=ir.tensor(1.0, dtype=input.dtype))
+    if bias is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bias = op21.ConstantOfShape(c, value=ir.tensor(0.0, dtype=input.dtype))
     return op21.GroupNormalization(
         input, weight, bias, epsilon=eps, num_groups=num_groups
     )
 
 
+<<<<<<< HEAD
 @onnx_impl(aten.rms_norm.default, trace_only=True, opset_introduced=23)
 def aten_rms_norm(
     input: TFloat,
@@ -88,6 +94,8 @@ def aten_rms_norm(
     return op23.RMSNormalization(input, weight, axis=axis, epsilon=eps)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @onnx_impl(
     aten.scaled_dot_product_attention.default, trace_only=True, opset_introduced=23
 )
@@ -107,7 +115,11 @@ def aten_scaled_dot_product_attention_23(
         1. https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html
         2. https://onnx.ai/onnx/operators/onnx__Attention.html
 
+<<<<<<< HEAD
     Attempts to convert SDPA to Attention onnx op and fallbacks to an onnx graph equivalent to the following PyTorch code::
+=======
+    Attempts to convert SDPA to Attention onnx op and fallbacks to an onnx graph equivivalent to the following PyTorch code::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         scale_factor = 1 / math.sqrt(Q.size(-1)) if scale is None else scale
         attn_mask = (
             torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
@@ -131,7 +143,10 @@ def aten_scaled_dot_product_attention_23(
     assert (not is_causal) or (is_causal and attn_mask is None), (
         "is_causal and attn_mask cannot be set at the same time"
     )
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert len(query.shape) == 4 and len(key.shape) == 4 and len(value.shape) == 4, (
         "only 4D query, key, and value are supported"
     )
@@ -140,21 +155,32 @@ def aten_scaled_dot_product_attention_23(
     if dropout_p == 0:
         if enable_gqa:
             assert (
+<<<<<<< HEAD
                 # pyrefly: ignore [index-error]
                 query.shape[1] > key.shape[1] == value.shape[1]
                 # pyrefly: ignore [index-error]
+=======
+                query.shape[1] > key.shape[1] == value.shape[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and query.shape[1] % key.shape[1] == 0
             ), (
                 "SDPA (GQA or MQA) requires q_num_heads > kv_num_heads & q_num_heads % kv_num_heads == 0"
             )
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert query.shape[1] == key.shape[1] == value.shape[1], (
                 "SDPA (MHA) requires q_num_heads = kv_num_heads"
             )
 
         # NOTE: num_heads attributes (q_num_heads/kv_num_heads) should not be specified for 4D.
+<<<<<<< HEAD
         # They are not populated with 4D inputs because this information directly comes from input shapes:
+=======
+        # They are not populated with 4D inputs because this information directy comes from input shapes:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # `q_num_heads=query.shape[1]` and `kv_num_heads=key.shape[1]`.
         # This dimension is usually static but it could not be dynamic if also given as an attribute.
         # num_heads attributes are needed for 3D attention inputs:
@@ -177,9 +203,12 @@ def aten_scaled_dot_product_attention_23(
     if is_causal:
         attn_mask = _causal_attention_mask(query, key, op23)
 
+<<<<<<< HEAD
     if enable_gqa:
         key, value = _attention_repeat_kv_for_group_query(query, key, value, op23)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if attn_mask is None:
         return _aten_scaled_dot_product_attention_no_mask_onnx(
             query, key, value, scale, dropout_p, op23
@@ -190,6 +219,7 @@ def aten_scaled_dot_product_attention_23(
     )
 
 
+<<<<<<< HEAD
 def _attention_repeat_kv_for_group_query(
     query: TFloat, key: TFloat, value: TFloat, op: Opset
 ) -> tuple[TFloat, TFloat]:
@@ -253,6 +283,8 @@ def _attention_repeat_kv_for_group_query(
     return expanded_key, expanded_value
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _attention_scale(query: TFloat, op: Opset) -> TFloat:
     """Calculate the scale factor for the attention result.
 

@@ -2,7 +2,11 @@
 
 import os
 import sys
+<<<<<<< HEAD
 from typing import Any, cast, Optional, Union
+=======
+from typing import cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -32,10 +36,14 @@ from torch.distributed.checkpoint.planner import (
 )
 from torch.distributed.checkpoint.storage import WriteResult
 from torch.futures import Future
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     requires_accelerator_dist_backend,
     skip_if_lt_x_gpu,
 )
+=======
+from torch.testing._internal.common_distributed import requires_nccl, skip_if_lt_x_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests, TEST_WITH_DEV_DBG_ASAN
 from torch.testing._internal.distributed._shard.sharded_tensor import (
     ShardedTensorTestBase,
@@ -43,9 +51,12 @@ from torch.testing._internal.distributed._shard.sharded_tensor import (
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TEST_WITH_DEV_DBG_ASAN:
     print(
         "Skip dev-asan as torch + multiprocessing spawn have known issues",
@@ -68,8 +79,13 @@ class TestModule(torch.nn.Module):
         return ChunkShardingSpec(
             dim=0,
             placements=[
+<<<<<<< HEAD
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -81,12 +97,20 @@ class TestDistributedCheckpointing(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tensor_metadata_with_missing_rank_spec(self) -> None:
         spec = ChunkShardingSpec(
             dim=0,
             placements=[
+<<<<<<< HEAD
                 f"rank:1/{device_type}:1",
+=======
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -98,6 +122,7 @@ class TestDistributedCheckpointing(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
     def test_default_metadata(self) -> None:
         device = f"{device_type}:{dist.get_rank()}"
@@ -106,6 +131,16 @@ class TestDistributedCheckpointing(ShardedTensorTestBase):
             placements=[
                 f"rank:0/{device_type}:0",
                 f"rank:1/{device_type}:1",
+=======
+    @requires_nccl()
+    def test_default_metadata(self) -> None:
+        device = f"cuda:{dist.get_rank()}"
+        spec = ChunkShardingSpec(
+            dim=0,
+            placements=[
+                "rank:0/cuda:0",
+                "rank:1/cuda:1",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
         )
 
@@ -152,7 +187,11 @@ class TestStorageBase:
         self.rank = 0 if not dist.is_initialized() else dist.get_rank()
 
     def _get_ranks(self, name):
+<<<<<<< HEAD
         return self.fail_conf.get(name, None)
+=======
+        return self.fail_conf[name] if name in self.fail_conf else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _fail_rank(self, name):
         ranks = self._get_ranks(name)
@@ -176,9 +215,13 @@ class FaultyStorageWriter(TestStorageBase, StorageWriter):
     def reset(self, checkpoint_id: Union[str, os.PathLike, None] = None) -> None:
         return
 
+<<<<<<< HEAD
     def set_up_storage_writer(
         self, is_coordinator: bool, *args: Any, **kwargs: Any
     ) -> None:
+=======
+    def set_up_storage_writer(self, is_coordinator: bool) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._fail_rank("fail_set_up_storage_writer")
 
     def prepare_local_plan(self, plan: SavePlan) -> SavePlan:
@@ -239,14 +282,22 @@ class TestDistributedFailure(ShardedTensorTestBase):
     def get_spec(self):
         return ChunkShardingSpec(
             dim=0,
+<<<<<<< HEAD
             placements=[
                 f"rank:{r}/{device_type}:{r}" for r in range(dist.get_world_size())
             ],
+=======
+            placements=[f"rank:{r}/cuda:{r}" for r in range(dist.get_world_size())],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dummy_writer_works(self) -> None:
         state_dict = {
             "sharded": sharded_tensor.rand(self.get_spec(), 20, 20),
@@ -258,7 +309,11 @@ class TestDistributedFailure(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dummy_reader_works(self) -> None:
         state_dict = {
             "sharded": sharded_tensor.rand(self.get_spec(), 20, 20),
@@ -321,7 +376,11 @@ class TestDistributedFailure(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_save_error_handling(self) -> None:
         state_dict = {
             "sharded": sharded_tensor.rand(self.get_spec(), 20, 20),
@@ -355,7 +414,11 @@ class TestDistributedFailure(ShardedTensorTestBase):
 
     @with_comms(init_rpc=False)
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     @requires_accelerator_dist_backend()
+=======
+    @requires_nccl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_error_handling(self) -> None:
         state_dict = {
             "sharded": sharded_tensor.rand(self.get_spec(), 20, 20),
@@ -366,18 +429,26 @@ class TestDistributedFailure(ShardedTensorTestBase):
         self._test_load(state_dict)
         self._test_load(state_dict, fail_set_up_storage_reader=[0])
         self._test_load(state_dict, fail_prepare_global_plan=[0])
+<<<<<<< HEAD
         self._test_load(state_dict, fail_read_metadata=[0], ignore_exception_type=True)
+=======
+        self._test_load(state_dict, fail_read_metadata=[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_load(state_dict, fail_prepare_local_plan=[1])
         self._test_load(state_dict, fail_read_data=[3])
         self._test_load(state_dict, fail_read_data_async=[1])
 
         self._test_load(state_dict, coordinator=3, fail_set_up_storage_reader=[0])
+<<<<<<< HEAD
         self._test_load(
             state_dict,
             coordinator=1,
             fail_read_metadata=[3],
             ignore_exception_type=True,
         )
+=======
+        self._test_load(state_dict, coordinator=1, fail_read_metadata=[3])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_load(state_dict, coordinator=2, fail_read_data=[0])
         self._test_load(state_dict, coordinator=3, fail_read_data_async=[2])
         self._test_load(state_dict, coordinator=1, fail_prepare_global_plan=[1])
@@ -386,7 +457,11 @@ class TestDistributedFailure(ShardedTensorTestBase):
         state_dict = {"replicated": torch.rand(10, 10), "bytes": [1, 2, 3, 4]}
         self._test_load(state_dict)
         self._test_load(state_dict, fail_set_up_storage_reader=[0])
+<<<<<<< HEAD
         self._test_load(state_dict, fail_read_metadata=[0], ignore_exception_type=True)
+=======
+        self._test_load(state_dict, fail_read_metadata=[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_load(state_dict, fail_prepare_local_plan=[0])
         self._test_load(state_dict, fail_prepare_global_plan=[0])
         self._test_load(state_dict, fail_read_data=[0])

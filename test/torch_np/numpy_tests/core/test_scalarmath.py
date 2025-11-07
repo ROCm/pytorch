@@ -925,7 +925,11 @@ class TestScalarSubclassingMisc(TestCase):
 
         # inheritance has to override, or this is correctly lost:
         res = op(myf_simple1(1), myf_simple2(2))
+<<<<<<< HEAD
         assert type(res) is sctype or type(res) is np.bool_
+=======
+        assert type(res) == sctype or type(res) == np.bool_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert op(myf_simple1(1), myf_simple2(2)) == op(1, 2)  # inherited
 
         # Two independent subclasses do not really define an order.  This could
@@ -955,7 +959,11 @@ class TestScalarSubclassingMisc(TestCase):
         assert op(myt(1), np.float64(2)) == __op__
         assert op(np.float64(1), myt(2)) == __rop__
 
+<<<<<<< HEAD
         if op in {operator.mod, operator.floordiv} and subtype is complex:
+=======
+        if op in {operator.mod, operator.floordiv} and subtype == complex:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return  # module is not support for complex.  Do not test.
 
         if __rop__ == __op__:
@@ -968,11 +976,19 @@ class TestScalarSubclassingMisc(TestCase):
         res = op(myt(1), np.float16(2))
         expected = op(subtype(1), np.float16(2))
         assert res == expected
+<<<<<<< HEAD
         assert type(res) is type(expected)
         res = op(np.float32(2), myt(1))
         expected = op(np.float32(2), subtype(1))
         assert res == expected
         assert type(res) is type(expected)
+=======
+        assert type(res) == type(expected)
+        res = op(np.float32(2), myt(1))
+        expected = op(np.float32(2), subtype(1))
+        assert res == expected
+        assert type(res) == type(expected)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

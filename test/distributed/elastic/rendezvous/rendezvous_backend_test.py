@@ -7,8 +7,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, cast, Optional
+=======
+from typing import Any, Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed.elastic.rendezvous import RendezvousStateError
 from torch.distributed.elastic.rendezvous.dynamic_rendezvous import (

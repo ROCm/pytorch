@@ -1,5 +1,21 @@
 # Owner(s): ["oncall: profiler"]
 
+<<<<<<< HEAD
+=======
+# if tqdm is not shutdown properly, it will leave the monitor thread alive.
+# This causes an issue in the multithreading test because we check all events
+# in that test with their tids. The events that correspond to these lingering
+# threads all have TID of (uint64_t)(-1) which is invalid.
+# The work around is turnning off monitoring thread when tqdm is loaded.
+# Since these are unit tests, it is safe to turn off monitor thread.
+try:
+    import tqdm
+
+    tqdm.tqdm.monitor_interval = 0
+except ImportError:
+    None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import gc
 import re
 import textwrap
@@ -11,11 +27,16 @@ import torch
 import torch.nn as nn
 import torch.optim
 import torch.utils.data
+<<<<<<< HEAD
 from torch._C._profiler import _ExtraFields_PyCall, _TensorMetadata
+=======
+from torch._C._profiler import _TensorMetadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.profiler import _utils, profile
 from torch.testing._internal.common_utils import run_tests, TestCase
 
 
+<<<<<<< HEAD
 # if tqdm is not shutdown properly, it will leave the monitor thread alive.
 # This causes an issue in the multithreading test because we check all events
 # in that test with their tids. The events that correspond to these lingering
@@ -31,6 +52,12 @@ except ImportError:
 
 Json = dict[str, Any]
 
+=======
+Json = dict[str, Any]
+
+from torch._C._profiler import _ExtraFields_PyCall
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def find_node_with_name(nodes, name):
     for node in _utils.traverse_dfs(nodes):
@@ -425,7 +452,11 @@ class TestTorchTidyProfiler(TestCase):
             self.assertEqual(state[0][0], "momentum_buffer")
             self.assertEqual(state[0][1].id, weight_momenumtum_id)
 
+<<<<<<< HEAD
         # Check that we handle first step (lazy initialization) and steady state.
+=======
+        # Check that we handle first step (lazy initalization) and steady state.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         check(cold_start=True)
         check(cold_start=False)
 

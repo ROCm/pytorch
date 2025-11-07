@@ -9,7 +9,10 @@
 #include <array>
 #include <functional>
 #include <memory>
+<<<<<<< HEAD
 #include <string_view>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <variant>
 
 namespace c10 {
@@ -288,11 +291,17 @@ struct TORCH_API RecordFunction {
   explicit RecordFunction(RecordScope scope = RecordScope::FUNCTION);
   explicit RecordFunction(StepCallbacks&& step_callbacks);
 
+<<<<<<< HEAD
   using schema_ref_t = std::reference_wrapper<const c10::FunctionSchema>;
   using FunctionDescriptor = std::variant<std::string_view, schema_ref_t>;
 
   void before(
       FunctionDescriptor fn,
+=======
+  template <typename F>
+  void before(
+      F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       c10::ArrayRef<const c10::IValue> args,
       int64_t current_sequence_nr = -1) {
     if (!isActive()) {
@@ -302,8 +311,14 @@ struct TORCH_API RecordFunction {
     before(fn, current_sequence_nr);
   }
 
+<<<<<<< HEAD
   void before(
       FunctionDescriptor fn,
+=======
+  template <typename F>
+  void before(
+      F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       c10::ArrayRef<const c10::IValue> args,
       const std::unordered_map<std::string, IValue>* kwargs,
       int64_t current_sequence_nr = -1) {
@@ -311,11 +326,20 @@ struct TORCH_API RecordFunction {
       return;
     }
     kwinputs_ = *kwargs;
+<<<<<<< HEAD
     before(fn, args, current_sequence_nr);
   }
 
   void before(
       FunctionDescriptor fn,
+=======
+    before(std::move(fn), args, current_sequence_nr);
+  }
+
+  template <typename F>
+  void before(
+      F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const std::unordered_map<std::string, IValue>* kwargs,
       int64_t current_sequence_nr = -1) {
     if (!isActive()) {
@@ -325,18 +349,34 @@ struct TORCH_API RecordFunction {
     before(fn, current_sequence_nr);
   }
 
+<<<<<<< HEAD
   void before(
       FunctionDescriptor fn,
       const std::vector<IValue>* args,
       int64_t current_sequence_nr = -1) {
     before(
         fn,
+=======
+  template <typename F>
+  void before(
+      F fn,
+      const std::vector<IValue>* args,
+      int64_t current_sequence_nr = -1) {
+    before(
+        std::move(fn),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c10::ArrayRef<const c10::IValue>(args->data(), args->size()),
         current_sequence_nr);
   }
 
+<<<<<<< HEAD
   void before(
       FunctionDescriptor fn,
+=======
+  template <typename F>
+  void before(
+      F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const std::vector<IValue>* args,
       const std::unordered_map<std::string, IValue>* kwargs,
       int64_t current_sequence_nr = -1) {
@@ -425,7 +465,14 @@ struct TORCH_API RecordFunction {
 
   // before functions initialize RecordFunction members and call
   // start callbacks
+<<<<<<< HEAD
   void before(FunctionDescriptor schema, int64_t sequence_nr = -1);
+=======
+  using schema_ref_t = std::reference_wrapper<const c10::FunctionSchema>;
+  void before(const char* name, int64_t sequence_nr = -1);
+  void before(std::string name, int64_t sequence_nr = -1);
+  void before(schema_ref_t schema, int64_t sequence_nr = -1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Sets node ID for distributed profiling
   static void setDefaultNodeId(int64_t defaultNodeId);
@@ -549,10 +596,17 @@ TORCH_API std::optional<StepCallbacks> getStepCallbacksUnlessEmpty(
     RecordScope scope);
 
 namespace detail {
+<<<<<<< HEAD
 template <typename Inputs, typename... Args>
 void record_function_with_scope(
     RecordFunction& guard,
     RecordFunction::FunctionDescriptor fn,
+=======
+template <typename Inputs, typename F, typename... Args>
+void record_function_with_scope(
+    RecordFunction& guard,
+    F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Inputs& inputs,
     Args&&... args) {
   if (guard.needsInputs()) {
@@ -565,10 +619,17 @@ void record_function_with_scope(
   }
 }
 
+<<<<<<< HEAD
 template <typename Inputs, typename... Args>
 void record_function_with_scope_and_debug_handle(
     RecordFunction& guard,
     RecordFunction::FunctionDescriptor fn,
+=======
+template <typename Inputs, typename F, typename... Args>
+void record_function_with_scope_and_debug_handle(
+    RecordFunction& guard,
+    F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t debug_handle,
     const Inputs& inputs,
     Args&&... args) {
@@ -583,6 +644,7 @@ void record_function_with_scope_and_debug_handle(
   }
 }
 
+<<<<<<< HEAD
 template <typename... Args>
 void record_function_with_scope(
     RecordFunction& guard,
@@ -597,12 +659,36 @@ template <typename... Args>
 void record_function_with_scope_and_debug_handle(
     RecordFunction& guard,
     RecordFunction::FunctionDescriptor fn,
+=======
+template <typename F, typename... Args>
+void record_function_with_scope(
+    RecordFunction& guard,
+    F fn,
+    c10::ArrayRef<const c10::IValue> inputs,
+    Args&&... args) {
+  return record_function_with_scope<
+      c10::ArrayRef<const c10::IValue>,
+      F,
+      Args...>(guard, std::move(fn), inputs, std::forward<Args>(args)...);
+}
+
+template <typename F, typename... Args>
+void record_function_with_scope_and_debug_handle(
+    RecordFunction& guard,
+    F fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t debug_handle,
     c10::ArrayRef<const c10::IValue> inputs,
     Args&&... args) {
   return record_function_with_scope_and_debug_handle<
       c10::ArrayRef<const c10::IValue>,
+<<<<<<< HEAD
       Args...>(guard, fn, debug_handle, inputs, std::forward<Args>(args)...);
+=======
+      F,
+      Args...>(
+      guard, std::move(fn), debug_handle, inputs, std::forward<Args>(args)...);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace detail
@@ -666,7 +752,11 @@ void record_function_with_scope_and_debug_handle(
         guard, fn, debug_handle, inputs, ##__VA_ARGS__);       \
   }
 
+<<<<<<< HEAD
 // Helper macros to record LITE INTERPRETER scope events with debug handles
+=======
+// Helper macros to record LITE INTERPETER scope events with debug handles
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define RECORD_EDGE_SCOPE_WITH_DEBUG_HANDLE_AND_INPUTS( \
     fn, debug_handle, inputs)                           \
   RECORD_WITH_SCOPE_DEBUG_HANDLE_AND_INPUTS(            \

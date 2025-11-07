@@ -33,6 +33,10 @@ def gen_data(special_op_lists, analysis_name):
     annotated_ops = {
         a.strip(): b.strip() for a, b in list(csv.reader(open("annotated_ops")))
     }
+<<<<<<< HEAD
+=======
+    from collections import defaultdict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     uniq_ops = []
     uniq_names = set()

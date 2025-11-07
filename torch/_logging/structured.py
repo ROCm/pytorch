@@ -1,7 +1,10 @@
 """
 Utilities for converting data types into structured JSON for dumping.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import inspect
 import os
 import traceback
@@ -21,7 +24,11 @@ def intern_string(s: Optional[str]) -> int:
     if s is None:
         return -1
 
+<<<<<<< HEAD
     r = INTERN_TABLE.get(s)
+=======
+    r = INTERN_TABLE.get(s, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if r is None:
         r = len(INTERN_TABLE)
         INTERN_TABLE[s] = r

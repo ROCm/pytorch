@@ -16,5 +16,9 @@ class OptionalInput(torch.nn.Module):
 
 example_args = (torch.randn(2, 3),)
 tags = {"python.object-model"}
+<<<<<<< HEAD
 support_level = SupportLevel.SUPPORTED
+=======
+support_level = SupportLevel.NOT_SUPPORTED_YET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 model = OptionalInput()

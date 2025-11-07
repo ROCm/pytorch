@@ -253,7 +253,11 @@ TORCH_API at::Tensor to_lazy_tensor(
 template <size_t... Indices>
 auto TupleAtenFromLtcTensorsImpl(
     const std::vector<LazyTensorPtr>& tensors,
+<<<<<<< HEAD
     std::index_sequence<Indices...> /*unused*/) {
+=======
+    std::index_sequence<Indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::make_tuple(CreateAtenFromLtcTensor(tensors[Indices])...);
 }
 

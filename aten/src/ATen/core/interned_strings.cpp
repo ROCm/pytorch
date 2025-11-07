@@ -68,7 +68,15 @@ Symbol InternedStrings::_symbol(const std::string& s) {
     return it->second;
 
   auto pos = s.find("::");
+<<<<<<< HEAD
   TORCH_CHECK(pos != std::string::npos, "all symbols must have a namespace, <namespace>::<string>, but found: ", s);
+=======
+  if (pos == std::string::npos) {
+    std::stringstream ss;
+    ss << "all symbols must have a namespace, <namespace>::<string>, but found: " << s;
+    throw std::runtime_error(ss.str());
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Symbol ns = _symbol("namespaces::" + s.substr(0, pos));
 
   Symbol sym(sym_to_info_.size());
@@ -117,7 +125,16 @@ std::string Symbol::domainString() const {
 }
 
 Symbol Symbol::fromDomainAndUnqualString(const std::string & d, const std::string & s) {
+<<<<<<< HEAD
   TORCH_CHECK(d.compare(0, domain_prefix().size(), domain_prefix()) == 0, "Symbol: domain string is expected to be prefixed with '", domain_prefix(), "', e.g. 'org.pytorch.aten'");
+=======
+  if (d.compare(0, domain_prefix().size(), domain_prefix()) != 0) {
+    std::ostringstream ss;
+    ss << "Symbol: domain string is expected to be prefixed with '"
+       << domain_prefix() << "', e.g. 'org.pytorch.aten'";
+    throw std::runtime_error(ss.str());
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string qualString = d.substr(domain_prefix().size()) + "::" + s;
   return fromQualString(qualString);
 }

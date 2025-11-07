@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 import copy
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F
@@ -135,11 +139,15 @@ class Transformer(Module):
                 **factory_kwargs,
             )
             encoder_norm = LayerNorm(
+<<<<<<< HEAD
                 d_model,
                 eps=layer_norm_eps,
                 bias=bias,
                 # pyrefly: ignore [bad-argument-type]
                 **factory_kwargs,
+=======
+                d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.encoder = TransformerEncoder(
                 encoder_layer, num_encoder_layers, encoder_norm
@@ -161,11 +169,15 @@ class Transformer(Module):
                 **factory_kwargs,
             )
             decoder_norm = LayerNorm(
+<<<<<<< HEAD
                 d_model,
                 eps=layer_norm_eps,
                 bias=bias,
                 # pyrefly: ignore [bad-argument-type]
                 **factory_kwargs,
+=======
+                d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.decoder = TransformerDecoder(
                 decoder_layer, num_decoder_layers, decoder_norm
@@ -310,7 +322,11 @@ class Transformer(Module):
         """
         return _generate_square_subsequent_mask(sz, dtype=dtype, device=device)
 
+<<<<<<< HEAD
     def _reset_parameters(self) -> None:
+=======
+    def _reset_parameters(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Initiate parameters in the transformer model."""
         for p in self.parameters():
             if p.dim() > 1:
@@ -390,7 +406,11 @@ class TransformerEncoder(Module):
             why_not_sparsity_fast_path = (
                 f"{enc_layer}.activation_relu_or_gelu was not True"
             )
+<<<<<<< HEAD
         elif encoder_layer.norm1.eps != encoder_layer.norm2.eps:
+=======
+        elif not (encoder_layer.norm1.eps == encoder_layer.norm2.eps):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             why_not_sparsity_fast_path = (
                 f"{enc_layer}.norm1.eps was not equal to {enc_layer}.norm2.eps"
             )
@@ -399,8 +419,12 @@ class TransformerEncoder(Module):
 
         if enable_nested_tensor and why_not_sparsity_fast_path:
             warnings.warn(
+<<<<<<< HEAD
                 f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}",
                 stacklevel=2,
+=======
+                f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.use_nested_tensor = False
 
@@ -453,7 +477,10 @@ class TransformerEncoder(Module):
         str_first_layer = "self.layers[0]"
         batch_first = first_layer.self_attn.batch_first
         is_fastpath_enabled = torch.backends.mha.get_fastpath_enabled()
+<<<<<<< HEAD
         do_mask_check = getattr(self, "mask_check", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not is_fastpath_enabled:
             why_not_sparsity_fast_path = (
@@ -467,12 +494,17 @@ class TransformerEncoder(Module):
             )
         elif first_layer.training:
             why_not_sparsity_fast_path = f"{str_first_layer} was in training mode"
+<<<<<<< HEAD
         elif src.dim() != 3:
+=======
+        elif not src.dim() == 3:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             why_not_sparsity_fast_path = (
                 f"input not batched; expected src.dim() of 3 but got {src.dim()}"
             )
         elif src_key_padding_mask is None:
             why_not_sparsity_fast_path = "src_key_padding_mask was None"
+<<<<<<< HEAD
         # This check avoids a call to torch._nested_tensor_from_mask_left_aligned() that
         # breaks in torch.compile.
         elif do_mask_check and torch.compiler.is_compiling():
@@ -480,6 +512,11 @@ class TransformerEncoder(Module):
                 "mask_check enabled with torch.compile or torch.export"
             )
         elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+=======
+        elif (
+            (not hasattr(self, "mask_check")) or self.mask_check
+        ) and not torch._nested_tensor_from_mask_left_aligned(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             src, src_key_padding_mask.logical_not()
         ):
             why_not_sparsity_fast_path = "mask_check enabled, and src and src_key_padding_mask was not left aligned"
@@ -769,9 +806,13 @@ class TransformerEncoderLayer(Module):
         self.linear2 = Linear(dim_feedforward, d_model, bias=bias, **factory_kwargs)
 
         self.norm_first = norm_first
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.norm1 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.norm1 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.norm2 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         self.dropout1 = Dropout(dropout)
         self.dropout2 = Dropout(dropout)
@@ -843,7 +884,11 @@ class TransformerEncoderLayer(Module):
             why_not_sparsity_fast_path = (
                 "torch.backends.mha.get_fastpath_enabled() was not True"
             )
+<<<<<<< HEAD
         elif src.dim() != 3:
+=======
+        elif not src.dim() == 3:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             why_not_sparsity_fast_path = (
                 f"input not batched; expected src.dim() of 3 but got {src.dim()}"
             )
@@ -857,7 +902,11 @@ class TransformerEncoderLayer(Module):
             why_not_sparsity_fast_path = "self_attn._qkv_same_embed_dim was not True"
         elif not self.activation_relu_or_gelu:
             why_not_sparsity_fast_path = "activation_relu_or_gelu was not True"
+<<<<<<< HEAD
         elif self.norm1.eps != self.norm2.eps:
+=======
+        elif not (self.norm1.eps == self.norm2.eps):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             why_not_sparsity_fast_path = "norm1.eps is not equal to norm2.eps"
         elif src.is_nested and (
             src_key_padding_mask is not None or src_mask is not None
@@ -1063,11 +1112,16 @@ class TransformerDecoderLayer(Module):
         self.linear2 = Linear(dim_feedforward, d_model, bias=bias, **factory_kwargs)
 
         self.norm_first = norm_first
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         self.norm1 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         # pyrefly: ignore [bad-argument-type]
         self.norm2 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         # pyrefly: ignore [bad-argument-type]
+=======
+        self.norm1 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+        self.norm2 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.norm3 = LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         self.dropout1 = Dropout(dropout)
         self.dropout2 = Dropout(dropout)

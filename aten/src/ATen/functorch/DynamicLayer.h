@@ -37,7 +37,11 @@ namespace at::functorch  {
 // how to perform the transform.
 //
 // TODO: we can excise DynamicLayer in favor of Interpreter,
+<<<<<<< HEAD
 // But I am going to leave it for now as a compatibility shim to avoid
+=======
+// But I am going to leave it for now as a compatiblity shim to avoid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // needing to refactor a lot of callsites...
 struct TORCH_API DynamicLayer {
   explicit DynamicLayer(

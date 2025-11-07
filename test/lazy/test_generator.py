@@ -42,12 +42,21 @@ class LazyGeneratorTest(TestCase):
 
         torch._lazy.mark_step()
 
+<<<<<<< HEAD
         assert torch.allclose(cpu_t1, lazy_t1.to("cpu")), (
             f"Expected {cpu_t1}, got {lazy_t1.to('cpu')}"
         )
         assert torch.allclose(cpu_t2, lazy_t2.to("cpu")), (
             f"Expected {cpu_t2}, got {lazy_t2.to('cpu')}"
         )
+=======
+        assert torch.allclose(
+            cpu_t1, lazy_t1.to("cpu")
+        ), f"Expected {cpu_t1}, got {lazy_t1.to('cpu')}"
+        assert torch.allclose(
+            cpu_t2, lazy_t2.to("cpu")
+        ), f"Expected {cpu_t2}, got {lazy_t2.to('cpu')}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfTorchDynamo("Torch Dynamo does not support torch.Generator type")
     def test_generator_causes_multiple_compiles(self):
@@ -69,22 +78,35 @@ class LazyGeneratorTest(TestCase):
             torch._lazy.mark_step()
 
             uncached_compile = metrics.counter_value("UncachedCompile")
+<<<<<<< HEAD
             assert uncached_compile == 1, (
                 f"Expected 1 uncached compiles, got {uncached_compile}"
             )
+=======
+            assert (
+                uncached_compile == 1
+            ), f"Expected 1 uncached compiles, got {uncached_compile}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             t = generate_tensor(2)
             torch._lazy.mark_step()
 
             uncached_compile = metrics.counter_value("UncachedCompile")
+<<<<<<< HEAD
             assert uncached_compile == 2, (
                 f"Expected 2 uncached compiles, got {uncached_compile}"
             )
+=======
+            assert (
+                uncached_compile == 2
+            ), f"Expected 2 uncached compiles, got {uncached_compile}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             t = generate_tensor(1)  # noqa: F841
             torch._lazy.mark_step()
 
             uncached_compile = metrics.counter_value("UncachedCompile")
+<<<<<<< HEAD
             assert uncached_compile == 2, (
                 f"Expected 2 uncached compiles, got {uncached_compile}"
             )
@@ -92,6 +114,15 @@ class LazyGeneratorTest(TestCase):
             assert cached_compile == 1, (
                 f"Expected 1 cached compile, got {cached_compile}"
             )
+=======
+            assert (
+                uncached_compile == 2
+            ), f"Expected 2 uncached compiles, got {uncached_compile}"
+            cached_compile = metrics.counter_value("CachedCompile")
+            assert (
+                cached_compile == 1
+            ), f"Expected 1 cached compile, got {cached_compile}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         metrics.reset()
 

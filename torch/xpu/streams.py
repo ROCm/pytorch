@@ -126,7 +126,11 @@ class Event(torch._C._XpuEventBase):
         """
         if stream is None:
             stream = torch.xpu.current_stream()
+<<<<<<< HEAD
         super().record(stream)  # pyrefly: ignore [bad-argument-type]
+=======
+        super().record(stream)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def wait(self, stream=None) -> None:
         r"""Make all future work submitted to the given stream wait for this event.

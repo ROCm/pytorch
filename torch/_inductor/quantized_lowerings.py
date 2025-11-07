@@ -137,7 +137,10 @@ def register_woq_mm_ops() -> None:
             )
             and mat2.get_layout().is_contiguous()
         ):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-specialization, missing-attribute, not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             CppWoqInt4GemmTemplate[qGroupSize].add_choices(
                 choices,
                 aten_layout,

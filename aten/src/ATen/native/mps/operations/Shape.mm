@@ -2,6 +2,7 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/MemoryOverlap.h>
 #include <ATen/WrapDimUtils.h>
+<<<<<<< HEAD
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/Pool.h>
 #include <ATen/native/TensorShape.h>
@@ -10,6 +11,12 @@
 #include <ATen/native/mps/kernels/Shape.h>
 
 #include <fmt/format.h>
+=======
+#include <ATen/native/TensorShape.h>
+#include <ATen/native/TypeProperties.h>
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+#include <ATen/native/mps/OperationUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -21,6 +28,7 @@
 #endif
 
 namespace at::native {
+<<<<<<< HEAD
 
 #ifndef PYTORCH_JIT_COMPILE_SHADERS
 static auto& lib = mps::MetalShaderLibrary::getBundledLibrary();
@@ -28,6 +36,8 @@ static auto& lib = mps::MetalShaderLibrary::getBundledLibrary();
 #include <ATen/native/mps/Shape_metallib.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace mps {
 
 // Produces a shape with the `dim` dimension set to 0.
@@ -69,6 +79,7 @@ static void check_shape_except_dim(const Tensor& first, const Tensor& second, in
                 ")");
   }
 }
+<<<<<<< HEAD
 
 template <typename T>
 std::string get_type_str();
@@ -146,6 +157,8 @@ static void cat_out_mps_impl(const ITensorListRef& inputs, int64_t dimension, co
     input_idx++;
   }
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace mps
 
 // topk
@@ -308,16 +321,30 @@ TORCH_IMPL_FUNC(cat_out_mps)
               " and out is on ",
               out.device());
 
+<<<<<<< HEAD
+=======
+  // TODO: For better performance by eliminating input tensor gathering and post transpose,
+  // TODO: it is better to keep the out tensor's memory format.
+  // TODO: dimension needs to be recomputed as:
+  // TODO: dim = 0 --> dim = 0; dim = 1 or 2 --> dim = out.dim()- dim; otherwise dim = dim-1
+  if (needsGather(out)) {
+    out.unsafeGetTensorImpl()->empty_tensor_restride(MemoryFormat::Contiguous);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<int64_t> size(notSkippedTensor.sizes().vec());
 
   // Compute size of the result in the cat dimension
   int64_t cat_dim_size = 0;
   idx = 0;
+<<<<<<< HEAD
   bool has_large_tensor = false;
   for (const Tensor& tensor : materialized_inputs) {
     if (isTooLargeForMPSGraph(tensor)) {
       has_large_tensor |= true;
     }
+=======
+  for (const Tensor& tensor : materialized_inputs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!should_skip(tensor)) {
       // TODO: Factor out `check_shape_except_dim`
       check_shape_except_dim(notSkippedTensor, tensor, dimension, idx);
@@ -335,12 +362,88 @@ TORCH_IMPL_FUNC(cat_out_mps)
     return;
   }
 
+<<<<<<< HEAD
   has_large_tensor |= isTooLargeForMPSGraph(out);
 
   if (has_large_tensor) {
     return mps::cat_out_mps_impl<int64_t>(materialized_inputs, dimension, out);
   } else {
     return mps::cat_out_mps_impl<int32_t>(materialized_inputs, dimension, out);
+=======
+  struct CachedGraph : public MPSCachedGraph {
+    CachedGraph(MPSGraph* graph) : MPSCachedGraph(graph) {}
+    std::vector<MPSGraphTensor*> inputTensors_;
+    MPSGraphTensor* outputTensor_ = nil;
+  };
+
+  @autoreleasepool {
+    std::string key = "cat_out_mps:" + std::to_string(dimension) + ":" +
+        (memory_format == MemoryFormat::ChannelsLast ? "NHWC" : "NCHW");
+    if (!all_same_dtype) {
+      key += getTensorsStringKey(input_tensors, true, all_same_sizes_and_stride);
+    } else {
+      key += ":" + getMPSTypeString(input_tensors[0].scalar_type(), true) + ":" + std::to_string(inputs.size());
+    }
+    for (auto idx : skipped_tensor_indices) {
+      key += "," + std::to_string(idx);
+    }
+
+    auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
+      auto len_tensor_array = inputs.size() - skipped_tensor_indices.size();
+      std::vector<MPSGraphTensor*> castInputTensors(len_tensor_array);
+      newCachedGraph->inputTensors_.reserve(len_tensor_array);
+
+      for (const auto idx : c10::irange(len_tensor_array)) {
+        const Tensor& tensor = input_tensors[idx];
+        auto scalar_type = getMPSScalarType(tensor.scalar_type());
+        if (tensor.scalar_type() == kBool) {
+          scalar_type = MPSDataTypeInt8;
+        }
+        newCachedGraph->inputTensors_[idx] = mpsGraphUnrankedPlaceHolder(mpsGraph, scalar_type);
+        if (tensor.scalar_type() != out_dtype) {
+          castInputTensors[idx] = [mpsGraph castTensor:newCachedGraph->inputTensors_[idx]
+                                                toType:getMPSDataType(out_dtype)
+                                                  name:@"castInput"];
+        } else {
+          castInputTensors[idx] = newCachedGraph->inputTensors_[idx];
+        }
+      }
+
+      auto inputTensorsArray = [NSArray arrayWithObjects:castInputTensors.data() count:len_tensor_array];
+      MPSGraphTensor* outputTensor = [mpsGraph concatTensors:inputTensorsArray
+                                                   dimension:dimension // Maybe convert this from int64_t -> int32
+                                                        name:nil];
+      if (getMPSDataType(out_dtype) == MPSDataTypeBool) {
+        outputTensor = [mpsGraph castTensor:outputTensor toType:MPSDataTypeBool name:@"outputTensor"];
+      }
+      newCachedGraph->outputTensor_ = outputTensor;
+    });
+
+    std::vector<Placeholder> inputPlaceholders;
+    int i = 0;
+    int t_idx = 0;
+    for (const Tensor& tensor : materialized_inputs) {
+      if (std::find(skipped_tensor_indices.begin(), skipped_tensor_indices.end(), i) == skipped_tensor_indices.end()) {
+        auto scalar_type = getMPSScalarType(tensor.scalar_type());
+        if (tensor.scalar_type() == kBool) {
+          scalar_type = MPSDataTypeInt8;
+        }
+        inputPlaceholders.emplace_back(cachedGraph->inputTensors_[t_idx], tensor, nullptr, true, scalar_type);
+        t_idx++;
+      }
+      i++;
+    }
+
+    auto outputDataType = getMPSScalarType(out.scalar_type());
+    Placeholder outputPlaceholder =
+        Placeholder(cachedGraph->outputTensor_, out, /*mpsShape=*/nil, /*gatherTensorData=*/false, outputDataType);
+
+    NSMutableDictionary* feeds = [[NSMutableDictionary new] autorelease];
+    for (auto& inputPlaceholder : inputPlaceholders) {
+      feeds[inputPlaceholder.getMPSGraphTensor()] = inputPlaceholder.getMPSGraphTensorData();
+    }
+    runMPSGraph(getCurrentMPSStream(), cachedGraph->graph(), feeds, outputPlaceholder);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

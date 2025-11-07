@@ -97,7 +97,11 @@ struct TORCH_API LegacyEvent {
       case EventKind::MemoryAlloc:
         return "memory_alloc";
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, "unknown event kind");
+=======
+    throw std::runtime_error("unknown event kind");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   EventKind kind() const {
@@ -328,7 +332,11 @@ struct TORCH_API ProfilerDisableOptions {
 // NOTE: profiler mode is thread local, with automatic propagation
 // across thread boundary (e.g. at::launch tasks)
 TORCH_API void enableProfilerLegacy(
+<<<<<<< HEAD
     const torch::profiler::impl::ProfilerConfig& /*new_config*/);
+=======
+    const torch::profiler::impl::ProfilerConfig&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using thread_event_lists = std::vector<std::vector<LegacyEvent>>;
 TORCH_API thread_event_lists disableProfilerLegacy(
     std::optional<ProfilerDisableOptions> profilerDisableOptions =

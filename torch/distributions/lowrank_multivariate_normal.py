@@ -86,7 +86,10 @@ class LowRankMultivariateNormal(Distribution):
             capacitance = I + cov_factor.T @ inv(cov_diag) @ cov_factor
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "loc": constraints.real_vector,
         "cov_factor": constraints.independent(constraints.real, 2),

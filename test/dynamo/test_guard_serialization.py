@@ -1,12 +1,20 @@
 # Owner(s): ["module: dynamo"]
 
 import dataclasses
+<<<<<<< HEAD
 import pickle
 import sys
 import tempfile
 import types
 import unittest
 import weakref
+=======
+import importlib
+import pickle
+import sys
+import types
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterator
 from unittest.mock import patch
 
@@ -19,7 +27,10 @@ import torch.utils.cpp_extension
 from torch._dynamo.bytecode_transformation import transform_code_object
 from torch._dynamo.exc import PackageError
 from torch._dynamo.guards import CheckFunctionManager, CompileId
+<<<<<<< HEAD
 from torch._dynamo.package import CompilePackage
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.symbolic_convert import (
     ExceptionStack,
     InstructionTranslator,
@@ -28,7 +39,10 @@ from torch._dynamo.symbolic_convert import (
 from torch._dynamo.utils import dynamo_timed, get_metrics_context
 from torch._guards import compile_context, CompileContext, tracing
 from torch.overrides import TorchFunctionMode
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_MACOS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import HAS_GPU
 from torch.utils import _pytree as pytree
 
@@ -46,6 +60,7 @@ class GlobalModule(torch.nn.Module):
         return x + 1
 
 
+<<<<<<< HEAD
 class GlobalNestedModule(torch.nn.Module):
     def __init__(self, submodule=None):
         super().__init__()
@@ -57,10 +72,13 @@ class GlobalNestedModule(torch.nn.Module):
         return self.linear(x) + 1
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def global_func(x):
     return x + 1
 
 
+<<<<<<< HEAD
 class ModuleNotSerializable(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -73,6 +91,8 @@ class ModuleNotSerializable(torch.nn.Module):
         return x + self.param
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GlobalTorchFunctionMode(TorchFunctionMode):
     def __torch_function__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
@@ -80,6 +100,7 @@ class GlobalTorchFunctionMode(TorchFunctionMode):
         return func(*args, **kwargs)
 
 
+<<<<<<< HEAD
 class MyClass:
     def __getstate__(self):
         raise RuntimeError("Cannot pickle")
@@ -121,6 +142,8 @@ class ModWithDict(torch.nn.Module):
         self.d = d
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SubclassWithMeta(torch.Tensor):
     @staticmethod
     def __new__(cls, a, extra, outer_size=None, outer_stride=None):
@@ -302,7 +325,20 @@ class CustomConstantType:
 pytree.register_constant(CustomConstantType)
 
 
+<<<<<<< HEAD
 class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
+=======
+class TestGuardSerialization(torch._inductor.test_case.TestCase):
+    def test_function_locals(self):
+        def foo(x):
+            return x + 1
+
+        def fn(x, g):
+            return g(x) + 1
+
+        self._test_serialization("TENSOR_MATCH", fn, torch.randn(3), foo)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _tracefunc(self, frame, event, arg):
         if event != "call":
             return
@@ -312,15 +348,23 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
 
         self._frame_state = _FrameState(
             f_locals=dict(frame.f_locals),
+<<<<<<< HEAD
             f_globals=frame.f_globals,
+=======
+            f_globals=dict(frame.f_globals),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f_code=frame.f_code,
             f_builtins=frame.f_builtins,
         )
 
     def _test_serialization(self, guard_type, fn, *args, **kwargs):
         # kwargs might contain a callable that generates kwargs
+<<<<<<< HEAD
         torch._dynamo.reset()
         kwarg_gen_fn = kwargs.get("_gen_fn")
+=======
+        kwarg_gen_fn = kwargs.get("_gen_fn", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if kwarg_gen_fn is not None:
             kwargs = kwarg_gen_fn()
 
@@ -364,9 +408,12 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
             nonlocal ref_gm
             nonlocal loaded_gm
 
+<<<<<<< HEAD
             torch._dynamo.convert_frame.initial_global_state = (
                 torch._C._dynamo.guards.GlobalStateGuard()
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tracer = InstructionTranslator(
                 instructions,
                 self._frame_state.f_code,
@@ -387,9 +434,13 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
                 package=None,
             )
             with (
+<<<<<<< HEAD
                 compile_context(
                     CompileContext(CompileId(frame_id=0, frame_compile_id=0))
                 ),
+=======
+                compile_context(CompileContext(CompileId(0, 0))),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tracing(tracer.output.tracing_context),
                 tracer.set_current_tx(),
                 get_metrics_context(),
@@ -397,16 +448,20 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
             ):
                 tracer.run()
 
+<<<<<<< HEAD
                 ref_gm = CheckFunctionManager(
                     self._frame_state.f_code,
                     tracer.output,
                     guard_filter_fn=guard_filter_fn,
                 ).guard_manager
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 check_fn_manager = CheckFunctionManager(
                     self._frame_state.f_code,
                     tracer.output,
                     guard_filter_fn=guard_filter_fn,
+<<<<<<< HEAD
                     save_guards=True,
                 )
                 guards_state = check_fn_manager.guards_state
@@ -420,11 +475,30 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
                     self._frame_state.f_code,
                     self._frame_state.f_globals,
                 )
+=======
+                    guards_serialization_mode="save",
+                )
+                ref_gm = check_fn_manager.guard_manager
+                guards_state = check_fn_manager.guards_state
+                self.assertIsNotNone(guards_state)
+                guards_state = pickle.loads(guards_state)
+
+                check_fn_manager = CheckFunctionManager(
+                    self._frame_state.f_code,
+                    guards_state.output_graph,
+                    guards_serialization_mode="load",
+                    shape_code_parts=guards_state.shape_code_parts,
+                )
+                loaded_gm = check_fn_manager.guard_manager
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         try:
             transform_code_object(self._frame_state.f_code, transform)
         finally:
+<<<<<<< HEAD
             torch._dynamo.convert_frame.initial_global_state = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._frame_state = None
 
         self.assertIsNotNone(ref_gm)
@@ -436,6 +510,7 @@ class TestGuardSerializationBase(torch._inductor.test_case.TestCase):
         self.assertEqual(ref.check(inputs), expected)
         self.assertEqual(ref.check(inputs), loaded.check(inputs))
 
+<<<<<<< HEAD
 
 @torch._dynamo.config.patch({"strict_precompile": True})
 class TestGuardSerialization(TestGuardSerializationBase):
@@ -448,6 +523,8 @@ class TestGuardSerialization(TestGuardSerializationBase):
 
         self._test_serialization("TENSOR_MATCH", fn, torch.randn(3), foo)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tensor_match(self):
         def f(x: torch.Tensor):
             return x + 1
@@ -747,7 +824,11 @@ class TestGuardSerialization(TestGuardSerializationBase):
             ):
                 self._test_serialization("NN_MODULE", fn, m, x)
 
+<<<<<<< HEAD
     def test_class_match(self):
+=======
+    def test_function_match(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn(x):
             # usage of this context manager installs a FUNCTION_MATCH guard
             with torch.no_grad():
@@ -759,9 +840,15 @@ class TestGuardSerialization(TestGuardSerializationBase):
         # we don't support FUNCTION_MATCH because it adds an ID_MATCH guard, and we don't
         # support that in serialization
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             PackageError, "CLASS_MATCH guard cannot be serialized."
         ):
             self._test_serialization("CLASS_MATCH", fn, x)
+=======
+            PackageError, "FUNCTION_MATCH guard cannot be serialized."
+        ):
+            self._test_serialization("FUNCTION_MATCH", fn, x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_closure_match(self):
         def fn(x):
@@ -948,6 +1035,7 @@ class TestGuardSerialization(TestGuardSerializationBase):
         ):
             self._test_serialization("ID_MATCH", fn, torch.randn(3))
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(caching_precompile=True)
     def test_id_match_with_config(self):
         def fn(x):
@@ -965,6 +1053,8 @@ class TestGuardSerialization(TestGuardSerializationBase):
         ref, loaded = self._test_serialization("CLASS_MATCH", fn, torch.randn(3))
         self._test_check_fn(ref, loaded, {"x": torch.randn(3)}, True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dispatch_key_set_match(self):
         def fn(x, dks):
             if dks.has("CPU"):
@@ -982,6 +1072,26 @@ class TestGuardSerialization(TestGuardSerializationBase):
         dks = torch._C._dispatch_keys(x)
         self._test_check_fn(ref, loaded, {"x": x, "dks": dks}, False)
 
+<<<<<<< HEAD
+=======
+    def test_name_match(self):
+        def fn(x, y):
+            return torch.cond(x, lambda x: y + 1, lambda x: y - 1, (y,))
+
+        x = torch.tensor(True)
+        y = torch.randn(3)
+        ref, loaded = self._test_serialization("NAME_MATCH", fn, x, y)
+
+        self._test_check_fn(ref, loaded, {"x": x, "y": y}, True)
+
+        op = importlib.import_module("torch._higher_order_ops.cond").cond_op
+        prev, op.__name__ = op.__name__, ""
+        try:
+            self._test_check_fn(ref, loaded, {"x": x, "y": y}, False)
+        finally:
+            op.__name__ = prev
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dual_level(self):
         def fn(x):
             with torch.autograd.forward_ad.dual_level():
@@ -1119,10 +1229,17 @@ class TestGuardSerialization(TestGuardSerializationBase):
             return x + x_
 
         x = torch.randn(3, 2)
+<<<<<<< HEAD
         ref, loaded = self._test_serialization("DUPLICATE_INPUT", fn, x, x)
 
         self._test_check_fn(ref, loaded, {"x": x, "x_": x}, True)
         self._test_check_fn(ref, loaded, {"x": x, "x_": torch.randn(3, 2)}, False)
+=======
+        with self.assertRaisesRegex(
+            PackageError, "DUPLICATE_INPUT guard cannot be serialized"
+        ):
+            self._test_serialization("DUPLICATE_INPUT", fn, x, x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_weakref_alive(self):
         mod = torch.nn.Linear(10, 10, bias=False)
@@ -1220,6 +1337,7 @@ class TestGuardSerialization(TestGuardSerializationBase):
         with torch.enable_grad():
             self._test_check_fn(ref, loaded, {"x": x}, True)
 
+<<<<<<< HEAD
     def test_grad_mode_loading(self):
         def fn(x):
             return x + 1
@@ -1238,6 +1356,8 @@ class TestGuardSerialization(TestGuardSerializationBase):
             loaded = check_fn_manager.guard_manager
             self._test_check_fn(ref, loaded, {"x": x}, False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_deterministic_algorithms(self):
         def fn(x):
             return x + 1
@@ -1353,6 +1473,7 @@ class TestGuardSerialization(TestGuardSerializationBase):
         self._test_check_fn(ref, loaded, {"x": torch.randn(3, 11, 2)}, False)
         self._test_check_fn(ref, loaded, {"x": torch.randn(3, 2, 2)}, False)
 
+<<<<<<< HEAD
     def test_builtin_match(self):
         def fn(x):
             # usage of getattr() here installs a BUILTIN_MATCH guard
@@ -1725,6 +1846,8 @@ if not IS_MACOS:
             ref, loaded = self._test_serialization("TENSOR_MATCH", m, inputs)
             self._test_check_fn(ref, loaded, {"self": m, "x": inputs}, True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

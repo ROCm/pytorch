@@ -1,7 +1,12 @@
 import copy
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, NamedTuple, Optional, TYPE_CHECKING, Union
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, NamedTuple, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -235,7 +240,10 @@ def replace_pattern_with_filters(
     replacement_callback: Optional[
         Callable[["InternalMatch", Graph, Graph], Graph]
     ] = None,
+<<<<<<< HEAD
     node_name_match: str = "",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[ReplacedPatterns]:
     """
     See replace_pattern for documentation. This function is an overload with an additional match_filter argument.
@@ -248,6 +256,7 @@ def replace_pattern_with_filters(
         ``replacement_callback``: A function that takes in a match and returns a
             Graph to be used as the replacement. This allows you to construct a
             replacement graph based on the match.
+<<<<<<< HEAD
         ``replacement_callback``: Node name to match. If not empty, it will try to match the node name.
     """
 
@@ -259,6 +268,12 @@ def replace_pattern_with_filters(
         ignore_literals,
         replacement_callback,
         node_name_match,
+=======
+    """
+
+    return _replace_pattern(
+        gm, pattern, replacement, match_filters, ignore_literals, replacement_callback
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -274,7 +289,10 @@ def _replace_pattern(
     replacement_callback: Optional[
         Callable[["InternalMatch", Graph, Graph], Graph]
     ] = None,
+<<<<<<< HEAD
     node_name_match: str = "",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[ReplacedPatterns]:
     from torch.fx.passes.utils.matcher_utils import InternalMatch, SubgraphMatcher
 
@@ -289,7 +307,11 @@ def _replace_pattern(
     elif isinstance(pattern, Graph):
         pattern_graph = pattern
     else:
+<<<<<<< HEAD
         pattern_graph = symbolic_trace(pattern).graph  # type: ignore[arg-type]
+=======
+        pattern_graph = symbolic_trace(pattern).graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     matcher = SubgraphMatcher(
         pattern_graph,
@@ -298,9 +320,13 @@ def _replace_pattern(
         remove_overlapping_matches=True,
         ignore_literals=ignore_literals,
     )
+<<<<<<< HEAD
     _matches: list[InternalMatch] = matcher.match(
         original_graph, node_name_match=node_name_match
     )
+=======
+    _matches: list[InternalMatch] = matcher.match(original_graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Filter out matches that don't match the filter
     _matches = [
@@ -322,7 +348,11 @@ def _replace_pattern(
         assert replacement_callback is not None, (
             "Must provide either a replacement GraphModule or a replacement callback"
         )
+<<<<<<< HEAD
         common_replacement_graph = None  # type: ignore[assignment]
+=======
+        common_replacement_graph = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # As we progressively replace nodes, we'll need to keep track of how the match results should change
     match_changed_node: dict[Node, Node] = {}

@@ -300,8 +300,12 @@ void div_floor_kernel(TensorIteratorBase& iter) {
     // In the special case of unsigned integer division, floor division is
     // equivalent to truncation division (since the signs of the divisor and
     // dividend are always the same)
+<<<<<<< HEAD
     div_trunc_kernel(iter);
     return;
+=======
+    return div_trunc_kernel(iter);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (isIntegralType(dtype, /*includeBool*/ false)) {
     // There's no SIMD integer division, so don't try to vectorize it.
     AT_DISPATCH_INTEGRAL_TYPES(dtype, "div_floor_cpu", [&]() {

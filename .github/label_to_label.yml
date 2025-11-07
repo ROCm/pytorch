@@ -16,11 +16,14 @@
   then:
   - "module: pt2-dispatcher"
 - any:
+<<<<<<< HEAD
   - "vllm-compile"
   then:
   - "module: vllm"
   - "oncall: pt2"
 - any:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   - "module: vmap"
   then:
   - "module: functorch"
@@ -33,6 +36,13 @@
   then:
   - "module: dynamo"
 - any:
+<<<<<<< HEAD
+=======
+  - "module: flex attention"
+  then:
+  - "module: higher order operators"
+- any:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   - "module: aotinductor"
   then:
   - "oncall: export"
@@ -49,6 +59,7 @@
   - "module: dynamic shapes"
   then:
   - "oncall: pt2"
+<<<<<<< HEAD
 - any:
   - "release notes: distributed (c10d)"
   - "release notes: distributed (symm_mem)"
@@ -58,3 +69,5 @@
   - "oncall: distributed"
   then:
   - "ciflow/h100-distributed"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

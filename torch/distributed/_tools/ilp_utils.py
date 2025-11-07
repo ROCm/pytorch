@@ -127,7 +127,11 @@ def aggregate_stats(
     }
 
     for mod in model.modules():
+<<<<<<< HEAD
         if mod_mem_stat := mod_mem_stats.get(mod):
+=======
+        if mod_mem_stat := mod_mem_stats.get(mod, None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if tradeoff_stats := mod_sac_tradeoff_stats.get(mod_mem_stat.mod_fqn, None):
                 sac_runtime = tradeoff_stats.sac_runtime
                 sac_memory = tradeoff_stats.sac_memory

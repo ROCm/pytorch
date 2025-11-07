@@ -64,8 +64,13 @@ graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code_verbose"
 # manage to eliminate all float compute, this ends up being equivalent, but
 # there is a critical difference when some floats cannot be eliminated: when
 # we call item() on them, what should it's SymFloat be? Ideally, it would
+<<<<<<< HEAD
 # be the same backed SymFloat we had before. But without symbolic expression
 # propagation on tensor quantities, repropagating would instead give you an
+=======
+# be the same backed SymFloat we had before. But without symbolic expresssion
+# propogation on tensor quantities, repropagating would instead give you an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # unbacked SymFloat. Maybe it is a good idea to implement symbolic propagation
 # on 0d scalar tensors, but I decided to go for something simpler to start.
 #
@@ -164,6 +169,7 @@ def tensorify_python_scalars(
                 c = float(expr)
 
             node = graph.call_function(
+<<<<<<< HEAD
                 torch.ops.aten.scalar_tensor.default,
                 # pyrefly: ignore [unbound-name]
                 (c,),
@@ -171,6 +177,11 @@ def tensorify_python_scalars(
             )
             with fake_mode:
                 # pyrefly: ignore [unbound-name]
+=======
+                torch.ops.aten.scalar_tensor.default, (c,), {"dtype": dtype}
+            )
+            with fake_mode:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 node.meta["val"] = torch.ops.aten.scalar_tensor.default(c, dtype=dtype)
             expr_to_tensor_proxy[expr] = MetaProxy(
                 node,
@@ -207,7 +218,11 @@ def tensorify_python_scalars(
                 and node.target is torch.ops.aten._local_scalar_dense.default
             ):
                 dtype = node.args[0].meta["val"].dtype
+<<<<<<< HEAD
                 if not dtype.is_floating_point:
+=======
+                if dtype != torch.float64:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
 
                 assert isinstance(node.args[0], fx.Node), node.args[0]
@@ -216,6 +231,7 @@ def tensorify_python_scalars(
                 expr_to_tensor_proxy[s] = MetaProxy(
                     node.args[0], tracer=tracer, fake_mode=fake_mode
                 )
+<<<<<<< HEAD
                 # Upcast the float tensor to torch.float64 to avoid precision problem
                 expr_to_tensor_proxy[s] = torch.ops.prims.convert_element_type.default(
                     expr_to_tensor_proxy[s], torch.float64
@@ -224,21 +240,33 @@ def tensorify_python_scalars(
                     node, tracer=tracer, fake_mode=fake_mode
                 )
             # pyrefly: ignore [bad-argument-type]
+=======
+                expr_to_sym_proxy[s] = MetaProxy(
+                    node, tracer=tracer, fake_mode=fake_mode
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif (sym_expr := _get_sym_val(node)) is not None:
                 if sym_expr not in expr_to_sym_proxy and not isinstance(
                     sym_expr, (sympy.Number, sympy.logic.boolalg.BooleanAtom)
                 ):
                     expr_to_sym_proxy[sym_expr] = MetaProxy(
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
                         node,
                         tracer=tracer,
                         fake_mode=fake_mode,
+=======
+                        node, tracer=tracer, fake_mode=fake_mode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
             # Specialize all dimensions that contain symfloats. Here's
             # an example test that requires this:
             # PYTORCH_OPINFO_SAMPLE_INPUT_INDEX=4 python test/inductor/test_torchinductor_opinfo.py TestInductorOpInfoCUDA.test_comprehensive_nn_functional_interpolate_bicubic_cuda_float32 # noqa: B950
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             val = node.meta.get("val")
             if isinstance(val, FakeTensor):
                 for dim in val.shape:
@@ -257,17 +285,26 @@ def tensorify_python_scalars(
                                 should_restart = True
 
             # Look for functions to convert
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             if node.op == "call_function" and (
                 # pyrefly: ignore [missing-attribute]
+=======
+            if node.op == "call_function" and (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 replacement_op := SUPPORTED_OPS.get(node.target)
             ):
                 args: list[Any] = []
                 transform = False
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
                 compute_dtype = get_computation_dtype(node.meta["val"].dtype)
 
                 # pyrefly: ignore [missing-attribute]
+=======
+                compute_dtype = get_computation_dtype(node.meta["val"].dtype)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for a in node.args:
                     if (
                         isinstance(a, fx.Node)
@@ -304,7 +341,10 @@ def tensorify_python_scalars(
                 if transform:
                     replacement_proxy = replacement_op(*args)
 
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if compute_dtype != node.meta["val"].dtype:
                         replacement_proxy = (
                             torch.ops.prims.convert_element_type.default(
@@ -313,9 +353,13 @@ def tensorify_python_scalars(
                             )
                         )
 
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
                     node.replace_all_uses_with(replacement_proxy.node)
                     # pyrefly: ignore [bad-argument-type]
+=======
+                    node.replace_all_uses_with(replacement_proxy.node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     graph.erase_node(node)
 
                     metrics_context = get_metrics_context()
@@ -324,16 +368,23 @@ def tensorify_python_scalars(
                             "tensorify_float_success", True, overwrite=True
                         )
             else:
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for a in node.args:
                     if (
                         isinstance(a, fx.Node)
                         and "val" in a.meta
                         and isinstance(zf := a.meta["val"], torch.SymFloat)
                     ):
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
                         failed_tensorify_ops.update(str(node.target))
                         # pyrefly: ignore [missing-attribute]
+=======
+                        failed_tensorify_ops.update(str(node.target))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         log.info("Failed to tensorify %s", str(node.target))
 
     # Now do one more pass that specializes all symfloats we didn't manage
@@ -369,7 +420,11 @@ def tensorify_python_scalars(
     # Sometimes by the time we get to tensorify, there have already been
     # specializations, eg. in python_arg_parser.h. In these cases,
     # placeholder nodes no longer have a reference to their original
+<<<<<<< HEAD
     # symfloat and thus we need to deduce specializations have happened
+=======
+    # symfloat and thus we need to deduce specializations have happend
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # via shape_env.replacements. NB: there's an important invariant here
     # that symfloats keep consistent names across restarts.
     for k, v in shape_env.var_to_val.items():

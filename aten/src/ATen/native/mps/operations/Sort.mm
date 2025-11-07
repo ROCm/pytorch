@@ -2,20 +2,30 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/MemoryOverlap.h>
 #include <ATen/WrapDimUtils.h>
+<<<<<<< HEAD
 #include <ATen/native/SortingUtils.h>
 #include <ATen/native/TensorShape.h>
 #include <ATen/native/TypeProperties.h>
+=======
+#include <ATen/native/TensorShape.h>
+#include <ATen/native/TypeProperties.h>
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
 #include <ATen/NativeFunctions.h>
 #else
+<<<<<<< HEAD
 #include <ATen/ops/kthvalue_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/sort.h>
 #include <ATen/ops/sort_native.h>
 #endif
 namespace at::native {
+<<<<<<< HEAD
 namespace {
 
 void kthvalue_out_mps_impl(const Tensor& self, int64_t k, int64_t dim, Tensor& values, Tensor& indices) {
@@ -90,6 +100,8 @@ void kthvalue_out_mps_impl(const Tensor& self, int64_t k, int64_t dim, Tensor& v
   }
 }
 } // anonymous namespace
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // sort
 TORCH_IMPL_FUNC(sort_stable_out_mps)
@@ -101,6 +113,12 @@ TORCH_IMPL_FUNC(sort_stable_out_mps)
  const Tensor& indices) {
   using namespace mps;
 
+<<<<<<< HEAD
+=======
+  bool macOS13_3_plus = is_macos_13_or_newer(MacOSVersion::MACOS_VER_13_3_PLUS);
+  MPS_CHECK_INT64_OP_SUPPORTED(self, macOS13_3_plus, "sort_stable_out");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (self.numel() == 0) {
     return;
   }
@@ -127,7 +145,12 @@ TORCH_IMPL_FUNC(sort_stable_out_mps)
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       newCachedGraph->selfTensor = mpsGraphRankedPlaceHolder(mpsGraph, getMPSDataType(self), input_shape);
 
+<<<<<<< HEAD
       MPSGraphTensor* castInputTensor = castToIHFTypes(mpsGraph, newCachedGraph->selfTensor, self);
+=======
+      MPSGraphTensor* castInputTensor =
+          castToIHFTypes(mpsGraph, newCachedGraph->selfTensor, self, /*includesInt64=*/macOS13_3_plus);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       MPSGraphTensor* sortedTensor = [mpsGraph sortWithTensor:castInputTensor
                                                          axis:(NSInteger)dim
                                                    descending:(BOOL)descending
@@ -156,6 +179,7 @@ TORCH_IMPL_FUNC(sort_stable_out_mps)
     runMPSGraph(stream, cachedGraph->graph(), feeds, results);
   }
 }
+<<<<<<< HEAD
 
 std::tuple<Tensor&, Tensor&> kthvalue_out_mps(const Tensor& self,
                                               int64_t k,
@@ -183,4 +207,6 @@ std::tuple<Tensor&, Tensor&> kthvalue_out_mps(const Tensor& self,
 
   return std::forward_as_tuple(values, indices);
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

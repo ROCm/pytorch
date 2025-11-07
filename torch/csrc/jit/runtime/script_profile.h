@@ -24,7 +24,11 @@ struct Datapoint {
 
 class TORCH_API InstructionSpan {
  public:
+<<<<<<< HEAD
   explicit InstructionSpan(Node& /*node*/);
+=======
+  explicit InstructionSpan(Node&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~InstructionSpan();
   InstructionSpan(InstructionSpan&&) = delete;
   InstructionSpan& operator=(InstructionSpan&&) = delete;
@@ -91,7 +95,11 @@ class TORCH_API ScriptProfile : public CustomClassHolder {
   void enable();
   void disable();
   const SourceMap& dumpStats();
+<<<<<<< HEAD
   void addDatapoint(std::shared_ptr<profiling::Datapoint> /*datapoint*/);
+=======
+  void addDatapoint(std::shared_ptr<profiling::Datapoint>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~ScriptProfile() override;
 
  private:

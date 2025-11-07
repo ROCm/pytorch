@@ -122,13 +122,19 @@ def _format_model_info(model_info: ModelInfo) -> str:
 
         target_to_nodes = defaultdict(list)
         for node, _ in model_info.dispatch_failures:
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             target_to_nodes[str(node.target)].append(node)
 
         target_to_messages = {}
         for node, message in model_info.dispatch_failures:
             if str(node.target) not in target_to_messages:
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 target_to_messages[str(node.target)] = message
 
         for target, nodes in sorted(
@@ -161,6 +167,7 @@ def _get_io_specs(exported_program: torch.export.ExportedProgram) -> tuple[dict,
         for spec in exported_program.graph_signature.output_specs
         if spec.kind == graph_signature.OutputKind.USER_OUTPUT
     ]
+<<<<<<< HEAD
     inputs: dict[str, torch._export.serde.schema.TensorMeta | str] = {}
     outputs: dict[str, torch._export.serde.schema.TensorMeta | str] = {}
     for spec in user_inputs:
@@ -203,6 +210,24 @@ def _log_spec_into_io_specs(
     return inputs_or_outputs
 
 
+=======
+    inputs: dict[str, torch._export.serde.schema.TensorMeta] = {}
+    outputs: dict[str, torch._export.serde.schema.TensorMeta] = {}
+    for spec in user_inputs:
+        if isinstance(spec.arg, graph_signature.ConstantArgument):
+            continue
+        name = spec.arg.name
+        # FIXME: tensor_meta is None sometimes when the exported program still knows the shape/type
+        inputs[name] = nodes[name].meta["tensor_meta"]
+    for spec in user_outputs:
+        if isinstance(spec.arg, graph_signature.ConstantArgument):
+            continue
+        name = spec.arg.name
+        outputs[name] = nodes[name].meta["tensor_meta"]
+    return inputs, outputs
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _count_fx_targets(
     exported_program: torch.export.ExportedProgram,
 ) -> defaultdict[str, int]:

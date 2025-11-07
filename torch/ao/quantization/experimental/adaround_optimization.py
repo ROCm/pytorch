@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.ao.quantization.experimental.adaround_fake_quantize import (
@@ -108,7 +112,11 @@ class AdaptiveRoundingOptimizer:
         )
         if torch.cuda.is_available():
             # Somehow, we need to move the model continuously
+<<<<<<< HEAD
             # Otherwise, the model will be lowered to CPU mysteriously
+=======
+            # Otherwise, the model will be lowered to CPU misteriously
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.model = self.model.cuda()
             self.q_model = self.q_model.cuda()
         for data_ in data:
@@ -187,10 +195,16 @@ class AdaptiveRoundingOptimizer:
         inp, out, fp_in = self.get_data_inp_out(module, q_module, self.data)
 
         print("==================== Before adaround ====================")
+<<<<<<< HEAD
         if torch.abs(out[0] - module(fp_in[0])).sum().item() != 0:
             raise AssertionError(
                 "In-placed activation is detected, please do not use activation in-placed"
             )
+=======
+        assert torch.abs(out[0] - module(fp_in[0])).sum().item() == 0, (
+            "In-placed activation is detected, please do not use activation in-placed"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Stack the tensors in each list into a single tensor
         # Assuming inp and out are your lists of tensors
         inp_tensor = torch.vstack(inp)

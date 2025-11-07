@@ -3,8 +3,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 import inspect
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, cast, Optional
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -25,7 +30,10 @@ from torch.distributed.tensor._utils import (
     normalize_to_torch_size,
 )
 from torch.distributed.tensor.placement_types import (
+<<<<<<< HEAD
     _StridedShard,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Partial,
     Placement,
     Replicate,
@@ -107,12 +115,18 @@ class _ToTorchTensor(torch.autograd.Function):
         )
 
         return (
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             DTensor(
                 # pyrefly: ignore [bad-argument-count]
                 grad_output,
                 grad_spec,
                 # pyrefly: ignore [unexpected-keyword]
+=======
+            DTensor(
+                grad_output,
+                grad_spec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 requires_grad=grad_output.requires_grad,
             ),
             None,
@@ -178,14 +192,21 @@ class _FromTorchTensor(torch.autograd.Function):
         )
 
         # We want a fresh Tensor object that shares memory with the input tensor
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         dist_tensor = DTensor(
             # pyrefly: ignore [bad-argument-count]
+=======
+        dist_tensor = DTensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input.view_as(input),
             dist_spec,
             # requires_grad of the dist tensor depends on if input
             # requires_grad or not
+<<<<<<< HEAD
             # pyrefly: ignore [unexpected-keyword]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=input.requires_grad,
         )
         return dist_tensor
@@ -247,8 +268,13 @@ class DTensor(torch.Tensor):
     # _op_dispatcher instance as a class attribute to handle runtime dispatching logic
     _op_dispatcher: op_dispatch.OpDispatcher = op_dispatch.OpDispatcher()
 
+<<<<<<< HEAD
     # This implementation is just to convince mypy _spec and _local_tensor are
     # initialized; it is immediately overridden below.
+=======
+    @staticmethod
+    @torch._disable_dynamo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __new__(
         cls,
         local_tensor: torch.Tensor,
@@ -256,6 +282,7 @@ class DTensor(torch.Tensor):
         *,
         requires_grad: bool,
     ) -> "DTensor":
+<<<<<<< HEAD
         r = torch.Tensor._dtensor__new__(
             cls, local_tensor, spec, requires_grad=requires_grad
         )
@@ -271,6 +298,12 @@ class DTensor(torch.Tensor):
         """
         Construct a DTensor from a local tensor, device mesh, and placement and
         other tensor properties (i.e. shape, requires_grad, strides, etc).
+=======
+        """
+        Construct a DTensor from a local tensor, device mesh, and placement and
+        other tensor properties (i.e. shape, requires_grad, strides, etc).
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .. note:: This is not a public API and it's only supposed to be used by the
             operator implementations and internals. If you want to construct a
             DTensor from a local tensor, consider using ``DTensor.from_local``, if
@@ -278,6 +311,35 @@ class DTensor(torch.Tensor):
             already have tensor initialized and want to shard this tensor),
             consider using ``distribute_tensor``.
         """
+<<<<<<< HEAD
+=======
+        if local_tensor.requires_grad and not requires_grad:
+            warnings.warn(
+                "To construct DTensor from torch.Tensor, it's recommended to "
+                "use local_tensor.detach() and make requires_grad consistent."
+            )
+
+        # new method instruct wrapper tensor from local_tensor and add
+        # placement spec, it does not do actual distribution
+        assert spec.tensor_meta is not None, "TensorMeta should not be None!"
+        r = torch.Tensor._make_wrapper_subclass(
+            cls,
+            spec.tensor_meta.shape,
+            strides=spec.tensor_meta.stride,
+            dtype=local_tensor.dtype,
+            device=local_tensor.device,
+            layout=local_tensor.layout,
+            requires_grad=requires_grad,
+        )
+
+        r._spec = spec
+        r._local_tensor = local_tensor
+        return r
+
+    @torch._disable_dynamo
+    @mark_subclass_constructor_exportable_experimental
+    def __init__(self, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
 
     # pyre-fixme[14]: `__repr__` overrides method defined in `DTensor` inconsistently.
@@ -310,12 +372,18 @@ class DTensor(torch.Tensor):
             spec.placements,
             tensor_meta=unflatten_tensor_meta,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         return DTensor(
             # pyrefly: ignore [bad-argument-count]
             local_tensor,
             unflatten_spec,
             # pyrefly: ignore [unexpected-keyword]
+=======
+        return DTensor(
+            local_tensor,
+            unflatten_spec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=requires_grad,
         )
 
@@ -397,12 +465,15 @@ class DTensor(torch.Tensor):
         .. note:: ``from_local`` is differentiable, the `requires_grad` of the created
             `DTensor` object will depend on if `local_tensor` requires_grad or not.
         """
+<<<<<<< HEAD
         # `local_tensor` argument cannot be DTensor
         if isinstance(local_tensor, DTensor):
             raise RuntimeError(
                 f"the local_tensor argument only accepts torch.Tensor but got {type(local_tensor)} value."
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # if same shape/dtype, no need to run_check, if not, must allgather
         # the metadatas to check the size/dtype across ranks
         # There should be no data communication unless there's replication
@@ -544,10 +615,16 @@ class DTensor(torch.Tensor):
 
         placements = list(placements)
         for i, placement in enumerate(placements):
+<<<<<<< HEAD
             if placement.is_partial() and self.placements[i] != placement:
                 raise RuntimeError(
                     f"Can not redistribute from {self.placements[i]} to {placement}, "
                     "redistributing to Partial is for internal use only!"
+=======
+            if placement.is_partial():
+                raise RuntimeError(
+                    "Can not redistribute to Partial, redistributing to Partial is for internal use only!"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             elif isinstance(placement, Shard) and placement.dim < 0:
                 # normalize shard dim to be positive
@@ -565,7 +642,11 @@ class DTensor(torch.Tensor):
         """
         Return the full tensor of this DTensor. It will perform necessary collectives
         to gather the local tensors from other ranks in its DeviceMesh and concatenate
+<<<<<<< HEAD
         them together. It's a syntactic sugar of the following code:
+=======
+        them together. It's a syntatic sugar of the following code:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ``dtensor.redistribute(placements=[Replicate()] * mesh.ndim).to_local()``
 
@@ -609,6 +690,7 @@ class DTensor(torch.Tensor):
         """
         return self._spec.placements
 
+<<<<<<< HEAD
     def _raise_if_contains_partial_placements(self) -> None:
         """
         Raise an error if the DTensor contains partial placements.
@@ -624,6 +706,9 @@ class DTensor(torch.Tensor):
 
     def __create_write_items__(self, fqn: str, object: Any):
         self._raise_if_contains_partial_placements()
+=======
+    def __create_write_items__(self, fqn: str, object: Any):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.distributed.checkpoint.planner_helpers import (
             _create_write_items_for_dtensor,
         )
@@ -646,7 +731,10 @@ class DTensor(torch.Tensor):
         Returns:
             A List[:class:`ChunkStorageMetadata`] object that represents the shard size/offset on the current rank.
         """
+<<<<<<< HEAD
         self._raise_if_contains_partial_placements()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.distributed.checkpoint.planner_helpers import (
             _create_chunk_from_dtensor,
         )
@@ -659,7 +747,10 @@ class DTensor(torch.Tensor):
             raise RuntimeError("Unsupported tensor type!")
 
     def __get_tensor_shard__(self, index):
+<<<<<<< HEAD
         self._raise_if_contains_partial_placements()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hasattr(self._local_tensor, "__get_tensor_shard__"):
             return self._local_tensor.__get_tensor_shard__(index)  # type: ignore[attr-defined]
         elif isinstance(self._local_tensor, torch.Tensor):
@@ -667,6 +758,7 @@ class DTensor(torch.Tensor):
         else:
             raise RuntimeError("Unsupported tensor type!")
 
+<<<<<<< HEAD
     @classmethod
     def __metadata_guard__(
         cls, orig: tuple[DTensorSpec, bool], other: tuple[DTensorSpec, bool]
@@ -678,6 +770,8 @@ class DTensor(torch.Tensor):
             and orig_requires_grad == other_requires_grad
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def distribute_tensor(
     tensor: torch.Tensor,
@@ -786,6 +880,7 @@ def distribute_tensor(
     # distribute the tensor according to the placements.
     placements = list(placements)
     for idx, placement in enumerate(placements):
+<<<<<<< HEAD
         if isinstance(placement, Shard):
             placement_dim = (
                 placement.dim + tensor.ndim if placement.dim < 0 else placement.dim
@@ -809,6 +904,20 @@ def distribute_tensor(
                 placements[idx] = Shard(placement_dim)
         elif isinstance(placement, Replicate):
             local_tensor = Replicate._make_replicate_tensor(
+=======
+        if placement.is_shard():
+            placement = cast(Shard, placement)
+            if placement.dim < 0:
+                # normalize shard placement dim
+                placement = Shard(placement.dim + tensor.ndim)
+                placements[idx] = placement
+            local_tensor = placement._shard_tensor(
+                local_tensor, device_mesh, idx, src_data_rank
+            )
+        elif placement.is_replicate():
+            placement = cast(Replicate, placement)
+            local_tensor = placement._replicate_tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 local_tensor, device_mesh, idx, src_data_rank
             )
         else:
@@ -829,12 +938,18 @@ def distribute_tensor(
             dtype=tensor.dtype,
         ),
     )
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
     return DTensor(
         # pyrefly: ignore [bad-argument-count]
         local_tensor.requires_grad_(tensor.requires_grad),
         spec,
         # pyrefly: ignore [unexpected-keyword]
+=======
+    return DTensor(
+        local_tensor.requires_grad_(tensor.requires_grad),
+        spec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         requires_grad=tensor.requires_grad,
     )
 
@@ -1046,7 +1161,11 @@ def _dtensor_init_helper(  # type: ignore[no-untyped-def]
     # set default placements to replicated if not specified
     placements = placements or tuple(Replicate() for _ in range(device_mesh.ndim))
 
+<<<<<<< HEAD
     # check device_mesh against placements
+=======
+    # check device_mesh againts placements
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert device_mesh.ndim == len(placements), (
         "mesh dimension does not match the length of placements"
     )
@@ -1089,12 +1208,18 @@ def _dtensor_init_helper(  # type: ignore[no-untyped-def]
         ),
     )
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
     return DTensor(
         # pyrefly: ignore [bad-argument-count]
         local_tensor,
         spec,
         # pyrefly: ignore [unexpected-keyword]
+=======
+    return DTensor(
+        local_tensor,
+        spec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         requires_grad=kwargs["requires_grad"],
     )
 

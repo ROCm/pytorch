@@ -111,8 +111,13 @@ class File {
   void swap(File& other) noexcept;
 
   // movable
+<<<<<<< HEAD
   File(File&& /*other*/) noexcept;
   File& operator=(File&& /*other*/) noexcept;
+=======
+  File(File&&) noexcept;
+  File& operator=(File&&) noexcept;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   // unique

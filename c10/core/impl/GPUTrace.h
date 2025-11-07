@@ -16,7 +16,11 @@ struct C10_API GPUTrace {
 
   // This function will only register the first interpreter that tries to invoke
   // it. For all of the next ones it will be a no-op.
+<<<<<<< HEAD
   static void set_trace(const PyInterpreter* /*trace*/);
+=======
+  static void set_trace(const PyInterpreter*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static const PyInterpreter* get_trace() {
     if (!haveState)

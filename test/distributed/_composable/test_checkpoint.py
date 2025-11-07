@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 from torch.distributed._composable import checkpoint
 from torch.testing._internal.common_cuda import TEST_CUDA
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, TEST_XPU, TestCase
 from torch.utils.checkpoint import CheckpointError
 
@@ -17,6 +18,12 @@ from torch.utils.checkpoint import CheckpointError
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+from torch.testing._internal.common_utils import run_tests, TestCase
+from torch.utils.checkpoint import CheckpointError
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class MemoryDelta(ContextDecorator):
     def __init__(self, device: torch.device):
         self.device: torch.device = device
@@ -25,16 +32,26 @@ class MemoryDelta(ContextDecorator):
 
     def __enter__(self):
         self.active_memory_enter = (
+<<<<<<< HEAD
             torch.accelerator.memory_stats()["active_bytes.all.current"]
             if self.device.type == "cuda" or self.device.type == "xpu"
+=======
+            torch.cuda.memory_stats()["active_bytes.all.current"]
+            if self.device.type == "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else 0
         )
         return self
 
     def __exit__(self, *exc):
         self.active_memory_exit = (
+<<<<<<< HEAD
             torch.accelerator.memory_stats()["active_bytes.all.current"]
             if self.device.type == "cuda" or self.device.type == "xpu"
+=======
+            torch.cuda.memory_stats()["active_bytes.all.current"]
+            if self.device.type == "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else 0
         )
 
@@ -129,7 +146,11 @@ class TestCheckpoint(TestCase):
             loss2 = net2(x2).sum()
         loss2.backward()
 
+<<<<<<< HEAD
         if x.is_cuda or x.is_xpu:
+=======
+        if x.is_cuda:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertTrue(mem2.delta() < mem1.delta())
 
         for p1, p2 in zip(net1.parameters(), net2.parameters()):
@@ -140,10 +161,17 @@ class TestCheckpoint(TestCase):
         net = ToyModel()
         self._test_tensor_only(net, x)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "no cuda/xpu")
     def test_tensor_only_gpu(self):
         x = torch.randn(20, 100, device=f"{device_type}:0")
         net = ToyModel().to(f"{device_type}:0")
+=======
+    @unittest.skipIf(not TEST_CUDA, "no cuda")
+    def test_tensor_only_gpu(self):
+        x = torch.randn(20, 100, device="cuda:0")
+        net = ToyModel().to("cuda:0")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_tensor_only(net, x)
 
     def test_random_cpu(self):

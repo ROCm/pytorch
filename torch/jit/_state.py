@@ -76,11 +76,19 @@ def _get_script_class(python_class):
     override = getattr(python_class, "_jit_override_qualname", None)
     if override is not None:
         python_class = _get_python_class(override)
+<<<<<<< HEAD
     return _script_classes.get(python_class)
 
 
 def _get_python_class(qualified_name):
     return _name_to_pyclass.get(qualified_name)
+=======
+    return _script_classes.get(python_class, None)
+
+
+def _get_python_class(qualified_name):
+    return _name_to_pyclass.get(qualified_name, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _clear_class_state():

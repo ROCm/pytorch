@@ -171,8 +171,11 @@ TORCH_LIBRARY_IMPL(aten, FuncTorchBatched, m) {
 
   POINTWISE_BOXED(fill_.Scalar);
   POINTWISE_BOXED(zero_);
+<<<<<<< HEAD
   // This is special because this op doesn't return anything
   m.impl("_assert_tensor_metadata", native::_assert_tensor_metadata);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #undef UNARY_POINTWISE
 #undef UNARY_POINTWISE_ALL

@@ -89,18 +89,29 @@ def get_td_exclusions(
         return grouped_tests
 
 
+<<<<<<< HEAD
 def group_test_cases(test_cases: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
     # Returns a list of lists. Each inner list contains test cases with the same
     # build name, test config, file name, class name, and test name (ex if it was run multiple times)
     start = time.time()
     test_case_with_job_info = defaultdict(list)
 
+=======
+def group_test_cases(test_cases: list[dict[str, Any]]) -> dict[str, Any]:
+    start = time.time()
+    grouped_tests: dict[str, Any] = defaultdict(
+        lambda: defaultdict(
+            lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+        )
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for test_case in test_cases:
         job_name = get_job_name(test_case["job_id"])
         build_name = get_build_name(job_name)
         if "bazel" in build_name:
             continue
         test_config = get_test_config(job_name)
+<<<<<<< HEAD
 
         test_case["job_name"] = job_name
         test_case["build_name"] = build_name
@@ -120,11 +131,29 @@ def group_test_cases(test_cases: list[dict[str, Any]]) -> list[list[dict[str, An
 
 
 def get_reruns(grouped_tests: list[list[dict[str, Any]]]) -> dict[str, Any]:
+=======
+        class_name = test_case.pop("classname", "NoClass")
+        name = test_case.pop("name", "NoName")
+        invoking_file = test_case.pop("invoking_file", "NoFile")
+        invoking_file = invoking_file.replace(".", "/")
+        test_case.pop("workflow_id")
+        test_case.pop("workflow_run_attempt")
+        grouped_tests[build_name][test_config][invoking_file][class_name][name].append(
+            test_case
+        )
+
+    print(f"Time taken to group tests: {time.time() - start}")
+    return grouped_tests
+
+
+def get_reruns(grouped_tests: dict[str, Any]) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reruns: dict[str, Any] = defaultdict(
         lambda: defaultdict(
             lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         )
     )
+<<<<<<< HEAD
 
     for tests in grouped_tests:
         if len(tests) > 1:
@@ -184,6 +213,43 @@ def get_invoking_file_summary(
 
     for (build_name, test_config, file), data in summary_flat.items():
         invoking_file_summary[build_name][test_config][file] = data
+=======
+    for build_name, build in grouped_tests.items():
+        for test_config, test_config_data in build.items():
+            for invoking_file, invoking_file_data in test_config_data.items():
+                for class_name, class_data in invoking_file_data.items():
+                    for test_name, test_data in class_data.items():
+                        if len(test_data) > 1:
+                            if invoking_file in (
+                                "distributed/test_distributed_spawn",
+                                "onnx/test_fx_to_onnx_with_onnxruntime",
+                                "distributed/algorithms/quantization/test_quantization",
+                            ):
+                                continue
+                            reruns[build_name][test_config][invoking_file][class_name][
+                                test_name
+                            ] = test_data
+    return reruns
+
+
+def get_invoking_file_summary(grouped_tests: dict[str, Any]) -> dict[str, Any]:
+    invoking_file_summary: dict[str, Any] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(lambda: {"count": 0, "time": 0.0}))
+    )
+    for build_name, build in grouped_tests.items():
+        for test_config, test_config_data in build.items():
+            for invoking_file, invoking_file_data in test_config_data.items():
+                for class_data in invoking_file_data.values():
+                    for test_data in class_data.values():
+                        invoking_file_summary[build_name][test_config][invoking_file][
+                            "count"
+                        ] += 1
+                        for i in test_data:
+                            invoking_file_summary[build_name][test_config][
+                                invoking_file
+                            ]["time"] += i["time"]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return invoking_file_summary
 
 
@@ -204,6 +270,7 @@ def get_all_run_attempts(workflow_run_id: int) -> list[int]:
     return sorted(run_attempts)
 
 
+<<<<<<< HEAD
 def get_test_status(test_cases: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
     # Returns a list of dicts with test status info (flaky, success, failure,
     # skipped)
@@ -239,6 +306,8 @@ def get_test_status(test_cases: list[list[dict[str, Any]]]) -> list[dict[str, An
     return only_status_info
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def upload_additional_info(
     workflow_run_id: int, workflow_run_attempt: int, test_cases: list[dict[str, Any]]
 ) -> None:
@@ -265,9 +334,12 @@ def upload_additional_info(
         "additional_info/invoking_file_summary",
         [invoking_file_summary],
     )
+<<<<<<< HEAD
     upload_workflow_stats_to_s3(
         workflow_run_id,
         workflow_run_attempt,
         "additional_info/test_status",
         get_test_status(grouped_tests),
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

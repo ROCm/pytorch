@@ -106,11 +106,19 @@ dlrm,pass,0
 
 
 
+<<<<<<< HEAD
 doctr_det_predictor,eager_fail_to_run,3
 
 
 
 doctr_reco_predictor,eager_fail_to_run,1
+=======
+doctr_det_predictor,eager_fail_to_run,5
+
+
+
+doctr_reco_predictor,eager_fail_to_run,4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -130,6 +138,76 @@ functorch_maml_omniglot,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+hf_Albert,pass,0
+
+
+
+hf_Bart,pass,0
+
+
+
+hf_Bert,pass,0
+
+
+
+hf_Bert_large,pass,0
+
+
+
+hf_BigBird,pass,9
+
+
+
+hf_DistilBert,pass,0
+
+
+
+hf_GPT2,pass,0
+
+
+
+hf_GPT2_large,pass_due_to_skip,0
+
+
+
+hf_Longformer,pass,4
+
+
+
+hf_Reformer,pass,5
+
+
+
+hf_Roberta_base,pass,0
+
+
+hf_T5,pass,0
+
+
+
+hf_T5_base,pass,0
+
+
+
+hf_T5_generate,pass,5
+
+
+
+hf_T5_large,pass_due_to_skip,0
+
+
+
+hf_Whisper,pass,0
+
+
+
+hf_distil_whisper,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 lennard_jones,pass,0
 
 
@@ -138,7 +216,11 @@ llama,pass,0
 
 
 
+<<<<<<< HEAD
 llama_v2_7b_16h,pass_due_to_skip,0
+=======
+llama_v2_7b_16h,model_fail_to_load,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -154,7 +236,11 @@ maml_omniglot,pass,0
 
 
 
+<<<<<<< HEAD
 microbench_unbacked_tolist_sum,pass,2
+=======
+microbench_unbacked_tolist_sum,pass,1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -278,6 +364,41 @@ stable_diffusion_unet,model_fail_to_load,0
 
 
 
+<<<<<<< HEAD
+=======
+timm_efficientdet,pass,2
+
+
+
+timm_efficientnet,pass,0
+
+
+
+timm_nfnet,pass,0
+
+
+
+timm_regnet,pass,0
+
+
+
+timm_resnest,pass,0
+
+
+
+timm_vision_transformer,pass,0
+
+
+
+timm_vision_transformer_large,pass_due_to_skip,0
+
+
+
+timm_vovnet,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch_multimodal_clip,pass,0
 
 
@@ -290,7 +411,11 @@ vgg16,eager_two_runs_differ,0
 
 
 
+<<<<<<< HEAD
 vision_maskrcnn,pass,21
+=======
+vision_maskrcnn,pass,20
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

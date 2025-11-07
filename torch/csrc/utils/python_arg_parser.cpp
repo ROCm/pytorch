@@ -131,8 +131,14 @@ FunctionParameter::FunctionParameter(const std::string& fmt, bool keyword_only)
       size(0),
       default_scalar(0) {
   auto space = fmt.find(' ');
+<<<<<<< HEAD
   TORCH_CHECK(
       space != std::string::npos, "FunctionParameter(): missing type: " + fmt);
+=======
+  if (space == std::string::npos) {
+    throw std::runtime_error("FunctionParameter(): missing type: " + fmt);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto type_str = fmt.substr(0, space);
 
@@ -153,9 +159,16 @@ FunctionParameter::FunctionParameter(const std::string& fmt, bool keyword_only)
 
   auto name_str = fmt.substr(space + 1);
   auto it = type_map.find(type_str);
+<<<<<<< HEAD
   TORCH_CHECK(
       it != type_map.end(),
       "FunctionParameter(): invalid type string: " + type_str);
+=======
+  if (it == type_map.end()) {
+    throw std::runtime_error(
+        "FunctionParameter(): invalid type string: " + type_str);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   type_ = it->second;
 
   auto eq = name_str.find('=');
@@ -301,10 +314,13 @@ static py::object maybe_get_registered_torch_dispatch_rule(
   return result;
 }
 
+<<<<<<< HEAD
 // NB: Invariant: if you run this function, you MUST test if the returned
 // py::object is nullptr, as this will occur WITHOUT error condition being set.
 // And if an error happens, this function is responsible for throwing a C++
 // error.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static py::object dispatch_on_subclass(
     PyObject* args,
     PyObject* kwargs,
@@ -384,7 +400,10 @@ static py::object dispatch_on_subclass(
       break;
     }
   }
+<<<<<<< HEAD
   // NB: PyErr_Occurred is NOT set here, this means NO dispatch happened
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return ret;
 }
 
@@ -586,6 +605,7 @@ auto handle_torch_function_no_python_arg_parser(
   }
 
   if (ret.ptr() == nullptr) {
+<<<<<<< HEAD
     // We didn't successfully dispatch anything, this should be impossible
     TORCH_INTERNAL_ASSERT(
         0,
@@ -595,6 +615,11 @@ auto handle_torch_function_no_python_arg_parser(
         overloaded_args,
         ", is_mode_active = ",
         is_mode_active());
+=======
+    // if an exception occurred in a user's implementation of
+    // __torch_function__, throw it
+    throw python_error();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (ret.ptr() == Py_NotImplemented) {
     // all __torch_function__ implementations in overloaded_args
     // returned NotImplemented, so we raise a TypeError.
@@ -675,6 +700,7 @@ auto handle_torch_function_indexing(
   auto size = PyTuple_GET_SIZE(index_tup.ptr());
   for (auto i : c10::irange(size)) {
     auto* obj = PyTuple_GetItem(index_tup.ptr(), i);
+<<<<<<< HEAD
     auto r = is_tensor_and_append_overloaded(obj, &overridable_args);
     if (!r && PySequence_Check(obj)) {
       auto inner_size = PySequence_Length(obj);
@@ -691,6 +717,9 @@ auto handle_torch_function_indexing(
         }
       }
     }
+=======
+    is_tensor_and_append_overloaded(obj, &overridable_args);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (val != nullptr) {
     is_tensor_and_append_overloaded(val, &overridable_args);
@@ -817,15 +846,20 @@ bool is_tensor_and_append_overloaded(
   return false;
 }
 
+<<<<<<< HEAD
 static bool is_scalar_list(
     PyObject* obj,
     std::vector<PyObject*>* overloaded_args = nullptr) {
+=======
+static bool is_scalar_list(PyObject* obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto tuple = six::isTuple(obj);
   if (!(tuple || PyList_Check(obj))) {
     return false;
   }
   // NOLINTNEXTLINE(bugprone-branch-clone)
   const auto size = tuple ? PyTuple_GET_SIZE(obj) : PyList_GET_SIZE(obj);
+<<<<<<< HEAD
   bool has_torch_func = false;
 
   for (const auto idx : c10::irange(size)) {
@@ -840,6 +874,12 @@ static bool is_scalar_list(
     }
 
     if (!THPUtils_checkScalar(iobj) && !has_torch_func) {
+=======
+  for (const auto idx : c10::irange(size)) {
+    PyObject* iobj =
+        tuple ? PyTuple_GET_ITEM(obj, idx) : PyList_GET_ITEM(obj, idx);
+    if (!THPUtils_checkScalar(iobj)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return false;
     }
   }
@@ -889,9 +929,13 @@ static bool is_float_or_symfloat(PyObject* obj) {
   return false;
 }
 
+<<<<<<< HEAD
 static bool is_float_or_complex_list(
     PyObject* obj,
     std::vector<PyObject*>* overloaded_args = nullptr) {
+=======
+static bool is_float_or_complex_list(PyObject* obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto tuple = six::isTuple(obj);
   if (!(tuple || PyList_Check(obj))) {
     return false;
@@ -899,6 +943,7 @@ static bool is_float_or_complex_list(
 
   // NOLINTNEXTLINE(bugprone-branch-clone)
   const auto size = tuple ? PyTuple_GET_SIZE(obj) : PyList_GET_SIZE(obj);
+<<<<<<< HEAD
   bool has_torch_func = false;
 
   for (long idx = 0; idx < size; idx++) {
@@ -918,6 +963,12 @@ static bool is_float_or_complex_list(
           !has_torch_func) {
         return false;
       }
+=======
+  if (size > 0) {
+    PyObject* iobj = tuple ? PyTuple_GET_ITEM(obj, 0) : PyList_GET_ITEM(obj, 0);
+    if (!is_float_or_symfloat(iobj) && !PyComplex_Check(iobj)) {
+      return false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -925,6 +976,7 @@ static bool is_float_or_complex_list(
 }
 
 static bool is_int_or_symint(PyObject* obj) {
+<<<<<<< HEAD
   // Call checkLong first so that actual ints go fast.
   if (THPUtils_checkLong(obj)) {
     return true;
@@ -939,6 +991,15 @@ static bool is_int_or_symint(PyObject* obj) {
   if (torch::is_dynint(py::handle(obj))) {
     return true;
   }
+=======
+  // THPUtils_checkIndex may call __index__ or __int__
+  // which may have side effects if obj is a symint node
+  // so we do `is_symint` check first
+  // TODO: maybe we should be using checkLong here?
+  if (torch::is_symint(py::handle(obj))) {
+    return true;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // FakeTensor(..., size=()) is qualified for SymInt param,
   // but we can't go via __index__ (below) as we would normally
@@ -965,6 +1026,7 @@ static bool is_int_or_symint(PyObject* obj) {
 static bool is_int_or_symint_list(
     PyObject* obj,
     int broadcast_size,
+<<<<<<< HEAD
     int64_t* failed_idx = nullptr,
     std::vector<PyObject*>* overloaded_args = nullptr) {
   const bool is_tuple = PyTuple_Check(obj);
@@ -1010,6 +1072,28 @@ static bool is_int_or_symint_list(
     }
 
     return true;
+=======
+    int64_t* failed_idx = nullptr) {
+  if (PyTuple_Check(obj) || PyList_Check(obj)) {
+    if (PySequence_Size(obj) == 0) {
+      return true;
+    }
+    auto item = py::reinterpret_steal<py::object>(PySequence_GetItem(obj, 0));
+
+    if (is_int_or_symint(item.ptr())) {
+      return true;
+    }
+
+    // NOTE: JIT tracer allows arbitrary scalar tensors to act as ints
+    // in an intlist argument. Even float or complex scalar tensors.
+    bool r =
+        (jit::tracer::isTracing() && THPVariable_Check(item.ptr()) &&
+         THPVariable_Unpack(item.ptr()).sizes().empty());
+    if (!r && failed_idx != nullptr) {
+      *failed_idx = 0;
+    }
+    return r;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // if a size is specified (e.g. IntArrayRef[2]) we also allow passing a single
@@ -1023,6 +1107,7 @@ auto FunctionParameter::check(
     std::vector<PyObject*>& overloaded_args,
     int argnum,
     int64_t* failed_idx) -> bool {
+<<<<<<< HEAD
   if (_check(obj, overloaded_args, argnum, failed_idx)) {
     return true;
   }
@@ -1044,6 +1129,8 @@ auto FunctionParameter::_check(
     std::vector<PyObject*>& overloaded_args,
     int argnum,
     int64_t* failed_idx) -> bool {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   switch (type_) {
     case ParameterType::TENSOR: {
       if (is_tensor_and_append_overloaded(obj, &overloaded_args)) {
@@ -1073,8 +1160,12 @@ auto FunctionParameter::_check(
         return !var.requires_grad() && var.dim() == 0;
       }
       if (torch::is_symfloat(py::handle(obj)) ||
+<<<<<<< HEAD
           torch::is_symint(py::handle(obj)) ||
           torch::is_dynint(py::handle(obj))) {
+=======
+          torch::is_symint(py::handle(obj))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // This will induce a guard
         return true;
       }
@@ -1089,8 +1180,12 @@ auto FunctionParameter::_check(
         return at::isIntegralType(var.scalar_type(), /*includeBool=*/false) &&
             !var.requires_grad() && var.dim() == 0;
       }
+<<<<<<< HEAD
       if (torch::is_symint(py::handle(obj)) ||
           torch::is_dynint(py::handle(obj))) {
+=======
+      if (torch::is_symint(py::handle(obj))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // This will induce a guard
         return true;
       }
@@ -1111,7 +1206,11 @@ auto FunctionParameter::_check(
           obj, &overloaded_args, argnum, true /* throw_error */);
     }
     case ParameterType::FLOAT_LIST:
+<<<<<<< HEAD
       return is_float_or_complex_list(obj, &overloaded_args);
+=======
+      return is_float_or_complex_list(obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case ParameterType::GENERATOR:
       return THPGenerator_Check(obj);
     case ParameterType::BOOL:
@@ -1121,7 +1220,19 @@ auto FunctionParameter::_check(
     case ParameterType::PYOBJECT:
       return true;
     case ParameterType::SCALARTYPE:
+<<<<<<< HEAD
       return THPDtype_Check(obj) || THPPythonScalarType_Check(obj);
+=======
+      if (THPDtype_Check(obj) || THPPythonScalarType_Check(obj)) {
+        return true;
+      }
+      if (check_has_torch_function(obj, /*ignore_mode*/ true)) {
+        // tensor subclasses and unrelated objects with __torch_function__
+        append_overloaded_arg(&overloaded_args, obj, /*obj_is_type*/ false);
+        return true;
+      }
+      return false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case ParameterType::LAYOUT:
       return THPLayout_Check(obj);
     case ParameterType::MEMORY_FORMAT:
@@ -1132,24 +1243,40 @@ auto FunctionParameter::_check(
       // Allow symint to be passed in as device, but we'll specialize and
       // guard in this case.
       return THPUtils_checkLong(obj) || THPUtils_checkString(obj) ||
+<<<<<<< HEAD
           THPDevice_Check(obj) || torch::is_symint(py::handle(obj)) ||
           torch::is_dynint(py::handle(obj));
+=======
+          THPDevice_Check(obj) || torch::is_symint(py::handle(obj));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case ParameterType::STREAM:
       return THPStream_Check(obj);
     case ParameterType::STRING:
       return THPUtils_checkString(obj);
     case ParameterType::SCALAR_LIST:
+<<<<<<< HEAD
       return is_scalar_list(obj, &overloaded_args);
+=======
+      return is_scalar_list(obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case ParameterType::SYM_INT:
       return is_int_or_symint(obj);
     // Allow SymInt where int is expected; we'll guard in this case
     case ParameterType::INT_LIST:
     case ParameterType::SYM_INT_LIST:
+<<<<<<< HEAD
       return is_int_or_symint_list(obj, size, failed_idx, &overloaded_args);
     case ParameterType::DISPATCH_KEY_SET:
       return py::isinstance<c10::DispatchKeySet>(py::handle(obj));
     default:
       TORCH_CHECK(false, "unknown parameter type");
+=======
+      return is_int_or_symint_list(obj, size, failed_idx);
+    case ParameterType::DISPATCH_KEY_SET:
+      return py::isinstance<c10::DispatchKeySet>(py::handle(obj));
+    default:
+      throw std::runtime_error("unknown parameter type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1206,7 +1333,11 @@ std::string FunctionParameter::type_name() const {
     case ParameterType::DISPATCH_KEY_SET:
       return "DispatchKeySet";
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "unknown parameter type");
+=======
+      throw std::runtime_error("unknown parameter type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1328,8 +1459,15 @@ void FunctionParameter::set_default_str(const std::string& str) {
   }
   if (type_ == ParameterType::TENSOR ||
       type_ == ParameterType::DISPATCH_KEY_SET) {
+<<<<<<< HEAD
     TORCH_CHECK(
         str == "None", "default value for Tensor must be none, got: " + str);
+=======
+    if (str != "None") {
+      throw std::runtime_error(
+          "default value for Tensor must be none, got: " + str);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (type_ == ParameterType::INT64 || type_ == ParameterType::SYM_INT) {
     default_int = atol(str.c_str());
   } else if (type_ == ParameterType::BOOL) {
@@ -1353,14 +1491,24 @@ void FunctionParameter::set_default_str(const std::string& str) {
       default_intlist = parse_intlist_args(str, size);
     }
   } else if (type_ == ParameterType::FLOAT_LIST) {
+<<<<<<< HEAD
     TORCH_CHECK(str == "None", "Defaults not supported for float[]");
+=======
+    if (str != "None") {
+      throw std::runtime_error("Defaults not supported for float[]");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (type_ == ParameterType::SCALARTYPE) {
     if (str == "None") {
       default_scalartype = at::ScalarType::Undefined;
     } else if (str == "torch.int64") {
       default_scalartype = at::ScalarType::Long;
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "invalid default value for ScalarType: " + str);
+=======
+      throw std::runtime_error("invalid default value for ScalarType: " + str);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   } else if (type_ == ParameterType::LAYOUT) {
     if (str == "None") {
@@ -1370,12 +1518,25 @@ void FunctionParameter::set_default_str(const std::string& str) {
     } else if (str == "torch.sparse_coo") {
       default_layout = at::Layout::Sparse;
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "invalid default value for layout: " + str);
     }
   } else if (type_ == ParameterType::DEVICE) {
     TORCH_CHECK(str == "None", "invalid device: " + str);
   } else if (type_ == ParameterType::STREAM) {
     TORCH_CHECK(str == "None", "invalid stream: " + str);
+=======
+      throw std::runtime_error("invalid default value for layout: " + str);
+    }
+  } else if (type_ == ParameterType::DEVICE) {
+    if (str != "None") {
+      throw std::runtime_error("invalid device: " + str);
+    }
+  } else if (type_ == ParameterType::STREAM) {
+    if (str != "None") {
+      throw std::runtime_error("invalid stream: " + str);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (type_ == ParameterType::STRING) {
     if (str != "None") {
       default_string = parse_string_literal(str);
@@ -1404,7 +1565,11 @@ void FunctionParameter::set_default_str(const std::string& str) {
   } else if (type_ == ParameterType::QSCHEME) { // NOLINT
     // throw std::runtime_error("ParameterType::QSCHEME");
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "unknown parameter type");
+=======
+    throw std::runtime_error("unknown parameter type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   default_value = str;
 }
@@ -1419,7 +1584,11 @@ FunctionSignature::FunctionSignature(const std::string& fmt, int index)
       deprecated(false) {
   auto open_paren = fmt.find('(');
   if (open_paren == std::string::npos) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "missing opening parenthesis: " + fmt);
+=======
+    throw std::runtime_error("missing opening parenthesis: " + fmt);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   name = fmt.substr(0, open_paren);
 
@@ -1441,9 +1610,18 @@ FunctionSignature::FunctionSignature(const std::string& fmt, int index)
         break;
       }
     }
+<<<<<<< HEAD
     TORCH_CHECK(
         offset != std::string::npos, "missing closing parenthesis: " + fmt);
     TORCH_CHECK(offset != last_offset, "malformed signature: " + fmt);
+=======
+    if (offset == std::string::npos) {
+      throw std::runtime_error("missing closing parenthesis: " + fmt);
+    }
+    if (offset == last_offset) {
+      throw std::runtime_error("malformed signature: " + fmt);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto param_str = fmt.substr(last_offset, offset - last_offset);
     last_offset = next_offset;
@@ -1507,6 +1685,7 @@ std::string FunctionSignature::toString() const {
   const auto min_args = signature.min_args;
   const long nargs_ = nargs;
   if (min_args != max_pos_args) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
@@ -1525,6 +1704,22 @@ std::string FunctionSignature::toString() const {
           max_pos_args == 1 ? "" : "s",
           nargs_,
           nargs == 1 ? "was" : "were"));
+=======
+    throw TypeError(
+        "%s() takes from %zu to %zu positional arguments but %ld were given",
+        signature.name.c_str(),
+        min_args,
+        max_pos_args,
+        nargs_);
+  }
+  throw TypeError(
+      "%s() takes %zu positional argument%s but %ld %s given",
+      signature.name.c_str(),
+      max_pos_args,
+      max_pos_args == 1 ? "" : "s",
+      nargs_,
+      nargs == 1 ? "was" : "were");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 [[noreturn]] static void missing_args(
@@ -1544,6 +1739,7 @@ std::string FunctionSignature::toString() const {
     }
   }
 
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(
       false,
       fmt::format(
@@ -1552,6 +1748,14 @@ std::string FunctionSignature::toString() const {
           num_missing,
           num_missing == 1 ? "s" : "",
           ss.str()));
+=======
+  throw TypeError(
+      "%s() missing %d required positional argument%s: %s",
+      signature.name.c_str(),
+      num_missing,
+      num_missing == 1 ? "s" : "",
+      ss.str().c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static Py_ssize_t find_param(FunctionSignature& signature, PyObject* name) {
@@ -1580,11 +1784,16 @@ static Py_ssize_t find_param(FunctionSignature& signature, PyObject* name) {
   // accessible within this thread.
   while (PyDict_Next(kwargs, &pos, &key, &value)) {
     if (!THPUtils_checkString(key)) {
+<<<<<<< HEAD
       TORCH_CHECK_TYPE(false, "keywords must be strings");
+=======
+      throw TypeError("keywords must be strings");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     auto param_idx = find_param(signature, key);
     if (param_idx < 0) {
+<<<<<<< HEAD
       TORCH_CHECK_TYPE(
           false,
           fmt::format(
@@ -1600,11 +1809,28 @@ static Py_ssize_t find_param(FunctionSignature& signature, PyObject* name) {
               "{}() got multiple values for argument '{}'",
               signature.name,
               THPUtils_unpackString(key)));
+=======
+      throw TypeError(
+          "%s() got an unexpected keyword argument '%s'",
+          signature.name.c_str(),
+          THPUtils_unpackString(key).c_str());
+    }
+
+    if (param_idx < num_pos_args) {
+      throw TypeError(
+          "%s() got multiple values for argument '%s'",
+          signature.name.c_str(),
+          THPUtils_unpackString(key).c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
   // this should never be hit
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(false, "invalid keyword arguments");
+=======
+  throw TypeError("invalid keyword arguments");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool FunctionSignature::parse(
@@ -1682,8 +1908,12 @@ bool FunctionSignature::parse(
       // should avoid having complex signatures that make use of it...
     } else if (
         varargs_eligible &&
+<<<<<<< HEAD
         (is_int_or_symint_list(
             args, param.size, &failed_idx, &overloaded_args))) {
+=======
+        (is_int_or_symint_list(args, param.size, &failed_idx))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // take all positional arguments as this parameter
       // e.g. permute(1, 2, 3) -> permute((1, 2, 3))
       dst[i++] = args;
@@ -1692,6 +1922,7 @@ bool FunctionSignature::parse(
     } else if (raise_exception) {
       if (is_kwd) {
         // foo(): argument 'other' must be str, not int
+<<<<<<< HEAD
         TORCH_CHECK_TYPE(
             false,
             fmt::format(
@@ -1700,6 +1931,14 @@ bool FunctionSignature::parse(
                 param.name,
                 param.type_name(),
                 Py_TYPE(obj)->tp_name));
+=======
+        throw TypeError(
+            "%s(): argument '%s' must be %s, not %s",
+            name.c_str(),
+            param.name.c_str(),
+            param.type_name().c_str(),
+            Py_TYPE(obj)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else {
         // foo(): argument 'other' (position 2) must be str, not int
         if (failed_idx != -1) {
@@ -1708,6 +1947,7 @@ bool FunctionSignature::parse(
             obj = args;
           }
           TORCH_INTERNAL_ASSERT(failed_idx < PySequence_Size(obj));
+<<<<<<< HEAD
           TORCH_CHECK_TYPE(
               false,
               fmt::format(
@@ -1731,6 +1971,27 @@ bool FunctionSignature::parse(
                 arg_pos + 1,
                 param.type_name(),
                 Py_TYPE(obj)->tp_name));
+=======
+          throw TypeError(
+              "%s(): argument '%s' (position %ld) must be %s, but found element of type %s at pos %ld",
+              name.c_str(),
+              param.name.c_str(),
+              static_cast<long>(arg_pos + 1),
+              param.type_name().c_str(),
+              Py_TYPE(py::reinterpret_steal<py::object>(
+                          PySequence_GetItem(obj, failed_idx))
+                          .ptr())
+                  ->tp_name,
+              static_cast<long>(failed_idx));
+        }
+        throw TypeError(
+            "%s(): argument '%s' (position %ld) must be %s, not %s",
+            name.c_str(),
+            param.name.c_str(),
+            static_cast<long>(arg_pos + 1),
+            param.type_name().c_str(),
+            Py_TYPE(obj)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     } else {
       return false;
@@ -1852,7 +2113,11 @@ void PythonArgParser::print_error(
   auto options = get_signatures();
   auto msg =
       torch::format_invalid_args(args, kwargs, function_name + "()", options);
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(false, msg);
+=======
+  throw TypeError("%s", msg.c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::vector<std::string> PythonArgParser::get_signatures() const {
@@ -1879,7 +2144,25 @@ at::Tensor PythonArgs::tensor_slow(int i) {
   if (PyBool_Check(obj)) {
     scalar = at::Scalar(THPUtils_unpackBool(obj));
   } else if (THPUtils_checkLong(obj)) {
+<<<<<<< HEAD
     scalar = THPUtils_unpackInteger<at::Scalar>(obj);
+=======
+    int overflow = -1;
+    long long value = PyLong_AsLongLongAndOverflow(obj, &overflow);
+    if (value == -1 && PyErr_Occurred()) {
+      throw python_error();
+    }
+    if (overflow != 0) {
+      // try unsigned
+      unsigned long long value = PyLong_AsUnsignedLongLong(obj);
+      if (value == static_cast<unsigned long long>(-1) && PyErr_Occurred()) {
+        throw python_error();
+      }
+      scalar = at::Scalar(static_cast<uint64_t>(value));
+    } else {
+      scalar = at::Scalar(static_cast<int64_t>(value));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (PyComplex_Check(obj)) {
     scalar = at::Scalar(THPUtils_unpackComplexDouble(obj));
   } else if (THPUtils_checkDouble(obj)) {
@@ -1887,8 +2170,12 @@ at::Tensor PythonArgs::tensor_slow(int i) {
     // NB: we DO NOT put symbolic ints/floats into the Scalar itself,
     // because although Scalar supports SymInt/SymFloat, the subsequent
     // conversion to Tensor does not.  Instead, do it out of band.
+<<<<<<< HEAD
   } else if (
       torch::is_symint(py::handle(obj)) || torch::is_dynint(py::handle(obj))) {
+=======
+  } else if (torch::is_symint(py::handle(obj))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     save_symint = true;
     // This scalar value doesn't matter, it shouldn't ever actually
     // get read out.  Make it a big and weird looking number to help
@@ -1906,12 +2193,17 @@ at::Tensor PythonArgs::tensor_slow(int i) {
     // a test for Py_None here; instead, you need to mark the argument
     // as *allowing none*; you can do this by writing 'Tensor?' instead
     // of 'Tensor' in the ATen metadata.
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
             "expected Tensor as argument {}, but got {}",
             i,
             Py_TYPE(obj)->tp_name));
+=======
+    throw TypeError(
+        "expected Tensor as argument %d, but got %s", i, Py_TYPE(obj)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   at::AutoDispatchBelowADInplaceOrView guard; // TODO: remove
   at::tracer::impl::NoTracerDispatchMode tracer_guard;
@@ -1976,10 +2268,13 @@ at::Scalar PythonArgs::scalar_slow(PyObject* arg) {
     return at::Scalar(py::cast<c10::SymInt>(arg));
   }
 
+<<<<<<< HEAD
   if (torch::is_dynint(arg)) {
     return at::Scalar(py::cast<int>(arg));
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (torch::is_symfloat(arg)) {
     return at::Scalar(py::cast<c10::SymFloat>(arg));
   }

@@ -2,10 +2,17 @@
 
 #include <ATen/cuda/ATenCUDAGeneral.h>
 #include <ATen/cuda/CUDAContext.h>
+<<<<<<< HEAD
 #include <ATen/cuda/Exceptions.h>
 #include <c10/core/impl/GPUTrace.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/cuda/CUDAStream.h>
+=======
+#include <c10/core/impl/GPUTrace.h>
+#include <c10/cuda/CUDAStream.h>
+#include <c10/cuda/CUDAGuard.h>
+#include <ATen/cuda/Exceptions.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/Exception.h>
 
 #include <cuda_runtime_api.h>
@@ -246,6 +253,7 @@ private:
   }
 };
 
+<<<<<<< HEAD
 // EventPool - Thread-safe pool of CUDA events to avoid expensive cudaEventCreate
 // calls. cudaEventCreate when concurrently invoked from multiple threads can be
 // very expensive (especially on certain device/driver combinations).
@@ -321,4 +329,6 @@ class EventPool {
   std::vector<PerDevicePool> pools_;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::cuda

@@ -13,7 +13,11 @@
 PyObject* THPMemoryFormat_New(
     at::MemoryFormat memory_format,
     const std::string& name) {
+<<<<<<< HEAD
   auto type = &THPMemoryFormatType;
+=======
+  auto type = (PyTypeObject*)&THPMemoryFormatType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{type->tp_alloc(type, 0)};
   if (!self)
     throw python_error();
@@ -29,7 +33,11 @@ static PyObject* THPMemoryFormat_repr(THPMemoryFormat* self) {
 }
 
 static PyObject* THPMemoryFormat_reduce(PyObject* _self, PyObject* noargs) {
+<<<<<<< HEAD
   auto* self = reinterpret_cast<THPMemoryFormat*>(_self);
+=======
+  auto* self = (THPMemoryFormat*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_packString(self->name);
 }
 
@@ -49,7 +57,11 @@ PyTypeObject THPMemoryFormatType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPMemoryFormat_repr), /* tp_repr */
+=======
+    (reprfunc)THPMemoryFormat_repr, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
@@ -86,9 +98,13 @@ void THPMemoryFormat_init(PyObject* module) {
   }
   Py_INCREF(&THPMemoryFormatType);
   if (PyModule_AddObject(
+<<<<<<< HEAD
           module,
           "memory_format",
           reinterpret_cast<PyObject*>(&THPMemoryFormatType)) != 0) {
+=======
+          module, "memory_format", (PyObject*)&THPMemoryFormatType) != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

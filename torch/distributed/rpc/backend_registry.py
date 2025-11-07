@@ -95,7 +95,10 @@ def register_backend(
     BackendType.__repr__ = _backend_type_repr  # type: ignore[assignment]
     if BackendType.__doc__:
         BackendType.__doc__ = _backend_type_doc
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return BackendType[backend_name]
 
 
@@ -351,7 +354,11 @@ def _tensorpipe_init_backend_handler(
 
     device_count = torch.cuda.device_count()
 
+<<<<<<< HEAD
     is_static_group = bool(world_size)
+=======
+    is_static_group = True if world_size else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # world_size is specified so this is a static group (ranks cannot join and leave)
     if is_static_group:
         # The agent's join method is required to behave like a barrier and perform

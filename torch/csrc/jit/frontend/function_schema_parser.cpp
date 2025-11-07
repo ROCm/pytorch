@@ -111,7 +111,11 @@ struct SchemaParser {
       L.expect(':');
       name = fmt::format("{}::{}", name, L.expect(TK_IDENT).text_view());
     }
+<<<<<<< HEAD
     std::string overload_name;
+=======
+    std::string overload_name = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (L.nextIf('.')) {
       overload_name = L.expect(TK_IDENT).text();
     }

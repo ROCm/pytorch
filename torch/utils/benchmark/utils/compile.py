@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Any, cast, Optional, Union
 from collections.abc import Callable
+=======
+from typing import Any, Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo
@@ -15,7 +19,10 @@ _warned_tensor_cores = False
 _default_float_32_precision = torch.get_float32_matmul_precision()
 
 try:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from tabulate import tabulate
 
     HAS_TABULATE = True
@@ -129,7 +136,11 @@ if HAS_TABULATE:
         This is a simple utility that can be used to benchmark torch.compile
         In particular it ensures that your GPU is setup to use tensor cores if it supports its
         It also tries out all the main backends and prints a table of results so you can easily compare them all
+<<<<<<< HEAD
         Many of the backendds have their own optional dependencies so please pip install them separately
+=======
+        Many of the backendds have their own optional dependencies so please pip install them seperately
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         You will get one table for inference and another for training
         If you'd like to leverage this utility for training make sure to pass in a torch.optim.Optimizer
@@ -170,7 +181,10 @@ if HAS_TABULATE:
                             _disable_tensor_cores()
                             table.append([
                                 ("Training" if optimizer else "Inference"),
+<<<<<<< HEAD
                                 # pyrefly: ignore [redundant-condition]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 backend if backend else "-",
                                 mode if mode is not None else "-",
                                 f"{compilation_time} ms " if compilation_time else "-",
@@ -191,5 +205,8 @@ if HAS_TABULATE:
                     ])
 
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tabulate(table, headers=field_names, tablefmt="github")

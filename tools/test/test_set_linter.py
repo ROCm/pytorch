@@ -77,7 +77,10 @@ class TestSetLinter(LinterTestCase):
             ("{i for i in range(2, 3)}", 1),
             ("{1, 2}", 1),
             ("{One({'a': 1}), Two([{}, {2}, {1, 2}])}", 3),
+<<<<<<< HEAD
             ('f" {h:{w}} "', 0),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         for s, expected in TESTS:
             pf = SetLinter.make_file(s)

@@ -5,12 +5,15 @@ import os
 import sys
 
 
+<<<<<<< HEAD
 # Run only this selected group of models, leave this empty to run everything
 TORCHBENCH_ONLY_MODELS = [
     m.strip() for m in os.getenv("TORCHBENCH_ONLY_MODELS", "").split(",") if m.strip()
 ]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Note - hf and timm have their own version of this, torchbench does not
 # TODO(voz): Someday, consolidate all the files into one runner instead of a shim like this...
 def model_names(filename: str) -> set[str]:
@@ -23,8 +26,11 @@ def model_names(filename: str) -> set[str]:
             if len(line_parts) == 1:
                 line_parts = line.split(",")
             model_name = line_parts[0]
+<<<<<<< HEAD
             if TORCHBENCH_ONLY_MODELS and model_name not in TORCHBENCH_ONLY_MODELS:
                 continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             names.add(model_name)
     return names
 

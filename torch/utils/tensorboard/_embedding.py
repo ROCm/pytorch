@@ -25,10 +25,16 @@ def make_tsv(metadata, save_path, metadata_header=None):
     if not metadata_header:
         metadata = [str(x) for x in metadata]
     else:
+<<<<<<< HEAD
         if len(metadata_header) != len(
             metadata[0]
         ):
             raise AssertionError("len of header must be equal to the number of columns in metadata")
+=======
+        assert len(metadata_header) == len(
+            metadata[0]
+        ), "len of header must be equal to the number of columns in metadata"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metadata = ["\t".join(str(e) for e in l) for l in [metadata_header] + metadata]
 
     metadata_bytes = tf.compat.as_bytes("\n".join(metadata) + "\n")
@@ -43,7 +49,11 @@ def make_sprite(label_img, save_path):
 
     # this ensures the sprite image has correct dimension as described in
     # https://www.tensorflow.org/get_started/embedding_viz
+<<<<<<< HEAD
     nrow = math.ceil((label_img.size(0)) ** 0.5)
+=======
+    nrow = int(math.ceil((label_img.size(0)) ** 0.5))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arranged_img_CHW = make_grid(make_np(label_img), ncols=nrow)
 
     # augment images so that #images equals nrow*nrow

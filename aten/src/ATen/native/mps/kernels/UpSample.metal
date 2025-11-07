@@ -66,7 +66,11 @@ template <typename scalar_t>
 scalar_t upsample_get_value_bounded(
     constant scalar_t* data,
     uint3 dim,
+<<<<<<< HEAD
     ::metal::array<ulong, 5> strides,
+=======
+    array<ulong, 5> strides,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uint n,
     uint c,
     uint z,
@@ -131,7 +135,11 @@ template <typename scalar_t>
 void upsample_increment_value_bounded(
     device AtomicType_t<scalar_t>* data,
     uint3 dim,
+<<<<<<< HEAD
     ::metal::array<ulong, 5> strides,
+=======
+    array<ulong, 5> strides,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uint n,
     uint c,
     uint z,
@@ -852,4 +860,10 @@ INSTANTIATE_UPSAMPLE_2D(bilinear2d, uchar);
 INSTANTIATE_UPSAMPLE_3D(uchar);
 INSTANTIATE_UPSAMPLE_ALL(float);
 INSTANTIATE_UPSAMPLE_ALL(half);
+<<<<<<< HEAD
 INSTANTIATE_UPSAMPLE_ALL(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_UPSAMPLE_ALL(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -45,7 +45,11 @@ def _prepare_video(V):
     Convesrion is done from [batchsize, time(frame), channel(color), height, width]  (5D tensor)
     to [time(frame), new_width, new_height, channel] (4D tensor).
 
+<<<<<<< HEAD
     A batch of images are spread to a grid, which forms a frame.
+=======
+    A batch of images are spreaded to a grid, which forms a frame.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     e.g. Video with batchsize 16 will have a 4x4 grid.
     """
     b, t, c, h, w = V.shape
@@ -57,14 +61,21 @@ def _prepare_video(V):
         return num != 0 and ((num & (num - 1)) == 0)
 
     # pad to nearest power of 2, all at once
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
     if not is_power2(V.shape[0]):
         # pyrefly: ignore [index-error]
+=======
+    if not is_power2(V.shape[0]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         len_addition = int(2 ** V.shape[0].bit_length() - V.shape[0])
         V = np.concatenate((V, np.zeros(shape=(len_addition, t, c, h, w))), axis=0)
 
     n_rows = 2 ** ((b.bit_length() - 1) // 2)
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     n_cols = V.shape[0] // n_rows
 
     V = np.reshape(V, newshape=(n_rows, n_cols, t, c, h, w))
@@ -76,12 +87,19 @@ def _prepare_video(V):
 
 def make_grid(I, ncols=8):
     # I: N1HW or N3HW
+<<<<<<< HEAD
     if not isinstance(I, np.ndarray):
         raise AssertionError("plugin error, should pass numpy array here")
     if I.shape[1] == 1:
         I = np.concatenate([I, I, I], 1)
     if I.ndim != 4 or I.shape[1] != 3:
         raise AssertionError("Input should be a 4D numpy array with 3 channels")
+=======
+    assert isinstance(I, np.ndarray), "plugin error, should pass numpy array here"
+    if I.shape[1] == 1:
+        I = np.concatenate([I, I, I], 1)
+    assert I.ndim == 4 and I.shape[1] == 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nimg = I.shape[0]
     H = I.shape[2]
     W = I.shape[3]
@@ -103,12 +121,22 @@ def make_grid(I, ncols=8):
 
 
 def convert_to_HWC(tensor, input_format):  # tensor: numpy array
+<<<<<<< HEAD
     if len(set(input_format)) != len(input_format):
         raise AssertionError(f"You can not use the same dimension shordhand twice. \
             input_format: {input_format}")
     if len(tensor.shape) != len(input_format):
         raise AssertionError(f"size of input tensor and input format are different. \
         tensor shape: {tensor.shape}, input_format: {input_format}")
+=======
+    assert len(set(input_format)) == len(
+        input_format
+    ), f"You can not use the same dimension shordhand twice.         input_format: {input_format}"
+    assert len(tensor.shape) == len(
+        input_format
+    ), f"size of input tensor and input format are different. \
+        tensor shape: {tensor.shape}, input_format: {input_format}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     input_format = input_format.upper()
 
     if len(input_format) == 4:

@@ -26,6 +26,10 @@ from torch.nested._internal.nested_tensor import (
     NestedTensor,
     ViewNestedFromBuffer,
 )
+<<<<<<< HEAD
+=======
+from torch.nn.attention.flex_attention import create_nested_block_mask, flex_attention
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FUSED_ATTENTION,
     SM70OrLater,
@@ -35,6 +39,10 @@ from torch.testing._internal.common_cuda import (
 from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfCUDA,
+<<<<<<< HEAD
+=======
+    flex_attention_supported_platform,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instantiate_device_type_tests,
     onlyCPU,
     onlyCUDA,
@@ -58,6 +66,10 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     serialTest,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfSlowGradcheckEnv,
     skipIfTorchDynamo,
     subtest,
@@ -857,6 +869,7 @@ class TestNestedTensor(NestedTensorTestCase):
         ):
             torch.cat([x, y], dim=-1)
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/161812
     def test_jagged_with_dim_error(self):
         x = torch.nested.nested_tensor(
@@ -873,6 +886,8 @@ class TestNestedTensor(NestedTensorTestCase):
         ):
             torch.stack([x, x])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nested_view_from_buffer_overflow_errors(self):
         buffer = torch.tensor([1])
         sizes = torch.tensor([[2**63 - 1], [2**63 - 1], [3]], dtype=torch.int64)
@@ -1105,6 +1120,7 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
 
         check(inputs, y)
 
+<<<<<<< HEAD
     @dtypes(
         torch.int8,
         torch.int16,
@@ -1237,6 +1253,8 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
 
         self.assertEqual(result_argmin, expected_argmin)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @torch.inference_mode()
     @dtypes(*floating_types_and_half())
@@ -1375,6 +1393,7 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
         is_cuda = "cuda" in str(device)
         self.assertEqual(nt.is_cuda, is_cuda)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
     def test_share_memory(self, device):
         a = torch.randn(3, 4, device=device)
@@ -1393,6 +1412,8 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
         # Verify in shared memory
         self.assertTrue(nt.is_shared())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float, torch.float16, torch.double)
     def test_nested_tensor_indexing(self, device, dtype):
         # edge case: empty nested tensor
@@ -1482,6 +1503,7 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
             lambda: func(nt_noncontiguous),
         )
 
+<<<<<<< HEAD
     def test_is_any_true_jagged(self, device):
         B, Fin = 2, 6
         start = torch.zeros(B, dtype=torch.int64, device=device)
@@ -1558,6 +1580,8 @@ class TestNestedTensorDeviceType(NestedTensorTestCase):
             )
             self.assertFalse(torch.ops.aten._is_all_true.default(nt_mixed).item())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("func", [subtest(torch.ge, name="ge"), subtest(torch.eq, name="eq")])
     def test_binary_ops_with_scalar(self, device, func):
         nt_contiguous, nt_noncontiguous = random_nt_noncontiguous_pair(
@@ -4683,18 +4707,24 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
     @parametrize("components_require_grad", [False, True])
+<<<<<<< HEAD
     @parametrize(
         "func",
         [torch.nn.functional.softmax, torch.nn.functional.log_softmax],
         name_fn=lambda func: func.__name__,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_softmax_dim(
         self,
         device,
         dtype,
         requires_grad,
         components_require_grad,
+<<<<<<< HEAD
         func,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Softmax passes when reducing on valid reduction dimensions.
@@ -4713,7 +4743,11 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
 
         for reduce_dim, _ in reduce_dims:
             nt = torch.nested.as_nested_tensor(ts, layout=torch.jagged)
+<<<<<<< HEAD
             out_actual = func(nt, dim=reduce_dim)
+=======
+            out_actual = torch.nn.functional.softmax(nt, dim=reduce_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._dynamo.disable(self.assertEqual)(
                 len(out_actual.shape), len(output_shape)
             )  # disable if running on dynamo
@@ -4743,10 +4777,19 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
             reduce_dim, reduce_dim_expected = reduce_dim_tuple
 
             if nt.dim() > reduce_dim:
+<<<<<<< HEAD
                 # nested tensor
                 out_actual = func(nt, dim=reduce_dim)
                 # dense tensor of dimensions 1 less than out_actual
                 out_expected = func(nt.values(), dim=reduce_dim_expected)
+=======
+                out_actual = torch.nn.functional.softmax(
+                    nt, dim=reduce_dim
+                )  # nested tensor
+                out_expected = torch.nn.functional.softmax(
+                    nt.values(), dim=reduce_dim_expected
+                )  # dense tensor of dimensions 1 less than out_actual
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertTrue(
                     torch.allclose(out_actual.values().view(-1), out_expected.view(-1))
                 )
@@ -4844,6 +4887,7 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
     @parametrize("components_require_grad", [False, True])
+<<<<<<< HEAD
     @parametrize(
         "func",
         [torch.nn.functional.softmax, torch.nn.functional.log_softmax],
@@ -4851,6 +4895,10 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     )
     def test_softmax_reduce_batch_dim(
         self, device, dtype, requires_grad, components_require_grad, func
+=======
+    def test_softmax_reduce_batch_dim(
+        self, device, dtype, requires_grad, components_require_grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Softmax on NestedTensor fails when trying to reduce across batch dimension.
@@ -4875,7 +4923,11 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
                 RuntimeError,
                 "not supported when reducing across the batch dimension for NestedTensor",
             ):
+<<<<<<< HEAD
                 out = func(nt, dim=reduce_dim)
+=======
+                out = torch.nn.functional.softmax(nt, dim=reduce_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
@@ -5888,11 +5940,14 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
         ):
             torch.nested.nested_tensor_from_jagged(values, offsets=None, lengths=None)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(ValueError, "Expected jagged_dim >=1, but got 0."):
             torch.nested.nested_tensor_from_jagged(
                 values, lengths=lengths, jagged_dim=0
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCPU
     def test_nested_tensor_from_jagged_fx_trace(self, device):
         def fn(x, y):
@@ -6999,10 +7054,18 @@ torch.cuda.synchronize()
             and check_cudnn
             and (dtype == torch.float16 or dtype == torch.bfloat16)
         ):
+<<<<<<< HEAD
             with torch.nn.attention.sdpa_kernel(
                 torch.nn.attention.SDPBackend.CUDNN_ATTENTION
             ):
                 check_forward_backward()
+=======
+            with self.assertRaisesRegex(RuntimeError, "cuDNN SDPA Nested Tensor"):
+                with torch.nn.attention.sdpa_kernel(
+                    torch.nn.attention.SDPBackend.CUDNN_ATTENTION
+                ):
+                    check_forward_backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfTorchDynamo("SDPA test compiles internally")
     @unittest.skipIf(IS_WINDOWS, reason="Windows not yet supported for torch.compile")
@@ -7381,10 +7444,13 @@ torch.cuda.synchronize()
     @skipCUDAIf(not SM70OrLater, "GPU capability is < SM70")
     @parametrize("use_legacy_api", [True, False])
     @skipCPUIf(True, "SPDA Math NT fallback causes failure: see issue #133644")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dummy_mha_with_nt(self, device, use_legacy_api):
         bs = 3
         d1 = 2
@@ -7446,7 +7512,11 @@ torch.cuda.synchronize()
 
         query = torch.rand(bs, d1, d3, device=device)
         value = torch.rand(30, d2, requires_grad=True, device=device)
+<<<<<<< HEAD
         # total_length must > than max_length otherwise flash_attn backward will fail
+=======
+        # total_length must > than max_length otherwise flash_attn backwark will fail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offsets = torch.tensor([0, 2, 3, 30], device=device)
 
         m = mha(use_legacy_api)
@@ -7528,6 +7598,124 @@ torch.cuda.synchronize()
 
         return query, key, value
 
+<<<<<<< HEAD
+=======
+    @onlyCUDA
+    @flex_attention_supported_platform
+    @dtypes(torch.float32)
+    # non-contiguous with holes not supported yet
+    @decorateIf(unittest.skip, lambda params: params["noncontig_with_holes"])
+    @parametrize("noncontig_with_holes", [False, True])
+    @parametrize("cross_attention", [False, True])
+    @skipIfRocm
+    def test_flex_attention(self, device, dtype, noncontig_with_holes, cross_attention):
+        query, key, value = self._rand_qkv(
+            device, dtype, noncontig_with_holes, q_and_kv_match=(not cross_attention)
+        )
+
+        # Run FlexAttention with a causal mask
+        def causal_mask(b, h, q_idx, kv_idx):
+            return q_idx >= kv_idx
+
+        if cross_attention:
+            block_mask = create_nested_block_mask(
+                causal_mask, 1, 1, query, key, _compile=True
+            )
+        else:
+            block_mask = create_nested_block_mask(
+                causal_mask, 1, 1, query, _compile=True
+            )
+
+        out_flex = flex_attention(query, key, value, block_mask=block_mask)
+        grad_out = torch.randn_like(out_flex)
+        grads_flex = torch.autograd.grad(
+            out_flex, inputs=(query, key, value), grad_outputs=(grad_out,)
+        )
+        flex_outs = [out_flex, *grads_flex]
+
+        # Run FlexAttention with a score_mod that represents causal attention
+        def causal_score_mod(score, b, h, q_idx, kv_idx):
+            return torch.where(q_idx >= kv_idx, score, float("-inf"))
+
+        out_flex2 = flex_attention(query, key, value, score_mod=causal_score_mod)
+        grads_flex2 = torch.autograd.grad(
+            out_flex2, inputs=(query, key, value), grad_outputs=(grad_out,)
+        )
+        flex_outs2 = [out_flex2, *grads_flex2]
+
+        # Run causal SDPA for comparison
+        out_sdpa = F.scaled_dot_product_attention(query, key, value, is_causal=True)
+        grads_sdpa = torch.autograd.grad(
+            out_sdpa, inputs=(query, key, value), grad_outputs=(grad_out,)
+        )
+        sdpa_outs = [out_sdpa, *grads_sdpa]
+
+        # Compare flex vs. SDPA output and grads
+        for flex, flex2, sdpa in zip(flex_outs, flex_outs2, sdpa_outs):
+            self.assertTrue(flex.is_nested and flex2.is_nested and sdpa.is_nested)
+            self.assertEqual(flex, sdpa, atol=1e-2, rtol=1e-2)
+            self.assertEqual(flex2, sdpa, atol=1e-2, rtol=1e-2)
+
+    @onlyCUDA
+    @flex_attention_supported_platform
+    @dtypes(torch.float32)
+    def test_flex_attention_converts_stacked_seq_indices(self, device, dtype):
+        # This test verifies that a score_mod function written to operate within
+        # NJT sequence index space, such as a lookup table, works correctly. This
+        # validates that FlexAttention properly converts indices within the
+        # "stacked sequence" space used for NJT -> sequence-relative indices.
+        query, key, value = self._rand_qkv(device, dtype)
+
+        # Test with score_mod
+        score_mod_table = torch.randn(query._max_seqlen, device=device, dtype=dtype)
+
+        def my_score_mod(score, b, h, q_idx, kv_idx):
+            return score_mod_table[q_idx]
+
+        flex_attention(query, key, value, score_mod=my_score_mod)
+
+        # Test with batch-specific score_mod
+        batch_size = query.size(0)
+        batch_table = torch.randn(batch_size, device=device, dtype=dtype)
+        # Keep score the same for batch index == 0
+        batch_table[0].zero_()
+
+        def batch_specific_score_mod(score, b, h, q_idx, kv_idx):
+            return score + batch_table[b]
+
+        def identity_score_mod(score, b, h, q_idx, kv_idx):
+            return score
+
+        output = flex_attention(query, key, value, score_mod=batch_specific_score_mod)
+        output_identity = flex_attention(
+            query, key, value, score_mod=identity_score_mod
+        )
+
+        # Guard against a bug where the batch index passed to score_mod is always b == 0.
+        # Output would be equivalent to applying an identity score_mod.
+        # See https://github.com/pytorch/pytorch/issues/143788
+        self.assertFalse(torch.allclose(output._values, output_identity._values))
+
+        # Test with mask_mod
+        mask_mod_table = score_mod_table > 0.0
+
+        def my_mask_mod(b, h, q_idx, kv_idx):
+            return mask_mod_table[q_idx]
+
+        def my_mask_mod2(b, h, q_idx, kv_idx):
+            return mask_mod_table[q_idx] & (b == 0)
+
+        block_mask = create_nested_block_mask(my_mask_mod, 1, 1, query, _compile=True)
+        output = flex_attention(query, key, value, block_mask=block_mask)
+
+        block_mask2 = create_nested_block_mask(my_mask_mod2, 1, 1, query, _compile=True)
+        output2 = flex_attention(query, key, value, block_mask=block_mask2)
+
+        # Guard against a bug where the batch index passed to mask_mod is always b == 0.
+        # See https://github.com/pytorch/pytorch/issues/143788
+        self.assertFalse(torch.allclose(output._values, output2._values))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float32)
     def test_apply_(self, device, dtype):
         nt = random_nt_from_dims(
@@ -7935,6 +8123,7 @@ torch.cuda.synchronize()
 
         nt = torch.nested.nested_tensor(
             [
+<<<<<<< HEAD
                 (
                     torch.randint(
                         2, (n, *post_seq_len_shape), device=device, dtype=dtype
@@ -7942,6 +8131,11 @@ torch.cuda.synchronize()
                     if dtype is torch.bool
                     else torch.randn(n, *post_seq_len_shape, device=device, dtype=dtype)
                 )
+=======
+                torch.randint(2, (n, *post_seq_len_shape), device=device, dtype=dtype)
+                if dtype is torch.bool
+                else torch.randn(n, *post_seq_len_shape, device=device, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for n in range(2, 9)
             ],
             layout=torch.jagged,
@@ -7990,6 +8184,7 @@ torch.cuda.synchronize()
 
         nt = torch.nested.nested_tensor(
             [
+<<<<<<< HEAD
                 (
                     torch.randint(
                         2, (n, *post_seq_len_shape), device=device, dtype=dtype
@@ -7997,6 +8192,11 @@ torch.cuda.synchronize()
                     if dtype is torch.bool
                     else torch.randn(n, *post_seq_len_shape, device=device, dtype=dtype)
                 )
+=======
+                torch.randint(2, (n, *post_seq_len_shape), device=device, dtype=dtype)
+                if dtype is torch.bool
+                else torch.randn(n, *post_seq_len_shape, device=device, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for n in range(2, 9)
             ],
             layout=torch.jagged,
@@ -8232,7 +8432,10 @@ FORWARD_SKIPS_AND_XFAILS = [
             "std.unbiased",
             "var",
             "var.unbiased",
+<<<<<<< HEAD
             "hash_tensor",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
         name="not_implemented",
     ),
@@ -8680,6 +8883,17 @@ BACKWARD_SKIPS_AND_XFAILS = [
 
 COMPILE_FORWARD_SKIPS_AND_XFAILS = [
     *FORWARD_SKIPS_AND_XFAILS,
+<<<<<<< HEAD
+=======
+    # Needs investigation in AOTAutograd: len(unwrapped_args) == num_args_tallied assertion fails
+    # e.g. Expected 5 == 4
+    XFailRule(
+        error_type=AssertionError,
+        op_match_fn=lambda device, op: (op.full_name == "fill"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="fill_aot_autograd_bug_with_transposed_input",
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Bug: cross-device conversions with to() result in new nested ints within compile only
     XFailRule(
         error_type=AssertionError,
@@ -8717,6 +8931,21 @@ COMPILE_FORWARD_SKIPS_AND_XFAILS = [
         sample_match_fn=lambda device, sample: ("batch_dim" in sample.name),
         name="broken_select_backward_unbacked",
     ),
+<<<<<<< HEAD
+=======
+    # Bug: no idea what's going on here; needs investigation within AOTAutograd
+    XFailRule(
+        op_match_fn=lambda device, op: (op.full_name == "nan_to_num"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="crazy_aot_autograd_bug1",
+    ),
+    # Bug: also no idea what's going on here: needs investigation within AOTAutograd
+    XFailRule(
+        op_match_fn=lambda device, op: (op.full_name == "isreal"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="crazy_aot_autograd_bug2",
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 COMPILE_BACKWARD_SKIPS_AND_XFAILS = [
@@ -8741,7 +8970,11 @@ COMPILE_BACKWARD_SKIPS_AND_XFAILS = [
     # min() / max(): weird bug
     XFailRule(
         error_type=AttributeError,
+<<<<<<< HEAD
         error_msg="'NestedIntNode' object has no attribute 'add'",
+=======
+        error_msg="'ConstantIntNode' object has no attribute 'add'",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op_match_fn=lambda device, op: (
             op.full_name in {"max.reduction_with_dim", "min.reduction_with_dim"}
         ),
@@ -8758,7 +8991,11 @@ COMPILE_BACKWARD_SKIPS_AND_XFAILS = [
     # copysign(): formula is broken for (T, NT) broadcasting
     XFailRule(
         error_type=AttributeError,
+<<<<<<< HEAD
         error_msg="'NestedIntNode' object has no attribute 'add'",
+=======
+        error_msg="'ConstantIntNode' object has no attribute 'add'",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op_match_fn=lambda device, op: (op.full_name == "copysign"),
         sample_match_fn=lambda device, sample: ("(T, NT)" in sample.name),
         name="broken_copysign_compile_backward",

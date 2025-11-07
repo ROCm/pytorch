@@ -28,7 +28,11 @@ else:
 TEST_FILE = Path("tools/test/docstring_linter_testdata/python_code.py.txt")
 TEST_FILE2 = Path("tools/test/docstring_linter_testdata/more_python_code.py.txt")
 TEST_BLOCK_NAMES = Path("tools/test/docstring_linter_testdata/block_names.py.txt")
+<<<<<<< HEAD
 ARGS = "--max-class=5", "--max-def=6", "--min-docstring=16"
+=======
+ARGS = "--max-class=3", "--max-def=4", "--min-docstring=16"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestDocstringLinter(LinterTestCase):

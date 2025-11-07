@@ -135,6 +135,7 @@ class TestWarn(JitTestCase):
             bar()
 
         FileCheck().check_count(
+<<<<<<< HEAD
             str="UserWarning: I am warning you from foo",
             count=1,
             exactly=True,
@@ -143,6 +144,14 @@ class TestWarn(JitTestCase):
             count=1,
             exactly=True,
         ).run(f.getvalue())
+=======
+            str="UserWarning: I am warning you from foo", count=1, exactly=True
+        ).check_count(
+            str="UserWarning: I am warning you from bar", count=1, exactly=True
+        ).run(
+            f.getvalue()
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

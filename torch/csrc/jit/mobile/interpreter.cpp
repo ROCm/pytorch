@@ -17,7 +17,11 @@
 #include <torch/csrc/jit/runtime/vararg_functions.h>
 
 namespace torch::jit {
+<<<<<<< HEAD
 
+=======
+std::ostream& operator<<(std::ostream& out, Instruction inst);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace mobile {
 InterpreterState::InterpreterState(const Code& code) {
   enterFrame(code);

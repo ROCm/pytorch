@@ -1,6 +1,10 @@
 import copy
 import operator
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.ao.quantization import (
@@ -15,10 +19,13 @@ from torch.ao.quantization.observer import _PartialWrapper
 from torch.ao.quantization.quantize_fx import convert_to_reference_fx, prepare_fx
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: move all LSTM util functions from fx/utils.py to this file
 def _get_lstm_with_individually_observed_parts(
     float_lstm: torch.nn.LSTM,

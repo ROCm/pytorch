@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["module: sparse"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import copy
 import warnings
@@ -143,7 +147,11 @@ class TestBaseDataScheduler(TestCase):
 
         # checking step count
         step_cnt = 5
+<<<<<<< HEAD
         for _ in range(step_cnt):
+=======
+        for _ in range(0, step_cnt):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sparsifier.step()
             scheduler.step()
 

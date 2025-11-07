@@ -14,12 +14,20 @@ from torch.testing import make_tensor
 from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfCUDA,
+<<<<<<< HEAD
     dtypesIfXPU,
     instantiate_device_type_tests,
     largeTensorTest,
     onlyCPU,
     onlyNativeDeviceTypes,
     onlyOn,
+=======
+    instantiate_device_type_tests,
+    largeTensorTest,
+    onlyCPU,
+    onlyCUDA,
+    onlyNativeDeviceTypes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_dtype import (
     all_types,
@@ -262,7 +270,11 @@ class TestShapeOps(TestCase):
             expected = xn.diagonal(*args)
             self.assertEqual(expected.shape, result.shape)
             self.assertEqual(expected, result)
+<<<<<<< HEAD
         # test non-contiguous
+=======
+        # test non-continguous
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         xp = x.permute(1, 2, 3, 0)
         result = torch.diagonal(xp, 0, -2, -1)
         expected = xp.numpy().diagonal(0, -2, -1)
@@ -272,7 +284,10 @@ class TestShapeOps(TestCase):
     @onlyNativeDeviceTypes
     @dtypes(*all_types())
     @dtypesIfCUDA(*all_types_and(torch.half))
+<<<<<<< HEAD
     @dtypesIfXPU(*all_types_and(torch.half))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_trace(self, device, dtype):
         def test(shape):
             tensor = make_tensor(shape, dtype=dtype, device=device, low=-9, high=9)
@@ -570,7 +585,11 @@ class TestShapeOps(TestCase):
                     np_fn = partial(np.flip, axis=flip_dim)
                     self.compare_with_numpy(torch_fn, np_fn, data)
 
+<<<<<<< HEAD
     @onlyOn(["cuda", "xpu"])  # CPU is too slow
+=======
+    @onlyCUDA  # CPU is too slow
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("17GB")  # 4 tensors of 4GB (in, out) x (torch, numpy) + 1GB
     @largeTensorTest(
         "81GB", "cpu"
@@ -717,7 +736,10 @@ class TestShapeOps(TestCase):
                 )
             if (
                 self.device_type == "cuda"
+<<<<<<< HEAD
                 or self.device_type == "xpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 or self.device_type == TEST_PRIVATEUSE1_DEVICE_TYPE
             ):
                 self.assertRaisesRegex(

@@ -1,9 +1,15 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
+<<<<<<< HEAD
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/GridSamplerUtils.h>
 #include <ATen/native/Pool.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/native/mps/kernels/GridSampler.h>
+=======
+#include <ATen/native/GridSamplerUtils.h>
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+#include <ATen/native/mps/OperationUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -11,6 +17,7 @@
 #else
 #include <ATen/ops/grid_sampler_2d.h>
 #include <ATen/ops/grid_sampler_2d_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/grid_sampler_3d_native.h>
 #endif
 
@@ -22,6 +29,11 @@ static auto& lib = mps::MetalShaderLibrary::getBundledLibrary();
 #include <ATen/native/mps/GridSampler_metallib.h>
 #endif
 
+=======
+#endif
+
+namespace at::native {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace mps {
 static void grid_sampler_2d_mps_impl(Tensor& output,
                                      const Tensor& input,
@@ -130,6 +142,7 @@ static void grid_sampler_2d_mps_impl(Tensor& output,
     runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
   }
 }
+<<<<<<< HEAD
 
 static void grid_sampler_template(Tensor& output,
                                   const Tensor& input,
@@ -220,6 +233,8 @@ static void grid_sampler_template(Tensor& output,
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace mps
 
 Tensor grid_sampler_2d_mps(const Tensor& input,
@@ -227,6 +242,18 @@ Tensor grid_sampler_2d_mps(const Tensor& input,
                            int64_t interpolation_mode,
                            int64_t padding_mode,
                            bool align_corners) {
+<<<<<<< HEAD
+=======
+  if (!is_macos_13_or_newer(MacOSVersion::MACOS_VER_13_2_PLUS)) {
+    TORCH_WARN_ONCE("MPS: grid_sampler_2d op is supported natively starting from macOS 13.2. ",
+                    "Falling back on CPU. This may have performance implications.");
+
+    return at::grid_sampler_2d(input.to("cpu"), grid.to("cpu"), interpolation_mode, padding_mode, align_corners)
+        .clone()
+        .to("mps");
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto in_size = input.sizes();
   auto grid_size = grid.sizes();
   auto output = at::empty({in_size[0], in_size[1], grid_size[1], grid_size[2]}, input.options());
@@ -235,6 +262,7 @@ Tensor grid_sampler_2d_mps(const Tensor& input,
   return output;
 }
 
+<<<<<<< HEAD
 Tensor grid_sampler_3d_mps(const Tensor& input,
                            const Tensor& grid,
                            int64_t interpolation_mode,
@@ -252,4 +280,6 @@ Tensor grid_sampler_3d_mps(const Tensor& input,
   return output;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

@@ -1,13 +1,20 @@
 # mypy: allow-untyped-defs
 import operator
 import types
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.quantization.pt2e._affine_quantization  # noqa: F401
 import torch.nn.functional as F
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Makes sure that quantized_decomposed ops are registered
 from torch.ao.quantization.fx._decomposed import quantized_decomposed_lib  # noqa: F401
@@ -15,6 +22,10 @@ from torch.ao.quantization.quantizer import QuantizationAnnotation
 from torch.export.unflatten import _assign_attr, _AttrKind
 from torch.fx import GraphModule, Node
 from torch.nn.utils.fusion import fuse_conv_bn_weights
+<<<<<<< HEAD
+=======
+from torch.utils._pytree import LeafSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -122,8 +133,12 @@ def _is_valid_annotation(annotation: QuantizationAnnotation) -> bool:
 def _get_tensor_constant_from_node(node, m):
     if node is None:
         return None
+<<<<<<< HEAD
     if node.op != "get_attr":
         raise AssertionError(f"Expected node.op to be 'get_attr', got {node.op}")
+=======
+    assert node.op == "get_attr"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     target_atoms = node.target.split(".")
     attr_itr = m
     for i, atom in enumerate(target_atoms):
@@ -248,10 +263,14 @@ def fold_bn_weights_into_conv_node(
 
     # calling data since the fused_weight and fused_bias are nn.Parameter
     weight_attr_name = conv_weight_node.target
+<<<<<<< HEAD
     if not isinstance(weight_attr_name, str):
         raise AssertionError(
             f"Expected conv_weight_node.target to be a string attribute name, got {type(weight_attr_name)}"
         )
+=======
+    assert isinstance(weight_attr_name, str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _assign_attr(fused_weight, m, weight_attr_name, _AttrKind.PARAMETER)
     if conv_bias_node is not None:
         bias_attr_name = conv_bias_node.target
@@ -358,6 +377,7 @@ def _get_aten_graph_module_for_pattern(
     """
     if is_cuda:
         example_inputs = tuple(
+<<<<<<< HEAD
             x.cuda() if isinstance(x, torch.Tensor) else x for x in example_inputs
         )
 
@@ -368,6 +388,17 @@ def _get_aten_graph_module_for_pattern(
             kwargs,
             strict=True,
         ).module(check_guards=False)
+=======
+            [x.cuda() if isinstance(x, torch.Tensor) else x for x in example_inputs]
+        )
+
+    aten_pattern = torch.export.export_for_training(
+        pattern,  # type: ignore[arg-type]
+        example_inputs,
+        kwargs,
+        strict=True,
+    ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     aten_pattern.graph.eliminate_dead_code()  # type: ignore[operator, union-attr]
     aten_pattern.recompile()  # type: ignore[operator]
@@ -477,10 +508,14 @@ def _replace_literals_with_new_placeholders(
         exclude_literals = []
 
     in_spec = gm._in_spec
+<<<<<<< HEAD
     assert in_spec.type is tuple
     args_spec = in_spec.child(0)
     assert args_spec.type is tuple
     args_spec_children = args_spec.children()
+=======
+    args_spec = in_spec.children_specs[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in gm.graph.nodes:
         if node.op == "placeholder":
             last_ph = node
@@ -495,7 +530,11 @@ def _replace_literals_with_new_placeholders(
                     else:
                         ph_node = gm.graph.placeholder("arg" + str(cnt))
                         new_args.append(ph_node)
+<<<<<<< HEAD
                         args_spec_children.append(pytree.treespec_leaf())
+=======
+                        args_spec.children_specs.append(LeafSpec())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         cnt += 1
                         if merge_dup:
                             literal_to_ph[arg] = ph_node
@@ -506,8 +545,13 @@ def _replace_literals_with_new_placeholders(
         node.args = new_args
 
     # Update `num_nodes`, `num_leaves`, `num_children`.
+<<<<<<< HEAD
     args_spec = pytree.treespec_tuple(args_spec_children)
     gm._in_spec = in_spec = pytree.treespec_tuple([args_spec, *in_spec.children()[1:]])
+=======
+    args_spec.__post_init__()
+    in_spec.__post_init__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return gm
 
 

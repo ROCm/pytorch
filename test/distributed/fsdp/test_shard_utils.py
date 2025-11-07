@@ -15,9 +15,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestShardUtilsDistributed(FSDPTest):
     @property
     def world_size(self):
@@ -26,7 +29,11 @@ class TestShardUtilsDistributed(FSDPTest):
     def _create_tensor(self, *size):
         # Keep everything deterministic.
         torch.manual_seed(0)
+<<<<<<< HEAD
         return torch.rand(*size).to(device=device_type)
+=======
+        return torch.rand(*size).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skip_if_lt_x_gpu(2)
     def test_create_chunk_sharded_tensor(self):
@@ -37,12 +44,19 @@ class TestShardUtilsDistributed(FSDPTest):
                 tensor,
                 self.rank,
                 self.world_size,
+<<<<<<< HEAD
                 torch.accelerator.device_count(),
                 _get_default_group(),
             )
             output = (
                 torch.empty(*size).to(device=device_type) if self.rank == 0 else None
             )
+=======
+                torch.cuda.device_count(),
+                _get_default_group(),
+            )
+            output = torch.empty(*size).cuda() if self.rank == 0 else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sharded_tensor.gather(0, output)
             if self.rank == 0:
                 self.assertEqual(tensor, output)
@@ -56,7 +70,11 @@ class TestShardUtilsDistributedDTensor(DTensorTestBase):
     def _create_tensor(self, *size):
         # Keep everything deterministic.
         torch.manual_seed(0)
+<<<<<<< HEAD
         return torch.rand(*size).to(device=device_type)
+=======
+        return torch.rand(*size).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_if_lt_x_gpu(2)

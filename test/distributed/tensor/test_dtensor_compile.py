@@ -20,6 +20,7 @@ from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
 )
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+<<<<<<< HEAD
 from torch.distributed.tensor import (
     DeviceMesh,
     distribute_module,
@@ -33,6 +34,12 @@ from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     loss_parallel,
+=======
+from torch.distributed.tensor import DeviceMesh, DTensor, Partial, Replicate, Shard
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+from torch.distributed.tensor.parallel import (
+    ColwiseParallel,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parallelize_module,
     PrepareModuleInput,
     PrepareModuleOutput,
@@ -96,6 +103,7 @@ aot_eager_graph = aot_autograd(
 )
 
 
+<<<<<<< HEAD
 def _apply_sharding(mod: nn.Module, shard_dim: int, device_mesh: DeviceMesh):
     """
     Shards on the given dimension if possible, else replicate
@@ -123,6 +131,8 @@ def _apply_sharding(mod: nn.Module, shard_dim: int, device_mesh: DeviceMesh):
     return sharded_mod
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestDTensorCompile(torch._dynamo.test_case.TestCase):
     def setUp(self):
         super(
@@ -183,7 +193,11 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         )
         torch.utils._pytree.register_constant(DeviceMesh)
 
+<<<<<<< HEAD
         ep = torch.export.export(
+=======
+        ep = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Foo(), (torch.randn(4, 4, dtype=torch.float64),), strict=False
         )
         self.assertExpectedInline(
@@ -202,8 +216,11 @@ def forward(self, b_buffer, x):
     return (view_as_1,)""",  # noqa: B950
         )
 
+<<<<<<< HEAD
         # During tracing, sharding propagation cache is skipped, so an extra dry run for
         # add is performed in _propagate_tensor_meta_non_cached, hence add_1 instead of add
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep.run_decompositions({}).graph_module.code).strip(),
             """\
@@ -258,7 +275,11 @@ def forward(self, b_parametrizations_buffer_original0, x):
             group1 = x.get_group(mesh_dim=1)
             return size, coord, group0, group1
 
+<<<<<<< HEAD
         # Can't be fullgraph=True because ProcessGroup is not reconstructible in dynamo
+=======
+        # Cant be fullgraph=True because ProcessGroup is not reconstructible in dynamo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled_fn = torch.compile(backend="aot_eager")(fn)
 
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size).unsqueeze(1))
@@ -266,6 +287,7 @@ def forward(self, b_parametrizations_buffer_original0, x):
         compiled_out = compiled_fn(mesh)
         self.assertEqual(opt_fn, compiled_out)
 
+<<<<<<< HEAD
     def test_get_local_rank_compile(self):
         mesh = init_device_mesh(
             self.device_type, (self.world_size,), mesh_dim_names=("dp",)
@@ -301,6 +323,8 @@ def forward(self, b_parametrizations_buffer_original0, x):
         res3 = opt_fn3(x)
         self.assertEqual(res3, ref3)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fakify_dtensor(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
@@ -341,9 +365,13 @@ def forward(self, b_parametrizations_buffer_original0, x):
                 .to_local()[0]
             )
 
+<<<<<<< HEAD
         x = DTensor.from_local(
             torch.rand(4, 4, requires_grad=True), mesh, [Shard(0)], run_check=False
         )
+=======
+        x = DTensor.from_local(torch.rand(4, 4), mesh, [Shard(0)], run_check=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._dynamo.mark_dynamic(x, 0)
         ref = fn(x)
 
@@ -351,6 +379,7 @@ def forward(self, b_parametrizations_buffer_original0, x):
         res = opt_fn(x)
         self.assertEqual(res, ref)
 
+<<<<<<< HEAD
     @skipIfHpu
     @unittest.skip(
         "DTensor + dynamic fails - s77 + 8 is not tracked with proxy .. proxy_tensor.PythonKeyTracer"
@@ -464,6 +493,8 @@ def forward(self, b_parametrizations_buffer_original0, x):
         run(g, 64, 8)
         self.assertEqual(cnt.frame_count, 2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dtensor_attribute_access_on_intermediate(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
@@ -994,9 +1025,12 @@ def forward(self, primals_1):
         out_dt = torch.matmul(tmp_dt, y_dt)
         out_dt.sum().backward()
 
+<<<<<<< HEAD
     @unittest.skipIf(
         torch._inductor.config.triton.native_matmul, "Matmul is now generated"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_tp_compile_comm_reordering(self):
         class FakeAttention(nn.Module):
             def __init__(self) -> None:
@@ -1300,6 +1334,7 @@ class TestDTensorCompileE2E(DTensorTestBase):
         self.assertEqual(x_ref.grad, x.grad)
         self.assertEqual(y_ref.grad, y.grad)
 
+<<<<<<< HEAD
     @with_comms
     def test_compile_embedding_redistribute(self):
         mesh = self.build_device_mesh()
@@ -1323,6 +1358,8 @@ class TestDTensorCompileE2E(DTensorTestBase):
         output = sharded_net(replicated_inp)
         self.assertEqual(output.full_tensor(), ref_out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

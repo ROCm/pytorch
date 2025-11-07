@@ -67,17 +67,26 @@ function pip_install_whl() {
     # Loop through each path and install individually
     for path in "${paths[@]}"; do
       echo "Installing $path"
+<<<<<<< HEAD
       python3 -mpip install "$path"
+=======
+      python3 -mpip install --no-index --no-deps "$path"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     done
   else
     # Loop through each argument and install individually
     for path in "${args[@]}"; do
       echo "Installing $path"
+<<<<<<< HEAD
       python3 -mpip install "$path"
+=======
+      python3 -mpip install --no-index --no-deps "$path"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     done
   fi
 }
 
+<<<<<<< HEAD
 function pip_build_and_install() {
   local build_target=$1
   local wheel_dir=$2
@@ -105,6 +114,8 @@ function pip_build_and_install() {
     pip_install_whl "${file}"
   done
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 function pip_install() {
   # retry 3 times
@@ -148,6 +159,7 @@ function get_pinned_commit() {
   cat .github/ci_commit_pins/"${1}".txt
 }
 
+<<<<<<< HEAD
 function detect_cuda_arch() {
   if [[ "${BUILD_ENVIRONMENT}" == *cuda* ]]; then
     if command -v nvidia-smi; then
@@ -165,6 +177,19 @@ function install_torchaudio() {
   local commit
   commit=$(get_pinned_commit audio)
   pip_build_and_install "git+https://github.com/pytorch/audio.git@${commit}" dist/audio
+=======
+function install_torchaudio() {
+  local commit
+  commit=$(get_pinned_commit audio)
+  if [[ "$1" == "cuda" ]]; then
+    # TODO: This is better to be passed as a parameter from _linux-test workflow
+    # so that it can be consistent with what is set in build
+    TORCH_CUDA_ARCH_LIST="8.0;8.6" pip_install --no-use-pep517 "git+https://github.com/pytorch/audio.git@${commit}"
+  else
+    pip_install --no-use-pep517 "git+https://github.com/pytorch/audio.git@${commit}"
+  fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function install_torchtext() {
@@ -172,8 +197,13 @@ function install_torchtext() {
   local text_commit
   data_commit=$(get_pinned_commit data)
   text_commit=$(get_pinned_commit text)
+<<<<<<< HEAD
   pip_build_and_install "git+https://github.com/pytorch/data.git@${data_commit}" dist/data
   pip_build_and_install "git+https://github.com/pytorch/text.git@${text_commit}" dist/text
+=======
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/data.git@${data_commit}"
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/text.git@${text_commit}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function install_torchvision() {
@@ -186,6 +216,7 @@ function install_torchvision() {
     echo 'char* dlerror(void) { return "";}'|gcc -fpic -shared -o "${HOME}/dlerror.so" -x c -
     LD_PRELOAD=${orig_preload}:${HOME}/dlerror.so
   fi
+<<<<<<< HEAD
 
   if [[ "${BUILD_ENVIRONMENT}" == *cuda* ]]; then
     # Not sure if both are needed, but why not
@@ -194,6 +225,9 @@ function install_torchvision() {
   fi
   pip_build_and_install "git+https://github.com/pytorch/vision.git@${commit}" dist/vision
 
+=======
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/vision.git@${commit}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if [ -n "${LD_PRELOAD}" ]; then
     LD_PRELOAD=${orig_preload}
   fi
@@ -213,6 +247,7 @@ function install_torchrec_and_fbgemm() {
 
   if [[ "$BUILD_ENVIRONMENT" == *rocm* ]] ; then
     # install torchrec first because it installs fbgemm nightly on top of rocm fbgemm
+<<<<<<< HEAD
     pip_build_and_install "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}" dist/torchrec
     pip_uninstall fbgemm-gpu-nightly
 
@@ -286,12 +321,37 @@ EOF
   else
     pip_build_and_install "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}" dist/torchrec
     pip_build_and_install "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#subdirectory=fbgemm_gpu" dist/fbgemm_gpu
+=======
+    pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
+    pip_uninstall fbgemm-gpu-nightly
+
+    pip_install tabulate  # needed for newer fbgemm
+    pip_install patchelf  # needed for rocm fbgemm
+    git clone --recursive https://github.com/pytorch/fbgemm
+    pushd fbgemm/fbgemm_gpu
+    git checkout "${fbgemm_commit}"
+    python setup.py install \
+      --package_variant=rocm \
+      -DHIP_ROOT_DIR="${ROCM_PATH}" \
+      -DCMAKE_C_FLAGS="-DTORCH_USE_HIP_DSA" \
+      -DCMAKE_CXX_FLAGS="-DTORCH_USE_HIP_DSA"
+    popd
+    rm -rf fbgemm
+  else
+    # See https://github.com/pytorch/pytorch/issues/106971
+    CUDA_PATH=/usr/local/cuda-12.1 pip_install --no-use-pep517 "git+https://github.com/pytorch/FBGEMM.git@${fbgemm_commit}#egg=fbgemm-gpu&subdirectory=fbgemm_gpu"
+    pip_install --no-use-pep517 "git+https://github.com/pytorch/torchrec.git@${torchrec_commit}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   fi
 }
 
 function clone_pytorch_xla() {
   if [[ ! -d ./xla ]]; then
+<<<<<<< HEAD
     git clone --recursive --quiet https://github.com/pytorch/xla.git
+=======
+    git clone --recursive -b r2.8 https://github.com/pytorch/xla.git
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pushd xla
     # pin the xla hash so that we don't get broken by changes to xla
     git checkout "$(cat ../.github/ci_commit_pins/xla.txt)"
@@ -301,10 +361,41 @@ function clone_pytorch_xla() {
   fi
 }
 
+<<<<<<< HEAD
 function install_torchao() {
   local commit
   commit=$(get_pinned_commit torchao)
   pip_build_and_install "git+https://github.com/pytorch/ao.git@${commit}" dist/ao
+=======
+function checkout_install_torchbench() {
+  local commit
+  commit=$(get_pinned_commit torchbench)
+  git clone https://github.com/pytorch/benchmark torchbench
+  pushd torchbench
+  git checkout "$commit"
+
+  if [ "$1" ]; then
+    python install.py --continue_on_fail models "$@"
+  else
+    # Occasionally the installation may fail on one model but it is ok to continue
+    # to install and test other models
+    python install.py --continue_on_fail
+  fi
+
+  # TODO (huydhn): transformers-4.44.2 added by https://github.com/pytorch/benchmark/pull/2488
+  # is regressing speedup metric. This needs to be investigated further
+  pip install transformers==4.38.1
+
+  echo "Print all dependencies after TorchBench is installed"
+  python -mpip freeze
+  popd
+}
+
+function install_torchao() {
+  local commit
+  commit=$(get_pinned_commit torchao)
+  pip_install --no-use-pep517 "git+https://github.com/pytorch/ao.git@${commit}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function print_sccache_stats() {

@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_complex.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -14,7 +17,10 @@ import unittest
 from torch._dynamo.test_case import CPythonTestCase
 from torch.testing._internal.common_utils import (
     run_tests,
+<<<<<<< HEAD
     slowTest,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfailIfTorchDynamo,
 )
 
@@ -280,7 +286,10 @@ class ComplexTest(__TestCase):
             q = z.__truediv__(y)
             self.assertClose(q, x)
 
+<<<<<<< HEAD
     @slowTest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_truediv(self):
         simple_real = [float(i) for i in range(-5, 6)]
         simple_complex = [complex(x, y) for x in simple_real for y in simple_real]
@@ -526,10 +535,14 @@ class ComplexTest(__TestCase):
 
     def test_boolcontext(self):
         for i in range(100):
+<<<<<<< HEAD
             with torch._dynamo.error_on_graph_break(False):
                 r1 = random()
                 r2 = random()
             self.assertTrue(complex(r1 + 1e-6, r2 + 1e-6))
+=======
+            self.assertTrue(complex(random() + 1e-6, random() + 1e-6))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(not complex(0.0, 0.0))
         self.assertTrue(1j)
 
@@ -622,6 +635,7 @@ class ComplexTest(__TestCase):
         self.assertRaises(TypeError, complex, WithComplex(1), object())
         self.assertRaises(TypeError, complex, WithComplex(None), object())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class EvilExc(Exception):
                 pass
@@ -629,6 +643,14 @@ class ComplexTest(__TestCase):
             class evilcomplex:
                 def __complex__(self):
                     raise EvilExc
+=======
+        class EvilExc(Exception):
+            pass
+
+        class evilcomplex:
+            def __complex__(self):
+                raise EvilExc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(EvilExc, complex, evilcomplex())
 
@@ -652,15 +674,22 @@ class ComplexTest(__TestCase):
         self.assertRaises(TypeError, complex, WithIndex(None), 1.5)
         self.assertRaises(TypeError, complex, 1.5, WithIndex(None))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MyInt:
                 def __int__(self):
                     return 42
+=======
+        class MyInt:
+            def __int__(self):
+                return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(TypeError, complex, MyInt())
         self.assertRaises(TypeError, complex, MyInt(), 1.5)
         self.assertRaises(TypeError, complex, 1.5, MyInt())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class complex0(complex):
                 """Test usage of __complex__() when inheriting from 'complex'"""
@@ -679,6 +708,25 @@ class ComplexTest(__TestCase):
                 complex is returned"""
                 def __complex__(self):
                     return None
+=======
+        class complex0(complex):
+            """Test usage of __complex__() when inheriting from 'complex'"""
+            def __complex__(self):
+                return 42j
+
+        class complex1(complex):
+            """Test usage of __complex__() with a __new__() method"""
+            def __new__(self, value=0j):
+                return complex.__new__(self, 2*value)
+            def __complex__(self):
+                return self
+
+        class complex2(complex):
+            """Make sure that __complex__() calls fail if anything other than a
+            complex is returned"""
+            def __complex__(self):
+                return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         check(complex(complex0(1j)), 0.0, 42.0)
         with self.assertWarns(DeprecationWarning):

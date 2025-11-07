@@ -21,6 +21,14 @@ using namespace at::native;
 
 namespace at::native {
 
+<<<<<<< HEAD
+=======
+// TODO: remove this when CUDA <11.6 is no longer supported
+bool disable_sort_for_topk() {
+  return CUB_SUPPORTS_SCAN_BY_KEY();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace sbtopk { // single_block_topk
 
 template <typename T>
@@ -225,7 +233,11 @@ constexpr int BLOCK_THREADS = 256;
 constexpr int RADIX_BITS = 8;
 constexpr int RADIX_DIGITS = 1 << RADIX_BITS; // 2 ^ RADIX_BITS
 constexpr int RADIX_MASK = (RADIX_DIGITS - 1);
+<<<<<<< HEAD
 static_assert(RADIX_DIGITS <= BLOCK_THREADS, "RADIX_DIGITS must be <= BLOCK_THREADS");
+=======
+static_assert(RADIX_DIGITS <= BLOCK_THREADS, "radixFindKthValues kernel requires RADIX_DIGITS <= BLOCK_THREADS");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 constexpr int MIN_ITEMS_PER_THREAD = 4;
 constexpr int MAX_ITEMS_PER_THREAD = 64;
 
@@ -237,10 +249,18 @@ __global__ void fill(T* x, T value, IndexType size) {
   }
 }
 
+<<<<<<< HEAD
 // compute local histogram for each block
 template <typename T, typename IndexType, typename Bitwise, int Dim>
 C10_LAUNCH_BOUNDS_1(BLOCK_THREADS)
 __global__ void computeBlockDigitCounts(
+=======
+// find the kth smallest value,
+// for largest topk, k_to_find = slice_size - k + 1
+template <typename T, typename IndexType, typename Bitwise, int Dim>
+C10_LAUNCH_BOUNDS_1(BLOCK_THREADS)
+__global__ void radixFindKthValues(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::cuda::detail::TensorInfo<const T, IndexType> input,
     uint32_t slice_size,
     uint32_t* ks_to_find,  // size: num_slices, unused arg but for mysterious reasons perf is better when it's present
@@ -315,6 +335,7 @@ __global__ void computeBlockDigitCounts(
   }
 }
 
+<<<<<<< HEAD
 // compute global histogram and cumsum for each row
 __global__ void computeDigitCumSum(
   short* counts,
@@ -353,13 +374,18 @@ __global__ void computeDigitCumSum(
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Assumption: k can not be larger than UINT32_MAX
 template <typename Bitwise, typename T>
 C10_LAUNCH_BOUNDS_1(RADIX_DIGITS)  // one thread per digit
 __global__ void computeBlockwiseWithinKCounts(
   Bitwise* desires_in,          // size: num_slices
   short* counts,             // size: num_slices * blocks_per_slice * radix_digits
+<<<<<<< HEAD
   uint32_t* digit_cum_sum,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint32_t* ks_to_find_in,  // size: num_slices
   uint32_t blocks_per_slice,
   int current_bit,
@@ -371,7 +397,11 @@ __global__ void computeBlockwiseWithinKCounts(
   Bitwise* desires_out,
   uint32_t num_blocks
 ) {
+<<<<<<< HEAD
   // This kernel should be launched with the same number of blocks as the `computeBlockDigitCounts` kernel.
+=======
+  // This kernel should be launched with the same number of blocks as the `radixFindKthValues` kernel.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int tidx = threadIdx.x;
   uint32_t block_idx = getLinearBlockId<uint32_t>();
   uint32_t slice_idx = block_idx / blocks_per_slice;
@@ -384,15 +414,46 @@ __global__ void computeBlockwiseWithinKCounts(
   if (block_idx >= num_blocks) {
     return;
   }
+<<<<<<< HEAD
 
+=======
+  typedef cub::BlockScan<uint32_t, BLOCK_THREADS> BlockScan;
+  union __align__(16) TempStorage {
+    uint32_t digit_count_cumsum[RADIX_DIGITS]; // only used if this it the last block for this slice
+    typename BlockScan::TempStorage scan_storage;
+  };
+  __shared__ TempStorage temp_storage;
+
+  // accumulates counters from multiple blocks
+  uint32_t digit_count = 0;
+  if (tidx < RADIX_DIGITS) {
+    for (int blk = 0; blk < blocks_per_slice; ++blk) {
+      digit_count += counts[(slice_idx * blocks_per_slice + blk) * RADIX_DIGITS + tidx];
+    }
+  }
+
+  // compute the block-wide inclusive prefix sum
+  uint32_t digit_count_cumsum;
+  BlockScan(temp_storage.scan_storage).InclusiveSum(digit_count, digit_count_cumsum);
+  __syncthreads();
+  // every thread also need the perfix_sum of it's left value for comparison, so save a copy in shared mem
+  if (tidx < RADIX_DIGITS) {
+    temp_storage.digit_count_cumsum[tidx] = digit_count_cumsum;
+  }
+  __syncthreads();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   __shared__ Bitwise desired;
   uint32_t k_to_find = ks_to_find_in[slice_idx];
 
   if (tidx < RADIX_DIGITS) {
+<<<<<<< HEAD
     uint32_t position = slice_idx * RADIX_DIGITS + tidx;
     uint32_t digit_count_cumsum = digit_cum_sum[position];
     uint32_t digit_count_cumsum_left = (tidx == 0) ? 0 : digit_cum_sum[position - 1];
+=======
+    uint32_t digit_count_cumsum_left = (tidx == 0) ? 0 : temp_storage.digit_count_cumsum[tidx - 1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // if not the last pass: update desired and ks_to_find
     // if last pass: write out the kth value
@@ -413,6 +474,13 @@ __global__ void computeBlockwiseWithinKCounts(
   }
   __syncthreads();
 
+<<<<<<< HEAD
+=======
+#if !CUB_SUPPORTS_SCAN_BY_KEY()
+  return;
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Bitwise desired_digit = at::cuda::Bitfield<Bitwise>::getBitfield(desired, current_bit, RADIX_BITS);
 
   // if largest, then only threads that has tidx > desired_digit are active
@@ -468,12 +536,20 @@ __global__ void computeBlockwiseWithinKCounts(
   }
 }
 
+<<<<<<< HEAD
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Assumption: slice_size can not be larger than UINT32_MAX
 template <typename Bitwise>
 __global__ void computeBlockwiseKthCounts(
   Bitwise* desires,            // size: num_slices
   short* counts,               // size: num_slices * blocks_per_slice * radix_digits
+<<<<<<< HEAD
   uint32_t num_blocks,         // the number of blocks used by `computeBlockDigitCounts` kernel
+=======
+  uint32_t num_blocks,         // the number of blocks used by `radixFindKthValues` kernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint32_t blocks_per_slice,
   // outputs:
   uint32_t* kthCounts          // size: num_slices * blocks_per_slice == num_blocks
@@ -599,6 +675,10 @@ __global__ void gatherTopK(at::cuda::detail::TensorInfo<const T, IndexType> inpu
     }
   }
 }
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 int get_items_per_thread(uint64_t num_slices, uint64_t slice_size) {
   // occupancy of this kernel is limited by registers per threads
@@ -655,7 +735,13 @@ void launch(
   T* kthValues = reinterpret_cast<T*>(kthValues_buffer.get());
 
   TORCH_CHECK(blocks_per_slice <= std::numeric_limits<uint32_t>::max(), "blocks_per_slice larger than uint32 maximum is not supported");
+<<<<<<< HEAD
 
+=======
+  auto semaphores_buffer = allocator.allocate(numInputSlices * sizeof(uint32_t));
+  uint32_t* semaphores = reinterpret_cast<uint32_t*>(semaphores_buffer.get());
+  AT_CUDA_CHECK(cudaMemsetAsync(semaphores, 0, numInputSlices * sizeof(uint32_t), stream));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto ks_to_find_buffer = allocator.allocate(2 * numInputSlices * sizeof(uint32_t));
   uint32_t* ks_to_find = reinterpret_cast<uint32_t*>(ks_to_find_buffer.get());
@@ -672,16 +758,26 @@ void launch(
   static_assert(MAX_ITEMS_PER_THREAD * BLOCK_THREADS < std::numeric_limits<short>::max(),
     "blockwise counter too large");
 
+<<<<<<< HEAD
   auto digit_cum_sum_buffer = allocator.allocate(numInputSlices * RADIX_DIGITS * sizeof(uint32_t));
   uint32_t* digit_cum_sum = reinterpret_cast<uint32_t*>(digit_cum_sum_buffer.get());
   AT_CUDA_CHECK(cudaMemsetAsync(digit_cum_sum, 0, numInputSlices * RADIX_DIGITS * sizeof(uint32_t), stream));
 
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto withinKCounts_buffer = allocator.allocate(num_blocks * sizeof(uint32_t));
   uint32_t* withinKCounts = reinterpret_cast<uint32_t*>(withinKCounts_buffer.get());
   AT_CUDA_CHECK(cudaMemsetAsync(withinKCounts, 0, num_blocks * sizeof(uint32_t), stream));
 
   auto kthCounts_buffer = allocator.allocate(num_blocks * sizeof(uint32_t));
   uint32_t* kthCounts = reinterpret_cast<uint32_t*>(kthCounts_buffer.get());
+<<<<<<< HEAD
+=======
+#else
+  uint32_t* withinKCounts = nullptr;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Bitwise desiredMask = 0;
   dim3 grid;
@@ -695,7 +791,11 @@ void launch(
 
   // iterate radix bits for multiple passes
   for (int current_bit = sizeof(T) * 8 - RADIX_BITS; current_bit >= 0; current_bit -= RADIX_BITS) {
+<<<<<<< HEAD
     computeBlockDigitCounts<T, IndexType, Bitwise, Dim><<<grid, block, 0, stream>>>(
+=======
+    radixFindKthValues<T, IndexType, Bitwise, Dim><<<grid, block, 0, stream>>>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input,
         inputSliceSize,
         ks_to_find_in, // unused arg
@@ -708,6 +808,7 @@ void launch(
         desired_in,
         counts);
     C10_CUDA_KERNEL_LAUNCH_CHECK();
+<<<<<<< HEAD
 
     computeDigitCumSum<<<numInputSlices, RADIX_DIGITS, 0, stream>>>(counts, digit_cum_sum, blocks_per_slice);
     C10_CUDA_KERNEL_LAUNCH_CHECK();
@@ -716,6 +817,12 @@ void launch(
     // if cub supports scan_by_key we additionally do k counts
     computeBlockwiseWithinKCounts<Bitwise, T><<<grid, RADIX_DIGITS, 0, stream>>>(
       desired_in, counts, digit_cum_sum, ks_to_find_in, blocks_per_slice, current_bit, largest, withinKCounts, kthValues, ks_to_find_out, desired_out, num_blocks);
+=======
+    // we unconditionally call this kernel to update desired/ks_to_find/kthValues
+    // if cub supports scan_by_key we additionally do k counts
+    computeBlockwiseWithinKCounts<Bitwise, T><<<grid, RADIX_DIGITS, 0, stream>>>(
+      desired_in, counts, ks_to_find_in, blocks_per_slice, current_bit, largest, withinKCounts, kthValues, ks_to_find_out, desired_out, num_blocks);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     C10_CUDA_KERNEL_LAUNCH_CHECK();
     // swap desired/ks_to_find in and out for next iter
     auto tmp_desired = desired_in;
@@ -728,12 +835,21 @@ void launch(
   }
   desired = desired_in;
 
+<<<<<<< HEAD
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   computeBlockwiseKthCounts<Bitwise><<<std::min(((int64_t)numInputSlices + 255) / 256, (int64_t)1073741824), 256, 0, stream>>>(
     desired, counts, num_blocks, blocks_per_slice, kthCounts);
   C10_CUDA_KERNEL_LAUNCH_CHECK();
   // Do a prefix scan of withinKCounts and kthCounts using slice_idx as keys to get the starting index of each block
+<<<<<<< HEAD
   using counting_iter_t = ATEN_CUB_COUNTING_ITERATOR(uint32_t, uint32_t);
   using slice_idx_iter_t = ATEN_CUB_TRANSFORM_ITERATOR(uint32_t, BlockIdxToKey, counting_iter_t);
+=======
+  using counting_iter_t = cub::CountingInputIterator<uint32_t, uint32_t>;
+  using slice_idx_iter_t = cub::TransformInputIterator<uint32_t, BlockIdxToKey, counting_iter_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   slice_idx_iter_t slice_idx_iter(counting_iter_t(0), BlockIdxToKey(blocks_per_slice));
   at::cuda::cub::inclusive_sum_by_key(slice_idx_iter, withinKCounts, withinKCounts, num_blocks);
   at::cuda::cub::inclusive_sum_by_key(slice_idx_iter, kthCounts, kthCounts, num_blocks);
@@ -743,6 +859,31 @@ void launch(
     topK, topKWithinSliceStride, indices, indicesWithinSliceStride, items_per_thread,
     blocks_per_slice, kthValues, withinKCounts, kthCounts, num_blocks);
   C10_CUDA_KERNEL_LAUNCH_CHECK();
+<<<<<<< HEAD
+=======
+#else
+  // Find topk values based on kth values
+  {
+    dim3 grid;
+    TORCH_INTERNAL_ASSERT(getGridFromTiles(numInputSlices, grid), "Too many slices for topk");
+    int warp_size = at::cuda::warp_size();
+    dim3 block(std::min(at::ceil_div((int64_t)inputSliceSize, (int64_t)warp_size) * (int64_t)warp_size, (int64_t)1024));
+    sbtopk::gatherTopK<T, IndexType, Dim, /* WithKthValues= */true><<<grid, block, 0, stream>>>(
+        input,
+        inputSliceSize,
+        outputSliceSize,
+        largest,
+        numInputSlices,
+        inputWithinSliceStride,
+        topK,
+        topKWithinSliceStride,
+        indices,
+        indicesWithinSliceStride,
+        kthValues);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace mbtopk
@@ -750,6 +891,10 @@ void launch(
 bool should_use_multiblock(int64_t num_slices, int64_t slice_size) {
   if (num_slices > std::numeric_limits<uint32_t>::max() ||
       slice_size > std::numeric_limits<uint32_t>::max()) return false;
+<<<<<<< HEAD
+=======
+#if CUB_SUPPORTS_SCAN_BY_KEY()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // This heuristics is based on the experiment in https://github.com/pytorch/pytorch/pull/74267
   return (num_slices <= 20 && slice_size >= 20000) ||
       (num_slices > 20 && num_slices <= 40 && slice_size >= 10000) ||
@@ -758,6 +903,15 @@ bool should_use_multiblock(int64_t num_slices, int64_t slice_size) {
       (num_slices >= 200 && num_slices < 800 && slice_size >= 3000) ||
       (num_slices >= 800 && num_slices <= 4000 && slice_size >= 800) ||
       (num_slices > 4000 && slice_size >= 400);
+<<<<<<< HEAD
+=======
+#else
+  // This heuristics is based on the experiment in https://github.com/pytorch/pytorch/pull/71081
+  return (num_slices <= 400 && slice_size >= 5000) ||
+      (num_slices > 400 && num_slices < 4000 && slice_size >= 1000) ||
+      (num_slices >= 4000 && slice_size >= 300);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void launch_gather_topk_kernel(

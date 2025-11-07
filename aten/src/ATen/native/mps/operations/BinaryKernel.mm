@@ -8,6 +8,11 @@
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/native/mps/operations/BinaryKernel.h>
+<<<<<<< HEAD
+=======
+// For MTLLanguageVersion_3_1
+#include <ATen/native/mps/MPSGraphSonomaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <fmt/format.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -51,7 +56,10 @@ void binary_op_kernel(const std::string func_name,
                   .add_input(input)
                   .add_input(other)
                   .check_all_same_dtype(false)
+<<<<<<< HEAD
                   .promote_inputs_to_common_dtype(true)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   .build();
 
   lib.exec_binary_kernel(iter, func_name, alpha);
@@ -118,6 +126,7 @@ static void chebyshev_polynomial_w_mps_kernel(TensorIteratorBase& iter) {
   lib.exec_binary_kernel(iter, "chebyshev_polynomial_w");
 }
 
+<<<<<<< HEAD
 static void shifted_chebyshev_polynomial_t_mps_kernel(TensorIteratorBase& iter) {
   TORCH_CHECK_TYPE(isFloatingType(iter.common_dtype()),
                    "shifted_chebyshev_polynomial_t_mps not implemented for non-floating types");
@@ -142,6 +151,8 @@ static void shifted_chebyshev_polynomial_w_mps_kernel(TensorIteratorBase& iter) 
   lib.exec_binary_kernel(iter, "shifted_chebyshev_polynomial_w");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static void hermite_polynomial_h_mps_kernel(TensorIteratorBase& iter) {
   TORCH_CHECK_TYPE(isFloatingType(iter.common_dtype()),
                    "hermite_polynomial_h_mps not implemented for non-floating types");
@@ -166,10 +177,13 @@ static void lerp_scalar_mps_kernel(at::TensorIteratorBase& iter, const Scalar& w
   lib.exec_binary_kernel(iter, "lerp_alpha", weight);
 }
 
+<<<<<<< HEAD
 static void native_dropout_mask_and_scale_mps_kernel(at::TensorIteratorBase& iter, const Scalar& scale) {
   lib.exec_binary_kernel(iter, "native_dropout_mask_and_scale", scale);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static void mul_mps_kernel(TensorIteratorBase& iter) {
   lib.exec_binary_kernel(iter, "mul");
 }
@@ -194,6 +208,7 @@ static void fmod_mps_kernel(TensorIteratorBase& iter) {
   lib.exec_binary_kernel(iter, "fmod");
 }
 
+<<<<<<< HEAD
 static void igamma_mps_kernel(TensorIteratorBase& iter) {
   lib.exec_binary_kernel(iter, "igamma");
 }
@@ -206,6 +221,8 @@ static void hypot_mps_kernel(TensorIteratorBase& iter) {
   lib.exec_binary_kernel(iter, "hypot");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_DISPATCH(fmax_stub, &fmax_mps_kernel)
 REGISTER_DISPATCH(fmin_stub, &fmin_mps_kernel)
 REGISTER_DISPATCH(copysign_stub, &copysign_mps_kernel)
@@ -216,10 +233,13 @@ REGISTER_DISPATCH(chebyshev_polynomial_t_stub, &chebyshev_polynomial_t_mps_kerne
 REGISTER_DISPATCH(chebyshev_polynomial_u_stub, &chebyshev_polynomial_u_mps_kernel)
 REGISTER_DISPATCH(chebyshev_polynomial_v_stub, &chebyshev_polynomial_v_mps_kernel)
 REGISTER_DISPATCH(chebyshev_polynomial_w_stub, &chebyshev_polynomial_w_mps_kernel)
+<<<<<<< HEAD
 REGISTER_DISPATCH(shifted_chebyshev_polynomial_t_stub, &shifted_chebyshev_polynomial_t_mps_kernel)
 REGISTER_DISPATCH(shifted_chebyshev_polynomial_u_stub, &shifted_chebyshev_polynomial_u_mps_kernel)
 REGISTER_DISPATCH(shifted_chebyshev_polynomial_v_stub, &shifted_chebyshev_polynomial_v_mps_kernel)
 REGISTER_DISPATCH(shifted_chebyshev_polynomial_w_stub, &shifted_chebyshev_polynomial_w_mps_kernel)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_DISPATCH(hermite_polynomial_h_stub, &hermite_polynomial_h_mps_kernel)
 REGISTER_DISPATCH(hermite_polynomial_he_stub, &hermite_polynomial_he_mps_kernel)
 REGISTER_DISPATCH(polar_stub, &polar_mps_kernel);
@@ -231,7 +251,10 @@ REGISTER_DISPATCH(div_floor_stub, &div_floor_mps_kernel)
 REGISTER_DISPATCH(div_trunc_stub, &div_trunc_mps_kernel)
 REGISTER_DISPATCH(fmod_stub, &fmod_mps_kernel)
 REGISTER_DISPATCH(remainder_stub, &remainder_mps_kernel)
+<<<<<<< HEAD
 REGISTER_DISPATCH(igamma_stub, &igamma_mps_kernel)
 REGISTER_DISPATCH(igammac_stub, &igammac_mps_kernel)
 REGISTER_DISPATCH(hypot_stub, &hypot_mps_kernel)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

@@ -174,7 +174,10 @@ class MaskedTensor(torch.Tensor):
                 UserWarning,
                 stacklevel=2,
             )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
 
     def _preprocess_data(self, data, mask):
@@ -198,7 +201,11 @@ class MaskedTensor(torch.Tensor):
     def _validate_members(self):
         data = self._masked_data
         mask = self.get_mask()
+<<<<<<< HEAD
         if type(data) is not type(mask):
+=======
+        if type(data) != type(mask):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise TypeError(
                 f"data and mask must have the same type. Got {type(data)} and {type(mask)}"
             )
@@ -244,12 +251,18 @@ class MaskedTensor(torch.Tensor):
 
         class Constructor(torch.autograd.Function):
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def forward(ctx, data, mask):
                 return MaskedTensor(data, mask)
 
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def backward(ctx, grad_output):
                 return grad_output, None
 
@@ -322,7 +335,11 @@ class MaskedTensor(torch.Tensor):
             "In the case that the semantics for the operator are not trivial, it would be appreciated "
             "to also include a proposal for the semantics."
         )
+<<<<<<< HEAD
         warnings.warn(msg, stacklevel=2)
+=======
+        warnings.warn(msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return NotImplemented
 
     def __lt__(self, other):
@@ -336,12 +353,18 @@ class MaskedTensor(torch.Tensor):
     def get_data(self):
         class GetData(torch.autograd.Function):
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def forward(ctx, self):
                 return self._masked_data.detach()
 
             @staticmethod
+<<<<<<< HEAD
             # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def backward(ctx, grad_output):
                 if is_masked_tensor(grad_output):
                     return grad_output

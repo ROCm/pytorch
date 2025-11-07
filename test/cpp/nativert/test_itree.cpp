@@ -4,7 +4,10 @@
 #include <fmt/format.h>
 
 #include <c10/util/Enumerate.h>
+<<<<<<< HEAD
 #include <torch/custom_class.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/nativert/detail/ITree.h>
 
 namespace torch::nativert::detail {
@@ -260,7 +263,11 @@ TEST(ITreeTest, NoContext) {
       c10::IValue(8),
       c10::IValue(9),
   };
+<<<<<<< HEAD
   EXPECT_THROW({ itreeUnflatten(flats, spec); }, c10::Error);
+=======
+  ASSERT_DEATH({ itreeUnflatten(flats, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, TooManyContext) {
@@ -305,7 +312,11 @@ TEST(ITreeTest, TooManyContext) {
       c10::IValue(8),
       c10::IValue(9),
   };
+<<<<<<< HEAD
   EXPECT_THROW({ itreeUnflatten(flats, spec); }, c10::Error);
+=======
+  ASSERT_DEATH({ itreeUnflatten(flats, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, DoubleRegister) {
@@ -376,7 +387,11 @@ TEST(ITreeTest, NotEnoughUnflatten) {
       c10::IValue(2),
       c10::IValue(7),
   };
+<<<<<<< HEAD
   EXPECT_THROW({ itreeUnflatten(flats, spec); }, c10::Error);
+=======
+  ASSERT_DEATH({ itreeUnflatten(flats, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, TooManyUnflatten) {
@@ -450,7 +465,11 @@ TEST(ITreeTest, TooManyUnflatten) {
       c10::IValue(2),
       c10::IValue(7),
   };
+<<<<<<< HEAD
   EXPECT_THROW({ itreeUnflatten(flats, spec); }, c10::Error);
+=======
+  ASSERT_DEATH({ itreeUnflatten(flats, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, Flatten) {
@@ -909,8 +928,13 @@ TEST(ITreeTest, UnmatchedDictFlatten) {
   list.push_back(std::move(tup));
   list.push_back(c10::IValue(2));
   list.push_back(std::move(dict));
+<<<<<<< HEAD
   EXPECT_THROW(
       { itreeFlatten(c10::IValue{std::move(list)}, spec); }, c10::Error);
+=======
+  ASSERT_DEATH(
+      { itreeFlatten(c10::IValue{std::move(list)}, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, DictFlattenTest) {
@@ -1026,8 +1050,13 @@ TEST(ITreeTest, UnmatchedTupleFlatten) {
   list.push_back(std::move(tup));
   list.push_back(c10::IValue(2));
   list.push_back(std::move(dict));
+<<<<<<< HEAD
   EXPECT_THROW(
       { itreeFlatten(c10::IValue{std::move(list)}, spec); }, c10::Error);
+=======
+  ASSERT_DEATH(
+      { itreeFlatten(c10::IValue{std::move(list)}, spec); }, "Check failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(ITreeTest, ToAtenType) {
@@ -1148,6 +1177,7 @@ TEST(ITreeTest, ToAtenType) {
       c10::TypeKind::AnyType);
 }
 
+<<<<<<< HEAD
 TEST(ITreeTest, KeyedJaggedTensorUnflatten) {
   // Test KeyedJaggedTensor pytree node registration
   // KeyedJaggedTensor has 6 tensor fields: _values, _weights, _lengths,
@@ -1344,4 +1374,6 @@ TEST(ITreeTest, JaggedTensorNodeRegistration) {
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::nativert::detail

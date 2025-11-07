@@ -4,14 +4,20 @@ import inspect
 import logging
 import sys
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import auto, Enum
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from enum import auto, Enum
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.utils._pytree import (
     _get_node_type,
     BUILTIN_TYPES,
+<<<<<<< HEAD
     KeyPath,
     keystr,
     MappingKey,
@@ -22,6 +28,16 @@ from torch.utils._pytree import (
     tree_map_with_path,
     tree_structure,
     TreeSpec,
+=======
+    keystr,
+    LeafSpec,
+    MappingKey,
+    SequenceKey,
+    SUPPORTED_NODES,
+    tree_flatten,
+    tree_map,
+    tree_map_with_path,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 from .exported_program import ExportedProgram
@@ -60,6 +76,7 @@ class _DimHintType(Enum):
 
 @dataclasses.dataclass
 class _DimHint:
+<<<<<<< HEAD
     """
     Internal class for dynamic shape hints.
     - min and max are optional.
@@ -69,6 +86,8 @@ class _DimHint:
         bounded_hint(min=5, max=50)  # Will fail, non-factory instance cannot be called
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     type: _DimHintType
     min: Optional[int] = None
     max: Optional[int] = None
@@ -94,6 +113,7 @@ class _DimHint:
         assert min is None or max is None or min <= max, "min must be <= max"
         return _DimHint(self.type, min=min, max=max, _factory=False)
 
+<<<<<<< HEAD
     def __repr__(self):
         parts = [self.type.name]
         if self.min is not None:
@@ -118,6 +138,20 @@ class Dim:
     compiler to decide (``Dim.AUTO``). The export process will automatically
     infer the remaining constraints on min/max ranges and relationships between
     dimensions.
+=======
+
+class Dim:
+    """
+    The `Dim` class allows users to specify dynamism in their exported programs. By marking a dimension with a `Dim`,
+    the compiler associates the dimension with a symbolic integer containing a dynamic range.
+
+    The API can be used in 2 ways: Dim hints (i.e. automatic dynamic shapes: `Dim.AUTO`, `Dim.DYNAMIC`, `Dim.STATIC`),
+    or named Dims (i.e. `Dim("name", min=1, max=2)`).
+
+    Dim hints provide the lowest barrier to exportability, with the user only needing to specify if a dimension
+    if dynamic, static, or left for the compiler to decide (`Dim.AUTO`). The export process will automatically
+    infer the remaining constraints on min/max ranges and relationships between dimensions.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Example::
 
@@ -136,6 +170,7 @@ class Dim:
         }
         ep = torch.export(Foo(), (x, y), dynamic_shapes=dynamic_shapes)
 
+<<<<<<< HEAD
     Here, export would raise an exception if we replaced all uses of ``Dim.AUTO`` with ``Dim.DYNAMIC``,
     as ``x.shape[0]`` is constrained to be static by the model.
 
@@ -143,12 +178,25 @@ class Dim:
     e.g. ``(x.shape[0] + y.shape[1]) % 4 == 0``, to be raised if runtime inputs do not satisfy such constraints.
 
     You may also specify min-max bounds for Dim hints, e.g. ``Dim.AUTO(min=16, max=32)``, ``Dim.DYNAMIC(max=64)``,
+=======
+    Here, export would raise an exception if we replaced all uses of `Dim.AUTO` with `Dim.DYNAMIC`,
+    as x.shape[0] is constrained to be static by the model.
+
+    More complex relations between dimensions may also be codegened as runtime assertion nodes by the compiler,
+    e.g. (x.shape[0] + y.shape[1]) % 4 == 0, to be raised if runtime inputs do not satisfy such constraints.
+
+    You may also specify min-max bounds for Dim hints, e.g. `Dim.AUTO(min=16, max=32)`, `Dim.DYNAMIC(max=64)`,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with the compiler inferring the remaining constraints within the ranges. An exception will be raised if
     the valid range is entirely outside the user-specified range.
 
     Named Dims provide a stricter way of specifying dynamism, where exceptions are raised if the compiler
     infers constraints that do not match the user specification. For example, exporting the previous
+<<<<<<< HEAD
     model, the user would need the following ``dynamic_shapes`` argument::
+=======
+    model, the user would need the following `dynamic_shapes` argument::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         s0 = Dim("s0")
         s1 = Dim("s1", min=16)
@@ -158,9 +206,14 @@ class Dim:
         }
         ep = torch.export(Foo(), (x, y), dynamic_shapes=dynamic_shapes)
 
+<<<<<<< HEAD
     Named Dims also allow specification of relationships between dimensions, up
     to univariate linear relations.  For example, the following indicates one
     dimension is a multiple of another plus 4::
+=======
+    Named Dims also allow specification of relationships between dimensions, up to univariate linear relations.
+    For example, the following indicates one dimension is a multiple of another plus 4::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         s0 = Dim("s0")
         s1 = 3 * s0 + 4
@@ -657,6 +710,7 @@ def _tree_map_with_path(
                     case_name="dynamic_shapes_validation",
                 )
 
+<<<<<<< HEAD
             def _compare(
                 treespec: TreeSpec, other_treespec: TreeSpec, path: KeyPath
             ) -> None:
@@ -710,10 +764,64 @@ def _tree_map_with_path(
 
 
 def _combine_args(f, args, kwargs) -> dict[str, Any]:
+=======
+            def _compare(tree, dynamic_shapes, path):
+                # raise an error at the point where tree and dynamic_shapes differ,
+                # including the path to that point and the reason for the difference
+                rendered_path = keystr(path)
+                if isinstance(tree, LeafSpec):
+                    return
+                if isinstance(dynamic_shapes, LeafSpec):
+                    raise_mismatch_error(
+                        f"`{tree_name}{rendered_path}` is a {tree.type}, "
+                        f"but `dynamic_shapes{rendered_path}` is not"
+                    )
+                if tree.type != dynamic_shapes.type:
+                    raise_mismatch_error(
+                        f"`{tree_name}{rendered_path}` is a {tree.type}, "
+                        f"but `dynamic_shapes{rendered_path}` is a {dynamic_shapes.type}"
+                    )
+                if len(tree.children_specs) != len(dynamic_shapes.children_specs):
+                    raise_mismatch_error(
+                        f"`{tree_name}{rendered_path}` has {len(tree.children_specs)} elements, "
+                        f"but `dynamic_shapes{rendered_path}` has {len(dynamic_shapes.children_specs)} elements"
+                    )
+                if tree.type is dict:
+                    # context, children could be out of order
+                    if sorted(tree.context) != sorted(dynamic_shapes.context):
+                        raise_mismatch_error(
+                            f"`{tree_name}{rendered_path}` has keys {tree.context}, "
+                            f"but `dynamic_shapes{rendered_path}` has keys {dynamic_shapes.context}"
+                        )
+                    _remap = dict(
+                        zip(dynamic_shapes.context, dynamic_shapes.children_specs)
+                    )
+                    dynamic_shapes_children_specs = [_remap[k] for k in tree.context]
+                else:
+                    dynamic_shapes_children_specs = dynamic_shapes.children_specs
+                for i, (tree_, dynamic_shapes_) in enumerate(
+                    zip(tree.children_specs, dynamic_shapes_children_specs)
+                ):
+                    _compare(
+                        tree_,
+                        dynamic_shapes_,
+                        path + [_key(tree.type, tree.context, i)],
+                    )
+
+            _, tree_spec = tree_flatten(tree, is_leaf=is_leaf)
+            for other_tree in dynamic_shapes:
+                _, other_tree_spec = tree_flatten(other_tree, is_leaf)
+                _compare(tree_spec, other_tree_spec, [])
+        raise
+
+
+def _combine_args(f, args, kwargs, _is_torch_jit_trace=False) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # combine args and kwargs following the signature of f, as it happens
     # in the body of f when called with *args, **kwargs
     if isinstance(f, ExportedProgram):
         f = f.module()
+<<<<<<< HEAD
 
     signature = (
         inspect.signature(f.forward)
@@ -722,6 +830,17 @@ def _combine_args(f, args, kwargs) -> dict[str, Any]:
     )
     kwargs = kwargs if kwargs is not None else {}
     return signature.bind(*args, **kwargs).arguments
+=======
+    if not _is_torch_jit_trace:
+        signature = (
+            inspect.signature(f.forward)
+            if isinstance(f, torch.nn.Module)
+            else inspect.signature(f)
+        )
+        kwargs = kwargs if kwargs is not None else {}
+        return signature.bind(*args, **kwargs).arguments
+    return args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ShapesCollection:
@@ -876,7 +995,11 @@ class AdditionalInputs:
         ]
 
         def _mark_dynamism(v, *other_vs):
+<<<<<<< HEAD
             if not all(type(v) is type(other) for other in other_vs):
+=======
+            if not all(type(v) == type(other) for other in other_vs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise ValueError(
                     "The following inputs were found to have differing types, "
                     f"so they cannot be marked as dynamic: {(v,) + other_vs}."
@@ -909,7 +1032,11 @@ class AdditionalInputs:
 
         epm = ep.module()
         for args, kwargs in self._examples:
+<<<<<<< HEAD
             torch.export._unlift._check_input_constraints_for_module(
+=======
+            torch.export._unlift._check_input_constraints_pre_hook(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 epm, args, kwargs or {}
             )
 
@@ -967,7 +1094,11 @@ def _check_dynamic_shapes(
                         f"Unexpected dimension mapped to index {i} in input tensor shape {shape} "
                         f"specified at `dynamic_shapes{keystr(path)}` "
                         f"(expected None, an int, a Dim, Dim.AUTO, Dim.STATIC, or Dim.DYNAMIC, "
+<<<<<<< HEAD
                         f" but got {dim!r} instead)",
+=======
+                        f" but got {dim} instead)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         case_name="dynamic_shapes_validation",
                     )
         elif isinstance(shape, (tuple, list)):
@@ -990,7 +1121,11 @@ def _check_dynamic_shapes(
                         f"Unexpected dimension #{i} in input tensor shape {shape} "
                         f"specified at `dynamic_shapes{keystr(path)}` "
                         f"(expected None, an int, a Dim, Dim.AUTO, Dim.STATIC, or Dim.DYNAMIC, "
+<<<<<<< HEAD
                         f"but got {dim!r} instead)",
+=======
+                        f"but got {dim} instead)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         case_name="dynamic_shapes_validation",
                     )
         elif shape is not None:
@@ -1235,7 +1370,14 @@ def _get_dim_name_mapping(
     dynamic_shapes: Union[dict[str, Any], tuple[Any], list[Any], None],
 ):
     name_to_dim = {}
+<<<<<<< HEAD
     for dim in tree_iter(dynamic_shapes, is_leaf=lambda x: isinstance(x, Dim)):
+=======
+    for dim in tree_flatten(
+        dynamic_shapes,
+        is_leaf=lambda x: isinstance(x, Dim),
+    )[0]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if dim is None:
             # NOTE: this must denote a non-Tensor or automatic at this point.
             continue

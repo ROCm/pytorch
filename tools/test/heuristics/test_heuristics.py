@@ -14,6 +14,10 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.append(str(REPO_ROOT))
 
 from tools.test.heuristics.test_interface import TestTD
+<<<<<<< HEAD
+=======
+from tools.testing.target_determination.determinator import TestPrioritizations
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from tools.testing.target_determination.heuristics.filepath import (
     file_matches_keyword,
     get_keywords,
@@ -21,7 +25,10 @@ from tools.testing.target_determination.heuristics.filepath import (
 from tools.testing.target_determination.heuristics.historical_class_failure_correlation import (
     HistoricalClassFailurCorrelation,
 )
+<<<<<<< HEAD
 from tools.testing.target_determination.heuristics.interface import TestPrioritizations
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from tools.testing.target_determination.heuristics.previously_failed_in_pr import (
     get_previous_failures,
 )

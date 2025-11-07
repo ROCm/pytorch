@@ -182,6 +182,7 @@ ParsedLiteral IRParser::parseScalarLiteral(Node* n) {
       r.s = parseStringLiteral(token.range, token.text());
       L.next();
       return r;
+<<<<<<< HEAD
     case TK_TRUE:
       r.k = AttributeKind::i;
       r.i = 1;
@@ -201,6 +202,11 @@ ParsedLiteral IRParser::parseScalarLiteral(Node* n) {
         L.next();
         return r;
       }
+=======
+    case '-':
+      str = "-";
+      L.next();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (L.cur().kind != TK_NUMBER) {
         throw(
             ErrorReport(token.range)
@@ -254,6 +260,7 @@ ParsedLiteral IRParser::parseScalarLiteral(Node* n) {
       L.next();
       return r;
     case TK_IDENT:
+<<<<<<< HEAD
       if (L.cur().text() == "inf") {
         r.k = AttributeKind::f;
         r.f = std::numeric_limits<double>::infinity();
@@ -261,6 +268,8 @@ ParsedLiteral IRParser::parseScalarLiteral(Node* n) {
         return r;
       }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Type literal
       r.k = AttributeKind::ty;
       type_alias = type_parser.parseType();

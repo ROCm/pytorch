@@ -63,7 +63,11 @@ class ExclusivelyOwned {
   explicit ExclusivelyOwned(T&& t) : repr_(EOT::moveToRepr(std::move(t))) {}
 
   template <class... Args>
+<<<<<<< HEAD
   explicit ExclusivelyOwned(std::in_place_t /*unused*/, Args&&... args)
+=======
+  explicit ExclusivelyOwned(std::in_place_t, Args&&... args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : repr_(EOT::createInPlace(std::forward<Args>(args)...)) {}
 
   ExclusivelyOwned(const ExclusivelyOwned&) = delete;

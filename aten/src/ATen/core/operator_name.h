@@ -83,7 +83,11 @@ inline bool operator!=(const OperatorName& lhs, const OperatorName& rhs) {
 }
 
 TORCH_API std::string toString(const OperatorName& opName);
+<<<<<<< HEAD
 TORCH_API std::ostream& operator<<(std::ostream& /*os*/, const OperatorName& /*opName*/);
+=======
+TORCH_API std::ostream& operator<<(std::ostream&, const OperatorName&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace c10
 

@@ -2,15 +2,22 @@
 from __future__ import annotations
 
 import itertools
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._ops
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.onnx._internal.exporter import _registration
 
 

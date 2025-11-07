@@ -473,11 +473,17 @@ class PrepareModuleInput(ParallelStyle):
     def __init__(
         self,
         *,
+<<<<<<< HEAD
         input_layouts: Optional[
             Union[Placement, tuple[Optional[Placement], ...]]
         ] = None,
         desired_input_layouts: Optional[
             Union[Placement, tuple[Optional[Placement], ...]]
+=======
+        input_layouts: Optional[Union[Placement, tuple[Optional[Placement]]]] = None,
+        desired_input_layouts: Optional[
+            Union[Placement, tuple[Optional[Placement]]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ] = None,
         input_kwarg_layouts: Optional[dict[str, Placement]] = None,
         desired_input_kwarg_layouts: Optional[dict[str, Placement]] = None,
@@ -548,7 +554,10 @@ class PrepareModuleInput(ParallelStyle):
         assert self.desired_input_layouts is not None, (
             "desired module inputs should not be None!"
         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for inp, input_layout, desired_layout in zip(
             inputs, self.input_layouts, self.desired_input_layouts
         ):
@@ -637,8 +646,13 @@ class PrepareModuleOutput(ParallelStyle):
     def __init__(
         self,
         *,
+<<<<<<< HEAD
         output_layouts: Union[Placement, tuple[Optional[Placement], ...]],
         desired_output_layouts: Union[Placement, tuple[Placement, ...]],
+=======
+        output_layouts: Union[Placement, tuple[Placement]],
+        desired_output_layouts: Union[Placement, tuple[Placement]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         use_local_output: bool = True,
     ):
         self.output_layouts = (
@@ -664,7 +678,10 @@ class PrepareModuleOutput(ParallelStyle):
             raise ValueError(
                 "module outputs and output_layouts should have same length!"
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for out, out_layout, desired_out_layout in zip(
             outputs, self.output_layouts, self.desired_output_layouts
         ):
@@ -768,17 +785,28 @@ class PrepareModuleInputOutput(ParallelStyle):
     def __init__(
         self,
         *,
+<<<<<<< HEAD
         input_layouts: Optional[
             Union[Placement, tuple[Optional[Placement], ...]]
         ] = None,
         desired_input_layouts: Optional[
             Union[Placement, tuple[Optional[Placement], ...]]
+=======
+        input_layouts: Optional[Union[Placement, tuple[Optional[Placement]]]] = None,
+        desired_input_layouts: Optional[
+            Union[Placement, tuple[Optional[Placement]]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ] = None,
         input_kwarg_layouts: Optional[dict[str, Placement]] = None,
         desired_input_kwarg_layouts: Optional[dict[str, Placement]] = None,
         use_local_input: bool = False,
+<<<<<<< HEAD
         output_layouts: Union[Placement, tuple[Optional[Placement], ...]],
         desired_output_layouts: Union[Placement, tuple[Placement, ...]],
+=======
+        output_layouts: Union[Placement, tuple[Placement]],
+        desired_output_layouts: Union[Placement, tuple[Placement]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         use_local_output: bool = True,
     ):
         self.prepare_module_input = PrepareModuleInput(

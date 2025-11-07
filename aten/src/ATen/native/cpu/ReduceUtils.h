@@ -8,6 +8,10 @@
 #include <c10/util/irange.h>
 #include <ATen/OpMathType.h>
 #include <ATen/native/cpu/utils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/OpMathType.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native {
 inline namespace CPU_CAPABILITY {

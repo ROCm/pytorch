@@ -53,6 +53,7 @@ void check_input_variables(
   if (required_args == -1) {
     required_args = args;
   }
+<<<<<<< HEAD
   TORCH_CHECK(
       inputs.size() == static_cast<size_t>(args),
       name,
@@ -69,6 +70,20 @@ void check_input_variables(
         ": expected Tensor at argument ",
         i,
         " (got None)");
+=======
+  if (inputs.size() != static_cast<size_t>(args)) {
+    std::stringstream ss;
+    ss << name << ": expected " << args << " arguments (got " << inputs.size();
+    ss << ")";
+    throw std::runtime_error(ss.str());
+  }
+  for (const auto i : c10::irange(required_args)) {
+    if (!inputs[i].defined() && !allow_undefined) {
+      std::stringstream ss;
+      ss << name << ": expected Tensor at argument " << i << " (got None)";
+      throw std::runtime_error(ss.str());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 } // namespace torch::autograd

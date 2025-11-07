@@ -34,7 +34,10 @@ class TensorRepr(gdb.Command):  # type: ignore[misc, no-any-unimported]
     on it.
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __doc__ = textwrap.dedent(__doc__).strip()
 
     def __init__(self) -> None:

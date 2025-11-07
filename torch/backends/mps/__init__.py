@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from functools import lru_cache as _lru_cache
 from typing import Optional, TYPE_CHECKING
 
@@ -5,6 +9,7 @@ import torch
 from torch.library import Library as _Library
 
 
+<<<<<<< HEAD
 __all__ = [
     "get_core_count",
     "get_name",
@@ -13,6 +18,9 @@ __all__ = [
     "is_macos13_or_newer",
     "is_macos_or_newer",
 ]
+=======
+__all__ = ["is_built", "is_available", "is_macos13_or_newer", "is_macos_or_newer"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_built() -> bool:
@@ -43,6 +51,7 @@ def is_macos13_or_newer(minor: int = 0) -> bool:
     return torch._C._mps_is_on_macos_or_newer(13, minor)
 
 
+<<<<<<< HEAD
 @_lru_cache
 def get_name() -> str:
     r"""Return Metal device name"""
@@ -64,6 +73,12 @@ _lib: Optional[_Library] = None
 
 
 def _init() -> None:
+=======
+_lib: Optional[_Library] = None
+
+
+def _init():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Register prims as implementation of var_mean and group_norm."""
     global _lib
 

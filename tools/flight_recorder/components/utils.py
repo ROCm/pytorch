@@ -41,7 +41,10 @@ def format_frame(frame: dict[str, str]) -> str:
 def format_frames(frames: list[dict[str, str]]) -> str:
     formatted_frames = []
     for frame in frames:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         formatted_frames.append(format_frame(frame))
     return "\n".join(formatted_frames)
 
@@ -116,6 +119,7 @@ def match_coalesced_groups(
             for r in all_ops:
                 if len(all_ops[r]) > i:
                     rank, event = all_rank_events[r][i]
+<<<<<<< HEAD
                     # Check if the pg_guid exists for this rank and process group
                     pg_key = (event["process_group"][0], rank)
                     if pg_key in _pg_guids:
@@ -129,6 +133,15 @@ def match_coalesced_groups(
                     else:
                         # Skip this entry if pg_guid mapping doesn't exist
                         row.append(None)  # type: ignore[arg-type]
+=======
+                    row.append(
+                        Op(
+                            event,
+                            memberships,
+                            _pg_guids[(event["process_group"][0], rank)],
+                        )
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     progress = True
                 else:
                     row.append(None)  # type: ignore[arg-type]
@@ -251,6 +264,7 @@ def match_coalesced_groups_with_non_p2p(
             for r in all_ops:
                 if len(all_ops[r]) > i:
                     rank, event = all_rank_events[r][i]
+<<<<<<< HEAD
                     # Check if the pg_guid exists for this rank and process group
                     pg_key = (event["process_group"][0], rank)
                     if pg_key in _pg_guids:
@@ -264,6 +278,15 @@ def match_coalesced_groups_with_non_p2p(
                     else:
                         # Skip this entry if pg_guid mapping doesn't exist
                         row.append(None)  # type: ignore[arg-type]
+=======
+                    row.append(
+                        Op(
+                            event,
+                            memberships,
+                            _pg_guids[(event["process_group"][0], rank)],
+                        )
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     progress = True
                 else:
                     row.append(None)  # type: ignore[arg-type]
@@ -629,7 +652,10 @@ def just_print_entries(
     _memberships: dict[str, set[Any]],
     _pg_guids: dict[tuple[str, int], str],
     args: argparse.Namespace,
+<<<<<<< HEAD
     stack_id_trace_map: dict[str, int],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     rows = []
     ranks = sorted(all_entries.keys())
@@ -664,6 +690,7 @@ def just_print_entries(
 
     logger.info(tabulate(rows, headers=headers))
 
+<<<<<<< HEAD
     if stack_id_trace_map and args.print_stack_trace:
         headers = ["stack_id", "frame_stack"]
         rows = []
@@ -675,6 +702,8 @@ def just_print_entries(
 
         logger.info(tabulate(rows, headers=headers))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def check_no_missing_dump_files(
     entries: dict[int, Any], memberships: list[Membership]
@@ -696,13 +725,17 @@ def check_version(version_by_ranks: dict[str, str], version: str) -> None:
 
 
 def get_version_detail(version: str) -> tuple[int, int]:
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     version = version.split(".")
     assert len(version) == 2, f"Invalid version {version}"
     major, minor = map(int, version)
     return major, minor
 
 
+<<<<<<< HEAD
 def add_stack_id_in_entries(
     entries: dict[int, list[dict[str, Any]]],
 ) -> tuple[dict[int, list[dict[str, Any]]], dict[str, int]]:
@@ -724,6 +757,8 @@ def add_stack_id_in_entries(
     return entries, stack_id_trace_map
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def align_trace_from_beginning(
     entries: dict[int, list[dict[str, Any]]],
 ) -> dict[int, list[dict[str, Any]]]:
@@ -754,10 +789,13 @@ def align_trace_from_beginning(
         # Rank 3: [0, 1, 2, 3, 4, 5, None]
         # Then we should start from collective 2 not 0 because any collective before,
         # we don't have complete records from all ranks so we need to ignore them.
+<<<<<<< HEAD
         # If we don't have any trace from some ranks, ignore them
         # as well.
         if len(entries[rank]) == 0:
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         first_record_id = entries[rank][0]["record_id"]
         maximum_starting_record_id = max(maximum_starting_record_id, first_record_id)
 

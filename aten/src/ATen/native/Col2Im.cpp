@@ -71,7 +71,11 @@
 namespace at::native {
 namespace {
 
+<<<<<<< HEAD
 void col2im_out_cpu_template(
+=======
+static void col2im_out_cpu_template(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& output,
     const Tensor& input_,
     IntArrayRef output_size,

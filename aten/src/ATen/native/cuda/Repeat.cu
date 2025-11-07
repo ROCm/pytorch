@@ -17,12 +17,16 @@ __global__ static void compute_cuda_kernel(
     index_t* result_ptr,
     int64_t size,
     int64_t result_size) {
+<<<<<<< HEAD
   CUDA_KERNEL_ASSERT_PRINTF(
       result_size == cumsum_ptr[size - 1],
       "Invalid input! In `repeat_interleave`, the `output_size` argument (%ld) must be the same as the sum of the elements in the `repeats` tensor (%ld).\n",
       result_size,
       cumsum_ptr[size - 1]);
 
+=======
+  CUDA_KERNEL_ASSERT(result_size == cumsum_ptr[size - 1]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t idx = ((int64_t) blockIdx.x) * blockDim.x + threadIdx.x;
   int64_t stride = (blockDim.x * gridDim.x) / C10_WARP_SIZE;
   int warp_id = idx / C10_WARP_SIZE;

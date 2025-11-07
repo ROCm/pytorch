@@ -1,15 +1,26 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import math
 import os
 import socket
 import uuid
+<<<<<<< HEAD
 from collections.abc import Callable, Generator
+=======
+from collections.abc import Generator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from datetime import timedelta
 from enum import Enum
 from functools import partial
+<<<<<<< HEAD
 from typing import Any, Literal
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed._functional_collectives as funcol
@@ -49,11 +60,19 @@ def enable_symm_mem_for_group(group_name: str) -> None:
 
 
 _is_test_mode: bool = False
+<<<<<<< HEAD
 _mocked_group_names: set[str] | None = None
 
 
 @contextmanager
 def _test_mode(group_names: set[str] | None = None) -> Generator[None, None, None]:
+=======
+_mocked_group_names: Optional[set[str]] = None
+
+
+@contextmanager
+def _test_mode(group_names: Optional[set[str]] = None) -> Generator[None, None, None]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Forces ``is_symm_mem_enabled_for_group()`` to return ``True`` and the ops
     defined in the ``symm_mem`` namespace to use fallback implementations.
@@ -85,7 +104,11 @@ def is_symm_mem_enabled_for_group(group_name: str) -> bool:
     return group_name in _group_name_to_store
 
 
+<<<<<<< HEAD
 _group_name_to_workspace_tensor: dict[str, torch.Tensor | None] = {}
+=======
+_group_name_to_workspace_tensor: dict[str, Optional[torch.Tensor]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_symm_mem_workspace(group_name: str, min_size: int) -> _SymmetricMemory:
@@ -317,7 +340,10 @@ def _pipelined_produce_and_all2all(
     chunk_producer: Callable[[int, torch.Tensor], None],
     output: torch.Tensor,
     group_name: str,
+<<<<<<< HEAD
     out_chunk_dim: int = 0,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Perform the following logic with micro-pipelined computation and
@@ -329,9 +355,13 @@ def _pipelined_produce_and_all2all(
         ]
         dist.all_to_all_single(output=output, input=torch.cat(chunks))
     """
+<<<<<<< HEAD
     out_chunks = output.chunk(
         c10d._get_group_size_by_name(group_name), dim=out_chunk_dim
     )
+=======
+    out_chunks = output.chunk(c10d._get_group_size_by_name(group_name))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     p2p_workspace_size_req = out_chunks[0].numel() * out_chunks[0].element_size() * 2
     symm_mem = get_symm_mem_workspace(group_name, min_size=p2p_workspace_size_req)
     group_size = symm_mem.world_size
@@ -453,7 +483,11 @@ lib.define(
 lib.define(
     "fused_scaled_matmul_reduce_scatter("
     "Tensor A, Tensor B, Tensor A_scale, Tensor B_scale, "
+<<<<<<< HEAD
     "str reduce_op, int orig_scatter_dim, int scatter_dim_after_maybe_reshape, str group_name, SymInt[]? output_shape, "
+=======
+    "str reduce_op, int orig_scatter_dim, int scatter_dim_after_maybe_reshape, str group_name, int[]? output_shape, "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Tensor? bias = None, "
     "Tensor? result_scale = None, "
     "ScalarType? out_dtype = None, "
@@ -474,7 +508,11 @@ class _ScaleMode(Enum):
 
 
 def _check_and_verify_fp8_all_gather_scale_mode(
+<<<<<<< HEAD
     shard: torch.Tensor, scale: torch.Tensor | None, gather_dim: int, group_size: int
+=======
+    shard: torch.Tensor, scale: Optional[torch.Tensor], gather_dim: int, group_size: int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> _ScaleMode:
     full_shape = list(shard.shape)
     full_shape[gather_dim] *= group_size
@@ -503,6 +541,7 @@ def _fused_all_gather_matmul_impl(
     mm_out_op: torch._ops.OpOverload,
     A_shard: torch.Tensor,
     Bs: list[torch.Tensor],
+<<<<<<< HEAD
     A_scale: torch.Tensor | None,
     kwargs_list: list[dict[str, Any]],
     out_dtypes: list[torch.dtype | None],
@@ -510,6 +549,15 @@ def _fused_all_gather_matmul_impl(
     group_name: str,
     return_A: bool,
 ) -> tuple[torch.Tensor | None, list[torch.Tensor]]:
+=======
+    A_scale: Optional[torch.Tensor],
+    kwargs_list: list[dict[str, Any]],
+    out_dtypes: list[Optional[torch.dtype]],
+    gather_dim: int,
+    group_name: str,
+    return_A: bool,
+) -> tuple[Optional[torch.Tensor], list[torch.Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if A_shard.dim() < 2:
         raise ValueError("A_shard must be a matrix")
     for B in Bs:
@@ -524,6 +572,7 @@ def _fused_all_gather_matmul_impl(
 
     group = c10d._resolve_process_group(group_name)
 
+<<<<<<< HEAD
     if gather_dim == A_shard.ndim - 1 or gather_dim == -1:
         return _fused_all_gather_matmul_last_gather_dim_impl(
             mm_out_op,
@@ -537,6 +586,8 @@ def _fused_all_gather_matmul_impl(
             return_A,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Move the gather_dim to the front and flatten the tensor into a 2D matrix.
     # The flattened tensor doesn't need to be contiguous (for computation
     # efficiency), as _pipelined_all_gather_and_consume guarantees that shards
@@ -637,6 +688,7 @@ def _fused_all_gather_matmul_impl(
     return A, [unflatten(output) for output in outputs]
 
 
+<<<<<<< HEAD
 def _pipelined_all_gather_and_consume_last_dim(
     shard: torch.Tensor,
     shard_consumer: Callable[[torch.Tensor, int], None],
@@ -771,6 +823,8 @@ def _fused_all_gather_matmul_last_gather_dim_impl(
     return ret_A, [unflatten(output) for output in outputs]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.library.impl(lib, "fused_all_gather_matmul", "Meta")
 def _fused_all_gather_matmul_fallback(
     A_shard: torch.Tensor,
@@ -779,12 +833,17 @@ def _fused_all_gather_matmul_fallback(
     group_name: str,
     *,
     return_A: bool = True,
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor | None, list[torch.Tensor]]:
+=======
+) -> tuple[Optional[torch.Tensor], list[torch.Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     group_size = c10d._get_group_size_by_name(group_name)
     A = torch.ops._c10d_functional.all_gather_into_tensor(
         A_shard.contiguous(), group_size, group_name
     )
     A = torch.ops._c10d_functional.wait_tensor(A)
+<<<<<<< HEAD
     if gather_dim == A.ndim - 1 or gather_dim == -1:
         A_splits = A.chunk(group_size)
         A_mm = torch.cat(A_splits, dim=-1)
@@ -794,6 +853,8 @@ def _fused_all_gather_matmul_fallback(
         else:
             return None, res
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     A = A.view(group_size, *A_shard.shape).movedim(gather_dim + 1, 1).flatten(0, 1)
     res = [torch.matmul(A, B).movedim(0, gather_dim) for B in Bs]
     if return_A:
@@ -810,7 +871,11 @@ def _fused_all_gather_matmul(
     group_name: str,
     *,
     return_A: bool = True,
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor | None, list[torch.Tensor]]:
+=======
+) -> tuple[Optional[torch.Tensor], list[torch.Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Perform the following logic with micro-pipelined computation and
     communication:
@@ -980,9 +1045,15 @@ def _fused_all_gather_scaled_matmul_fallback(
     B_scales: list[torch.Tensor],
     gather_dim: int,
     group_name: str,
+<<<<<<< HEAD
     biases: list[torch.Tensor | None],
     result_scales: list[torch.Tensor | None],
     out_dtypes: list[torch.dtype | None],
+=======
+    biases: list[Optional[torch.Tensor]],
+    result_scales: list[Optional[torch.Tensor]],
+    out_dtypes: list[Optional[torch.dtype]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_fast_accum: list[bool],
 ) -> tuple[torch.Tensor, list[torch.Tensor]]:
     out_dtypes = _maybe_convert_scalar_types_to_dtypes(out_dtypes)
@@ -1018,9 +1089,15 @@ def _fused_all_gather_scaled_matmul_fallback(
         B: torch.Tensor,
         A_scale: torch.Tensor,
         B_scale: torch.Tensor,
+<<<<<<< HEAD
         bias: torch.Tensor | None,
         result_scale: torch.Tensor | None,
         out_dtype: torch.dtype | None,
+=======
+        bias: Optional[torch.Tensor],
+        result_scale: Optional[torch.Tensor],
+        out_dtype: Optional[torch.dtype],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         use_fast_accum: bool,
     ) -> torch.Tensor:
         leading_dims = A.shape[:-1]
@@ -1054,9 +1131,15 @@ def _fused_all_gather_scaled_matmul(
     B_scales: list[torch.Tensor],
     gather_dim: int,
     group_name: str,
+<<<<<<< HEAD
     biases: list[torch.Tensor | None],
     result_scales: list[torch.Tensor | None],
     out_dtypes: list[torch.dtype | None],
+=======
+    biases: list[Optional[torch.Tensor]],
+    result_scales: list[Optional[torch.Tensor]],
+    out_dtypes: list[Optional[torch.dtype]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_fast_accum: list[bool],
 ) -> tuple[torch.Tensor, list[torch.Tensor]]:
     """
@@ -1207,7 +1290,11 @@ def _fused_matmul_reduce_scatter_impl(
     A: torch.Tensor,
     B: torch.Tensor,
     kwargs: dict[str, Any],
+<<<<<<< HEAD
     out_dtype: torch.dtype | None,
+=======
+    out_dtype: Optional[torch.dtype],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reduce_op: str,
     scatter_dim: int,
     group_name: str,
@@ -1224,10 +1311,15 @@ def _fused_matmul_reduce_scatter_impl(
         reduce_fn = partial(torch.mean, dim=0)
     else:
         raise ValueError("reduce_op must be sum or avg")
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     group = c10d._resolve_process_group(group_name)
     out_shape = [*A.shape[:-1], B.shape[1]]
     out_shape[scatter_dim] //= group.size()
 
+<<<<<<< HEAD
     if scatter_dim == A.ndim - 1:
         B_shards = B.chunk(group.size(), dim=B.ndim - 1)
         A_flat = A.flatten(0, -2)
@@ -1258,6 +1350,8 @@ def _fused_matmul_reduce_scatter_impl(
             dim=-2,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Move the scatter_dim to the front and flatten the tensor into a 2D matrix
     x = A.movedim(scatter_dim, 0)
     leading_dims = [group.size()] + list(x.shape[:-1])
@@ -1298,9 +1392,15 @@ def _fused_scaled_matmul_reduce_scatter(
     scatter_dim_after_maybe_reshape: int,
     group_name: str,
     output_shape: list[int],
+<<<<<<< HEAD
     bias: torch.Tensor | None = None,
     result_scale: torch.Tensor | None = None,
     out_dtype: torch.dtype | None = None,
+=======
+    bias: Optional[torch.Tensor] = None,
+    result_scale: Optional[torch.Tensor] = None,
+    out_dtype: Optional[torch.dtype] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_fast_accum: bool = False,
 ) -> torch.Tensor:
     if _is_test_mode:
@@ -1352,9 +1452,15 @@ def _fused_scaled_matmul_reduce_scatter_fallback(
     scatter_dim_after_maybe_reshape: int,
     group_name: str,
     output_shape: list[int],
+<<<<<<< HEAD
     bias: torch.Tensor | None = None,
     result_scale: torch.Tensor | None = None,
     out_dtype: torch.dtype | None = None,
+=======
+    bias: Optional[torch.Tensor] = None,
+    result_scale: Optional[torch.Tensor] = None,
+    out_dtype: Optional[torch.dtype] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_fast_accum: bool = False,
 ) -> torch.Tensor:
     if A_scale.numel() > 1:
@@ -1398,7 +1504,11 @@ def _fused_scaled_matmul_reduce_scatter_impl(
     B: torch.Tensor,
     A_scale: torch.Tensor,
     kwargs: dict[str, Any],
+<<<<<<< HEAD
     out_dtype: torch.dtype | None,
+=======
+    out_dtype: Optional[torch.dtype],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reduce_op: str,
     orig_scatter_dim: int,
     scatter_dim_after_maybe_reshape: int,
@@ -1460,11 +1570,14 @@ def _fused_scaled_matmul_reduce_scatter_impl(
             .flatten(0, -2)
         )
         A_scale_shards = list(A_scale.chunk(group.size()))
+<<<<<<< HEAD
         # cuBLAS's row-wise kernel requires scales to be aligned to 16 bytes.
         # When we slice them we might break this and need to reallocate them.
         A_scale_shards = [
             t if t.data_ptr() % 16 == 0 else t.clone() for t in A_scale_shards
         ]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         raise ValueError("A_scale cannot be none for scaled_mm")
 
@@ -1472,7 +1585,11 @@ def _fused_scaled_matmul_reduce_scatter_impl(
     def chunk_producer(rank: int, out: torch.Tensor) -> None:
         mm_out_op(A_shards[rank], B, scale_a=A_scale_shards[rank], **kwargs, out=out)
 
+<<<<<<< HEAD
     # Stacked partials will be the 2D outputs of the pipelined scaled mm, and will
+=======
+    # Stacked partials will be the 2D outputs of the the pipelined scaled mm, and will
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # have the shape (A_with_scatter_dim_0_tensor.shape[0], B.shape[1]) to align with the formula:
     # (a*b,c) @ (c,d) = (a*b,d)
     stacked_partials = A_with_scatter_dim_0.new_empty(
@@ -1540,7 +1657,11 @@ def restride_A_for_fused_matmul_reduce_scatter(
 
 def _maybe_convert_scalar_types_to_dtypes(
     scalar_types: list[Any],
+<<<<<<< HEAD
 ) -> list[torch.dtype | None]:
+=======
+) -> list[Optional[torch.dtype]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     When a list of `torch.dtype`s is passed through the dispatcher as
     `ScalarType[]`, it is converted to a list of scalar type enum values. This
@@ -1572,12 +1693,20 @@ def _maybe_convert_scalar_types_to_dtypes(
     if any(not isinstance(x, (type(None), int)) for x in scalar_types):
         return scalar_types
 
+<<<<<<< HEAD
     dtypes: list[torch.dtype | None] = []
+=======
+    dtypes: list[Optional[torch.dtype]] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for scalar_type in scalar_types:
         if scalar_type is None:
             dtypes.append(scalar_type)
         elif scalar_type not in _SCALAR_TYPE_TO_DTYPE:
+<<<<<<< HEAD
             raise ValueError(f"Unrecognized scalar type {scalar_type}")
+=======
+            raise ValueError("Unrecognized scalar type {scalar_type}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             dtypes.append(_SCALAR_TYPE_TO_DTYPE[scalar_type])
     return dtypes
@@ -1671,7 +1800,11 @@ def _low_contention_all_gather(
             local_buf.copy_(tensor)
         # pull
         symm_mem.barrier()
+<<<<<<< HEAD
         for step in range(world_size):
+=======
+        for step in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             remote_rank = (rank - step) % world_size
             src_buf = symm_mem.get_buffer(remote_rank, tensor.shape, tensor.dtype)
             chunks[remote_rank].copy_(src_buf)
@@ -1706,7 +1839,11 @@ def _low_contention_reduce_scatter_with_symm_mem_input(
     with _get_backend_stream():
         # pull + offline reduction
         symm_mem.barrier()
+<<<<<<< HEAD
         for step in range(world_size):
+=======
+        for step in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             remote_rank = (rank - step) % world_size
             src_buf = symm_mem.get_buffer(
                 remote_rank,
@@ -1743,7 +1880,11 @@ def _low_contention_reduce_scatter_with_workspace(
     with _get_backend_stream():
         # push + offline reduction
         workspace.barrier()
+<<<<<<< HEAD
         for step in range(world_size):
+=======
+        for step in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             remote_rank = (rank - step) % world_size
             dst_buf = workspace.get_buffer(
                 remote_rank, chunks[0].shape, chunks[0].dtype, chunks[0].numel() * rank
@@ -1804,6 +1945,7 @@ def _low_contention_reduce_scatter(
         )
 
 
+<<<<<<< HEAD
 @torch.library.impl(lib, "all_to_all_vdev_2d", "Meta")
 def _all_to_all_vdev_2d_meta(
     input: torch.Tensor,
@@ -1827,42 +1969,74 @@ def _all_to_all_vdev_2d_offset_meta(
     return None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # =============================================================================
 # User-facing APIs
 # =============================================================================
 
 
 from collections.abc import Sequence
+<<<<<<< HEAD
 from typing import overload, TYPE_CHECKING, Union
+=======
+from typing import Any, overload, TYPE_CHECKING, Union
+
+from torch.types import _device, _dtype, _int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
     from torch._C._distributed_c10d import ProcessGroup
+<<<<<<< HEAD
     from torch.types import _device, _dtype, _int
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
 def empty(
+<<<<<<< HEAD
     *size: _int, dtype: _dtype | None = None, device: _device | None = None
+=======
+    *size: _int, dtype: Optional[_dtype] = None, device: Optional[_device] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.Tensor: ...
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
 def empty(
     size: Sequence[_int],
     *,
     dtype: _dtype | None = None,
     device: _device | None = None,
+=======
+def empty(
+    size: Sequence[_int],
+    *,
+    dtype: Optional[_dtype] = None,
+    device: Optional[_device] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.Tensor: ...
 
 
 def empty(  # type: ignore[misc]
     *size: Any,
+<<<<<<< HEAD
     dtype: _dtype | None = None,
     device: _device | None = None,
 ) -> torch.Tensor:
     r"""
+=======
+    dtype: Optional[_dtype] = None,
+    device: Optional[_device] = None,
+) -> torch.Tensor:
+    r"""
+    empty(*size, *, dtype=None, device=None) -> Tensor
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Similar to :func:`torch.empty()`. The returned tensor can be used by
     :func:`torch._distributed._symmetric_memory.rendezvous()` to establish a
     symmetric memory tensor among participating processes.
@@ -1899,7 +2073,11 @@ def empty(  # type: ignore[misc]
 
 
 def rendezvous(
+<<<<<<< HEAD
     tensor: torch.Tensor, group: Union[str, ProcessGroup]
+=======
+    tensor: torch.Tensor, group: Union[str, "ProcessGroup"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> _SymmetricMemory:
     r"""
     rendezvous(tensor, group) -> _SymmetricMemory
@@ -1943,6 +2121,7 @@ def is_nvshmem_available() -> bool:
     return _is_nvshmem_available()
 
 
+<<<<<<< HEAD
 def set_backend(name: Literal["NVSHMEM", "CUDA", "NCCL"]) -> None:
     r"""
     Set the backend for symmetric memory allocation. This is a global setting
@@ -1980,3 +2159,6 @@ def get_mempool_allocator(device: _device):  # type: ignore[no-untyped-def]
 
 
 __all__ = ["empty", "rendezvous", "is_nvshmem_available", "set_backend", "get_backend"]
+=======
+__all__ = ["empty", "rendezvous", "is_nvshmem_available"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

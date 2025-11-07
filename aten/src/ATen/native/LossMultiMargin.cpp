@@ -57,7 +57,11 @@ inline int64_t target_index_checked(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void multi_margin_loss_cpu_kernel(
+=======
+static inline void multi_margin_loss_cpu_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& output,
     const scalar_t* input_data,
     const int64_t* target_data,
@@ -148,7 +152,11 @@ void multi_margin_loss_out_cpu_template(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void multi_margin_loss_backward_cpu_kernel(
+=======
+static void multi_margin_loss_backward_cpu_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* grad_input_data,
     const Tensor& grad_output,
     const scalar_t* input_data,

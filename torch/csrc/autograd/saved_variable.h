@@ -54,6 +54,7 @@ class TORCH_API SavedVariable {
     return (bool)hooks_;
   }
 
+<<<<<<< HEAD
   std::optional<at::Tensor> get_raw_data() const {
     if (hooks_) {
       return std::nullopt;
@@ -62,6 +63,8 @@ class TORCH_API SavedVariable {
     }
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Used by compiled autograd
   std::optional<std::pair<c10::SafePyObject, c10::SafePyObject>>
   retrieve_unpack_hook_data() const {

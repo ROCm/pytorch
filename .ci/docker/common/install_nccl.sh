@@ -7,8 +7,11 @@ if [[ ${CUDA_VERSION:0:2} == "11" ]]; then
   NCCL_VERSION=$(cat ci_commit_pins/nccl-cu11.txt)
 elif [[ ${CUDA_VERSION:0:2} == "12" ]]; then
   NCCL_VERSION=$(cat ci_commit_pins/nccl-cu12.txt)
+<<<<<<< HEAD
 elif [[ ${CUDA_VERSION:0:2} == "13" ]]; then
   NCCL_VERSION=$(cat ci_commit_pins/nccl-cu13.txt)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
   echo "Unexpected CUDA_VERSION ${CUDA_VERSION}"
   exit 1

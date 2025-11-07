@@ -38,7 +38,11 @@ TORCH_API CudaFuserInterface* getFuserInterface();
 
 TORCH_API void compileFusionGroup(Node* fusion_node);
 TORCH_API void runFusionGroup(const Node* fusion_node, Stack& stack);
+<<<<<<< HEAD
 TORCH_API void fuseGraph(std::shared_ptr<Graph>& /*graph*/);
+=======
+TORCH_API void fuseGraph(std::shared_ptr<Graph>&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API bool canFuseNode(const Node* node);
 TORCH_API void InsertProfileNodesForCUDAFuser(ProfilingRecord* pr);
 TORCH_API bool profileNode(const Node* node);

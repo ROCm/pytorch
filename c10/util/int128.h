@@ -79,8 +79,13 @@ class C10_API uint128 {
   // Make msvc happy with using operator<<= from DivModImpl
   // which is a static function, and linker complained about missing
   // static version of this overload
+<<<<<<< HEAD
   friend uint128& operator<<=(uint128& /*self*/, int /*amount*/);
   uint128& operator>>=(int /*amount*/);
+=======
+  friend uint128& operator<<=(uint128&, int);
+  uint128& operator>>=(int);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint128& operator&=(const uint128& b);
   uint128& operator|=(const uint128& b);
   uint128& operator^=(const uint128& b);
@@ -154,6 +159,7 @@ inline bool operator!=(const uint128& lhs, const uint128& rhs) {
   return !(lhs == rhs);
 }
 
+<<<<<<< HEAD
 inline UINT128_CONSTEXPR uint128::uint128() : lo_(0), hi_(0) {}
 inline UINT128_CONSTEXPR uint128::uint128(uint64_t top, uint64_t bottom)
     : lo_(bottom), hi_(top) {}
@@ -165,12 +171,29 @@ inline UINT128_CONSTEXPR uint128::uint128(uint64_t bottom)
 inline UINT128_CONSTEXPR uint128::uint128(uint32_t bottom)
     : lo_(bottom), hi_(0) {}
 inline UINT128_CONSTEXPR uint128::uint128(int bottom)
+=======
+C10_API inline UINT128_CONSTEXPR uint128::uint128() : lo_(0), hi_(0) {}
+C10_API inline UINT128_CONSTEXPR uint128::uint128(uint64_t top, uint64_t bottom)
+    : lo_(bottom), hi_(top) {}
+C10_API inline UINT128_CONSTEXPR uint128::uint128(const uint128_pod& v)
+    : lo_(v.lo), hi_(v.hi) {}
+C10_API inline UINT128_CONSTEXPR uint128::uint128(uint64_t bottom)
+    : lo_(bottom), hi_(0) {}
+#ifndef SWIG
+C10_API inline UINT128_CONSTEXPR uint128::uint128(uint32_t bottom)
+    : lo_(bottom), hi_(0) {}
+C10_API inline UINT128_CONSTEXPR uint128::uint128(int bottom)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : lo_(bottom), hi_(static_cast<int64_t>((bottom < 0) ? -1 : 0)) {}
 #endif
 
 #undef UINT128_CONSTEXPR
 
+<<<<<<< HEAD
 inline void uint128::Initialize(uint64_t top, uint64_t bottom) {
+=======
+C10_API inline void uint128::Initialize(uint64_t top, uint64_t bottom) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hi_ = top;
   lo_ = bottom;
 }
@@ -226,11 +249,19 @@ LOGIC128(^)
 
 #undef LOGIC128
 
+<<<<<<< HEAD
 #define LOGICASSIGN128(op)                                      \
   inline uint128& uint128::operator op(const uint128 & other) { \
     hi_ op other.hi_;                                           \
     lo_ op other.lo_;                                           \
     return *this;                                               \
+=======
+#define LOGICASSIGN128(op)                                              \
+  C10_API inline uint128& uint128::operator op(const uint128 & other) { \
+    hi_ op other.hi_;                                                   \
+    lo_ op other.lo_;                                                   \
+    return *this;                                                       \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 LOGICASSIGN128(|=)
@@ -295,7 +326,11 @@ inline uint128& operator<<=(uint128& self, int amount) {
   return self;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator>>=(int amount) {
+=======
+C10_API inline uint128& uint128::operator>>=(int amount) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // uint64_t shifts of >= 64 are undefined, so we will need some
   // special-casing.
   if (amount < 64) {
@@ -333,7 +368,11 @@ inline uint128 operator%(const uint128& lhs, const uint128& rhs) {
   return uint128(lhs) %= rhs;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator+=(const uint128& b) {
+=======
+C10_API inline uint128& uint128::operator+=(const uint128& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hi_ += b.hi_;
   uint64_t lolo = lo_ + b.lo_;
   if (lolo < lo_)
@@ -342,7 +381,11 @@ inline uint128& uint128::operator+=(const uint128& b) {
   return *this;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator-=(const uint128& b) {
+=======
+C10_API inline uint128& uint128::operator-=(const uint128& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hi_ -= b.hi_;
   if (b.lo_ > lo_)
     --hi_;
@@ -350,7 +393,11 @@ inline uint128& uint128::operator-=(const uint128& b) {
   return *this;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator*=(const uint128& b) {
+=======
+C10_API inline uint128& uint128::operator*=(const uint128& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint64_t a96 = hi_ >> 32;
   uint64_t a64 = hi_ & 0xffffffffu;
   uint64_t a32 = lo_ >> 32;
@@ -373,24 +420,40 @@ inline uint128& uint128::operator*=(const uint128& b) {
   return *this;
 }
 
+<<<<<<< HEAD
 inline uint128 uint128::operator++(int) {
+=======
+C10_API inline uint128 uint128::operator++(int) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint128 tmp(*this);
   *this += 1;
   return tmp;
 }
 
+<<<<<<< HEAD
 inline uint128 uint128::operator--(int) {
+=======
+C10_API inline uint128 uint128::operator--(int) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint128 tmp(*this);
   *this -= 1;
   return tmp;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator++() {
+=======
+C10_API inline uint128& uint128::operator++() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   *this += 1;
   return *this;
 }
 
+<<<<<<< HEAD
 inline uint128& uint128::operator--() {
+=======
+C10_API inline uint128& uint128::operator--() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   *this -= 1;
   return *this;
 }

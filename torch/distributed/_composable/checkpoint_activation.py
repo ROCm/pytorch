@@ -79,7 +79,10 @@ def checkpoint(module: nn.Module, **kwargs) -> nn.Module:
     user_context_fns = kwargs.pop("context_fn", None)
     determinism_check = kwargs.pop("determinism_check", _DEFAULT_DETERMINISM_MODE)
     debug = kwargs.pop("debug", False)
+<<<<<<< HEAD
     early_stop = kwargs.pop("early_stop", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if kwargs:
         raise ValueError(
@@ -104,7 +107,10 @@ def checkpoint(module: nn.Module, **kwargs) -> nn.Module:
                 context_fns,
                 determinism_check,
                 debug,
+<<<<<<< HEAD
                 early_stop,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *args,
                 **kwargs,
             )

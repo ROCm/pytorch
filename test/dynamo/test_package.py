@@ -1,9 +1,13 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 import importlib
 import os
 import sys
 import tempfile
+=======
+import os
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 
 import torch
@@ -12,15 +16,20 @@ import torch._inductor.config
 import torch._inductor.test_case
 import torch.onnx.operators
 import torch.utils.cpp_extension
+<<<<<<< HEAD
 from torch._dynamo.package import CompilePackage, DiskDynamoStore, DynamoCache
 from torch._dynamo.precompile_context import PrecompileContext
 from torch._dynamo.testing import reduce_to_scalar_loss
+=======
+from torch._dynamo.package import CompilePackage, DynamoStore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._functorch import config as functorch_config
 from torch._inductor.runtime.runtime_utils import cache_dir
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     HAS_CUDA_AND_TRITON,
     HAS_XPU_AND_TRITON,
@@ -33,6 +42,12 @@ def compute_loss_helper(x):
 
 @functorch_config.patch("bundled_autograd_cache", True)
 @torch._dynamo.config.patch({"strict_precompile": True})
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+
+
+@functorch_config.patch("bundled_autograd_cache", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @instantiate_parametrized_tests
 class TestPackage(torch._inductor.test_case.TestCase):
     def path(self):
@@ -40,6 +55,7 @@ class TestPackage(torch._inductor.test_case.TestCase):
         os.makedirs(path, exist_ok=True)
         return path
 
+<<<<<<< HEAD
     def setUp(self):
         super().setUp()
         torch._dynamo.reset()
@@ -87,6 +103,14 @@ class TestPackage(torch._inductor.test_case.TestCase):
             raise unittest.SkipTest("Requires XPU/Triton")
 
         ctx = DiskDynamoStore()
+=======
+    @parametrize("backend", ("eager", "inductor"))
+    @parametrize("device", ("cpu", "cuda"))
+    def test_basic_fn(self, backend, device):
+        if device == "cuda" and not HAS_CUDA:
+            raise unittest.SkipTest("Requires CUDA/Triton")
+        ctx = DynamoStore()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x):
             return x + 1
@@ -123,6 +147,7 @@ class TestPackage(torch._inductor.test_case.TestCase):
             self.assertEqual(expected, compiled_fn(*args))
 
     @parametrize("backend", ("eager", "inductor"))
+<<<<<<< HEAD
     @parametrize("device", ("cpu", "cuda", "xpu"))
     def test_lazy_backward(self, backend, device):
         if device == "cuda" and not HAS_CUDA_AND_TRITON:
@@ -178,6 +203,14 @@ class TestPackage(torch._inductor.test_case.TestCase):
             raise unittest.SkipTest("Requires XPU/Triton")
 
         ctx = DiskDynamoStore()
+=======
+    @parametrize("device", ("cpu", "cuda"))
+    def test_graph_break_bomb(self, backend, device):
+        if device == "cuda" and not HAS_CUDA:
+            raise unittest.SkipTest("Requires CUDA/Triton")
+
+        ctx = DynamoStore()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x, l, r):
             if l > r:
@@ -234,6 +267,7 @@ class TestPackage(torch._inductor.test_case.TestCase):
                 compiled_fn(torch.tensor(N), 0, N - 1)
 
     @parametrize("backend", ("eager", "inductor"))
+<<<<<<< HEAD
     @parametrize("device", ("cpu", "cuda", "xpu"))
     def test_dynamic_shape(self, backend, device):
         if device == "cuda" and not HAS_CUDA_AND_TRITON:
@@ -242,6 +276,13 @@ class TestPackage(torch._inductor.test_case.TestCase):
             raise unittest.SkipTest("Requires XPU/Triton")
 
         ctx = DiskDynamoStore()
+=======
+    @parametrize("device", ("cpu", "cuda"))
+    def test_dynamic_shape(self, backend, device):
+        if device == "cuda" and not HAS_CUDA:
+            raise unittest.SkipTest("Requires CUDA/Triton")
+        ctx = DynamoStore()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x):
             return x + x.shape[0]
@@ -283,6 +324,7 @@ class TestPackage(torch._inductor.test_case.TestCase):
             ):
                 compiled_fn(*args2)
 
+<<<<<<< HEAD
     def test_file_change(self):
         ctx = DiskDynamoStore()
 
@@ -628,6 +670,8 @@ def add(x, y):
         compiled_fn(*args)
         self._save_and_reload(expected_backends=1, expected_dynamo=1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

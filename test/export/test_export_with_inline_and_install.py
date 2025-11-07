@@ -1,9 +1,16 @@
 # Owner(s): ["oncall: export"]
 
 
+<<<<<<< HEAD
 from torch._dynamo import config as dynamo_config
 from torch._dynamo.testing import make_test_cls_with_patches
 from torch._export import config as export_config
+=======
+import unittest
+
+from torch._dynamo import config
+from torch._dynamo.testing import make_test_cls_with_patches
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -43,9 +50,14 @@ def make_dynamic_cls(cls):
         cls_a,
         cls_prefix,
         "",
+<<<<<<< HEAD
         (export_config, "use_new_tracer_experimental", True),
         (dynamo_config, "install_free_tensors", True),
         (dynamo_config, "inline_inbuilt_nn_modules", True),
+=======
+        (config, "install_free_tensors", True),
+        (config, "inline_inbuilt_nn_modules", True),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         xfail_prop="_expected_failure_inline_and_install",
     )
 
@@ -65,6 +77,17 @@ for test in tests:
 del test
 
 
+<<<<<<< HEAD
+=======
+# NOTE: For this test, we have a failure that occurs because the buffers (for BatchNorm2D) are installed, and not
+# graph input.  Therefore, they are not in the `program.graph_signature.inputs_to_buffers`
+# and so not found by the unit test when counting the buffers
+unittest.expectedFailure(
+    InlineAndInstallStrictExportTestExport.test_buffer_util_inline_and_install_strict  # noqa: F821
+)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
 

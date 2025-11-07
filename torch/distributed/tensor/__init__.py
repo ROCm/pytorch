@@ -46,11 +46,15 @@ __all__ = [
 ]
 
 # For weights_only torch.load
+<<<<<<< HEAD
 from ._dtensor_spec import (
     DTensorSpec as _DTensorSpec,
     ShardOrderEntry as _ShardOrderEntry,
     TensorMeta as _TensorMeta,
 )
+=======
+from ._dtensor_spec import DTensorSpec as _DTensorSpec, TensorMeta as _TensorMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 torch.serialization.add_safe_globals(
@@ -58,7 +62,10 @@ torch.serialization.add_safe_globals(
         DeviceMesh,
         _DTensorSpec,
         _TensorMeta,
+<<<<<<< HEAD
         _ShardOrderEntry,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         DTensor,
         Partial,
         Replicate,

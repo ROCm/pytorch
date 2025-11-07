@@ -2,15 +2,25 @@
 import itertools
 import logging
 import operator
+<<<<<<< HEAD
 import os
 from collections import defaultdict
 from collections.abc import Sequence
 from typing import Any, Callable
+=======
+from collections import defaultdict
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeAlias
 
 import torch
 from torch._dynamo.utils import counters
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import free_symbols, guard_or_false
+=======
+from torch.fx.experimental.symbolic_shapes import free_symbols
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 
 from ..pattern_matcher import (
@@ -38,10 +48,17 @@ log = logging.getLogger(__name__)
 
 _Arguments: TypeAlias = tuple[torch.fx.node.Argument, ...]
 _TransformParam: TypeAlias = tuple[
+<<<<<<< HEAD
     _Arguments | None,
     _Arguments | None,
     _Arguments | None,
     _Arguments | None,
+=======
+    Optional[_Arguments],
+    Optional[_Arguments],
+    Optional[_Arguments],
+    Optional[_Arguments],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 _Range: TypeAlias = tuple[int, int]
 
@@ -63,7 +80,10 @@ pre_grad_pass_names = [
     "split_stack_to_cats_pass",
     "unbind_stack_to_slices_pass",
     "move_reshape_out_of_split_stack_pass",
+<<<<<<< HEAD
     "einsum_to_pointwise_pass",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 post_grad_pass_names = [
@@ -77,8 +97,11 @@ post_grad_pass_names = [
     "move_view_after_cat_aten_pass",
 ]
 
+<<<<<<< HEAD
 backend = os.environ.get("TORCHINDUCTOR_PATTERN_MATCH_BACKEND", "inductor")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 for pass_name in pre_grad_pass_names:
     # exclude all passes from the group batch fusion
     # they do not use pattern matcher
@@ -167,7 +190,11 @@ def _get_dim(node: Any):
 def normalize_split_base(
     match: Match,
     _get_split_args: Callable[
+<<<<<<< HEAD
         [torch.fx.Node], tuple[torch.fx.Node | None, Any | None, int | None]
+=======
+        [torch.fx.Node], tuple[Optional[torch.fx.Node], Optional[Any], Optional[int]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ],
 ):
     """
@@ -210,7 +237,11 @@ def normalize_split_base(
     split_node.replace_all_uses_with(new_split_node)
     new_split_node.meta.update(split_node.meta)
     graph.erase_node(split_node)
+<<<<<<< HEAD
     counters[backend]["normalization_pass"] += 1
+=======
+    counters["inductor"]["normalization_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -262,7 +293,11 @@ def remove_split_with_size_one(match: Match, *args, **kwargs):
         # erase the split node and its child
         graph.erase_node(user)
         graph.erase_node(split_node)
+<<<<<<< HEAD
         counters[backend]["remove_split_with_size_one_pass"] += 1
+=======
+        counters["inductor"]["remove_split_with_size_one_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -291,7 +326,10 @@ def normalize_unbind_default(match: Match, *args, **kwargs):
         log.debug("example value absent for node: %s", input)
         return
     ndim = input.meta["example_value"].ndim
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if dim < 0:  # Normalize unbind dim
         dim += ndim
     with graph.inserting_after(node):
@@ -303,6 +341,7 @@ def normalize_unbind_default(match: Match, *args, **kwargs):
     node.replace_all_uses_with(new_node)
     new_node.meta.update(node.meta)
     graph.erase_node(node)
+<<<<<<< HEAD
     counters[backend]["normalization_pass"] += 1
 
 
@@ -311,6 +350,18 @@ def normalize_unbind_default(match: Match, *args, **kwargs):
     pass_dict=construct_pattern_matcher_pass("normalization_pass"),
 )
 def normalize_cat_default(match: Match, *args, **kwargs):
+=======
+    counters["inductor"]["normalization_pass"] += 1
+
+
+@register_graph_pattern(
+    CallFunctionVarArgs(torch.cat, users=MULTIPLE),
+    pass_dict=construct_pattern_matcher_pass("normalization_pass"),
+)
+def normalize_cat_default(match: Match, *args, **kwargs):
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cat_node = match.nodes[0]
     graph = match.graph
     tensors = get_arg_value(cat_node, 0, "tensors")
@@ -335,13 +386,20 @@ def normalize_cat_default(match: Match, *args, **kwargs):
     def is_empty_tensor(x):
         # special case where torch.cat supports cat'ing with an empty tensor
         x_shape = x.meta["example_value"].shape
+<<<<<<< HEAD
         return len(x_shape) == 1 and guard_or_false(x_shape[0] == 0)
+=======
+        return len(x_shape) == 1 and guard_size_oblivious(x_shape[0] == 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert all(
         ndim == x.meta["example_value"].dim() or is_empty_tensor(x) for x in tensors
     )
 
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if cat_dim < 0:  # Normalize cat dim
         cat_dim += ndim
 
@@ -351,7 +409,10 @@ def normalize_cat_default(match: Match, *args, **kwargs):
         cat_node.args == new_args
         and cat_node.kwargs == new_kwargs
         and cat_node.op == "call_function"
+<<<<<<< HEAD
         and cat_node.target == torch.cat
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         return
 
@@ -364,7 +425,11 @@ def normalize_cat_default(match: Match, *args, **kwargs):
     cat_node.replace_all_uses_with(new_cat_node)
     new_cat_node.meta.update(cat_node.meta)
     graph.erase_node(cat_node)
+<<<<<<< HEAD
     counters[backend]["normalization_pass"] += 1
+=======
+    counters["inductor"]["normalization_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -400,7 +465,11 @@ def normalize_stack_default(match: Match, *args, **kwargs):
     node.replace_all_uses_with(new_node)
     new_node.meta.update(node.meta)
     graph.erase_node(node)
+<<<<<<< HEAD
     counters[backend]["normalization_pass"] += 1
+=======
+    counters["inductor"]["normalization_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def find_next_users(split_node: torch.fx.Node) -> list[torch.fx.Node]:
@@ -661,7 +730,11 @@ def merge_splits(
     for node in to_remove:
         graph.erase_node(node)
 
+<<<<<<< HEAD
     counters[backend]["merge_splits_pass"] += 1
+=======
+    counters["inductor"]["merge_splits_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SplitCatSimplifier:
@@ -721,18 +794,30 @@ class SplitCatSimplifier:
             transform_params_list,  # type: ignore[arg-type]
         )
         self.erase_old_nodes(graph, split_node, next_users)  # type: ignore[arg-type]
+<<<<<<< HEAD
         counters[backend]["unbind_stack_pass"] += 1
 
     def get_user_input_list(
         self, split_node: torch.fx.Node, next_users: list[torch.fx.Node]
     ) -> list[list[torch.fx.Node | _Range]]:
+=======
+        counters["inductor"]["unbind_stack_pass"] += 1
+
+    def get_user_input_list(
+        self, split_node: torch.fx.Node, next_users: list[torch.fx.Node]
+    ) -> list[list[Union[torch.fx.Node, _Range]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns list of inputs to the following user nodes, in order. The outer list represents the user node. The inner
         list represents the inputs to that particular node. This list can either contain
           - a tuple representing the ranges of get_items that should go into the cat (closed interval)
           - torch.fx.Node representing "other" inputs (which are not coming from our split)
         """
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]] = []
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for user in next_users:
             if user.target in (torch.cat, torch.stack):
                 user_inputs_list.append(self.get_merged_user_inputs(split_node, user))
@@ -742,7 +827,11 @@ class SplitCatSimplifier:
 
     def get_merged_user_inputs(
         self, split_node: torch.fx.Node, cat_node: torch.fx.Node
+<<<<<<< HEAD
     ) -> list[torch.fx.Node | _Range]:
+=======
+    ) -> list[Union[torch.fx.Node, _Range]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         user_inputs = get_arg_value(cat_node, 0, "tensors")
         simplified_user_inputs = []
         split_users = OrderedSet(split_node.users.keys())
@@ -769,8 +858,13 @@ class SplitCatSimplifier:
         return node_input
 
     def merge_consecutive_inputs(
+<<<<<<< HEAD
         self, inputs: list[torch.fx.Node | int]
     ) -> list[torch.fx.Node | _Range]:
+=======
+        self, inputs: list[Union[torch.fx.Node, int]]
+    ) -> list[Union[torch.fx.Node, _Range]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Merge consecutive inputs going into a user node.
 
@@ -801,8 +895,13 @@ class SplitCatSimplifier:
         self,
         split_sections,
         next_users,
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]],
     ) -> list[_Range] | None:
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]],
+    ) -> Optional[list[_Range]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ranges = OrderedSet[Any]()
         for user_inputs in user_inputs_list:
             ranges.update(u for u in user_inputs if isinstance(u, tuple))
@@ -820,6 +919,7 @@ class SplitCatSimplifier:
         split_ranges = self.fill_gaps(split_ranges, 0, cumulative_sizes[-1])
         if len(split_sections) == len(split_ranges):  # Simplification not possible
             return None
+<<<<<<< HEAD
         counters[backend]["scmerge_split_sections_removed"] = len(split_sections) - len(
             split_ranges
         )
@@ -827,6 +927,15 @@ class SplitCatSimplifier:
 
     def has_non_overlapping_ranges(self, ranges: list[_Range]) -> bool:
         for range_, next_range in itertools.pairwise(ranges):
+=======
+        counters["inductor"]["scmerge_split_sections_removed"] = len(
+            split_sections
+        ) - len(split_ranges)
+        return split_ranges
+
+    def has_non_overlapping_ranges(self, ranges: list[_Range]) -> bool:
+        for range_, next_range in zip(ranges, ranges[1:]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if range_[1] > next_range[0]:
                 return False
         return True
@@ -847,8 +956,13 @@ class SplitCatSimplifier:
         self,
         split_node: torch.fx.Node,
         next_users: list[torch.fx.Node],
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]],
     ) -> list[list[_TransformParam]] | None:
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]],
+    ) -> Optional[list[list[_TransformParam]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Figure out what transforms are needed for each input to each cat node.
 
@@ -901,7 +1015,11 @@ class SplitCatSimplifier:
         graph: torch.fx.Graph,
         split_node: torch.fx.Node,
         split_sections: list[int],
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]],
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         split_ranges: list[_Range],
     ) -> list[list[torch.fx.Node]]:
         """
@@ -930,7 +1048,11 @@ class SplitCatSimplifier:
                         [r[1] - r[0] for r in split_ranges],
                         dim=split_dim,
                     )
+<<<<<<< HEAD
                 counters[backend]["scmerge_split_added"] += 1
+=======
+                counters["inductor"]["scmerge_split_added"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             split_items = []
             with graph.inserting_after(new_split):
                 for i in range(len(split_ranges)):
@@ -949,7 +1071,10 @@ class SplitCatSimplifier:
                 if isinstance(user_input, tuple):
                     # Find the correct new getitem (present in split_items)
                     new_user_inputs.append(
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         split_items[
                             split_ranges.index(
                                 (
@@ -1000,7 +1125,10 @@ class SplitCatSimplifier:
                 for user_input_new, transform_param in zip(
                     user_inputs_new, transform_params
                 ):
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if not is_node_meta_valid(user_input_new):
                         log.debug("example value absent for node: %s", user_input_new)
                         return
@@ -1015,7 +1143,10 @@ class SplitCatSimplifier:
                         stack_dim is None or stack_dim == unsqueeze_params[0]
                     ):
                         to_stack.append(user_input_new)
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         to_stack_meta.append(user_input_new.meta["example_value"])
                         stack_dim = unsqueeze_params[0]
                         continue
@@ -1036,12 +1167,18 @@ class SplitCatSimplifier:
                         if unsqueeze_params:
                             to_stack.append(user_input_new)
                             stack_dim = unsqueeze_params[0]
+<<<<<<< HEAD
                             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             to_stack_meta.append(user_input_new.meta["example_value"])
                             continue
 
                     if unflatten_params:
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         user_input_new_meta = user_input_new.meta["example_value"]
                         user_input_new = graph.call_function(
                             torch.unflatten, args=(user_input_new, *unflatten_params)
@@ -1051,7 +1188,10 @@ class SplitCatSimplifier:
                             *unflatten_params,  # type: ignore[arg-type]
                         )
                     if movedim_params:
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         user_input_new_meta = user_input_new.meta["example_value"]
                         user_input_new = graph.call_function(
                             torch.movedim, args=(user_input_new, *movedim_params)
@@ -1061,7 +1201,10 @@ class SplitCatSimplifier:
                             *movedim_params,  # type: ignore[arg-type]
                         )
                     if flatten_params:
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         user_input_new_meta = user_input_new.meta["example_value"]
                         user_input_new = graph.call_function(
                             torch.flatten, args=(user_input_new, *flatten_params)
@@ -1072,7 +1215,10 @@ class SplitCatSimplifier:
                         )
                     user_inputs_new_transformed.append(user_input_new)
                     user_inputs_new_transformed_meta.append(
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         user_input_new.meta["example_value"]
                     )
                 if to_stack:
@@ -1099,7 +1245,11 @@ class SplitCatSimplifier:
                         user_inputs_new_transformed_meta,
                         dim=cat_dim,
                     )
+<<<<<<< HEAD
                     counters[backend]["scmerge_cat_added"] += 1
+=======
+                    counters["inductor"]["scmerge_cat_added"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     new_cat_node = user_inputs_new_transformed[-1]
                     new_cat_node.meta["example_value"] = (
@@ -1131,12 +1281,20 @@ class SplitCatSimplifier:
         next_users: list[torch.fx.Node],
     ):
         to_remove = [split_node]
+<<<<<<< HEAD
         counters[backend]["scmerge_split_removed"] += 1
+=======
+        counters["inductor"]["scmerge_split_removed"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to_remove.extend(split_node.users.keys())
         for next_user in next_users:
             if next_user.target not in (torch.cat, torch.stack):
                 continue
+<<<<<<< HEAD
             counters[backend]["scmerge_cat_removed"] += 1
+=======
+            counters["inductor"]["scmerge_cat_removed"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             to_remove.append(next_user)
         for node in reversed(to_remove):
             if len(node.users.keys()) == 0:
@@ -1177,8 +1335,13 @@ class UnbindCatRemover(SplitCatSimplifier):
         self,
         split_sections: list[int],
         next_users: list[torch.fx.Node],
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]],
     ) -> list[_Range] | None:
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]],
+    ) -> Optional[list[_Range]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         simplified_split_ranges = super().get_simplified_split_ranges(
             split_sections, next_users, user_inputs_list
         )
@@ -1190,8 +1353,13 @@ class UnbindCatRemover(SplitCatSimplifier):
         self,
         split_node: torch.fx.Node,
         next_users: list[torch.fx.Node],
+<<<<<<< HEAD
         user_inputs_list: list[list[torch.fx.Node | _Range]],
     ) -> list[list[_TransformParam]] | None:
+=======
+        user_inputs_list: list[list[Union[torch.fx.Node, _Range]]],
+    ) -> Optional[list[list[_TransformParam]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Figure out what transforms are needed for each input to each cat node.
 
@@ -1329,7 +1497,11 @@ def merge_split_squeeze(
             graph.erase_node(squeeze)
             graph.erase_node(getitem_node)
     graph.erase_node(split)
+<<<<<<< HEAD
     counters[backend]["split_cat_pass"] += 1
+=======
+    counters["inductor"]["split_cat_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 getitem_unbind = ListOf(
@@ -1432,7 +1604,10 @@ def simplify_split_cat(match: Match, split_sections: list[int], dim: int):
     if not isinstance(split_sections, (list, tuple)):  # Unnormalized split
         return
     split_node = next(node for node in match.nodes if node.target == torch.split)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SplitCatSimplifier().simplify(match.graph, split_node, split_sections)
 
 
@@ -1488,7 +1663,11 @@ def is_sorted_and_consecutive(arr: list[int]) -> bool:
     # check if the array is sorted
     if arr == sorted(arr):
         # check if the differences between adjacent elements are all 1
+<<<<<<< HEAD
         return all(x[1] - x[0] == 1 for x in itertools.pairwise(arr))
+=======
+        return all(x[1] - x[0] == 1 for x in zip(arr, arr[1:]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return False
 
@@ -1501,7 +1680,10 @@ def calculate_fused_tensor_size(split_node: torch.fx.Node, indices: list[int]) -
     for i in range(len(split_node.args[1])):  # type: ignore[arg-type]
         if i in indices:
             fused_tensor_size += split_node.args[1][i]  # type: ignore[operator, assignment, index]
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fused_tensor_size
 
 
@@ -1591,7 +1773,11 @@ def merge_getitem_cat(match: Match, split_sections: list[int], dim: int):
                 split_node = new_split_node
                 split_sections = new_split_sections
 
+<<<<<<< HEAD
                 counters[backend]["merge_getitem_cat_pass"] += 1
+=======
+                counters["inductor"]["merge_getitem_cat_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ############pattern to be optimized is#########
@@ -1652,7 +1838,11 @@ def mutate_cat_node(match: Match, split_sections: list[int], dim: int):
                 cat_user.replace_all_uses_with(split_node.args[0])  # type: ignore[arg-type]
                 # remove the cat node
                 graph.erase_node(cat_user)
+<<<<<<< HEAD
                 counters[backend]["mutate_cat_pass"] += 1
+=======
+                counters["inductor"]["mutate_cat_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # case 2: the cat uses some getitems from the split
             elif is_node_meta_valid(split_node.args[0]):  # type: ignore[arg-type]
                 # check the split dim, and construct the slice tuple
@@ -1680,7 +1870,11 @@ def mutate_cat_node(match: Match, split_sections: list[int], dim: int):
 
                 # remove the cat node
                 graph.erase_node(cat_user)
+<<<<<<< HEAD
                 counters[backend]["mutate_cat_pass"] += 1
+=======
+                counters["inductor"]["mutate_cat_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 getitem_split_aten = ListOf(
@@ -1715,12 +1909,15 @@ def normalize_split_default_aten(match: Match, *args, **kwargs):
         return
     if split_dim < 0:  # Normalize split dim
         split_dim += split_input.meta["val"].dim()
+<<<<<<< HEAD
     # we also need to check the input of the split_node
     # primals =torch.randn(4096, 300)
     # split = torch.ops.aten.split.Tensor(primals, 320, 1) -> truncate to 300 automatically
     # split_2 = torch.ops.aten.split_with_sizes.default(primals, [320], dim = 1) -> runtime error
     split_input_size = split_input.meta["val"].shape[split_dim]
     split_size = min(split_size, split_input_size)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     split_section_list = [split_size] * (len(split_node.meta["val"]))
     new_args = (split_input, split_section_list)
     new_kwargs = {"dim": split_dim}
@@ -1740,7 +1937,11 @@ def normalize_split_default_aten(match: Match, *args, **kwargs):
     split_node.replace_all_uses_with(new_split_node)
     new_split_node.meta.update(split_node.meta)
     graph.erase_node(split_node)
+<<<<<<< HEAD
     counters[backend]["normalization_aten_pass"] += 1
+=======
+    counters["inductor"]["normalization_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -1781,7 +1982,11 @@ def normalize_split_with_size_default_aten(match: Match, *args, **kwargs):
     split_node.replace_all_uses_with(new_split_node)
     new_split_node.meta.update(split_node.meta)
     graph.erase_node(split_node)
+<<<<<<< HEAD
     counters[backend]["normalization_aten_pass"] += 1
+=======
+    counters["inductor"]["normalization_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -1804,11 +2009,15 @@ def merge_split_cat_aten(match: Match, *args, **kwargs):
     for cat_node in list(getitem_nodes[0].users.keys()):
         cat_dim = get_arg_value(cat_node, 1, "dim")
         cat_inputs = get_arg_value(cat_node, 0, "tensors")
+<<<<<<< HEAD
         try:
             cat_input_len = len(cat_inputs)
         except TypeError:
             continue
         if cat_input_len < threshold_to_cat:
+=======
+        if len(cat_inputs) < threshold_to_cat:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         # check split node and cat node has same dim, and all getitem nodes have same parent node
         parent_to_indices = defaultdict(list)  # type: ignore[var-annotated]
@@ -1882,7 +2091,11 @@ def merge_split_cat_aten(match: Match, *args, **kwargs):
                 graph.erase_node(getitem_node)
         if len(split_node.users) == 0:
             graph.erase_node(split_node)
+<<<<<<< HEAD
         counters[backend]["split_cat_aten_pass"] += 1
+=======
+        counters["inductor"]["split_cat_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -1942,7 +2155,11 @@ def merge_select_cat_aten(match: Match, *args, **kwargs):
             for select_node in select_nodes:
                 if len(select_node.users) == 0:
                     graph.erase_node(select_node)
+<<<<<<< HEAD
             counters[backend]["select_cat_aten_pass"] += 1
+=======
+            counters["inductor"]["select_cat_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -1978,7 +2195,10 @@ def normalize_cat_default_aten(match: Match, *args, **kwargs):
 
     assert all(ndim == x.meta["val"].dim() or is_empty_tensor(x) for x in tensors)
 
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if cat_dim < 0:  # Normalize cat dim
         cat_dim += ndim
 
@@ -1991,7 +2211,11 @@ def normalize_cat_default_aten(match: Match, *args, **kwargs):
     cat_node.replace_all_uses_with(new_cat_node)
     new_cat_node.meta.update(cat_node.meta)
     graph.erase_node(cat_node)
+<<<<<<< HEAD
     counters[backend]["normalization_aten_pass"] += 1
+=======
+    counters["inductor"]["normalization_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -2052,7 +2276,11 @@ def merge_unbind_stack_aten(match: Match, *args, **kwargs):
     for select_node in select_nodes:
         if len(select_node.users) == 0:
             graph.erase_node(select_node)
+<<<<<<< HEAD
     counters[backend]["unbind_stack_aten_pass"] += 1
+=======
+    counters["inductor"]["unbind_stack_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def divide_into_consecutive_sublists(indices: list[int]) -> list[list[int]]:
@@ -2390,7 +2618,11 @@ def split_cat_to_slices(match: Match, split_sections: list[int], dim: int):
             cat_inputs = cat_node.args[0]  # type: ignore[union-attr]
             graph.erase_node(cat_node)
             remove_split_unbind_children(graph, cat_inputs)  # type: ignore[arg-type]
+<<<<<<< HEAD
             counters[backend]["split_cat_to_slices_pass"] += 1
+=======
+            counters["inductor"]["split_cat_to_slices_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         if len(new_cat_args) > 1 and len(new_cat_args) < len(cat_inputs):
             new_args = (new_cat_args,)
@@ -2406,7 +2638,11 @@ def split_cat_to_slices(match: Match, split_sections: list[int], dim: int):
                 # remove the cat node
                 graph.erase_node(cat_node)
                 remove_split_unbind_children(graph, cat_inputs)
+<<<<<<< HEAD
                 counters[backend]["split_cat_to_slices_pass"] += 1
+=======
+                counters["inductor"]["split_cat_to_slices_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ############pattern to be optimized is#########
@@ -2467,7 +2703,11 @@ def unbind_cat_to_view(match: Match, unbind_input: torch.fx.Node, dim: int):
             cat_inputs = cat_node.args[0]  # type: ignore[union-attr]
             graph.erase_node(cat_node)
             remove_split_unbind_children(graph, cat_inputs)  # type: ignore[arg-type]
+<<<<<<< HEAD
             counters[backend]["unbind_cat_to_view_pass"] += 1
+=======
+            counters["inductor"]["unbind_cat_to_view_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         if len(new_cat_args) > 1 and len(new_cat_args) < len(inputs):
             # get the view shape
@@ -2487,7 +2727,11 @@ def unbind_cat_to_view(match: Match, unbind_input: torch.fx.Node, dim: int):
             cat_inputs = cat_node.args[0]  # type: ignore[union-attr]
             graph.erase_node(cat_node)
             remove_split_unbind_children(graph, cat_inputs)  # type: ignore[arg-type]
+<<<<<<< HEAD
             counters[backend]["unbind_cat_to_view_pass"] += 1
+=======
+            counters["inductor"]["unbind_cat_to_view_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def reshape_cat_node_to_stack(
@@ -2512,8 +2756,12 @@ def reshape_cat_node_to_stack(
             args=(cat_node, tuple(reshape_list)),
         )
         reshape_node.meta["example_value"] = torch.reshape(
+<<<<<<< HEAD
             cat_node.meta["example_value"],
             tuple(reshape_list),  # pyrefly: ignore [bad-argument-type]
+=======
+            cat_node.meta["example_value"], tuple(reshape_list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         permute_list = list(range(len(stack_shape)))
         permute_list[stack_dim], permute_list[split_or_unbind_dim] = (
@@ -2638,7 +2886,11 @@ def split_stack_to_cats(match: Match, split_sections: list[int], dim: int):
         # case 1: only one node in the new cat args, don't need to cat
         if len(new_cat_args) == 1:
             reshape_cat_node_to_stack(graph, new_cat_args[0], stack_node, split_dim)
+<<<<<<< HEAD
             counters[backend]["split_stack_to_cats_pass"] += 1
+=======
+            counters["inductor"]["split_stack_to_cats_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         if len(new_cat_args) > 1 and len(new_cat_args) < len(inputs):
             with graph.inserting_after(stack_node):
@@ -2651,7 +2903,11 @@ def split_stack_to_cats(match: Match, split_sections: list[int], dim: int):
                     new_cat_args_meta, dim=split_dim
                 )
                 reshape_cat_node_to_stack(graph, cat_node, stack_node, split_dim)
+<<<<<<< HEAD
                 counters[backend]["split_stack_to_cats_pass"] += 1
+=======
+                counters["inductor"]["split_stack_to_cats_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ############pattern to be optimized is#########
@@ -2710,7 +2966,11 @@ def unbind_stack_to_slices(match: Match, unbind_input: torch.fx.Node, dim: int):
         # case 1: only one node in the new cat args, don't need to cat
         if len(new_cat_args) == 1:
             reshape_cat_node_to_stack(graph, new_cat_args[0], stack_node, unbind_dim)
+<<<<<<< HEAD
             counters[backend]["unbind_stack_to_slices_pass"] += 1
+=======
+            counters["inductor"]["unbind_stack_to_slices_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         if len(new_cat_args) > 1 and len(new_cat_args) < len(inputs):
             # get the view shape
@@ -2725,7 +2985,11 @@ def unbind_stack_to_slices(match: Match, unbind_input: torch.fx.Node, dim: int):
                     new_cat_args_meta, dim=cat_dim
                 )
                 reshape_cat_node_to_stack(graph, new_cat_node, stack_node, unbind_dim)
+<<<<<<< HEAD
             counters[backend]["unbind_stack_to_slices_pass"] += 1
+=======
+            counters["inductor"]["unbind_stack_to_slices_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ############pattern to be optimized is#########
@@ -2830,7 +3094,11 @@ def move_reshape_out_of_split_stack(match: Match, *args, **kwargs):
             # check the input of stack node, and remove nodes that have no users
             remove_split_unbind_children(graph, stack_inputs)  # type: ignore[arg-type]
             remove_split_unbind_children(graph, split_users)  # type: ignore[arg-type]
+<<<<<<< HEAD
             counters[backend]["move_reshape_out_of_split_stack_pass"] += 1
+=======
+            counters["inductor"]["move_reshape_out_of_split_stack_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         if len(new_cat_args) > 1 and len(new_cat_args) < len(inputs):
             # decompose the cat args into multiple stack nodes, i.e., we stack
@@ -2892,7 +3160,11 @@ def move_reshape_out_of_split_stack(match: Match, *args, **kwargs):
                 graph.erase_node(stack_node)
                 remove_split_unbind_children(graph, stack_inputs)  # type: ignore[arg-type]
                 remove_split_unbind_children(graph, split_users)  # type: ignore[arg-type]
+<<<<<<< HEAD
             counters[backend]["move_reshape_out_of_split_stack_pass"] += 1
+=======
+            counters["inductor"]["move_reshape_out_of_split_stack_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 view_getitem_split_aten = ListOf(
@@ -2984,6 +3256,7 @@ def move_view_after_cat(match: Match, *args, **kwargs):
             cat_node.replace_all_uses_with(view_node)
             view_node.meta.update(cat_node.meta)
             graph.erase_node(cat_node)
+<<<<<<< HEAD
         counters[backend]["move_view_after_cat_aten_pass"] += 1
 
 
@@ -3048,3 +3321,6 @@ def replace_einsum_to_pointwise(match: Match, *args, **kwargs):
         # pyrefly: ignore [bad-argument-type]
         match.replace_by_example(repl, [input, weights])
         counters[backend]["einsum_to_pointwise_pass"] += 1
+=======
+        counters["inductor"]["move_view_after_cat_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

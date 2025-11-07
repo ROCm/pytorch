@@ -93,8 +93,12 @@ TORCH_DECLARE_TYPED_REGISTRY(
     std::vector<at::Tensor>&,
     ReduceOp,
     uint32_t,
+<<<<<<< HEAD
     uint64_t,
     std::chrono::milliseconds);
+=======
+    uint64_t);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // This function initializes a vector of CUDA streams, one for every
 // tensor in the input tensor vector, and ensures that these streams are
@@ -232,8 +236,13 @@ void setInput(O& opts, at::Tensor& tensor, std::vector<int64_t>& counts) {
 }
 
 template <typename T, typename O>
+<<<<<<< HEAD
 void setOutputs(O& opts, std::vector<at::Tensor>& tensors, int64_t count) {
   opts.setOutputs(getDataPointers<T>(tensors), count);
+=======
+void setOutputs(O& opts, std::vector<at::Tensor>& tensors) {
+  opts.setOutputs(getDataPointers<T>(tensors), tensors[0].numel());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename T, typename O>
@@ -270,25 +279,37 @@ class AsyncAllreduceWork : public ProcessGroupGloo::AsyncWork {
       std::vector<at::Tensor>& inputs,
       ReduceOp reduceOp,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {inputs},
             OpType::ALLREDUCE,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:all_reduce",
             inputs),
         inputs(inputs),
         reduceOp(std::move(reduceOp)),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const ReduceOp reduceOp;
   const uint32_t tag;
 
   void allreduce(std::vector<at::Tensor>& tensors) {
+<<<<<<< HEAD
     auto tensor = tensors[0];
     if (tensor.is_complex()) {
       TORCH_CHECK(
@@ -306,6 +327,13 @@ class AsyncAllreduceWork : public ProcessGroupGloo::AsyncWork {
     // Use tensor.numel() instead of tensors[0].numel() to
     // get the right number of elements when tensors[0] is complex
     GENERATE_ALL_TYPES(scalarType, setOutputs, opts, tensors, tensor.numel());
+=======
+    const auto& scalarType = tensors[0].scalar_type();
+    gloo::AllreduceOptions opts(context_);
+    opts.setReduceFunction(getFunction(scalarType, reduceOp));
+    opts.setTag(tag);
+    GENERATE_ALL_TYPES(scalarType, setOutputs, opts, tensors);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::allreduce(opts);
 
     // Gloo doesn't support AVG so we use SUM + division.
@@ -347,6 +375,7 @@ class AsyncAllreduceCoalescedWork : public AsyncAllreduceWork {
       std::vector<at::Tensor>& inputs,
       ReduceOp reduceOp,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
       : AsyncAllreduceWork(
@@ -356,6 +385,10 @@ class AsyncAllreduceCoalescedWork : public AsyncAllreduceWork {
             tag,
             seq,
             timeout) {}
+=======
+      uint64_t seq)
+      : AsyncAllreduceWork(context, inputs, std::move(reduceOp), tag, seq) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void run() override {
     allreduceCoalesced(inputs);
@@ -386,20 +419,31 @@ class AsyncSparseAllreduceWork : public ProcessGroupGloo::AsyncWork {
       std::shared_ptr<gloo::Context> context,
       std::vector<at::Tensor>& inputs,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {inputs},
             OpType::_ALLREDUCE_SPARSE,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:sparse_all_reduce",
             inputs),
         inputs(inputs),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint32_t tag;
 
   // We share dimensionality about the sparse tensors before collecting
@@ -568,7 +612,10 @@ class AsyncSparseAllreduceWork : public ProcessGroupGloo::AsyncWork {
     gloo::AllgatherOptions opts(context_);
     opts.setOutput(buffer.mutable_data_ptr<int64_t>(), buffer.numel());
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::allgather(opts);
 
     return metadata;
@@ -600,7 +647,10 @@ class AsyncSparseAllreduceWork : public ProcessGroupGloo::AsyncWork {
         input.numel());
     opts.setOutput(output.mutable_data_ptr<int64_t>(), counts);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::allgatherv(opts);
 
     // Compile indices tensor per rank.
@@ -646,7 +696,10 @@ class AsyncSparseAllreduceWork : public ProcessGroupGloo::AsyncWork {
     GENERATE_ALL_TYPES(
         valueTensor.scalar_type(), setOutput, opts, output, counts);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::allgatherv(opts);
 
     // Compile values tensor per rank.

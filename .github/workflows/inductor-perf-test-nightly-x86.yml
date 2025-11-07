@@ -1,9 +1,12 @@
 name: inductor-perf-nightly-x86
 
 on:
+<<<<<<< HEAD
   pull_request:
     paths:
       - .github/workflows/inductor-perf-test-nightly-x86.yml
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   schedule:
     # - cron: 0 7 * * 1-6
     # - cron: 0 7 * * 0
@@ -43,11 +46,14 @@ on:
         required: false
         type: boolean
         default: false
+<<<<<<< HEAD
       freezing:
         description: Run freezing?
         required: false
         type: boolean
         default: true
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       benchmark_configs:
         description: The list of configs used the benchmark
         required: false
@@ -55,17 +61,28 @@ on:
         default: inductor_huggingface_perf_cpu_x86,inductor_timm_perf_cpu_x86,inductor_torchbench_perf_cpu_x86
 
 concurrency:
+<<<<<<< HEAD
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'schedule' }}
   cancel-in-progress: true
 
 permissions:
   id-token: write
   contents: read
+=======
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}-${{ github.event_name == 'schedule' }}
+  cancel-in-progress: true
+
+permissions: read-all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -74,14 +91,24 @@ jobs:
       curr_ref_type: ${{ github.ref_type }}
       opt_out_experiments: lf
 
+<<<<<<< HEAD
   inductor-build:
     name: inductor-build
+=======
+  linux-jammy-cpu-py3_9-gcc11-inductor-build:
+    name: linux-jammy-cpu-py3.9-gcc11-inductor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image-name: ci-image:pytorch-linux-jammy-py3-gcc11-inductor-benchmarks
+=======
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "inductor_huggingface_perf_cpu_x86", shard: 1, num_shards: 3, runner: "linux.24xl.spr-metal" },
@@ -98,6 +125,7 @@ jobs:
           { config: "inductor_torchbench_perf_cpu_x86", shard: 4, num_shards: 4, runner: "linux.24xl.spr-metal" },
         ]}
       selected-test-configs: ${{ inputs.benchmark_configs }}
+<<<<<<< HEAD
       build-additional-packages: "vision audio torchao"
     secrets: inherit
 
@@ -111,6 +139,21 @@ jobs:
       dashboard-tag: training-false-inference-true-default-true-dynamic-true-cppwrapper-true-aotinductor-true-freezing-true
       docker-image: ${{ needs.inductor-build.outputs.docker-image }}
       test-matrix: ${{ needs.inductor-build.outputs.test-matrix }}
+=======
+    secrets: inherit
+
+
+  linux-jammy-cpu-py3_9-gcc11-inductor-test-nightly:
+    name: linux-jammy-cpu-py3.9-gcc11-inductor
+    uses: ./.github/workflows/_linux-test.yml
+    needs: linux-jammy-cpu-py3_9-gcc11-inductor-build
+    if: github.event.schedule == '0 7 * * *'
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      dashboard-tag: training-false-inference-true-default-true-dynamic-true-cppwrapper-true-aotinductor-true
+      docker-image: ${{ needs.linux-jammy-cpu-py3_9-gcc11-inductor-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-cpu-py3_9-gcc11-inductor-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       timeout-minutes: 720
       # disable monitor in perf tests
       disable-monitor: false
@@ -118,6 +161,7 @@ jobs:
       monitor-data-collect-interval: 4
     secrets: inherit
 
+<<<<<<< HEAD
   inductor-test:
     name: inductor-test
     uses: ./.github/workflows/_linux-test.yml
@@ -128,6 +172,19 @@ jobs:
       dashboard-tag: training-${{ inputs.training }}-inference-${{ inputs.inference }}-default-${{ inputs.default }}-dynamic-${{ inputs.dynamic }}-cppwrapper-${{ inputs.cppwrapper }}-aotinductor-${{ inputs.aotinductor }}-freezing-${{ inputs.freezing }}
       docker-image: ${{ needs.inductor-build.outputs.docker-image }}
       test-matrix: ${{ needs.inductor-build.outputs.test-matrix }}
+=======
+
+  linux-jammy-cpu-py3_9-gcc11-inductor-test:
+    name: linux-jammy-cpu-py3.9-gcc11-inductor
+    uses: ./.github/workflows/_linux-test.yml
+    needs: linux-jammy-cpu-py3_9-gcc11-inductor-build
+    if: github.event_name == 'workflow_dispatch'
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      dashboard-tag: training-${{ inputs.training }}-inference-${{ inputs.inference }}-default-${{ inputs.default }}-dynamic-${{ inputs.dynamic }}-cppwrapper-${{ inputs.cppwrapper }}-aotinductor-${{ inputs.aotinductor }}
+      docker-image: ${{ needs.linux-jammy-cpu-py3_9-gcc11-inductor-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-cpu-py3_9-gcc11-inductor-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       timeout-minutes: 720
       # disable monitor in perf tests
       disable-monitor: false

@@ -55,17 +55,30 @@ std::vector<int64_t> THPUtils_unpackLongs(PyObject* arg) {
     for (int i = 0; i != nDim; ++i) {
       PyObject* item =
           tuple ? PyTuple_GET_ITEM(arg, i) : PyList_GET_ITEM(arg, i);
+<<<<<<< HEAD
       TORCH_CHECK(
           THPUtils_checkLong(item),
           "expected int at position ",
           i,
           ", but got: ",
           THPUtils_typename(item));
+=======
+      if (!THPUtils_checkLong(item)) {
+        std::ostringstream oss;
+        oss << "expected int at position " << i
+            << ", but got: " << THPUtils_typename(item);
+        throw std::runtime_error(oss.str());
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       sizes[i] = THPUtils_unpackLong(item);
     }
     return sizes;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "Expected tuple or list");
+=======
+  throw std::runtime_error("Expected tuple or list");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool THPUtils_checkIntTuple(PyObject* arg) {
@@ -81,10 +94,19 @@ bool THPUtils_checkIntTuple(PyObject* arg) {
 }
 
 std::vector<int> THPUtils_unpackIntTuple(PyObject* arg) {
+<<<<<<< HEAD
   TORCH_CHECK(THPUtils_checkIntTuple(arg), "Couldn't unpack int tuple");
   std::vector<int> values(PyTuple_GET_SIZE(arg));
   for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(arg); ++i) {
     values[i] = THPUtils_unpackInt(PyTuple_GET_ITEM(arg, i));
+=======
+  if (!THPUtils_checkIntTuple(arg)) {
+    throw std::runtime_error("Couldn't unpack int tuple");
+  }
+  std::vector<int> values(PyTuple_GET_SIZE(arg));
+  for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(arg); ++i) {
+    values[i] = (int)THPUtils_unpackLong(PyTuple_GET_ITEM(arg, i));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return values;
 }
@@ -238,6 +260,7 @@ uint8_t storage_get(const at::Storage& self, ptrdiff_t idx) {
   return self_t[idx].item<uint8_t>();
 }
 
+<<<<<<< HEAD
 std::string uuid_to_string(const char* uuid_bytes) {
   // UUIDs are a 128-bit label. CUDA/HIP and XPU store this as char[16].
   // For string representation, the code here expands this to
@@ -266,6 +289,8 @@ std::string uuid_to_string(const char* uuid_bytes) {
       (uint8_t)uuid_bytes[15]);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template class THPPointer<THPStorage>;
 // NOLINTBEGIN(misc-use-internal-linkage)
 namespace torch::gdb {
@@ -354,7 +379,11 @@ std::string dispatch_keyset_string(c10::DispatchKeySet keyset) {
 
 namespace pybind11::detail {
 
+<<<<<<< HEAD
 bool type_caster<at::Tensor>::load(handle src, bool /*unused*/) {
+=======
+bool type_caster<at::Tensor>::load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyObject* obj = src.ptr();
   if (THPVariable_Check(obj)) {
     value = THPVariable_Unpack(obj);
@@ -370,7 +399,11 @@ handle type_caster<at::Tensor>::cast(
   return handle(THPVariable_Wrap(src));
 }
 
+<<<<<<< HEAD
 bool type_caster<at::IntArrayRef>::load(handle src, bool /*unused*/) {
+=======
+bool type_caster<at::IntArrayRef>::load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyObject* source = src.ptr();
   auto tuple = PyTuple_Check(source);
   if (tuple || PyList_Check(source)) {
@@ -403,7 +436,11 @@ handle type_caster<at::IntArrayRef>::cast(
   return handle(THPUtils_packInt64Array(src.size(), src.data()));
 }
 
+<<<<<<< HEAD
 bool type_caster<at::SymIntArrayRef>::load(handle src, bool /*unused*/) {
+=======
+bool type_caster<at::SymIntArrayRef>::load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyObject* source = src.ptr();
 
   auto tuple = PyTuple_Check(source);
@@ -444,9 +481,13 @@ handle type_caster<at::SymIntArrayRef>::cast(
   return t.release();
 }
 
+<<<<<<< HEAD
 bool type_caster<at::ArrayRef<c10::SymNode>>::load(
     handle src,
     bool /*unused*/) {
+=======
+bool type_caster<at::ArrayRef<c10::SymNode>>::load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT(0, "NYI");
 }
 handle type_caster<at::ArrayRef<c10::SymNode>>::cast(

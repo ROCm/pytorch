@@ -22,6 +22,7 @@ from torch.testing import FileCheck
 torch._C._jit_set_profiling_executor(True)
 torch._C._get_graph_executor_optimize(True)
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     from torch.testing._internal.common_utils import parse_cmd_line_args
 
@@ -29,6 +30,8 @@ if __name__ == "__main__":
     # before instantiating tests.
     parse_cmd_line_args()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from itertools import combinations, permutations, product
 from textwrap import dedent
 
@@ -133,7 +136,11 @@ class TestTEFuser(JitTestCase):
         super().setUp()
         self.tensorexpr_options = TensorExprTestOptions()
 
+<<<<<<< HEAD
         # note: `self.dynamic_shapes` instantiated in specialization of class
+=======
+        # note: `self.dynamic_shapes` instatiated in specialization of class
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # defined below
 
         fusion_strategy = [("DYNAMIC", 20)] if self.dynamic_shapes else [("STATIC", 20)]
@@ -243,7 +250,11 @@ class TestTEFuser(JitTestCase):
             return x2.sum()
 
         with texpr_reductions_enabled():
+<<<<<<< HEAD
             a = torch.tensor(list(range(15)), dtype=torch.float, device="cpu")
+=======
+            a = torch.tensor(list(range(0, 15)), dtype=torch.float, device="cpu")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = a.reshape(5, 3)
             scripted = self.checkScript(func, (a,))
             self.assertLastGraphAllFused()
@@ -259,7 +270,11 @@ class TestTEFuser(JitTestCase):
             return x.sum((-2,)) * 2
 
         with texpr_reductions_enabled():
+<<<<<<< HEAD
             a = torch.tensor(list(range(15)), dtype=torch.float, device="cpu")
+=======
+            a = torch.tensor(list(range(0, 15)), dtype=torch.float, device="cpu")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = a.reshape(5, 3)
             scripted = self.checkScript(func, (a,))
             self.assertLastGraphAllFused()
@@ -271,7 +286,11 @@ class TestTEFuser(JitTestCase):
             return x.sum((0,), keepdim=True, dtype=torch.double) * 2
 
         with texpr_reductions_enabled():
+<<<<<<< HEAD
             a = torch.tensor(list(range(15)), dtype=torch.float, device="cpu")
+=======
+            a = torch.tensor(list(range(0, 15)), dtype=torch.float, device="cpu")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = a.reshape(5, 3)
 
             self.checkScript(func, (a,))
@@ -2234,7 +2253,11 @@ class TestTEFuser(JitTestCase):
 
         indices = [0, 1, 2, 3]
         sets = []
+<<<<<<< HEAD
         for i in range(len(indices) + 1):
+=======
+        for i in range(0, len(indices) + 1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for subset in combinations(indices, i):
                 sets.append(subset)  # noqa: PERF402
 
@@ -2946,10 +2969,14 @@ def f({", ".join(param_names)}):
 
     @slowTest
     @onlyCPU
+<<<<<<< HEAD
     @ops(
         [op for op in op_db if get_name(op) not in known_failures],
         dtypes=OpDTypes.supported,
     )
+=======
+    @ops(op_db, dtypes=OpDTypes.supported)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nnc_correctness(self, device, dtype, op):
         if not op.supports_tracing:
             self.skipTest("Requires tracing support")

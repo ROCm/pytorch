@@ -5,14 +5,21 @@ import logging
 import os
 import pickle
 import shutil
+<<<<<<< HEAD
 from abc import ABC, abstractmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import AbstractContextManager, nullcontext
 from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
 
 import torch.fx
+<<<<<<< HEAD
 from torch._dynamo.aot_compile_types import BundledAOTAutogradSerializableCallable
 from torch._dynamo.utils import dynamo_timed
 from torch._inductor.cpp_builder import normalize_path_separator
+=======
+from torch._dynamo.utils import dynamo_timed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.cudagraph_utils import BoxedDeviceIndex
 from torch._inductor.runtime.cache_dir_utils import temporary_cache_dir
 from torch._inductor.utils import BoxedBool, InputType
@@ -32,9 +39,15 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 class CompiledArtifact(ABC):
     """
     CompiledArtifact class represents the inductor cache artifacts that
+=======
+class CompiledArtifact:
+    """
+    CompiledArtifact class represents the precompiled inductor artifact that
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     can be invoked in order to avoid repeated compilation.
 
     CompiledArtifact can be obtained by calling standalone_compile(gm, example_inputs)
@@ -47,6 +60,7 @@ class CompiledArtifact(ABC):
     binary or unpacked data.
 
     Finally, the CompiledArtifact can be invoked via the __call__ method
+<<<<<<< HEAD
     to execute the cached artifact.
     """
 
@@ -109,6 +123,13 @@ class CacheCompiledArtifact(CompiledArtifact):
     """
 
     CACHE_HEADER = bytes("CacheCompiledArtifact", "utf-8")
+=======
+    to execute the precompiled artifact.
+    """
+
+    _compiled_fn: Callable[..., Any]
+    _artifacts: Optional[tuple[bytes, CacheInfo]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -142,6 +163,7 @@ class CacheCompiledArtifact(CompiledArtifact):
                 from .codecache import torch_key
 
                 writer = BytesWriter()
+<<<<<<< HEAD
                 writer.write_bytes(CacheCompiledArtifact.CACHE_HEADER)
                 writer.write_bytes(torch_key())
                 writer.write_str(key)
@@ -150,6 +172,13 @@ class CacheCompiledArtifact(CompiledArtifact):
                 from torch._inductor.codecache import write_atomic
 
                 write_atomic(path, writer.to_bytes())
+=======
+                writer.write_bytes(torch_key())
+                writer.write_str(key)
+                writer.write_bytes(artifact_bytes)
+                with open(path, "wb") as file:
+                    file.write(writer.to_bytes())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 assert format == "unpacked"
                 if os.path.exists(path):
@@ -176,6 +205,7 @@ class CacheCompiledArtifact(CompiledArtifact):
                             log.info("Output code written to: %s", output_file)
 
     @staticmethod
+<<<<<<< HEAD
     def _load_impl(
         cache_dir_ctx: AbstractContextManager[Any], key: str
     ) -> CompiledArtifact:
@@ -222,6 +252,11 @@ class CacheCompiledArtifact(CompiledArtifact):
         Do format specific prep and loads, return a context manager and key
         """
         path = normalize_path_separator(path)
+=======
+    def load(
+        *, path: str, format: Literal["binary", "unpacked"] = "binary"
+    ) -> CompiledArtifact:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with dynamo_timed("CompiledArtifact.load"):
             if format == "binary":
                 # can't assert that it is a file since it might not exist yet
@@ -239,7 +274,12 @@ class CacheCompiledArtifact(CompiledArtifact):
                 assert reader.is_finished()
 
                 torch.compiler.load_cache_artifacts(artifact_bytes)
+<<<<<<< HEAD
                 return key, nullcontext()
+=======
+
+                cache_dir_ctx: AbstractContextManager[None] = nullcontext()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 assert format == "unpacked"
                 assert os.path.isdir(path)
@@ -249,6 +289,7 @@ class CacheCompiledArtifact(CompiledArtifact):
                 assert len(files) == 1
                 key = files[0]
                 cache_dir_ctx = temporary_cache_dir(path)
+<<<<<<< HEAD
                 return key, cache_dir_ctx
 
     @staticmethod
@@ -348,6 +389,44 @@ class AOTCompiledArtifact(CompiledArtifact):
             artifact = reader.read_bytes()
             assert reader.is_finished()
             return AOTCompiledArtifact.deserialize(artifact)
+=======
+
+            with (
+                cache_dir_ctx,
+                config.patch(unsafe_skip_cache_dynamic_shape_guards=True),
+            ):
+                with torch._functorch.config.patch(strict_autograd_cache=True):
+                    from torch._functorch._aot_autograd.autograd_cache import (
+                        AOTAutogradCache,
+                    )
+
+                    entry = AOTAutogradCache._lookup(
+                        key,
+                        local=True,
+                        remote=False,
+                        args=[],
+                        cache_info={},
+                        aot_config=None,
+                    )
+
+                assert entry is not None
+
+                from .compile_fx import _CompileFxKwargs
+
+                fx_config = _CompileFxKwargs(
+                    cudagraphs=BoxedBool(False),
+                    boxed_forward_device_index=BoxedDeviceIndex(0),
+                )
+
+                context = torch._guards.TracingContext(
+                    FakeTensorMode(shape_env=ShapeEnv())
+                )
+                with torch._guards.tracing(context):
+                    compiled_fn = entry.wrap_post_compile(
+                        [], entry.sanitized_aot_config, fx_config
+                    )
+            return CompiledArtifact(lambda *args: compiled_fn(list(args)), None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def standalone_compile(
@@ -356,11 +435,15 @@ def standalone_compile(
     *,
     dynamic_shapes: Any,
     options: Any,
+<<<<<<< HEAD
     aot: bool = False,  # AOT mode, which uses BundledAOTAutogradCache
 ) -> CompiledArtifact:
     """
     Implementation of torch.inductor.standalone_compile
     """
+=======
+) -> CompiledArtifact:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.compiler._cache import CacheArtifactManager
 
     from .compile_fx import compile_fx
@@ -375,7 +458,10 @@ def standalone_compile(
         # Reuse fake_mode from the TracingContext.
         # NB: The TracingContext only exists if we're currently in a torch.compile backend.
         context = torch._guards.TracingContext.get()
+<<<<<<< HEAD
         assert context.fake_mode is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fake_mode = context.fake_mode
     elif dynamic_shapes == "from_graph":
         fake_mode = FakeTensorMode(shape_env=ShapeEnv())
@@ -386,13 +472,18 @@ def standalone_compile(
         last_node = next(iter(reversed(gm.graph.nodes)))
         assert last_node.op == "output"
         assert len(last_node.args) == 1
+<<<<<<< HEAD
 
         def handle_node(node: torch.fx.Node) -> None:
             nonlocal fake_mode
+=======
+        for node in last_node.args[0]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if "example_value" in node.meta:
                 maybe_tensor = node.meta["example_value"]
                 if isinstance(maybe_tensor, torch._subclasses.fake_tensor.FakeTensor):
                     fake_mode = maybe_tensor.fake_mode
+<<<<<<< HEAD
 
         # If gm came from Dynamo, then last_node.args[0] is always a list,
         # even in single-Tensor returns.
@@ -406,6 +497,8 @@ def standalone_compile(
             for node in last_node.args[0]:
                 handle_node(node)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         raise ValueError(
             f"standalone_compile got unsupported `dynamic_shapes` value: dynamic_shapes={dynamic_shapes}."
@@ -416,7 +509,10 @@ def standalone_compile(
         torch._guards.tracing(context),
         CacheArtifactManager.with_fresh_cache(),
         config.patch("triton.autotune_at_compile_time", True),
+<<<<<<< HEAD
         torch._functorch.config.patch("bundled_autograd_cache", aot),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # compile_fx can mutate gm
         gm = copy.deepcopy(gm)
@@ -424,12 +520,16 @@ def standalone_compile(
             gm, example_inputs, ignore_shape_env=ignore_shape_env, **options
         )
         assert callable(compiled_fn)
+<<<<<<< HEAD
         if aot:
             if not hasattr(compiled_fn, "serialize"):
                 raise RuntimeError(
                     "Compiled function should have serialize method when aot=True"
                 )
             return AOTCompiledArtifact(compiled_fn)
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         artifacts = torch.compiler.save_cache_artifacts()
         if artifacts is None:
             log.warning(
@@ -437,4 +537,8 @@ def standalone_compile(
                 "Run with TORCH_LOGS=+torch._inductor.codecache to identify the problem"
             )
 
+<<<<<<< HEAD
     return CacheCompiledArtifact(compiled_fn, artifacts)
+=======
+    return CompiledArtifact(compiled_fn, artifacts)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -107,7 +107,10 @@ def register_freezing_graph_pattern(pattern, extra_check=_return_true, pass_numb
     return register_graph_pattern(
         pattern,
         extra_check=extra_check,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=pass_patterns[pass_number],
     )
 
@@ -116,7 +119,10 @@ def register_binary_folding_pattern(pattern, extra_check=_return_true):
     return register_graph_pattern(
         pattern,
         extra_check=extra_check,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=binary_folding_pass,
     )
 
@@ -162,6 +168,16 @@ def addmm_patterns_init():
         ):
             return False
 
+<<<<<<< HEAD
+=======
+        equal_shape_inputs = [weight_inputs]
+        for equal_shape_group in equal_shape_inputs:
+            inps = [match.kwargs[name] for name in equal_shape_group]
+            if not all(
+                inp.meta["val"].shape == inps[0].meta["val"].shape for inp in inps
+            ):
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     def check_concat_weights(match):
@@ -200,6 +216,7 @@ def addmm_patterns_init():
         cat_w = torch.cat((w1, w2, w3), dim=1)
         cat_s = torch.cat((s1, s2, s3), dim=0)
         mm = (inp @ cat_w).mul(cat_s)
+<<<<<<< HEAD
         n1, n2 = w1.size(1), w2.size(1)
         return mm.tensor_split([n1, n1 + n2], dim=-1)
 
@@ -212,6 +229,15 @@ def addmm_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        return mm.chunk(3, dim=1)
+
+    register_replacement(
+        int8_woq_fusion_pattern,
+        int8_woq_fusion_replacement,
+        [val(), val(), val(), val(), scale(), scale(), scale()],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_patterns[0],
         extra_check=check_int8_woq_concat_linear_weights,
         exclusive_arg_names=("w1", "w2", "w3", "s1", "s2", "s3"),
@@ -226,6 +252,7 @@ def addmm_patterns_init():
         return mm.chunk(3, dim=1)
 
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         matmul_fuse_pattern,
         # pyrefly: ignore [bad-argument-type]
@@ -234,6 +261,12 @@ def addmm_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        matmul_fuse_pattern,
+        matmul_replacement,
+        [val(), val(), val(), val()],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_patterns[0],
         extra_check=check_concat_weights,
         exclusive_arg_names=("w1", "w2", "w3"),
@@ -248,6 +281,7 @@ def addmm_patterns_init():
         return mm.chunk(2, dim=1)
 
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         matmul_fuse_pattern_two,
         # pyrefly: ignore [bad-argument-type]
@@ -256,6 +290,12 @@ def addmm_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        matmul_fuse_pattern_two,
+        matmul_replacement_two,
+        [val(), val(), val()],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_patterns[0],
         extra_check=check_concat_weights,
         exclusive_arg_names=("w1", "w2"),
@@ -274,6 +314,7 @@ def addmm_patterns_init():
         return aten.addmm(cat_b, inp, cat_w).chunk(3, dim=1)
 
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         addmm_fuse_pattern_second,
         # pyrefly: ignore [bad-argument-type]
@@ -282,6 +323,12 @@ def addmm_patterns_init():
         # pyrefly: ignore [bad-argument-type]
         fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        addmm_fuse_pattern_second,
+        addmm_fuse_replacement_second,
+        [val() for _ in range(7)],
+        fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_patterns[0],
         extra_check=check_concat_weights,
         exclusive_arg_names=("w1", "w2", "w3", "b1", "b2", "b3"),
@@ -298,7 +345,10 @@ def same_dtype(match):
         Ignored(),
         KeywordArg("dtype"),
     ),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=pass_patterns[0],
     extra_check=same_dtype,
 )

@@ -959,7 +959,11 @@ struct to_ir {
       emitDef(
           def,
           nullptr,
+<<<<<<< HEAD
           closure_block); // ignore schema return, we just won't use it for now
+=======
+          closure_block); // ignore schema return, we just wont use it for now
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                           // since we never create a Method for the closure
     };
     auto closure_value = emitClosure(emit_body);
@@ -1578,7 +1582,11 @@ struct to_ir {
           /*default_to_union=*/true,
           elem_type_hint);
 
+<<<<<<< HEAD
       // Case: The list comprehension generated heterogeneous values,
+=======
+      // Case: The list comprehension generated heterogenous values,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // and we don't have a type hint to suggest that this is what the
       // user expected
       if (!type_hint && (*unified_elem_type)->isUnionType()) {
@@ -1701,7 +1709,11 @@ struct to_ir {
             << "the first generated key was " << k->type()->repr_str());
       } else if (
           first_generated_key_type && first_generated_key_type != k->type()) {
+<<<<<<< HEAD
         // Values can be heterogeneous, so we only need to check that the
+=======
+        // Values can be heterogenous, so we only need to check that the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // key types are all the same
         throw(
             ErrorReport(dc)
@@ -2118,7 +2130,11 @@ struct to_ir {
       // Try to unify the types. If we found a type annotation earlier
       // in the environment, and if that type annotation is some form
       // of union, then we need to tell `unifyTypes` not to throw an
+<<<<<<< HEAD
       // error if the branched return types we found are heterogeneous
+=======
+      // error if the branched return types we found are heterogenous
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       bool default_to_union = full_type &&
           (full_type->kind() == UnionType::Kind ||
            full_type->kind() == OptionalType::Kind ||
@@ -2440,7 +2456,11 @@ struct to_ir {
     SugaredValuePtr iterable = sv->iter(loc, method);
 
     // We unroll the loop for iterables that contain ModuleLists so that we can
+<<<<<<< HEAD
     // compile Heterogeneous module lists.
+=======
+    // compile Heterogenous module lists.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!iterable->shouldEmitUnrolled()) {
       emitLoopCommon(loc, emit_body, iterable, targets, {});
     } else {
@@ -3259,7 +3279,11 @@ struct to_ir {
       case TK_IN:
         return aten::__contains__;
       default:
+<<<<<<< HEAD
         TORCH_CHECK(false, "unknown kind ", kind);
+=======
+        throw std::runtime_error("unknown kind " + std::to_string(kind));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -3306,7 +3330,11 @@ struct to_ir {
       case TK_RSHIFT:
         return "__rshift__";
       default:
+<<<<<<< HEAD
         TORCH_CHECK(false, "unknown kind ", kind);
+=======
+        throw std::runtime_error("unknown kind " + std::to_string(kind));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -4120,7 +4148,12 @@ struct to_ir {
     } else if (kind == aten::ge) {
       return aten::le;
     }
+<<<<<<< HEAD
     TORCH_CHECK(false, "reverseComparision: unsupported NodeKind. File a bug");
+=======
+    throw std::runtime_error(
+        "reverseComparision: unsupported NodeKind. File a bug");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // any expression that can produce a SugaredValue is handled here
@@ -4259,7 +4292,11 @@ struct to_ir {
   }
 
   std::shared_ptr<SugaredValue> emitRpcExpr(const Apply& apply, Symbol rpc_op) {
+<<<<<<< HEAD
     // TODO: This is a temporary apporoach to enable calling user function
+=======
+    // TODO: This is a temporary apporoach to enable calling user fucntion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // through RPC in TorchScript,
     // Ideally, function value in JIT IR is first-class citizen and
     // The RPC C++ entry API can take c10::Function directly.
@@ -5398,7 +5435,11 @@ struct FunctionResolver : public Resolver {
 
 CompilationUnit::CompilationUnit(const std::string& source)
     : CompilationUnit() {
+<<<<<<< HEAD
   // calls the define with native resolver to generate the graph for functions
+=======
+  // calles the define with native resolver to generate the graph for functions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   define(std::nullopt, source, nativeResolver(), nullptr);
 }
 

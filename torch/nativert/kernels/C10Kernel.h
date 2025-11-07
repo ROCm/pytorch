@@ -24,9 +24,16 @@ class C10Kernel : public OpKernel {
   C10Kernel() = delete; // deleted default constructor
   C10Kernel(
       const Node* node,
+<<<<<<< HEAD
       OpKernelKind kind = OpKernelKind::kInterpreterFallbackKernel,
       AliasingSpec&& aliasingSpec = {});
   ~C10Kernel() override = default;
+=======
+      c10::Device device,
+      OpKernelKind kind = OpKernelKind::kInterpreterFallbackKernel,
+      AliasingSpec&& aliasingSpec = {});
+  virtual ~C10Kernel() override = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   [[nodiscard]] const c10::IValue& input(
       uint32_t i,
@@ -57,19 +64,31 @@ class C10Kernel : public OpKernel {
 class SymIntOpKernel : public OpKernel {
  public:
   explicit SymIntOpKernel(const Node* node) : OpKernel(node) {}
+<<<<<<< HEAD
   void computeInternal(ExecutionFrame& executionFrame) const final;
+=======
+  void computeInternal(ExecutionFrame& executionFrame) const override final;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 class SymBoolOpKernel : public OpKernel {
  public:
   explicit SymBoolOpKernel(const Node* node) : OpKernel(node) {}
+<<<<<<< HEAD
   void computeInternal(ExecutionFrame& executionFrame) const final;
+=======
+  void computeInternal(ExecutionFrame& executionFrame) const override final;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 class SymFloatOpKernel : public OpKernel {
  public:
   explicit SymFloatOpKernel(const Node* node) : OpKernel(node) {}
+<<<<<<< HEAD
   void computeInternal(ExecutionFrame& executionFrame) const final;
+=======
+  void computeInternal(ExecutionFrame& executionFrame) const override final;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // ScalarOpKernel does binary arithmetic operations on scalar values.
@@ -78,7 +97,11 @@ class SymFloatOpKernel : public OpKernel {
 class ScalarBinaryOpKernel : public OpKernel {
  public:
   explicit ScalarBinaryOpKernel(const Node* node) : OpKernel(node) {}
+<<<<<<< HEAD
   void computeInternal(ExecutionFrame& executionFrame) const final;
+=======
+  void computeInternal(ExecutionFrame& executionFrame) const override final;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace torch::nativert

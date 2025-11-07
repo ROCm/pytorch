@@ -66,7 +66,10 @@ AOTIRuntimeError AOTInductorModelContainerCreateWithDevice(
     size_t num_models,
     const char* device_str,
     const char* cubin_dir) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (num_models == 0) {
     std::cerr << "Error: num_models must be positive, but got 0\n";
     return AOTI_RUNTIME_FAILURE;
@@ -83,7 +86,10 @@ AOTIRuntimeError AOTInductorModelContainerCreateWithDevice(
   })
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTIRuntimeError AOTInductorModelContainerDelete(
     AOTInductorModelContainerHandle container_handle) {
   CONVERT_EXCEPTION_TO_ERROR_CODE({
@@ -251,6 +257,7 @@ AOTIRuntimeError AOTInductorModelContainerUpdateUserManagedConstantBuffer(
   })
 }
 
+<<<<<<< HEAD
 AOTIRuntimeError AOTInductorModelContainerUpdateUserManagedConstantBufferPairs(
     AOTInductorModelContainerHandle container_handle,
     const AOTInductorConstantMapEntry* pairs,
@@ -271,6 +278,8 @@ AOTIRuntimeError AOTInductorModelContainerUpdateUserManagedConstantBufferPairs(
   })
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTIRuntimeError AOTInductorModelContainerUpdateConstantBuffer(
     AOTInductorModelContainerHandle container_handle,
     AOTInductorConstantMapHandle constant_map_handle,
@@ -462,6 +471,7 @@ AOTIRuntimeError AOTInductorModelUpdateConstantsMap(
   })
 }
 
+<<<<<<< HEAD
 AOTIRuntimeError AOTInductorModelContainerGetConstantsBlobSize(
     AOTInductorModelContainerHandle container_handle,
     uint64_t* ret_size) {
@@ -485,4 +495,6 @@ AOTIRuntimeError AOTInductorModelUpdateConstantsFromBlob(
     }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // extern "C"

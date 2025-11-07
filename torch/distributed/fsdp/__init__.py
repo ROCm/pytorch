@@ -6,7 +6,10 @@ from ._fully_shard import (
     MixedPrecisionPolicy,
     OffloadPolicy,
     register_fsdp_forward_method,
+<<<<<<< HEAD
     share_comm_ctx,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UnshardHandle,
 )
 from .fully_sharded_data_parallel import (
@@ -55,7 +58,10 @@ __all__ = [
     "OffloadPolicy",
     "register_fsdp_forward_method",
     "UnshardHandle",
+<<<<<<< HEAD
     "share_comm_ctx",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 # Set namespace for exposed private names
@@ -66,4 +72,7 @@ MixedPrecisionPolicy.__module__ = "torch.distributed.fsdp"
 OffloadPolicy.__module__ = "torch.distributed.fsdp"
 register_fsdp_forward_method.__module__ = "torch.distributed.fsdp"
 UnshardHandle.__module__ = "torch.distributed.fsdp"
+<<<<<<< HEAD
 share_comm_ctx.__module__ = "torch.distributed.fsdp"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

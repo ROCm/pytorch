@@ -6,12 +6,19 @@ Intel GPU optimization.
 This package is lazily initialized, so you can always import it, and use
 :func:`is_available()` to determine if your system supports XPU.
 """
+<<<<<<< HEAD
 
 import threading
 import traceback
 from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, Optional, Union
+=======
+import threading
+import traceback
+from functools import lru_cache
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._C
@@ -78,6 +85,7 @@ def is_bf16_supported(including_emulation: bool = True) -> bool:
     )
 
 
+<<<<<<< HEAD
 def is_tf32_supported() -> bool:
     r"""Return a bool indicating if the current XPU device supports dtype tf32."""
     if not is_available():
@@ -89,6 +97,8 @@ def is_tf32_supported() -> bool:
     return torch.xpu.get_device_properties().has_subgroup_matrix_multiply_accumulate
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_initialized():
     r"""Return whether PyTorch's XPU state has been initialized."""
     return _initialized and not _is_in_bad_fork()
@@ -248,6 +258,7 @@ def get_device_capability(device: Optional[_device_t] = None) -> dict[str, Any]:
         Dict[str, Any]: the xpu capability dictionary of the device
     """
     props = get_device_properties(device)
+<<<<<<< HEAD
     # Only keep attributes that are safe for dictionary serialization.
     serializable_types = (int, float, bool, str, type(None), list, tuple, dict)
     return {
@@ -261,6 +272,21 @@ def get_device_capability(device: Optional[_device_t] = None) -> dict[str, Any]:
 def get_device_properties(
     device: Optional[_device_t] = None,
 ) -> _XpuDeviceProperties:  # pyrefly: ignore  # not-a-type
+=======
+    # pybind service attributes are no longer needed and their presence breaks
+    # the further logic related to the serialization of the created dictionary.
+    # In particular it filters out `<bound method PyCapsule._pybind11_conduit_v1_ of _XpuDeviceProperties..>`
+    # to fix Triton tests.
+    # This field appears after updating pybind to 2.13.6.
+    return {
+        prop: getattr(props, prop)
+        for prop in dir(props)
+        if not prop.startswith(("__", "_pybind11_"))
+    }
+
+
+def get_device_properties(device: Optional[_device_t] = None) -> _XpuDeviceProperties:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Get the properties of a device.
 
     Args:
@@ -294,6 +320,7 @@ def _get_device(device: Union[int, str, torch.device]) -> torch.device:
     return device
 
 
+<<<<<<< HEAD
 def can_device_access_peer(device: _device_t, peer: _device_t) -> bool:
     r"""Query whether a device can access a peer device's memory.
 
@@ -310,6 +337,8 @@ def can_device_access_peer(device: _device_t, peer: _device_t) -> bool:
     return torch._C._xpu_canDeviceAccessPeer(device, peer)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class StreamContext:
     r"""Context-manager that selects a given stream.
 
@@ -321,14 +350,21 @@ class StreamContext:
             ``None``.
     .. note:: Streams are per-device.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cur_stream: Optional["torch.xpu.Stream"]
 
     def __init__(self, stream: Optional["torch.xpu.Stream"]):
         self.stream = stream
         self.idx = _get_device_index(None, True)
         if self.idx is None:
+<<<<<<< HEAD
             self.idx = -1  # pyrefly: ignore [bad-assignment]
+=======
+            self.idx = -1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __enter__(self):
         cur_stream = self.stream
@@ -468,7 +504,11 @@ def get_gencode_flags() -> str:
     arch_list = get_arch_list()
     if len(arch_list) == 0:
         return ""
+<<<<<<< HEAD
     return f"-device {','.join(arch for arch in arch_list)}"
+=======
+    return f'-device {",".join(arch for arch in arch_list)}'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_generator(device: torch.device) -> torch._C.Generator:
@@ -530,7 +570,10 @@ from .memory import (
     memory_stats_as_nested_dict,
     reset_accumulated_memory_stats,
     reset_peak_memory_stats,
+<<<<<<< HEAD
     set_per_process_memory_fraction,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from .random import (
     get_rng_state,
@@ -549,7 +592,10 @@ __all__ = [
     "Event",
     "Stream",
     "StreamContext",
+<<<<<<< HEAD
     "can_device_access_peer",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "current_device",
     "current_stream",
     "default_generators",
@@ -570,7 +616,10 @@ __all__ = [
     "is_available",
     "is_bf16_supported",
     "is_initialized",
+<<<<<<< HEAD
     "is_tf32_supported",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "manual_seed",
     "manual_seed_all",
     "max_memory_allocated",
@@ -585,7 +634,10 @@ __all__ = [
     "seed",
     "seed_all",
     "set_device",
+<<<<<<< HEAD
     "set_per_process_memory_fraction",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "set_rng_state",
     "set_rng_state_all",
     "set_stream",

@@ -4,8 +4,13 @@ import ast
 import dataclasses
 import inspect
 import os
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import partial
+=======
+from functools import partial
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._jit_internal import FAKE_FILENAME_PREFIX, is_optional
 from torch._sources import ParsedDef, SourceContext

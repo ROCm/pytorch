@@ -62,7 +62,11 @@ extensions = [
     "sphinxcontrib.katex",
     "sphinx_copybutton",
     "sphinx_design",
+<<<<<<< HEAD
     "myst_nb",
+=======
+    "myst_parser",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "sphinx.ext.linkcode",
     "sphinxcontrib.mermaid",
     "sphinx_sitemap",
@@ -133,7 +137,11 @@ html_static_path = ["_static"]
 html_theme_options = {
     "logo": {"text": "Home"},
     "analytics_id": "GTM-T8XT4PS",
+<<<<<<< HEAD
     "canonical_url": "https://docs.pytorch.org/docs/stable/",
+=======
+    "canonical_url": "https://pytorch.org/docs/stable/",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "switcher": {
         "json_url": "https://docs.pytorch.org/docs/pytorch-versions.json",
         "version_match": switcher_version,
@@ -143,7 +151,11 @@ html_theme_options = {
     "external_links": [
         {
             "name": "Tutorials",
+<<<<<<< HEAD
             "url": "https://docs.pytorch.org/tutorials/",
+=======
+            "url": "https://pytorch.org/tutorials/",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
     ],
     "show_version_warning_banner": True,
@@ -181,6 +193,10 @@ html_theme_options = {
 
 theme_variables = pytorch_sphinx_theme2.get_theme_variables()
 html_context = {
+<<<<<<< HEAD
+=======
+    "theme_variables": theme_variables,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "github_url": "https://github.com",
     "github_user": "pytorch",
     "github_repo": "pytorch",
@@ -188,7 +204,11 @@ html_context = {
     "github_version": "main",
     "pytorch_project": "docs",
     "doc_path": "docs/source",
+<<<<<<< HEAD
     "theme_variables": theme_variables,
+=======
+    "theme_variables": theme_variables,  # noqa: F601
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # library links are defined in
     # pytorch_sphinx_theme2/pytorch_sphinx_theme2/links.json
     "library_links": theme_variables.get("library_links", []),
@@ -210,6 +230,13 @@ templates_path = [
 coverage_ignore_functions = [
     # torch
     "typename",
+<<<<<<< HEAD
+=======
+    # torch.cuda
+    "check_error",
+    "cudart",
+    "is_bf16_supported",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.cuda._sanitizer
     "zip_arguments",
     "zip_by_key",
@@ -217,7 +244,13 @@ coverage_ignore_functions = [
     "is_available",
     # torch.distributed.checkpoint.state_dict
     "gc_context",
+<<<<<<< HEAD
     # torch.distributed.elastic.events
+=======
+    "state_dict",
+    # torch.distributed.elastic.events
+    "construct_and_record_rdzv_event",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "record_rdzv_event",
     # torch.distributed.elastic.metrics
     "initialize_metrics",
@@ -257,6 +290,11 @@ coverage_ignore_functions = [
     "flags_frozen",
     # torch.distributed.algorithms.ddp_comm_hooks
     "register_ddp_comm_hook",
+<<<<<<< HEAD
+=======
+    # torch.nn
+    "factory_kwargs",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.nn.parallel
     "DistributedDataParallelCPU",
     # torch.utils
@@ -428,6 +466,10 @@ coverage_ignore_functions = [
     "get_default_qconfig_dict",
     "qconfig_equals",
     # torch.ao.quantization.quantization_mappings
+<<<<<<< HEAD
+=======
+    "get_default_compare_output_module_list",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "get_default_dynamic_quant_module_mappings",
     "get_default_dynamic_sparse_quant_module_mappings",
     "get_default_float_to_quantized_operator_mappings",
@@ -470,13 +512,37 @@ coverage_ignore_functions = [
     "get_weight_qspec",
     "propagate_annotation",
     "register_annotator",
+<<<<<<< HEAD
     "activation_dtype",
     "check_node",
+=======
+    # torch.ao.quantization.utils
+    "activation_dtype",
+    "activation_is_dynamically_quantized",
+    "activation_is_int32_quantized",
+    "activation_is_int8_quantized",
+    "activation_is_statically_quantized",
+    "calculate_qmin_qmax",
+    "check_min_max_valid",
+    "check_node",
+    "determine_qparams",
+    "get_combined_dict",
+    "get_fqn_to_example_inputs",
+    "get_qconfig_dtypes",
+    "get_qparam_dict",
+    "get_quant_type",
+    "get_swapped_custom_module_class",
+    "getattr_from_fqn",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "has_no_children_ignoring_parametrizations",
     "is_per_channel",
     "is_per_tensor",
     "op_is_int8_dynamically_quantized",
     "to_underlying_dtype",
+<<<<<<< HEAD
+=======
+    "validate_qmin_qmax",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "weight_dtype",
     "weight_is_quantized",
     "weight_is_statically_quantized",
@@ -490,6 +556,13 @@ coverage_ignore_functions = [
     "custom_fwd",
     # torch.cuda.amp.common
     "amp_definitely_not_available",
+<<<<<<< HEAD
+=======
+    # torch.cuda.graphs
+    "graph_pool_handle",
+    "is_current_stream_capturing",
+    "make_graphed_callables",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.mtia.memory
     "reset_peak_memory_stats",
     # torch.cuda.nccl
@@ -501,11 +574,31 @@ coverage_ignore_functions = [
     "reduce_scatter",
     "unique_id",
     "version",
+<<<<<<< HEAD
+=======
+    # torch.cuda.nvtx
+    "range",
+    "range_end",
+    "range_start",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.cuda.profiler
     "init",
     "profile",
     "start",
     "stop",
+<<<<<<< HEAD
+=======
+    # torch.cuda.random
+    "get_rng_state",
+    "get_rng_state_all",
+    "initial_seed",
+    "manual_seed",
+    "manual_seed_all",
+    "seed",
+    "seed_all",
+    "set_rng_state",
+    "set_rng_state_all",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.algorithms.ddp_comm_hooks.ddp_zero_hook
     "hook_with_zero_step",
     "hook_with_zero_step_interleaved",
@@ -534,6 +627,45 @@ coverage_ignore_functions = [
     # torch.distributed.checkpoint.utils
     "find_state_dict_object",
     "find_tensor_shard",
+<<<<<<< HEAD
+=======
+    # torch.distributed.collective_utils
+    "all_gather",
+    "all_gather_object_enforce_type",
+    "broadcast",
+    # torch.distributed.distributed_c10d
+    "all_gather",
+    "all_gather_coalesced",
+    "all_gather_into_tensor",
+    "all_gather_object",
+    "all_reduce",
+    "all_reduce_coalesced",
+    "all_to_all",
+    "all_to_all_single",
+    "barrier",
+    "batch_isend_irecv",
+    "broadcast",
+    "broadcast_object_list",
+    "destroy_process_group",
+    "gather",
+    "gather_object",
+    "get_backend",
+    "get_backend_config",
+    "get_global_rank",
+    "get_group_rank",
+    "get_process_group_ranks",
+    "get_rank",
+    "get_world_size",
+    "init_process_group",
+    "irecv",
+    "is_backend_available",
+    "is_gloo_available",
+    "is_initialized",
+    "is_mpi_available",
+    "is_nccl_available",
+    "is_torchelastic_launched",
+    "is_ucc_available",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "isend",
     "monitored_barrier",
     "new_group",
@@ -607,8 +739,20 @@ coverage_ignore_functions = [
     "transformer_auto_wrap_policy",
     "wrap",
     # torch.distributed.nn.functional
+<<<<<<< HEAD
     "all_to_all",
     "all_to_all_single",
+=======
+    "all_gather",
+    "all_reduce",
+    "all_to_all",
+    "all_to_all_single",
+    "broadcast",
+    "gather",
+    "reduce",
+    "reduce_scatter",
+    "scatter",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.nn.jit.instantiator
     "get_arg_return_types_from_interface",
     "instantiate_non_scriptable_remote_module_template",
@@ -652,6 +796,30 @@ coverage_ignore_functions = [
     "probs_to_logits",
     "tril_matrix_to_vec",
     "vec_to_tril_matrix",
+<<<<<<< HEAD
+=======
+    # torch.functional
+    "align_tensors",
+    "atleast_1d",
+    "atleast_2d",
+    "atleast_3d",
+    "block_diag",
+    "broadcast_shapes",
+    "broadcast_tensors",
+    "cartesian_prod",
+    "cdist",
+    "chain_matmul",
+    "einsum",
+    "lu",
+    "meshgrid",
+    "norm",
+    "split",
+    "stft",
+    "tensordot",
+    "unique",
+    "unique_consecutive",
+    "unravel_index",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.fx.annotate
     "annotate",
     # torch.fx.experimental.accelerator_partitioner
@@ -978,6 +1146,10 @@ coverage_ignore_functions = [
     "z3op",
     "z3str",
     # torch.fx.graph_module
+<<<<<<< HEAD
+=======
+    "reduce_deploy_graph_module",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "reduce_graph_module",
     "reduce_package_graph_module",
     # torch.fx.node
@@ -1019,8 +1191,11 @@ coverage_ignore_functions = [
     "loop_pass",
     "these_before_those_pass_constraint",
     "this_before_that_pass_constraint",
+<<<<<<< HEAD
     # torch.fx.passes.regional_inductor
     "regional_inductor",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.fx.passes.reinplace
     "reinplace",
     # torch.fx.passes.split_module
@@ -1066,8 +1241,11 @@ coverage_ignore_functions = [
     "set_current_meta",
     "set_grad_fn_seq_nr",
     "set_stack_trace",
+<<<<<<< HEAD
     "set_current_replay_node",
     "get_current_replay_node",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.jit.annotations
     "ann_to_type",
     "check_fn",
@@ -1143,6 +1321,7 @@ coverage_ignore_functions = [
     # torch.multiprocessing.spawn
     "start_processes",
     # torch.nn.functional
+<<<<<<< HEAD
     "adaptive_max_pool1d_with_indices",  # documented as adaptive_max_pool1d
     "adaptive_max_pool2d_with_indices",  # documented as adaptive_max_pool2d
     "adaptive_max_pool3d_with_indices",  # documented as adaptive_max_pool3d
@@ -1174,6 +1353,39 @@ coverage_ignore_functions = [
     "xavier_uniform",  # deprecated
     # torch.nn.modules.rnn
     "apply_permutation",  # deprecated
+=======
+    "adaptive_max_pool1d_with_indices",
+    "adaptive_max_pool2d_with_indices",
+    "adaptive_max_pool3d_with_indices",
+    "assert_int_or_pair",
+    "fractional_max_pool2d_with_indices",
+    "fractional_max_pool3d_with_indices",
+    "max_pool1d_with_indices",
+    "max_pool2d_with_indices",
+    "max_pool3d_with_indices",
+    "multi_head_attention_forward",
+    # torch.nn.grad
+    "conv1d_input",
+    "conv1d_weight",
+    "conv2d_input",
+    "conv2d_weight",
+    "conv3d_input",
+    "conv3d_weight",
+    # torch.nn.init
+    "constant",
+    "dirac",
+    "eye",
+    "kaiming_normal",
+    "kaiming_uniform",
+    "normal",
+    "orthogonal",
+    "sparse",
+    "uniform",
+    "xavier_normal",
+    "xavier_uniform",
+    # torch.nn.modules.rnn
+    "apply_permutation",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.nn.modules.utils
     "consume_prefix_in_state_dict_if_present",
     # torch.nn.parallel.comm
@@ -1195,8 +1407,39 @@ coverage_ignore_functions = [
     "is_namedtuple",
     "scatter",
     "scatter_kwargs",
+<<<<<<< HEAD
     # torch.nn.utils.rnn
     "bind",  # looks unintentionally public
+=======
+    # torch.nn.parameter
+    "is_lazy",
+    # torch.nn.utils.convert_parameters
+    "parameters_to_vector",
+    "vector_to_parameters",
+    # torch.nn.utils.fusion
+    "fuse_conv_bn_eval",
+    "fuse_conv_bn_weights",
+    "fuse_linear_bn_eval",
+    "fuse_linear_bn_weights",
+    # torch.nn.utils.init
+    "skip_init",
+    # torch.nn.utils.memory_format
+    "convert_conv2d_weight_memory_format",
+    # torch.nn.utils.parametrizations
+    "weight_norm",
+    # torch.nn.utils.parametrize
+    "transfer_parametrizations_and_params",
+    "type_before_parametrizations",
+    # torch.nn.utils.rnn
+    "bind",
+    "invert_permutation",
+    # torch.nn.utils.spectral_norm
+    "remove_spectral_norm",
+    "spectral_norm",
+    # torch.nn.utils.weight_norm
+    "remove_weight_norm",
+    "weight_norm",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.onnx.operators
     "reshape_from_tensor_shape",
     "shape_as_tensor",
@@ -1710,9 +1953,43 @@ coverage_ignore_functions = [
     "check_export_model_diff",
     "verify",
     "verify_aten_graph",
+<<<<<<< HEAD
     # torch.optim.optimizer
     "register_optimizer_step_post_hook",
     "register_optimizer_step_pre_hook",
+=======
+    # torch.optim.adadelta
+    "adadelta",
+    # torch.optim.adagrad
+    "adagrad",
+    # torch.optim.adam
+    "adam",
+    # torch.optim.adamax
+    "adamax",
+    # torch.optim.adamw
+    "adamw",
+    # torch.optim.asgd
+    "asgd",
+    # torch.optim.nadam
+    "nadam",
+    # torch.optim.optimizer
+    "register_optimizer_step_post_hook",
+    "register_optimizer_step_pre_hook",
+    # torch.optim.radam
+    "radam",
+    # torch.optim.rmsprop
+    "rmsprop",
+    # torch.optim.rprop
+    "rprop",
+    # torch.optim.sgd
+    "sgd",
+    # torch.optim.swa_utils
+    "get_ema_avg_fn",
+    "get_ema_multi_avg_fn",
+    "get_swa_avg_fn",
+    "get_swa_multi_avg_fn",
+    "update_bn",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.overrides
     "enable_reentrant_dispatch",
     # torch.package.analyze.find_first_use_of_broken_modules
@@ -2096,6 +2373,11 @@ coverage_ignore_classes = [
     "EventHandler",
     "SynchronizationError",
     "UnsynchronizedAccessError",
+<<<<<<< HEAD
+=======
+    # torch.cuda.memory
+    "MemPool",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.elastic.multiprocessing.errors
     "ChildFailedError",
     "ProcessFailure",
@@ -2401,6 +2683,13 @@ coverage_ignore_classes = [
     # torch.amp.grad_scaler
     "GradScaler",
     "OptState",
+<<<<<<< HEAD
+=======
+    # torch.cuda.graphs
+    "CUDAGraph",
+    # torch.cuda.streams
+    "Event",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.algorithms.ddp_comm_hooks.post_localSGD_hook
     "PostLocalSGDState",
     # torch.distributed.algorithms.ddp_comm_hooks.powerSGD_hook
@@ -2428,8 +2717,11 @@ coverage_ignore_classes = [
     # torch.distributed.checkpoint.hf_storage
     "HuggingFaceStorageReader",
     "HuggingFaceStorageWriter",
+<<<<<<< HEAD
     # torch.distributed.checkpoint.quantized_hf_storage
     "QuantizedHuggingFaceStorageReader",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.checkpoint.metadata
     "BytesStorageMetadata",
     "ChunkStorageMetadata",
@@ -2566,8 +2858,11 @@ coverage_ignore_classes = [
     "ExpRelaxedCategorical",
     # torch.distributions.utils
     "lazy_property",
+<<<<<<< HEAD
     # torch.export.unflatten
     "UnflattenedModule",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.export.exported_program
     "ConstantArgument",
     "ExportedProgram",
@@ -2777,6 +3072,7 @@ coverage_ignore_classes = [
     # torch.nn.cpp
     "ModuleWrapper",
     "OrderedDictWrapper",
+<<<<<<< HEAD
     # torch.nn.modules.container
     "Container",  # deprecated
     # torch.nn.modules.linear
@@ -2789,6 +3085,153 @@ coverage_ignore_classes = [
     "NLLLoss2d",  # deprecated
     # torch.nn.modules.normalization
     "CrossMapLRN2d",
+=======
+    # torch.nn.modules.activation
+    "CELU",
+    "ELU",
+    "GELU",
+    "GLU",
+    "Hardshrink",
+    "Hardsigmoid",
+    "Hardswish",
+    "Hardtanh",
+    "LeakyReLU",
+    "LogSigmoid",
+    "LogSoftmax",
+    "Mish",
+    "MultiheadAttention",
+    "PReLU",
+    "RReLU",
+    "ReLU",
+    "ReLU6",
+    "SELU",
+    "SiLU",
+    "Sigmoid",
+    "Softmax",
+    "Softmax2d",
+    "Softmin",
+    "Softplus",
+    "Softshrink",
+    "Softsign",
+    "Tanh",
+    "Tanhshrink",
+    "Threshold",
+    # torch.nn.modules.adaptive
+    "AdaptiveLogSoftmaxWithLoss",
+    # torch.nn.modules.batchnorm
+    "SyncBatchNorm",
+    # torch.nn.modules.channelshuffle
+    "ChannelShuffle",
+    # torch.nn.modules.container
+    "Container",
+    "ModuleList",
+    "ParameterList",
+    "Sequential",
+    # torch.nn.modules.conv
+    "Conv1d",
+    "Conv2d",
+    "Conv3d",
+    "ConvTranspose1d",
+    "ConvTranspose2d",
+    "ConvTranspose3d",
+    # torch.nn.modules.distance
+    "CosineSimilarity",
+    "PairwiseDistance",
+    # torch.nn.modules.dropout
+    "AlphaDropout",
+    "Dropout",
+    "Dropout1d",
+    "Dropout2d",
+    "Dropout3d",
+    "FeatureAlphaDropout",
+    # torch.nn.modules.flatten
+    "Flatten",
+    "Unflatten",
+    # torch.nn.modules.fold
+    "Fold",
+    "Unfold",
+    # torch.nn.modules.linear
+    "Bilinear",
+    "Identity",
+    "LazyLinear",
+    "Linear",
+    "NonDynamicallyQuantizableLinear",
+    # torch.nn.modules.loss
+    "BCELoss",
+    "BCEWithLogitsLoss",
+    "CTCLoss",
+    "CosineEmbeddingLoss",
+    "CrossEntropyLoss",
+    "GaussianNLLLoss",
+    "HingeEmbeddingLoss",
+    "HuberLoss",
+    "KLDivLoss",
+    "L1Loss",
+    "MSELoss",
+    "MarginRankingLoss",
+    "MultiLabelMarginLoss",
+    "MultiLabelSoftMarginLoss",
+    "MultiMarginLoss",
+    "NLLLoss",
+    "NLLLoss2d",
+    "PoissonNLLLoss",
+    "SmoothL1Loss",
+    "SoftMarginLoss",
+    "TripletMarginLoss",
+    "TripletMarginWithDistanceLoss",
+    # torch.nn.modules.module
+    "Module",
+    # torch.nn.modules.normalization
+    "CrossMapLRN2d",
+    "GroupNorm",
+    "LayerNorm",
+    "LocalResponseNorm",
+    # torch.nn.modules.padding
+    "CircularPad1d",
+    "CircularPad2d",
+    "CircularPad3d",
+    "ZeroPad1d",
+    "ZeroPad2d",
+    "ZeroPad3d",
+    # torch.nn.modules.pixelshuffle
+    "PixelShuffle",
+    "PixelUnshuffle",
+    # torch.nn.modules.pooling
+    "AdaptiveAvgPool1d",
+    "AdaptiveAvgPool2d",
+    "AdaptiveAvgPool3d",
+    "AdaptiveMaxPool1d",
+    "AdaptiveMaxPool2d",
+    "AdaptiveMaxPool3d",
+    "AvgPool1d",
+    "AvgPool2d",
+    "AvgPool3d",
+    "FractionalMaxPool2d",
+    "FractionalMaxPool3d",
+    "LPPool1d",
+    "LPPool2d",
+    "LPPool3d",
+    "MaxPool1d",
+    "MaxPool2d",
+    "MaxPool3d",
+    "MaxUnpool1d",
+    "MaxUnpool2d",
+    "MaxUnpool3d",
+    # torch.nn.modules.rnn
+    "GRU",
+    "GRUCell",
+    "LSTM",
+    "LSTMCell",
+    "RNN",
+    "RNNBase",
+    "RNNCell",
+    "RNNCellBase",
+    # torch.nn.modules.sparse
+    "Embedding",
+    "EmbeddingBag",
+    # torch.nn.modules.upsampling
+    "Upsample",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.nn.parallel.data_parallel
     "DataParallel",
     # torch.nn.parallel.distributed
@@ -2819,8 +3262,59 @@ coverage_ignore_classes = [
     # torch.onnx.verification
     "OnnxBackend",
     "OnnxTestCaseRepro",
+<<<<<<< HEAD
     # torch.optim.optimizer
     "Optimizer",
+=======
+    # torch.optim.adadelta
+    "Adadelta",
+    # torch.optim.adagrad
+    "Adagrad",
+    # torch.optim.adam
+    "Adam",
+    # torch.optim.adamax
+    "Adamax",
+    # torch.optim.adamw
+    "AdamW",
+    # torch.optim.asgd
+    "ASGD",
+    # torch.optim.lbfgs
+    "LBFGS",
+    # torch.optim.lr_scheduler
+    "ChainedScheduler",
+    "ConstantLR",
+    "CosineAnnealingLR",
+    "CosineAnnealingWarmRestarts",
+    "CyclicLR",
+    "ExponentialLR",
+    "LRScheduler",
+    "LambdaLR",
+    "LinearLR",
+    "MultiStepLR",
+    "MultiplicativeLR",
+    "OneCycleLR",
+    "PolynomialLR",
+    "ReduceLROnPlateau",
+    "SequentialLR",
+    "StepLR",
+    # torch.optim.nadam
+    "NAdam",
+    # torch.optim.optimizer
+    "Optimizer",
+    # torch.optim.radam
+    "RAdam",
+    # torch.optim.rmsprop
+    "RMSprop",
+    # torch.optim.rprop
+    "Rprop",
+    # torch.optim.sgd
+    "SGD",
+    # torch.optim.sparse_adam
+    "SparseAdam",
+    # torch.optim.swa_utils
+    "AveragedModel",
+    "SWALR",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.overrides
     "BaseTorchFunctionMode",
     "TorchFunctionMode",
@@ -3224,8 +3718,11 @@ html_css_files = [
     "https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css",
 ]
 
+<<<<<<< HEAD
 html_js_files = ["js/runllm-widget.js"]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from sphinx.ext.coverage import CoverageBuilder
 
 

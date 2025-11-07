@@ -85,7 +85,11 @@ class TensorParallelTest(DTensorTestBase):
         with torch.no_grad():
             tp_res = tp_model(*inputs)
         self.assertEqual(res, tp_res)
+<<<<<<< HEAD
         # Expect all_gather to be inserted to distributed sharded fc results
+=======
+        # Expect all_gather to be inserted to distributed sharded fc resutls
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assert_has_c10d_ops(
             tp_exported_program.graph_module,
             {

@@ -17,7 +17,11 @@ set(BACKEND_WITH_COMPILER_SRCS
 )
 if(USE_KINETO)
   # Testing edge profiler for backend use
+<<<<<<< HEAD
   # profiler_edge should only be added when USE_KINETO flag is on
+=======
+  # profiler_edge should only be aded when USE_KINETO flag is on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   list(APPEND BACKEND_WITH_COMPILER_SRCS
     ${TORCH_SRC_DIR}/csrc/jit/mobile/profiler_edge.cpp)
 endif()
@@ -88,7 +92,10 @@ set(JIT_TEST_SRCS
   ${JIT_TEST_ROOT}/test_subgraph_matcher.cpp
   ${JIT_TEST_ROOT}/test_subgraph_rewriter.cpp
   ${JIT_TEST_ROOT}/test_subgraph_utils.cpp
+<<<<<<< HEAD
   ${JIT_TEST_ROOT}/test_te.cpp
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${JIT_TEST_ROOT}/test_union.cpp
   ${JIT_TEST_ROOT}/test_utils.cpp
   ${JIT_TEST_ROOT}/test_script_profile.cpp

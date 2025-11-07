@@ -15,7 +15,10 @@ import uuid
 
 import torch.distributed.elastic.timer as timer
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     IS_ARM64,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_MACOS,
     IS_WINDOWS,
     run_tests,
@@ -24,8 +27,13 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
 # timer is not supported on these platforms
 if not (IS_WINDOWS or IS_MACOS or IS_ARM64):
+=======
+# timer is not supported on windows or macos
+if not (IS_WINDOWS or IS_MACOS):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # func2 should time out
     def func2(n, file_path):
         if file_path is not None:
@@ -191,7 +199,11 @@ if not (IS_WINDOWS or IS_MACOS or IS_ARM64):
         """
         client = timer.FileTimerClient(file_path)
         sem.release()
+<<<<<<< HEAD
         for _ in range(n):
+=======
+        for _ in range(0, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             client.acquire("test_scope", 0)
             time.sleep(interval)
 

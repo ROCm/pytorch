@@ -22,7 +22,10 @@ from torch.distributed.tensor._ops.utils import (
     expand_to_full_mesh_op_strategy,
     generate_redistribute_costs,
     is_tensor_evenly_shardable,
+<<<<<<< HEAD
     is_tensor_evenly_shardable_on_dim,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     normalize_dim,
     normalize_dims,
     register_op_strategy,
@@ -73,6 +76,7 @@ class _NormPartial(Partial):
 
     norm_type: Union[int, float, str] = 2
 
+<<<<<<< HEAD
     def __init__(self, norm_type: Union[int, float, str] = 2):
         reduce_op = None
         if norm_type in (float("inf"), "inf"):
@@ -86,6 +90,19 @@ class _NormPartial(Partial):
 
         super().__init__(reduce_op)
         object.__setattr__(self, "norm_type", norm_type)
+=======
+    def __post_init__(self):
+        """Set the appropriate reduce op based on the norm type."""
+        # Use `object.__setattr__` to bypass frozen checks
+        if self.norm_type in (float("inf"), "inf"):
+            object.__setattr__(self, "reduce_op", "max")
+        elif self.norm_type in (float("-inf"), "-inf"):
+            object.__setattr__(self, "reduce_op", "min")
+        elif isinstance(self.norm_type, (int, float)):
+            object.__setattr__(self, "reduce_op", "sum")
+        else:
+            raise NotImplementedError(f"Unsupported norm type: {self.norm_type}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _partition_value(
         self, tensor: torch.Tensor, mesh: DeviceMesh, mesh_dim: int
@@ -106,10 +123,14 @@ class _NormPartial(Partial):
                 raise NotImplementedError(f"Unsupported norm type:: {self.norm_type}")
             elif self.norm_type == 1:
                 return tensor / mesh.size(mesh_dim)
+<<<<<<< HEAD
             if not isinstance(self.norm_type, (int, float)):
                 raise AssertionError(
                     f"Expected int or float, got {type(self.norm_type)}"
                 )
+=======
+            assert isinstance(self.norm_type, (int, float))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return tensor / math.pow(mesh.size(mesh_dim), 1 / self.norm_type)
         raise NotImplementedError(self.reduce_op)
 
@@ -120,8 +141,12 @@ class _NormPartial(Partial):
         mesh_dim: int,
         shard_spec: Placement,
     ) -> torch.Tensor:
+<<<<<<< HEAD
         if not isinstance(shard_spec, Shard):
             raise AssertionError(f"Expected Shard, got {type(shard_spec)}")
+=======
+        assert isinstance(shard_spec, Shard), f"{shard_spec}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor = self._pre_reduce_transform(tensor)
         reduced_tensor = super()._reduce_shard_value(tensor, mesh, mesh_dim, shard_spec)
         return self._post_reduce_transform(reduced_tensor)
@@ -135,23 +160,33 @@ class _NormPartial(Partial):
 
     def _pre_reduce_transform(self, tensor: torch.Tensor) -> torch.Tensor:
         if self.reduce_op == "sum":
+<<<<<<< HEAD
             if not isinstance(self.norm_type, (int, float)):
                 raise AssertionError(
                     f"Expected int or float, got {type(self.norm_type)}"
                 )
             if self.norm_type != 0 and self.norm_type != 1:
                 # pyrefly: ignore [unsupported-operation]
+=======
+            assert isinstance(self.norm_type, (int, float)), f"{self.norm_type}"
+            if self.norm_type != 0 and self.norm_type != 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return tensor**self.norm_type
         return tensor
 
     def _post_reduce_transform(self, tensor: torch.Tensor) -> torch.Tensor:
         if self.reduce_op == "sum":
+<<<<<<< HEAD
             if not isinstance(self.norm_type, (int, float)):
                 raise AssertionError(
                     f"Expected int or float, got {type(self.norm_type)}"
                 )
             if self.norm_type != 0 and self.norm_type != 1:
                 # pyrefly: ignore [unsupported-operation]
+=======
+            assert isinstance(self.norm_type, (int, float)), f"{self.norm_type}"
+            if self.norm_type != 0 and self.norm_type != 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return tensor ** (1.0 / self.norm_type)
         return tensor
 
@@ -248,8 +283,12 @@ def map_placements_after_reduction(
         if isinstance(placement, (Replicate, Partial)):
             new_placements.append(placement)
         else:
+<<<<<<< HEAD
             if not isinstance(placement, Shard):
                 raise AssertionError(f"Expected Shard, got {type(placement)}")
+=======
+            assert isinstance(placement, Shard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shard_dim = placement.dim
             new_shard_dim = reduction_dims_map[shard_dim]
             if new_shard_dim == -1 or shard_dim in reduction_dims:
@@ -284,6 +323,7 @@ def common_reduction_strategy(
     reduction_strategy = OpStrategy([])
 
     for op_spec in input_strategy.strategies:
+<<<<<<< HEAD
         if reduction_op == "avg":
             output_spec = op_spec.output_spec
             local_shape = list(output_spec.tensor_meta.shape)  # type:ignore[union-attr]
@@ -300,6 +340,8 @@ def common_reduction_strategy(
                 reduction_linear = False
                 break
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not reduction_linear:
             # input placements for this strategy should clear out pending sum and sharding
             # on the reduction dimension
@@ -339,6 +381,7 @@ LINEAR_REDUCTION_OP_MAP = {
     aten.all.dim: "sum",
     aten.sum.default: "sum",
     aten.sum.dim_IntList: "sum",
+<<<<<<< HEAD
     aten.any.default: "sum",
     aten.any.dim: "sum",
     aten.any.out: "sum",
@@ -347,6 +390,11 @@ LINEAR_REDUCTION_OP_MAP = {
     aten.prod.dim_int: "product",
     aten.prod.int_out: "product",
     # avg is only linear when there is no padding
+=======
+    aten.prod.default: "product",
+    aten.prod.dim_int: "product",
+    aten.prod.int_out: "product",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten.mean.default: "avg",
     aten.mean.dim: "avg",
     aten.mean.out: "avg",
@@ -356,6 +404,12 @@ LINEAR_REDUCTION_OP_MAP = {
     aten.min.default: "min",
     aten.min.dim: "min",
     aten.min.out: "min",
+<<<<<<< HEAD
+=======
+    aten.any.default: "sum",
+    aten.any.dim: "sum",
+    aten.any.out: "sum",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten.amax.default: "max",
     aten.amax.out: "max",
     aten.amin.default: "min",
@@ -369,8 +423,12 @@ LINEAR_REDUCTION_OP_MAP = {
 def linear_reduction_strategy(op_schema: OpSchema) -> OpStrategy:
     args_schema = op_schema.args_schema
     input_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     dims = None
     if len(op_schema.args_schema) > 1:
@@ -393,11 +451,17 @@ def linear_reduction_strategy(op_schema: OpSchema) -> OpStrategy:
 def cumsum_strategy(op_schema: OpSchema) -> OpStrategy:
     args_schema = op_schema.args_schema
     input_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
     dim = args_schema[1]
     if not isinstance(dim, int):
         raise AssertionError(f"Expected int, got {type(dim)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+    dim = args_schema[1]
+    assert isinstance(dim, int), f"{dim}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return common_reduction_strategy(
         input_strategy, [dim], keep_dim=True, reduction_linear=False
@@ -411,8 +475,12 @@ def cumsum_strategy(op_schema: OpSchema) -> OpStrategy:
 def var_reduction_strategy(op_schema: OpSchema) -> OpStrategy:
     args_schema = op_schema.args_schema
     input_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dims = None
     if len(op_schema.args_schema) > 1:
         dims = _infer_reduction_dims(args_schema[1], input_strategy.ndim)
@@ -431,25 +499,39 @@ def var_reduction_strategy(op_schema: OpSchema) -> OpStrategy:
 def vector_norm_strategy(op_schema: OpSchema) -> OpStrategy:
     args_schema = op_schema.args_schema
     input_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
 
     norm_type = args_schema[1] if len(args_schema) > 1 else 2
     if not isinstance(norm_type, (int, float, str)):
         raise AssertionError(f"Expected int, float, or str, got {type(norm_type)}")
+=======
+    assert isinstance(input_strategy, OpStrategy)
+
+    norm_type = args_schema[1] if len(args_schema) > 1 else 2
+    assert isinstance(norm_type, (int, float, str)), f"{norm_type}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dim = args_schema[2] if len(args_schema) > 2 else None
     keepdim = args_schema[3] if len(args_schema) > 3 else False
     dims = _infer_reduction_dims(dim, input_strategy.ndim)
     reduce_dims = list(range(input_strategy.ndim)) if dims is None else dims
+<<<<<<< HEAD
     reduction_linear = all(
         all(not p.is_partial() for p in op_spec.output_spec.placements)
         for op_spec in input_strategy.strategies
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return common_reduction_strategy(
         input_strategy,
         reduce_dims,
         keep_dim=cast(bool, keepdim),
+<<<<<<< HEAD
         reduction_linear=reduction_linear,
+=======
+        reduction_linear=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reduction_op=NormReduction(norm_type),
     )
 
@@ -460,6 +542,7 @@ def vector_norm_strategy(op_schema: OpSchema) -> OpStrategy:
 def foreach_norm_strategy(op_schema: OpSchema) -> TupleStrategy:
     args_schema = op_schema.args_schema
     input_tuple_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_tuple_strategy, TupleStrategy):
         raise AssertionError(
             f"Expected TupleStrategy, got {type(input_tuple_strategy)}"
@@ -484,6 +567,23 @@ def foreach_norm_strategy(op_schema: OpSchema) -> TupleStrategy:
         )
         output_tuple_strategy_children.append(output_strategy)
     return TupleStrategy(output_tuple_strategy_children)
+=======
+    assert isinstance(input_tuple_strategy, TupleStrategy)
+    norm_type = args_schema[1] if len(args_schema) > 1 else 2
+    assert isinstance(norm_type, (int, float, str)), f"{norm_type}"
+    output_tuple_strategy_childs: list[OpStrategy] = []
+    for op_strategy in input_tuple_strategy.childs:
+        assert isinstance(op_strategy, OpStrategy), f"{op_strategy}"
+        reduce_dims = list(range(op_strategy.ndim))
+        output_strategy = common_reduction_strategy(
+            op_strategy,
+            reduce_dims,
+            reduction_linear=True,
+            reduction_op=NormReduction(norm_type),
+        )
+        output_tuple_strategy_childs.append(output_strategy)
+    return TupleStrategy(output_tuple_strategy_childs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_op_strategy(
@@ -515,8 +615,12 @@ def linalg_replicate_strategy(op_schema: OpSchema) -> OpStrategy:
     """
     args_schema = op_schema.args_schema
     input_strategy = args_schema[0]
+<<<<<<< HEAD
     if not isinstance(input_strategy, OpStrategy):
         raise AssertionError(f"Expected OpStrategy, got {type(input_strategy)}")
+=======
+    assert isinstance(input_strategy, OpStrategy), f"{input_strategy}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mesh = input_strategy.mesh
 
     output_strategies: list[OpSpec] = []
@@ -610,6 +714,7 @@ def softmax_backward_strategy(op_schema: OpSchema) -> OpStrategy:
             mesh=grad_out_strategy.mesh,
             placements=replicate_reduction_dims(src_spec.placements, [softmax_dim]),
         )
+<<<<<<< HEAD
         new_grad_out_spec = DTensorSpec(
             mesh=tgt_spec.mesh,
             placements=tgt_spec.placements,
@@ -620,12 +725,17 @@ def softmax_backward_strategy(op_schema: OpSchema) -> OpStrategy:
             placements=tgt_spec.placements,
             tensor_meta=out_src_spec.tensor_meta,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         redist_grad_out_cost = generate_redistribute_costs(grad_out_strategy, tgt_spec)
         redist_out_cost = generate_redistribute_costs(out_strategy, tgt_spec)
         grad_in_strategy.strategies.append(
             OpSpec(
                 output_specs=tgt_spec,
+<<<<<<< HEAD
                 input_specs=(new_grad_out_spec, new_out_spec),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 redistribute_cost=[redist_grad_out_cost, redist_out_cost],
             )
         )
@@ -640,8 +750,12 @@ def softmax_backward_strategy(op_schema: OpSchema) -> OpStrategy:
 def nll_loss_forward_strategy(op_schema: OpSchema) -> OpStrategy:
     mesh = op_schema.get_mesh_from_args()
 
+<<<<<<< HEAD
     if not len(op_schema.args_schema) == 5:
         raise AssertionError(f"Expected 5 args, got {len(op_schema.args_schema)}")
+=======
+    assert len(op_schema.args_schema) == 5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     (
         input_strategy,
@@ -691,10 +805,14 @@ def nll_loss_forward_strategy(op_schema: OpSchema) -> OpStrategy:
         # weight tensor, if given, has to be a Tensor of size input_shape[channel_dim]
         # make sure it is replicated
         if weight_strategy is not None:
+<<<<<<< HEAD
             if not isinstance(weight_strategy, OpStrategy):
                 raise AssertionError(
                     f"Expected OpStrategy, got {type(weight_strategy)}"
                 )
+=======
+            assert isinstance(weight_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             weight_src_spec = weight_strategy.strategies[idx].output_spec
             weight_expected_spec = DTensorSpec(
                 mesh=mesh,
@@ -769,8 +887,12 @@ def nll_loss_backward_strategy(op_schema: OpSchema) -> OpStrategy:
     # backward op does not need to validate the mesh since forward op has already done it
     mesh = op_schema.get_mesh_from_args(validate=False)
 
+<<<<<<< HEAD
     if not len(op_schema.args_schema) == 7:
         raise AssertionError(f"Expected 7 args, got {len(op_schema.args_schema)}")
+=======
+    assert len(op_schema.args_schema) == 7
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     (
         grad_out_strategy,
         input_strategy,
@@ -839,10 +961,14 @@ def nll_loss_backward_strategy(op_schema: OpSchema) -> OpStrategy:
         # weight tensor, if given, has to be a Tensor of size input_shape[channel_dim]
         # make sure it is replicated
         if weight_strategy is not None:
+<<<<<<< HEAD
             if not isinstance(weight_strategy, OpStrategy):
                 raise AssertionError(
                     f"Expected OpStrategy, got {type(weight_strategy)}"
                 )
+=======
+            assert isinstance(weight_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             weight_src_spec = weight_strategy.strategies[idx].output_spec
             weight_expected_spec = DTensorSpec(
                 mesh=mesh,
@@ -880,6 +1006,7 @@ def nll_loss_backward_strategy(op_schema: OpSchema) -> OpStrategy:
     return grad_in_strategy
 
 
+<<<<<<< HEAD
 def _common_norm_forward_strategy(
     op_schema: OpSchema,
     rms_norm: bool = False,
@@ -921,12 +1048,42 @@ def _common_norm_forward_strategy(
         raise AssertionError(
             f"Expected int, Sequence, or torch.Size, got {type(normalized_shape)}"
         )
+=======
+@register_op_strategy(
+    [aten.native_layer_norm.default],
+    schema_info=RuntimeSchemaInfo(1),
+)
+def layer_norm_strategy(op_schema: OpSchema) -> OpStrategy:
+    mesh = op_schema.get_mesh_from_args()
+
+    # args must be: input, normalized_shape, weight, bias, eps
+    # for None weight and bias, their corresponding objects will
+    # be None as well. layer_norm_strategy returns one OpStrategy
+    # for the triple return values (out, mean, rstd).
+    assert len(op_schema.args_schema) == 5
+    (
+        input_strategy,
+        normalized_shape,
+        weight_strategy,
+        bias_strategy,
+        _,
+    ) = op_schema.args_schema
+
+    # the current layer norm implementation requires that all
+    # input DTensor's sharding must be in form of OpStrategy
+    assert isinstance(input_strategy, OpStrategy)
+    assert isinstance(normalized_shape, (int, Sequence, torch.Size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     normalized_size = normalize_to_torch_size(normalized_shape)
 
     input_ndim = input_strategy.ndim
     axis = input_ndim - len(normalized_size)
 
+<<<<<<< HEAD
     # we use OpStrategy because the output values (out, mean, rstd)
+=======
+    # we use OpStrategy because the output (out, mean, rstd)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # should have the same placements
     output_strategy = OpStrategy([])
     for idx, input_placement_strategy in enumerate(input_strategy.strategies):
@@ -948,10 +1105,14 @@ def _common_norm_forward_strategy(
         )
 
         if weight_strategy is not None:
+<<<<<<< HEAD
             if not isinstance(weight_strategy, OpStrategy):
                 raise AssertionError(
                     f"Expected OpStrategy, got {type(weight_strategy)}"
                 )
+=======
+            assert isinstance(weight_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             weight_src_spec = weight_strategy.strategies[idx].output_spec
 
             # for the weight tensor, we replicate it on all dims if necessary
@@ -968,8 +1129,12 @@ def _common_norm_forward_strategy(
             )
 
         if bias_strategy is not None:
+<<<<<<< HEAD
             if not isinstance(bias_strategy, OpStrategy):
                 raise AssertionError(f"Expected OpStrategy, got {type(bias_strategy)}")
+=======
+            assert isinstance(bias_strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             bias_src_spec = bias_strategy.strategies[idx].output_spec
 
             # for the bias tensor, we replicate it on all dims if necessary
@@ -999,6 +1164,7 @@ def _common_norm_forward_strategy(
 
 
 @register_op_strategy(
+<<<<<<< HEAD
     [aten.native_layer_norm.default],
     schema_info=RuntimeSchemaInfo(1),
 )
@@ -1067,11 +1233,43 @@ def _common_norm_backward_strategy(
         raise AssertionError(
             f"Expected int, Sequence, or torch.Size, got {type(normalized_shape)}"
         )
+=======
+    [aten.native_layer_norm_backward.default],
+    schema_info=RuntimeSchemaInfo(2),
+)
+def layer_norm_bwd_strategy(op_schema: OpSchema) -> OpStrategy:
+    # backward op does not need to validate the mesh since forward op has already done it
+    mesh = op_schema.get_mesh_from_args(validate=False)
+
+    # args must be: grad_out, input, normalized_shape, mean, rstd,
+    # weight, bias, output_mask. For None weight and bias, their
+    # corresponding objects will be None as well.
+
+    assert len(op_schema.args_schema) == 8
+    (
+        grad_out_strategy,
+        input_strategy,
+        normalized_shape,
+        mean_strategy,
+        rstd_strategy,
+        weight_strategy,
+        bias_strategy,
+        output_mask,
+    ) = op_schema.args_schema
+
+    assert isinstance(grad_out_strategy, OpStrategy)
+    assert isinstance(input_strategy, OpStrategy)
+    assert isinstance(mean_strategy, OpStrategy)
+    assert isinstance(rstd_strategy, OpStrategy)
+
+    assert isinstance(normalized_shape, (int, Sequence, torch.Size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     normalized_size = normalize_to_torch_size(normalized_shape)
     input_ndim = input_strategy.ndim
     axis = input_ndim - len(normalized_size)
     outer_dims = list(range(axis))
 
+<<<<<<< HEAD
     if not rms_norm:
         if not (isinstance(output_mask, list) and len(output_mask) == 3):
             raise AssertionError(
@@ -1086,6 +1284,11 @@ def _common_norm_backward_strategy(
             )
 
     # output tuple: (d_input, d_weight[, d_bias])
+=======
+    assert isinstance(output_mask, list) and len(output_mask) == 3
+
+    # output triple: (d_input, d_weight, d_bias)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     out_tuple_strategy = OpStrategy([])
     for idx, input_placement_strategy in enumerate(input_strategy.strategies):
         # args for OpSpec
@@ -1126,6 +1329,7 @@ def _common_norm_backward_strategy(
             generate_redistribute_costs(input_strategy, input_target_spec)
         )
 
+<<<<<<< HEAD
         # arg: mean
         if not rms_norm:
             if mean_strategy is None:
@@ -1135,14 +1339,24 @@ def _common_norm_backward_strategy(
             redistribute_costs.append([0.0 for _ in mean_strategy.strategies])
 
         # arg: rstd
+=======
+        # arg: mean, rstd
+        mean_src_spec = mean_strategy.strategies[idx].output_spec
+        input_specs_list.append(mean_src_spec)
+        redistribute_costs.append([0.0 for _ in mean_strategy.strategies])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rstd_src_spec = rstd_strategy.strategies[idx].output_spec
         input_specs_list.append(rstd_src_spec)
         redistribute_costs.append([0.0 for _ in rstd_strategy.strategies])
 
         def _add_target_input_spec(strategy) -> DTensorSpec:
             # shared logic for setting the weight and bias target input specs
+<<<<<<< HEAD
             if not isinstance(strategy, OpStrategy):
                 raise AssertionError(f"Expected OpStrategy, got {type(strategy)}")
+=======
+            assert isinstance(strategy, OpStrategy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             src_spec = strategy.strategies[idx].output_spec
             # no need to redistribute since they should be replicated in forward pass
             input_specs_list.append(src_spec)
@@ -1151,7 +1365,10 @@ def _common_norm_backward_strategy(
 
         # arg: weight
         # d_weight = sum(grad_out * (input - mean) / rstd, outer_dim, keepdim=False)
+<<<<<<< HEAD
         # For RMS norm, mean is 0, so it's just: sum(grad_out * input / rstd, outer_dim, keepdim=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if weight_strategy is not None:
             weight_src_spec = _add_target_input_spec(weight_strategy)
             # TODO: now d_weight spec follows input spec w/ a reduction.
@@ -1171,16 +1388,23 @@ def _common_norm_backward_strategy(
             )
             output_specs_list.append(weight_out_spec if output_mask[1] else None)
         else:
+<<<<<<< HEAD
             if not rms_norm:
                 error_msg = "output_mask[1] should not be `True` while weight argument is `None` in native_layer_norm_backward."
             else:
                 error_msg = "output_mask[1] should not be `True` while weight argument is `None` in _fused_rms_norm_backward."
             if output_mask[1] is not False:
                 raise AssertionError(error_msg)
+=======
+            assert output_mask[1] is False, (
+                "output_mask[1] should not be `True` while weight argument is `None` in native_layer_norm_backward."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_specs_list.append(None)
 
         # arg: bias
         # d_bias = sum(grad_out, outer_dim, keepdim=False)
+<<<<<<< HEAD
         if not rms_norm:
             if bias_strategy is not None:
                 bias_src_spec = _add_target_input_spec(bias_strategy)
@@ -1206,6 +1430,31 @@ def _common_norm_backward_strategy(
                         "output_mask[2] should not be `True` while bias argument is `None` in native_layer_norm_backward."
                     )
                 output_specs_list.append(None)
+=======
+        if bias_strategy is not None:
+            bias_src_spec = _add_target_input_spec(bias_strategy)
+            # d_bias spec follows a reduction over grad_out
+            inp_placements = _replicate_dims_start_at(
+                grad_out_target_spec.placements, axis
+            )
+            reduce_dims_map = _infer_reduce_dims_map(
+                outer_dims, grad_out_target_spec.ndim, False
+            )
+            out_placements = map_placements_after_reduction(
+                inp_placements, outer_dims, reduce_dims_map, "sum"
+            )
+            bias_out_spec = DTensorSpec(
+                mesh=mesh,
+                placements=out_placements,
+                tensor_meta=bias_src_spec.tensor_meta,
+            )
+            output_specs_list.append(bias_out_spec if output_mask[2] else None)
+        else:
+            assert output_mask[2] is False, (
+                "output_mask[2] should not be `True` while bias argument is `None` in native_layer_norm_backward."
+            )
+            output_specs_list.append(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         out_tuple_strategy.strategies.append(
             OpSpec(
@@ -1219,6 +1468,7 @@ def _common_norm_backward_strategy(
 
 
 @register_op_strategy(
+<<<<<<< HEAD
     [aten.native_layer_norm_backward.default],
     schema_info=RuntimeSchemaInfo(2),
 )
@@ -1250,10 +1500,13 @@ def sort_strategy(op_schema: OpSchema, sort_dim: int) -> OpStrategy:
 
 
 @register_op_strategy(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     [aten.topk.default],
     schema_info=RuntimeSchemaInfo(2),
 )
 def topk_strategy(op_schema: OpSchema) -> OpStrategy:
+<<<<<<< HEAD
     topk_dim = (
         cast(int, op_schema.args_schema[2]) if len(op_schema.args_schema) > 2 else -1
     )
@@ -1354,4 +1607,28 @@ def logsumexp_strategy(op_schema: OpSchema) -> OpStrategy:
         reduce_dims,
         keep_dim=keep_dim,
         reduction_linear=False,
+=======
+    input_strategy = cast(OpStrategy, op_schema.args_schema[0])
+    topk_dim = (
+        cast(int, op_schema.args_schema[2]) if len(op_schema.args_schema) > 2 else -1
+    )
+    topk_dim = normalize_dim(topk_dim, input_strategy.ndim)
+
+    single_mesh_dim_strategies = []
+
+    # two outputs (values, indices), 1 input
+    # replicate always works
+    all_replicate: PlacementList = [Replicate()] * 3
+    single_mesh_dim_strategies.append(all_replicate)
+
+    # every dim except topk dim should work
+    for dim in range(input_strategy.ndim):
+        if dim != topk_dim:
+            dim_shardings: PlacementList = [Shard(dim)] * 3
+            single_mesh_dim_strategies.append(dim_shardings)
+    # TODO: topk on sharded dim requries non-trival reduction, address it later
+
+    return expand_to_full_mesh_op_strategy(
+        input_strategy.mesh, op_schema, single_mesh_dim_strategies, input_index=2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )

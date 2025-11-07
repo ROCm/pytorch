@@ -4,6 +4,7 @@ from unittest.mock import patch
 import torch
 import torch._dynamo.test_case
 import torch._dynamo.testing
+<<<<<<< HEAD
 from torch._dynamo import config as dc
 
 
@@ -56,6 +57,11 @@ class RecompileTests(torch._dynamo.test_case.TestCase):
             mod = Mod()
             mod(torch.randn(2, 2))
 
+=======
+
+
+class RecompileTests(torch._dynamo.test_case.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_automatic_dynamic_reduce_recompiles(self):
         # Test the counterfactual, lots of recompiles without this config
         def foo(x, y):
@@ -548,6 +554,7 @@ class RecompileTests(torch._dynamo.test_case.TestCase):
         f(x, foo1)
         self.assertEqual(counter.frame_count, 2)
 
+<<<<<<< HEAD
     def test_no_recompile_over_unused_objects(self):
         # This is a regression test case that imitates
         # https://github.com/city96/ComfyUI-GGUF/blob/47bec6147569a138dd30ad3e14f190a36a3be456/ops.py#L169-L182
@@ -571,6 +578,8 @@ class RecompileTests(torch._dynamo.test_case.TestCase):
         apply_patches(f, x, [("c", 3), ("d", 4)])
         self.assertEqual(counter.frame_count, 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

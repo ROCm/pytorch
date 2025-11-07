@@ -68,7 +68,11 @@ class TestArrayScalars(TestCase):
         assert product.shape == (3,)
         assert_equal(product, [42, 42 * 2, 42 * 3])
 
+<<<<<<< HEAD
         # repeat with right-multiply
+=======
+        # repeat with right-mulitply
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         product = lst * value
         assert isinstance(product, np.ndarray)
         assert product.shape == (3,)

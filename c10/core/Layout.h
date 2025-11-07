@@ -32,7 +32,10 @@ inline Layout layout_from_backend(Backend backend) {
   switch (backend) {
     case Backend::SparseCPU:
     case Backend::SparseCUDA:
+<<<<<<< HEAD
     case Backend::SparseMPS:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Backend::SparseHIP:
     case Backend::SparseVE:
     case Backend::SparseXPU:
@@ -42,13 +45,20 @@ inline Layout layout_from_backend(Backend backend) {
       return Layout::Mkldnn;
     case Backend::SparseCsrCPU:
     case Backend::SparseCsrCUDA:
+<<<<<<< HEAD
     case Backend::SparseCsrMPS:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Backend::SparseCsrHIP:
     case Backend::SparseCsrVE:
     case Backend::SparseCsrXPU:
       TORCH_CHECK(
           false,
+<<<<<<< HEAD
           "Cannot map Backend SparseCsr(CPU|CUDA|HIP|VE|XPU|MPS) to a unique layout.");
+=======
+          "Cannot map Backend SparseCsr(CPU|CUDA|HIP|VE|XPU) to a unique layout.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       return Layout::Strided;
   }

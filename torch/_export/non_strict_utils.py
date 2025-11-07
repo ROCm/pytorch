@@ -6,9 +6,15 @@ import inspect
 import logging
 import math
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from collections.abc import Sequence
+from contextlib import contextmanager
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -101,7 +107,10 @@ class _KeyPathTrie:
             assert len(kp) > 0
             k, *kp = kp  # type: ignore[assignment]
             node = node[k]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return node, kp
 
 
@@ -140,7 +149,10 @@ def key_path_to_source(
         source: Source = LocalSource("args")
     else:
         source, kp = sourced_prefixes.get(kp)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for k in kp:
         if isinstance(k, SequenceKey):
             source = GetItemSource(source, k.idx)
@@ -171,10 +183,14 @@ def fakify(
         return t
 
     if isinstance(t, _IntWrapper):
+<<<<<<< HEAD
         if t.dynamism is not None and t.dynamism.type in (  # type: ignore[union-attr]
             _DimHintType.DYNAMIC,
             _DimHintType.AUTO,
         ):
+=======
+        if t.dynamism is not None and t.dynamism.type in (_DimHintType.DYNAMIC, _DimHintType.AUTO):  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             symint = mode.shape_env.create_unspecified_symint_and_symbol(  # type: ignore[union-attr]
                 t.val, source, DimDynamic.DYNAMIC
             )
@@ -201,6 +217,7 @@ def fakify(
             "To register a constant input, use torch.utils._pytree.register_constant"
         )
 
+<<<<<<< HEAD
     # Create symbolic context (handles subclass recursion internally)
     symbolic_context = _create_symbolic_context_for_tensor(
         t, source, t_constraints, sources, mode
@@ -226,6 +243,11 @@ def _create_symbolic_context_for_tensor(t, source, t_constraints, sources, mode)
     dynamic_sizes = []
     constraint_sizes = [None] * n_dims
 
+=======
+    n_dims = len(t.shape)
+    dynamic_sizes = []
+    constraint_sizes = [None] * n_dims
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i in range(n_dims):
         if i in getattr(t, "_dynamo_weak_dynamic_indices", {}):
             dynamic_sizes.append(DimDynamic.DYNAMIC)
@@ -237,6 +259,7 @@ def _create_symbolic_context_for_tensor(t, source, t_constraints, sources, mode)
             constraint_sizes[i] = RelaxedUnspecConstraint(warn_only=False)  # type: ignore[call-overload]
         else:
             dynamic_sizes.append(DimDynamic.STATIC)
+<<<<<<< HEAD
 
     # Handle nested subclasses
     if is_traceable_wrapper_subclass(t):
@@ -269,6 +292,14 @@ def _create_symbolic_context_for_tensor(t, source, t_constraints, sources, mode)
         )
 
     # Apply constraints (common logic)
+=======
+    symbolic_context: StatelessSymbolicContext = (  # make mypy happy
+        StatelessSymbolicContext(
+            dynamic_sizes=dynamic_sizes,
+            constraint_sizes=constraint_sizes,  # type: ignore[arg-type]
+        )
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     t_id = id(t)
     assert mode.shape_env is not None
     if t_id in t_constraints:
@@ -279,8 +310,14 @@ def _create_symbolic_context_for_tensor(t, source, t_constraints, sources, mode)
                 continue
             symbolic_context.constraint_sizes[i] = constraint.constraint_range
             mode.shape_env.source_name_to_debug_name[src.name()] = constraint.name  # type: ignore[assignment]
+<<<<<<< HEAD
 
     return symbolic_context
+=======
+    fake = mode.from_tensor(t, source=source, symbolic_context=symbolic_context)
+    mode.shape_env.tracked_fakes.append(TrackedFake(fake, source, symbolic_context))  # type: ignore[union-attr]
+    return fake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _is_unbacked_symint(symbol):
@@ -356,12 +393,18 @@ def _override_builtin_ops():
     original_min = builtins.min
     original_pow = math.pow
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     builtins.max = functools.partial(
         _tensor_min_max, real_callable=original_max, tensor_callable=torch.maximum
     )
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     builtins.min = functools.partial(
         _tensor_min_max, real_callable=original_min, tensor_callable=torch.minimum
     )
@@ -381,7 +424,12 @@ def make_fake_inputs(
     args,
     kwargs,
     dynamic_shapes,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards=False,
+=======
+    _is_torch_jit_trace=False,
+    allow_complex_guards_as_runtime_asserts=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Given an nn module, example inputs, and constraints, return a new fake mode,
@@ -416,8 +464,12 @@ def make_fake_inputs(
         # a toplevel TracingContext with a fake mode, so we do not want to
         # create another fake mode.
         fake_mode = context.fake_mode
+<<<<<<< HEAD
         assert fake_mode is not None
     else:
+=======
+    elif not _is_torch_jit_trace:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(nn_module.forward, functools.partial):
             # functools handles nesting by itself, no need to recurse
             code = nn_module.forward.func.__code__
@@ -433,12 +485,31 @@ def make_fake_inputs(
                 shape_env=ShapeEnv(
                     tracked_fakes=[],
                     co_fields=co_fields,
+<<<<<<< HEAD
                     prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+                    prefer_deferred_runtime_asserts_over_guards=True,
+                    allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     trace_asserts=True,
                 ),
                 allow_non_fake_inputs=True,
                 export=True,
             )
+<<<<<<< HEAD
+=======
+    else:
+        with _config.patch(fake_tensor_allow_unsafe_data_ptr_access=False):
+            fake_mode = FakeTensorMode(
+                shape_env=ShapeEnv(
+                    tracked_fakes=[],
+                    prefer_deferred_runtime_asserts_over_guards=True,
+                    allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+                    trace_asserts=True,
+                ),
+                allow_non_fake_inputs=True,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if fake_mode.shape_env is None or fake_mode.shape_env.tracked_fakes is None:
         raise ValueError(
             "Detected fake_mode does not have a shape_env with tracked fakes. "
@@ -447,7 +518,15 @@ def make_fake_inputs(
         )
 
     with fake_mode:
+<<<<<<< HEAD
         original_signature = inspect.signature(nn_module.forward)
+=======
+        # FIXME(ycao) ScriptMethod doesn't have signature, I am using an empty one to unblock
+        if not _is_torch_jit_trace:
+            original_signature = inspect.signature(nn_module.forward)
+        else:
+            original_signature = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sources: dict[tuple[int, int], list[Source]] = defaultdict(list)
         sourced_prefixes = make_sourced_prefixes(nn_module, args, kwargs)
         fake_args, fake_kwargs = tree_map_with_path(
@@ -528,6 +607,10 @@ def produce_guards_and_solve_constraints(
     dynamic_shapes: Union[dict[str, Any], tuple[Any], list[Any], None],
     equalities_inputs: EqualityConstraint,
     original_signature: inspect.Signature,
+<<<<<<< HEAD
+=======
+    _is_torch_jit_trace=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Given a fake mode, sources pairs corresponding to equal dynamic shape dimensions,
@@ -568,6 +651,7 @@ def produce_guards_and_solve_constraints(
         raise constraint_violation_error
     dim_constraints.solve()
     forced_specializations = dim_constraints.forced_specializations()
+<<<<<<< HEAD
 
     msg = dim_constraints.prettify_results(
         original_signature,
@@ -576,6 +660,18 @@ def produce_guards_and_solve_constraints(
         forced_specializations,  # type: ignore[arg-type]
     )
 
+=======
+    if not _is_torch_jit_trace:
+        msg = dim_constraints.prettify_results(
+            original_signature,
+            dynamic_shapes,  # type: ignore[arg-type]
+            constraint_violation_error,
+            forced_specializations,  # type: ignore[arg-type]
+        )
+    else:
+        # FIXME(ycao): This is a hack to get around missing signature from ScriptMethod
+        msg = "dummy constraint violation message"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if constraint_violation_error:
         constraint_violation_error.args = (constraint_violation_error.args[0] + msg,)
     elif forced_specializations:
@@ -903,7 +999,11 @@ def _fakify_script_objects(
     mod: torch.nn.Module,
     args: Sequence[Any],
     kwargs: dict[Any, Any],
+<<<<<<< HEAD
     fake_mode: Optional[torch._subclasses.fake_tensor.FakeTensorMode],
+=======
+    fake_mode: torch._subclasses.fake_tensor.FakeTensorMode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     # This context manager is used to fakify script objects into FakeScriptObject.
     # Inputs:
@@ -1034,12 +1134,16 @@ class _NonStrictTorchFunctionHandler(torch.overrides.TorchFunctionMode):
 
             def rewrite(dim, item):
                 # Redirect to torch.select for indexing.
+<<<<<<< HEAD
                 if item is None:
                     return dim + 1, (torch.unsqueeze, [dim])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(item, (int, torch.SymInt)):
                     return dim, (torch.select, [dim, item])
                 # Redirect to torch.ops.aten.slice for slicing.
                 if isinstance(item, slice):
+<<<<<<< HEAD
                     step = item.step or 1
                     if item.start is None and item.stop is None and step == 1:
                         # no-op
@@ -1094,6 +1198,32 @@ class _NonStrictTorchFunctionHandler(torch.overrides.TorchFunctionMode):
                     return t
 
                 return run, [], {}
+=======
+                    return dim + 1, (
+                        torch.ops.aten.slice,
+                        [dim, item.start, item.stop, item.step or 1],
+                    )
+                # Otherwise do nothing.
+
+            items = args[1] if isinstance(args[1], tuple) else (args[1],)
+            dim = 0
+            # Sequence rewrites.
+            sequence = []
+            for item in items:
+                if (r := rewrite(dim, item)) is None:
+                    return func, args, kwargs
+                dim, call_spec = r
+                sequence.append(call_spec)
+
+            def run():
+                # Run sequence.
+                t = args[0]
+                for _method, _args in sequence:
+                    t = _method(t, *_args)
+                return t
+
+            return run, [], {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return func, args, kwargs
 

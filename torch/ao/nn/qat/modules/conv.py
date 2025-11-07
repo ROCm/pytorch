@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import ClassVar, Literal, Union
+=======
+from typing import ClassVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -26,7 +30,11 @@ class _ConvNd(nn.modules.conv._ConvNd):
         output_padding: tuple[int, ...],
         groups: int,
         bias: bool,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"],
+=======
+        padding_mode: str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qconfig=None,
         device=None,
         dtype=None,
@@ -62,7 +70,11 @@ class _ConvNd(nn.modules.conv._ConvNd):
            `mod`: a float module, either produced by torch.ao.quantization utilities
            or directly from user
         """
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "qat."
             + cls.__name__
             + ".from_float only works for "
@@ -114,7 +126,10 @@ class _ConvNd(nn.modules.conv._ConvNd):
             assert hasattr(cls, "_FLOAT_RELU_MODULE")
             relu = cls._FLOAT_RELU_MODULE()
             modules.append(relu)
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fused = cls._FLOAT_MODULE(*modules)
             fused.train(self.training)
             return fused
@@ -149,7 +164,11 @@ class Conv1d(_ConvNd, nn.Conv1d):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qconfig=None,
         device=None,
         dtype=None,
@@ -211,7 +230,11 @@ class Conv2d(_ConvNd, nn.Conv2d):
         dilation: _size_2_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qconfig=None,
         device=None,
         dtype=None,
@@ -276,7 +299,11 @@ class Conv3d(_ConvNd, nn.Conv3d):
         dilation: _size_3_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qconfig=None,
         device=None,
         dtype=None,

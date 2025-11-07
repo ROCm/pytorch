@@ -38,6 +38,10 @@ REGISTER_NO_CPU_DISPATCH(mkldnn_convolution_transpose_backward_stub)
 
 #include <ATen/native/mkldnn/MKLDNNCommon.h>
 #include <ATen/native/mkldnn/Utils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/ConvUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 
 namespace at::native {
@@ -104,7 +108,11 @@ static void check_shape_forward(const Tensor& input,
     // If kernel size is incorrect
     std::ostringstream input_ss;
     std::ostringstream kernel_ss;
+<<<<<<< HEAD
     std::string separator;
+=======
+    std::string separator = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for (int i = 0, len = input_shape.size(); i < len; ++i) {
       input_ss << separator << input_shape[i];
@@ -147,13 +155,18 @@ static void check_shape_forward(const Tensor& input,
 //  blocked format will propagate between layers. Input, output will be in blocked format.
 //
 //  For inference case, weight can be prepacked into blocked format by
+<<<<<<< HEAD
 //  (so as to save weight reorder overhead):
+=======
+//  (so as to save weight reoder overhead):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //      model = torch.utils.mkldnn.to_mkldnn(model)
 //
 //  For training case, grad_output can be CPU tensor or MKLDNN tensor,
 //  but weight/bias and grad_weight/grad_bias are always CPU tensor.
 //
 
+<<<<<<< HEAD
 static bool mkldnn_conv_enabled_fpmath_mode_bf16(){
   return at::globalContext().float32Precision(at::Float32Backend::MKLDNN, at::Float32Op::CONV) == at::Float32Precision::BF16 &&
       mkldnn_bf16_device_check();
@@ -168,6 +181,8 @@ static bool mkldnn_conv_enabled_fpmath_mode_tf32(){
 #endif
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static inline at::MemoryFormat mkldnn_convolution_memory_format(int64_t dims, bool is_channels_last) {
    auto memory_format =  at::MemoryFormat::Contiguous;
    if (is_channels_last) {
@@ -176,7 +191,11 @@ static inline at::MemoryFormat mkldnn_convolution_memory_format(int64_t dims, bo
    return memory_format;
 }
 
+<<<<<<< HEAD
 static void _mkldnn_convolution_out(
+=======
+static void _mkldnn_convolution_out (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input_t,
     const Tensor& weight_t,
     const Tensor& bias,
@@ -274,6 +293,7 @@ static Tensor _mkldnn_convolution(
     output.resize_(output_sizes, memory_format);
     y = itensor_from_tensor(output);
   }
+<<<<<<< HEAD
   if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
       input_t.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_bf16);
@@ -282,6 +302,8 @@ static Tensor _mkldnn_convolution(
       input_t.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _mkldnn_convolution_out(
       input_t,
       weight_t,
@@ -463,6 +485,7 @@ Tensor mkldnn_convolution_pointwise_binary(
     op_attr.set_post_ops(po);
     auto aprop_kind = ideep::prop_kind::forward_inference;
 
+<<<<<<< HEAD
     if (mkldnn_conv_enabled_fpmath_mode_bf16() && input_t.scalar_type() ==at::kFloat){
       op_attr.set_fpmath_mode(dnnl_fpmath_mode_bf16);
     }
@@ -470,6 +493,8 @@ Tensor mkldnn_convolution_pointwise_binary(
       op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (bias.defined()) {
       const ideep::tensor b = itensor_from_tensor(bias);
       ideep::convolution_forward::compute_binary(
@@ -607,6 +632,7 @@ Tensor& mkldnn_convolution_pointwise_binary_(
       op_attr = ideep::attr_t::fuse_sum();
     }
     auto aprop_kind = ideep::prop_kind::forward_inference;
+<<<<<<< HEAD
     if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
         input_t.scalar_type() == at::kFloat) {
       op_attr.set_fpmath_mode(dnnl_fpmath_mode_bf16);
@@ -615,6 +641,8 @@ Tensor& mkldnn_convolution_pointwise_binary_(
         input_t.scalar_type() == at::kFloat) {
       op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _mkldnn_convolution_out(
         input_t,
         weight_t,
@@ -723,7 +751,11 @@ Tensor _mkldnn_convolution_transpose(
   ideep::tensor w = itensor_from_tensor(weight, /*from_const_data_ptr*/true);
   if (!weight.is_mkldnn()) {
     // mkldnn transposed convolution has weight in logical order of OIHW or OIDHW,
+<<<<<<< HEAD
     // while PyTorch has IOHW or IODHW, `._transpose()` switches strides (no memory copy).
+=======
+    // while PyTorch has IOHW or IODHW, `._tranpose()` switches strides (no memory copy).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     w.transpose_(0, 1);
   }
 
@@ -733,6 +765,7 @@ Tensor _mkldnn_convolution_transpose(
     y = itensor_from_tensor(output);
   }
 
+<<<<<<< HEAD
   if (mkldnn_conv_enabled_fpmath_mode_bf16() && input_t.scalar_type() ==at::kFloat){
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_bf16);
   }
@@ -740,6 +773,8 @@ Tensor _mkldnn_convolution_transpose(
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (bias.defined()) {
     const ideep::tensor b = itensor_from_tensor(bias, /*from_const_data_ptr*/true);
     ideep::convolution_transpose_forward::compute_v3(
@@ -824,6 +859,7 @@ Tensor mkldnn_convolution_backward_input(
     grad_input.resize_(input_size, memory_format);
     grad_x = itensor_from_tensor(grad_input);
   }
+<<<<<<< HEAD
   ideep::attr_t op_attr = ideep::attr_t();
   if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
       weight.scalar_type() == at::kFloat) {
@@ -833,6 +869,8 @@ Tensor mkldnn_convolution_backward_input(
       weight.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ideep::convolution_backward_data::compute_v2(
       grad_y,
       w,
@@ -843,6 +881,7 @@ Tensor mkldnn_convolution_backward_input(
       padding.vec(),
       padding.vec(),
       groups,
+<<<<<<< HEAD
 #if IDEEP_PREREQ(3, 4, 1, 3)
       is_channels_last,
       op_attr);
@@ -859,6 +898,9 @@ Tensor mkldnn_convolution_backward_input(
         "Unexpected ideep version to support fpmath_mode_tf32, please update ideep version to align with pytorch main branch");
       }
 #endif
+=======
+      is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (grad_output.is_mkldnn()) {
     return MKLDNNTensor(grad_x, grad_output.options());
@@ -883,6 +925,7 @@ std::tuple<Tensor, Tensor> mkldnn_convolution_backward_weights(
   const ideep::tensor x = itensor_from_tensor(input, /*from_const_data_ptr*/true);
 
   ideep::tensor grad_w, grad_b;
+<<<<<<< HEAD
   ideep::attr_t op_attr = ideep::attr_t();
   if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
       input.scalar_type() == at::kFloat) {
@@ -892,6 +935,8 @@ std::tuple<Tensor, Tensor> mkldnn_convolution_backward_weights(
       input.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (bias_defined) {
     ideep::convolution_backward_weights::compute_v2(
         x,
@@ -904,8 +949,12 @@ std::tuple<Tensor, Tensor> mkldnn_convolution_backward_weights(
         padding.vec(),
         padding.vec(),
         groups,
+<<<<<<< HEAD
         is_channels_last,
         op_attr);
+=======
+        is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     ideep::convolution_backward_weights::compute_v2(
         x,
@@ -917,8 +966,12 @@ std::tuple<Tensor, Tensor> mkldnn_convolution_backward_weights(
         padding.vec(),
         padding.vec(),
         groups,
+<<<<<<< HEAD
         is_channels_last,
         op_attr);
+=======
+        is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (!is_channels_last) {
@@ -1040,6 +1093,7 @@ Tensor mkldnn_convolution_transpose_backward_input(
     grad_input.resize_(input_size, memory_format);
     grad_x = itensor_from_tensor(grad_input);
   }
+<<<<<<< HEAD
   ideep::attr_t op_attr = ideep::attr_t();
   if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
       weight.scalar_type() == at::kFloat) {
@@ -1049,6 +1103,8 @@ Tensor mkldnn_convolution_transpose_backward_input(
       weight.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ideep::convolution_transpose_backward_data::compute_v3(
       grad_y,
       w,
@@ -1059,8 +1115,12 @@ Tensor mkldnn_convolution_transpose_backward_input(
       padding_r(padding, output_padding),
       dilation.vec(),
       groups,
+<<<<<<< HEAD
       is_channels_last,
       op_attr);
+=======
+      is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (grad_output.is_mkldnn()) {
     return MKLDNNTensor(grad_x, grad_output.options());
@@ -1086,6 +1146,7 @@ std::tuple<Tensor,Tensor> mkldnn_convolution_transpose_backward_weights(
   auto x = itensor_from_tensor(input, /*from_const_data_ptr*/true);
 
   ideep::tensor grad_w, grad_b;
+<<<<<<< HEAD
   ideep::attr_t op_attr = ideep::attr_t();
   if (mkldnn_conv_enabled_fpmath_mode_bf16() &&
       input.scalar_type() == at::kFloat) {
@@ -1095,6 +1156,8 @@ std::tuple<Tensor,Tensor> mkldnn_convolution_transpose_backward_weights(
       input.scalar_type() == at::kFloat) {
     op_attr.set_fpmath_mode(dnnl_fpmath_mode_tf32);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (bias_defined) {
     ideep::convolution_transpose_backward_weights::compute_v3(
         x,
@@ -1107,8 +1170,12 @@ std::tuple<Tensor,Tensor> mkldnn_convolution_transpose_backward_weights(
         padding_r(padding, output_padding),
         dilation.vec(),
         groups,
+<<<<<<< HEAD
         is_channels_last,
         op_attr);
+=======
+        is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     ideep::convolution_transpose_backward_weights::compute_v3(
         x,
@@ -1120,8 +1187,12 @@ std::tuple<Tensor,Tensor> mkldnn_convolution_transpose_backward_weights(
         padding_r(padding, output_padding),
         dilation.vec(),
         groups,
+<<<<<<< HEAD
         is_channels_last,
         op_attr);
+=======
+        is_channels_last);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (!is_channels_last) {

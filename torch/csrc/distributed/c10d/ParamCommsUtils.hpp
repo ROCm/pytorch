@@ -91,7 +91,11 @@ class TORCH_API ParamCommsDebugInfo : public c10::DebugInfoBase {
   std::vector<int64_t> outputSplitSizes_;
   int globalRankStart_{};
   int globalRankStride_{};
+<<<<<<< HEAD
   std::vector<int64_t> groupRanks_;
+=======
+  std::vector<int64_t> groupRanks_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 #define RECORD_PARAM_COMMS(                                                    \

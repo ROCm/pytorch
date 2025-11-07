@@ -2,8 +2,12 @@
 
 import math
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Literal, Optional as _Optional, TypeVar, Union
+=======
+from typing import Callable, Literal, Optional as _Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -65,7 +69,11 @@ _FanMode = Literal["fan_in", "fan_out"]
 # These no_grad_* functions are necessary as wrappers around the parts of these
 # functions that use `with torch.no_grad()`. The JIT doesn't support context
 # managers, so these need to be implemented as builtins. Using these wrappers
+<<<<<<< HEAD
 # lets us keep those builtins small and reusable.
+=======
+# lets us keep those builtins small and re-usable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _no_grad_uniform_(
     tensor: Tensor, a: float, b: float, generator: _Optional[torch.Generator] = None
 ) -> Tensor:
@@ -460,6 +468,17 @@ def xavier_uniform_(
     Examples:
         >>> w = torch.empty(3, 5)
         >>> nn.init.xavier_uniform_(w, gain=nn.init.calculate_gain("relu"))
+<<<<<<< HEAD
+=======
+
+    Note:
+        Be aware that ``fan_in`` and ``fan_out`` are calculated assuming
+        that the weight matrix is used in a transposed manner,
+        (i.e., ``x @ w.T`` in ``Linear`` layers, where ``w.shape = [fan_out, fan_in]``).
+        This is important for correct initialization.
+        If you plan to use ``x @ w``, where ``w.shape = [fan_in, fan_out]``,
+        pass in a transposed weight matrix, i.e. ``nn.init.xavier_uniform_(w.T, ...)``.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     fan_in, fan_out = _calculate_fan_in_and_fan_out(tensor)
     std = gain * math.sqrt(2.0 / float(fan_in + fan_out))
@@ -492,6 +511,17 @@ def xavier_normal_(
     Examples:
         >>> w = torch.empty(3, 5)
         >>> nn.init.xavier_normal_(w)
+<<<<<<< HEAD
+=======
+
+    Note:
+        Be aware that ``fan_in`` and ``fan_out`` are calculated assuming
+        that the weight matrix is used in a transposed manner,
+        (i.e., ``x @ w.T`` in ``Linear`` layers, where ``w.shape = [fan_out, fan_in]``).
+        This is important for correct initialization.
+        If you plan to use ``x @ w``, where ``w.shape = [fan_in, fan_out]``,
+        pass in a transposed weight matrix, i.e. ``nn.init.xavier_normal_(w.T, ...)``.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     fan_in, fan_out = _calculate_fan_in_and_fan_out(tensor)
     std = gain * math.sqrt(2.0 / float(fan_in + fan_out))
@@ -500,7 +530,10 @@ def xavier_normal_(
 
 
 def _calculate_correct_fan(tensor: Tensor, mode: _FanMode) -> int:
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mode = mode.lower()
     valid_modes = ["fan_in", "fan_out"]
     if mode not in valid_modes:
@@ -565,7 +598,11 @@ def kaiming_uniform_(
         )
 
     if 0 in tensor.shape:
+<<<<<<< HEAD
         warnings.warn("Initializing zero-element tensors is a no-op", stacklevel=2)
+=======
+        warnings.warn("Initializing zero-element tensors is a no-op")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tensor
     fan = _calculate_correct_fan(tensor, mode)
     gain = calculate_gain(nonlinearity, a)
@@ -619,7 +656,11 @@ def kaiming_normal_(
         pass in a transposed weight matrix, i.e. ``nn.init.kaiming_normal_(w.T, ...)``.
     """
     if 0 in tensor.shape:
+<<<<<<< HEAD
         warnings.warn("Initializing zero-element tensors is a no-op", stacklevel=2)
+=======
+        warnings.warn("Initializing zero-element tensors is a no-op")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tensor
     fan = _calculate_correct_fan(tensor, mode)
     gain = calculate_gain(nonlinearity, a)
@@ -706,7 +747,11 @@ def sparse_(
         raise ValueError("Only tensors with 2 dimensions are supported")
 
     rows, cols = tensor.shape
+<<<<<<< HEAD
     num_zeros = math.ceil(sparsity * rows)
+=======
+    num_zeros = int(math.ceil(sparsity * rows))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     with torch.no_grad():
         tensor.normal_(0, std, generator=generator)

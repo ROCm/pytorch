@@ -160,7 +160,10 @@ class RemoteCache(Generic[_T]):
             self.backend = override_cls()
         else:
             self.backend = backend
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-type-var]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.serde = serde
 
     # See if the cache contains `key`. Returns `None` if the value is not
@@ -171,6 +174,7 @@ class RemoteCache(Generic[_T]):
             try:
                 result = self._get(key, sample)
                 cache_stats.get(type(self).__name__, result)
+<<<<<<< HEAD
             except Exception as e:
                 cache_stats.exception(type(self).__name__)
                 if sample:
@@ -178,6 +182,12 @@ class RemoteCache(Generic[_T]):
                 raise
             finally:
                 self._log_sample(sample)
+=======
+            except Exception:
+                cache_stats.exception(type(self).__name__)
+                raise
+            self._log_sample(sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return result
 
     # Add `value` to the cache with the key `key`. Note that `None` is not a
@@ -190,6 +200,7 @@ class RemoteCache(Generic[_T]):
             try:
                 self._put(key, value, sample)
                 cache_stats.put(type(self).__name__)
+<<<<<<< HEAD
             except Exception as e:
                 cache_stats.exception(type(self).__name__)
                 if sample:
@@ -197,6 +208,12 @@ class RemoteCache(Generic[_T]):
                 raise
             finally:
                 self._log_sample(sample)
+=======
+            except Exception:
+                cache_stats.exception(type(self).__name__)
+                raise
+            self._log_sample(sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Used to convert data from the cache into structured data.
     def _decode(self, data: _U, sample: Optional[Sample]) -> _T:  # type: ignore[override]
@@ -246,7 +263,10 @@ class RedisRemoteCacheBackend(RemoteCacheBackend[bytes]):
     A Redis implementation of a remote/distributed cache.
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _redis: Optional[redis.Redis] = None
 
     def __init__(self, cache_id: str) -> None:
@@ -269,9 +289,13 @@ class RedisRemoteCacheBackend(RemoteCacheBackend[bytes]):
             return None
 
         try:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             value = self._redis.get(key)
         # pyrefly: ignore [missing-attribute]
+=======
+            value = self._redis.get(key)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except redis.exceptions.ConnectionError:
             # Redis is lazy and doesn't actually attempt to connect until the
             # first use. Mark is as unavailable now.
@@ -289,9 +313,13 @@ class RedisRemoteCacheBackend(RemoteCacheBackend[bytes]):
             return
 
         try:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             self._redis.set(key, data)
         # pyrefly: ignore [missing-attribute]
+=======
+            self._redis.set(key, data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except redis.exceptions.ConnectionError:
             # Redis is lazy and doesn't actually attempt to connect until the
             # first use. Mark is as unavailable now.

@@ -53,7 +53,11 @@ class TestGenUnboxing(unittest.TestCase):
         temp_file.seek(0)
         args = [
             "--op-registration-allowlist=op1",
+<<<<<<< HEAD
             f"--TEST-ONLY-op-registration-allowlist-yaml-path={temp_file.name}",
+=======
+            "--TEST-ONLY-op-registration-allowlist-yaml-path={temp_file.name}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "--op-selection-yaml-path=path2",
         ]
         gen_unboxing.main(args)

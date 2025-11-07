@@ -1,6 +1,9 @@
 # Owner(s): ["module: tests"]
 
+<<<<<<< HEAD
 import gc
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import unittest
 
@@ -157,6 +160,7 @@ class TestAccelerator(TestCase):
         ):
             event1.elapsed_time(event2)
 
+<<<<<<< HEAD
     @unittest.skipIf(TEST_MPS, "MPS doesn't support torch.accelerator memory API!")
     def test_memory_stats(self):
         # Ensure that device allocator is initialized
@@ -234,6 +238,8 @@ class TestAccelerator(TestCase):
         self.assertEqual(torch.accelerator.max_memory_allocated(), prev_max_allocated)
         self.assertEqual(torch.accelerator.max_memory_reserved(), prev_max_reserved)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

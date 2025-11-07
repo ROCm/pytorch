@@ -53,12 +53,20 @@ int device_count_impl(bool fail_if_no_driver) {
             "https://pytorch.org to install a PyTorch version that has been "
             "compiled with your version of the CUDA driver.");
       }
+<<<<<<< HEAD
     }
+=======
+    } break;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case cudaErrorInitializationError:
       TORCH_CHECK(
           false,
           "CUDA driver initialization failed, you might not "
           "have a CUDA gpu.");
+<<<<<<< HEAD
+=======
+      break;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case cudaErrorUnknown:
       TORCH_CHECK(
           false,
@@ -66,6 +74,10 @@ int device_count_impl(bool fail_if_no_driver) {
           "incorrectly set up environment, e.g. changing env "
           "variable CUDA_VISIBLE_DEVICES after program start. "
           "Setting the available devices to be zero.");
+<<<<<<< HEAD
+=======
+      break;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if C10_ASAN_ENABLED
     case cudaErrorMemoryAllocation:
       // In ASAN mode, we know that a cudaErrorMemoryAllocation error will
@@ -78,6 +90,7 @@ int device_count_impl(bool fail_if_no_driver) {
           "would like to use GPUs, turn off ASAN.");
       break;
 #endif // C10_ASAN_ENABLED
+<<<<<<< HEAD
 #if defined(_WIN32) && CUDA_VERSION >= 13000
     // Workaround for CUDA-13.0 error handling on Windows, see
     // https://github.com/pytorch/pytorch/issues/162333#issuecomment-3267929585
@@ -90,6 +103,8 @@ int device_count_impl(bool fail_if_no_driver) {
         break;
       }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_CHECK(
           false,

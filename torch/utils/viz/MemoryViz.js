@@ -33,12 +33,21 @@ function version_space() {
   };
 }
 
+<<<<<<< HEAD
 function Segment(addr, size, stream, frames, version, user_metadata) {
   return {addr, size, stream, version, frames, user_metadata};
 }
 
 function Block(addr, size, requested_size, frames, free_requested, version, user_metadata) {
   return {addr, size, requested_size, frames, free_requested, version, user_metadata};
+=======
+function Segment(addr, size, stream, frames, version) {
+  return {addr, size, stream, version, frames};
+}
+
+function Block(addr, size, requested_size, frames, free_requested, version) {
+  return {addr, size, requested_size, frames, free_requested, version};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function EventSelector(outer, events, stack_info, memory_view) {
@@ -140,9 +149,13 @@ function eventStack(e, allocated, reserved) {
       reserved,
     )} reserved)\n${event}`;
   }
+<<<<<<< HEAD
   const user_metadata_str = format_user_metadata(e.user_metadata);
   const frames_str = format_frames(e.frames);
   return event + '\n' + (user_metadata_str ? user_metadata_str + '\n' : '') + frames_str;
+=======
+  return event + '\n' + format_frames(e.frames);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function hashCode(num) {
@@ -218,7 +231,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
         seg.stream,
         seg.frames || [],
         seg.version,
+<<<<<<< HEAD
         seg.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ),
     );
     for (const b of seg.blocks) {
@@ -232,7 +248,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
         b.frames,
         b.state === 'active_pending_free',
         b.version,
+<<<<<<< HEAD
         b.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       );
     }
   }
@@ -311,7 +330,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
             event.frames,
             false,
             event.version,
+<<<<<<< HEAD
             event.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           );
           break;
         case 'free_requested':
@@ -325,7 +347,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
             event.frames,
             true,
             event.version,
+<<<<<<< HEAD
             event.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           );
           break;
         case 'alloc':
@@ -341,7 +366,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
               event.stream,
               event.frames,
               event.version,
+<<<<<<< HEAD
               event.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
           );
           break;
@@ -355,7 +383,10 @@ function MemoryView(outer, stack_info, snapshot, device) {
               event.stream,
               event.frames,
               event.version,
+<<<<<<< HEAD
               event.user_metadata,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
           );
           break;
@@ -434,17 +465,24 @@ function MemoryView(outer, stack_info, snapshot, device) {
           if (t.internal_free > 0) {
             internal = ` (${(t.internal_free / free) * 100}% internal)`;
           }
+<<<<<<< HEAD
           const user_metadata_str = format_user_metadata(t.user_metadata);
           const frames_str = format_frames(t.frames);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return (
             `s${t.addr.toString(16)}_${t.version}: segment ${formatSize(
               t.size,
             )} allocated, ` +
             `${formatSize(free)} free${internal} (stream ${
               t.stream
+<<<<<<< HEAD
             })\n` +
             (user_metadata_str ? user_metadata_str + '\n' : '') +
             frames_str
+=======
+            })\n${format_frames(t.frames)}`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           );
         },
         d => {
@@ -505,15 +543,22 @@ function MemoryView(outer, stack_info, snapshot, device) {
           if (t.free_requested) {
             requested = ' (block freed but waiting due to record_stream)';
           }
+<<<<<<< HEAD
           const user_metadata_str = format_user_metadata(t.user_metadata);
           const frames_str = format_frames(t.frames);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return (
             `b${t.addr.toString(16)}_${t.version} ` +
             `${formatSize(t.requested_size)} allocation${requested} (stream ${
               t.segment.stream
             })\n` +
+<<<<<<< HEAD
             (user_metadata_str ? user_metadata_str + '\n' : '') +
             frames_str
+=======
+            format_frames(t.frames)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           );
         },
         removeStroke,
@@ -539,15 +584,22 @@ function MemoryView(outer, stack_info, snapshot, device) {
         d => {
           addStroke(d);
           const t = d.datum();
+<<<<<<< HEAD
           const user_metadata_str = format_user_metadata(t.user_metadata);
           const frames_str = format_frames(t.frames);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return (
             `Free space lost due to rounding ${formatSize(
               t.size - t.requested_size,
             )}` +
             ` (stream ${t.segment.stream})\n` +
+<<<<<<< HEAD
             (user_metadata_str ? user_metadata_str + '\n' : '') +
             frames_str
+=======
+            format_frames(t.frames)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           );
         },
         removeStroke,
@@ -778,6 +830,7 @@ function frameFilter({name, filename}) {
   return true;
 }
 
+<<<<<<< HEAD
 function format_user_metadata(user_metadata) {
   if (!user_metadata) {
     return '';
@@ -795,6 +848,8 @@ function format_user_metadata(user_metadata) {
   return 'User Metadata:\n' + metadata_lines.join('\n');
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 function format_frames(frames) {
   if (frames.length === 0) {
     return (
@@ -1027,10 +1082,13 @@ function process_alloc_data(snapshot, device, plot_segments, max_entries) {
       if (!elem.action.includes('alloc')) {
         text = `${text}\nalloc not recorded, stack trace for free:`;
       }
+<<<<<<< HEAD
       const user_metadata_str = format_user_metadata(elem.user_metadata);
       if (user_metadata_str) {
         text = `${text}\n${user_metadata_str}`;
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       text = `${text}\n${format_frames(elem.frames)}`;
       return text;
     },
@@ -1763,6 +1821,7 @@ body.on('drop', () => {
 selection_to_div[''] = body
   .append('div')
   .text(
+<<<<<<< HEAD
     'Drag and drop or select a file to load a local snapshot. No data from the snapshot is uploaded.',
   );
 
@@ -1785,6 +1844,11 @@ const fileInput = body.append('input')
     selected_change();                       // refresh the UI
   });
 
+=======
+    'Drag and drop a file to load a local snapshot. No data from the snapshot is uploaded.',
+  );
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 let next_unique_n = 1;
 function add_snapshot(name, loader) {
   if (name in snapshot_to_loader) {

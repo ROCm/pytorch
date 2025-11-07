@@ -62,9 +62,12 @@ struct TORCH_API ExperimentalConfig {
       bool disable_external_correlation = false,
       bool profile_all_threads = false,
       bool capture_overload_names = false,
+<<<<<<< HEAD
       bool record_python_gc_info = false,
       bool expose_kineto_event_metadata = false,
       std::string custom_profiler_config = "",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       bool adjust_timestamps = false);
   explicit operator bool() const;
 
@@ -105,6 +108,7 @@ struct TORCH_API ExperimentalConfig {
   bool capture_overload_names;
 
   /*
+<<<<<<< HEAD
    * Controls whether or not python gc info is recorded. This is used to
    * determine if gc collect is slowing down your profile.
    */
@@ -121,6 +125,8 @@ struct TORCH_API ExperimentalConfig {
   std::string custom_profiler_config;
 
   /*
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    * Controls whether or not timestamp adjustment occurs after profiling.
    * The purpose of this is to adjust Vulkan event timelines to align with those
    * of their parent CPU events.

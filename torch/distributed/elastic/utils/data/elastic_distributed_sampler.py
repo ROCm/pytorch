@@ -53,7 +53,10 @@ class ElasticDistributedSampler(DistributedSampler[T]):
             raise TypeError("Dataset must be an instance of collections.abc.Sized")
 
         # Cast to Sized for mypy
+<<<<<<< HEAD
         # pyrefly: ignore [redundant-cast]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sized_dataset = cast(Sized, dataset)
 
         if start_index >= len(sized_dataset):
@@ -63,8 +66,13 @@ class ElasticDistributedSampler(DistributedSampler[T]):
 
         self.start_index = start_index
         sized_dataset = cast(Sized, self.dataset)
+<<<<<<< HEAD
         self.num_samples = math.ceil(
             float(len(sized_dataset) - self.start_index) / self.num_replicas
+=======
+        self.num_samples = int(
+            math.ceil(float(len(sized_dataset) - self.start_index) / self.num_replicas)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.total_size = self.num_samples * self.num_replicas
 

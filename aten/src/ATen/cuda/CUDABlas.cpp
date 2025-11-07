@@ -16,10 +16,14 @@
 #include <c10/util/irange.h>
 #include <c10/core/ScalarType.h>
 
+<<<<<<< HEAD
 #include <ATen/cuda/detail/BLASConstants.h>
 
 #ifdef USE_ROCM
 #include <c10/cuda/CUDAStream.h>
+=======
+#ifdef USE_ROCM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <hipblaslt/hipblaslt-ext.hpp>
 // until hipblas has an API to accept flags, we must use rocblas here
 #include <hipblas/hipblas.h>
@@ -110,7 +114,11 @@ static hipblasStatus_t rocBLASStatusToHIPStatus(rocblas_status error)
 
 namespace {
 
+<<<<<<< HEAD
 cublasOperation_t _cublasOpFromChar(char op) {
+=======
+static cublasOperation_t _cublasOpFromChar(char op) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
   switch (op) {
     case 'n':
@@ -130,7 +138,11 @@ cublasOperation_t _cublasOpFromChar(char op) {
       "_cublasOpFromChar input should be 't', 'n' or 'c' but got `", op, "`");
 }
 
+<<<<<<< HEAD
 void _cublasAdjustLdLevel2(int64_t m, int64_t n, int64_t* lda) {
+=======
+static void _cublasAdjustLdLevel2(int64_t m, int64_t n, int64_t* lda) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Note: leading dimensions generally are checked that they are > 0
   // and at least as big the result requires (even if the value won't
   // be used).
@@ -144,7 +156,11 @@ void _cublasAdjustLdLevel2(int64_t m, int64_t n, int64_t* lda) {
     *lda = std::max<int64_t>(m, 1);
 }
 
+<<<<<<< HEAD
 void _cublasAdjustLdLevel3(
+=======
+static void _cublasAdjustLdLevel3(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     char transa,
     char transb,
     int64_t m,
@@ -191,6 +207,7 @@ uint32_t _getAlignment(uintptr_t address) {
 }
 #endif
 
+<<<<<<< HEAD
 #ifdef USE_ROCM
 static c10::cuda::CUDAStream _getCarveoutStream(int32_t value) {
   // 0 is default value, meaning full CUs i.e. no mask
@@ -249,6 +266,8 @@ static void _syncCurrentWithCarveoutStream(hipStream_t stream, bool presync) {
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct CublasLtWorkspace {
   CublasLtWorkspace() {
     size = at::cuda::getCUDABlasLtWorkspaceSize();
@@ -325,7 +344,11 @@ class CuBlasLtMatmulDescriptor : public CuBlasLtDescriptor<
     descriptor_.reset(raw_descriptor);
   }
   template <typename T>
+<<<<<<< HEAD
   void setAttribute(cublasLtMatmulDescAttributes_t attr, const T value) {
+=======
+  inline void setAttribute(cublasLtMatmulDescAttributes_t attr, const T value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // NOLINTNEXTLINE(bugprone-sizeof-expression)
     TORCH_CUDABLAS_CHECK(::cublasLtMatmulDescSetAttribute(descriptor(), attr, &value, sizeof(value)));
   }
@@ -347,7 +370,11 @@ class CuBlasLtMatrixLayout : public CuBlasLtDescriptor<
     descriptor_.reset(raw_descriptor);
   }
   template <typename T>
+<<<<<<< HEAD
   void setAttribute(cublasLtMatrixLayoutAttribute_t attr, const T value) {
+=======
+  inline void setAttribute(cublasLtMatrixLayoutAttribute_t attr, const T value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CUDABLAS_CHECK(::cublasLtMatrixLayoutSetAttribute(descriptor(), attr, &value, sizeof(T)));
   }
 };
@@ -362,7 +389,11 @@ class CuBlasLtMatmulPreference : public CuBlasLtDescriptor<
     descriptor_.reset(raw_descriptor);
   }
   template <typename T>
+<<<<<<< HEAD
   void setAttribute(cublasLtMatmulPreferenceAttributes_t attr, const T value) {
+=======
+  inline void setAttribute(cublasLtMatmulPreferenceAttributes_t attr, const T value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CUDABLAS_CHECK(::cublasLtMatmulPreferenceSetAttribute(descriptor(), attr, &value, sizeof(T)));
   }
 };
@@ -397,7 +428,11 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
     computeType = CUBLAS_COMPUTE_64F;
     scaleType = CUDA_R_64F;
   } else if constexpr (std::is_same_v<Dtype, float>) {
+<<<<<<< HEAD
     if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32) {
+=======
+    if (at::globalContext().allowTF32CuBLAS()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
     }
   } else if constexpr (std::is_same_v<Dtype, c10::complex<double>>) {
@@ -424,6 +459,7 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
     abType = CUDA_R_16F;
     cType = (std::is_same_v<C_Dtype, float>) ? CUDA_R_32F : CUDA_R_16F;
 #ifndef USE_ROCM
+<<<<<<< HEAD
     auto fp16_reduction = at::globalContext().allowFP16ReductionCuBLAS();
     if (fp16_reduction !=
         at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
@@ -435,12 +471,18 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
               : CUBLASLT_REDUCTION_SCHEME_NONE;
       preference.setAttribute(
           CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK, mask);
+=======
+    if (!at::globalContext().allowFP16ReductionCuBLAS()) {
+      preference.setAttribute(CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK,
+        CUBLASLT_REDUCTION_SCHEME_COMPUTE_TYPE | CUBLASLT_REDUCTION_SCHEME_NONE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 #endif
   } else if constexpr (std::is_same_v<Dtype, at::BFloat16>) {
     abType = CUDA_R_16BF;
     cType = (std::is_same_v<C_Dtype, float>) ? CUDA_R_32F : CUDA_R_16BF;
 #ifndef USE_ROCM
+<<<<<<< HEAD
     auto bf16_reduction = at::globalContext().allowBF16ReductionCuBLAS();
     if (bf16_reduction !=
         at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
@@ -452,12 +494,21 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
               : CUBLASLT_REDUCTION_SCHEME_NONE;
       preference.setAttribute(
           CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK, mask);
+=======
+    if (!at::globalContext().allowBF16ReductionCuBLAS()) {
+      preference.setAttribute(CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK,
+        CUBLASLT_REDUCTION_SCHEME_COMPUTE_TYPE | CUBLASLT_REDUCTION_SCHEME_NONE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 #endif
   } else {
     static_assert(false && sizeof(Dtype), "at::cuda::blas::bgemm_internal_cublaslt: not implemented");
   }
 
+<<<<<<< HEAD
+=======
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasLtHandle_t ltHandle = at::cuda::getCurrentCUDABlasLtHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -466,7 +517,10 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
   CuBlasLtMatmulDescriptor computeDesc(computeType, scaleType);
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSA, opa);
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSB, opb);
+<<<<<<< HEAD
   auto stream = at::cuda::getCurrentCUDAStream();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     computeDesc.setAttribute<int32_t>(
@@ -474,12 +528,15 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
         at::cuda::getCurrentDeviceProperties()->multiProcessorCount -
             at::globalContext()._SMCarveout_EXPERIMENTAL().value());
   }
+<<<<<<< HEAD
 #else
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     stream = _getCarveoutStream(
         at::globalContext()._SMCarveout_EXPERIMENTAL().value());
     _syncCurrentWithCarveoutStream(stream, true);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   CuBlasLtMatrixLayout Adesc(abType, m, k, lda, opa == CUBLAS_OP_T);
   CuBlasLtMatrixLayout Bdesc(abType, k, n, ldb, opb == CUBLAS_OP_T);
@@ -542,12 +599,16 @@ static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(D
       &heuristicResult.algo,
       ltworkspace.ptr,
       ltworkspace.size,
+<<<<<<< HEAD
       stream);
 #ifdef USE_ROCM
     if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
       _syncCurrentWithCarveoutStream(stream, false);
     }
 #endif
+=======
+      at::cuda::getCurrentCUDAStream());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (cublasStatus != CUBLAS_STATUS_SUCCESS) {
     TORCH_WARN(
@@ -591,6 +652,11 @@ inline void bgemm_internal_cublas(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(Dtype, C_D
 
 template <>
 void bgemm_internal_cublas<double>(CUDABLAS_BGEMM_ARGTYPES(double)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -602,6 +668,11 @@ void bgemm_internal_cublas<double>(CUDABLAS_BGEMM_ARGTYPES(double)) {
 
 template <>
 void bgemm_internal_cublas<float>(CUDABLAS_BGEMM_ARGTYPES(float)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -613,6 +684,11 @@ void bgemm_internal_cublas<float>(CUDABLAS_BGEMM_ARGTYPES(float)) {
 
 template <>
 void bgemm_internal_cublas<c10::complex<double>>(CUDABLAS_BGEMM_ARGTYPES(c10::complex<double>)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -626,6 +702,11 @@ void bgemm_internal_cublas<c10::complex<double>>(CUDABLAS_BGEMM_ARGTYPES(c10::co
 
 template <>
 void bgemm_internal_cublas<c10::complex<float>>(CUDABLAS_BGEMM_ARGTYPES(c10::complex<float>)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -639,6 +720,11 @@ void bgemm_internal_cublas<c10::complex<float>>(CUDABLAS_BGEMM_ARGTYPES(c10::com
 
 template <typename C_Dtype>
 inline void bgemm_internal_cublas_half_helper(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(at::Half, C_Dtype)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -655,8 +741,11 @@ inline void bgemm_internal_cublas_half_helper(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYP
   void * beta_ptr = &fbeta;
 #ifdef USE_ROCM
   int flag = 0;
+<<<<<<< HEAD
   rocblas_datatype c_type = std::is_same<C_Dtype, float>::value ? rocblas_datatype_f32_r : rocblas_datatype_f16_r;
   rocblas_datatype d_type = c_type;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if USE_GEMM_FLAGS_FP16_ALT_IMPL
   flag = at::ROCmBackwardPassGuard::is_backward_pass() ? rocblas_gemm_flags_fp16_alt_impl : 0;
 #endif
@@ -665,8 +754,13 @@ inline void bgemm_internal_cublas_half_helper(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYP
                                    hipOperationToRocOperation(opb), (int)m, (int)n, (int)k,
                                    (void*)alpha_ptr, a, rocblas_datatype_f16_r, (int)lda, stridea,
                                    b, rocblas_datatype_f16_r, (int)ldb, strideb,
+<<<<<<< HEAD
                                    (void*)beta_ptr, c, c_type, (int)ldc, stridec,
                                    c, d_type, (int)ldc, stridec,
+=======
+                                   (void*)beta_ptr, c, rocblas_datatype_f16_r, (int)ldc, stridec,
+                                   c, rocblas_datatype_f16_r, (int)ldc, stridec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                    (int) num_batches, rocblas_datatype_f32_r, rocblas_gemm_algo_standard,
                                    0, flag)));
 #else
@@ -710,6 +804,11 @@ inline void bgemm_internal_cublas_half_helper(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYP
 
 template <typename C_Dtype>
 inline void bgemm_internal_cublas_bfloat16_helper(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(at::BFloat16, C_Dtype)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   BGEMM_CHECK_ARGVALUES(at::BFloat16);
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
@@ -843,7 +942,11 @@ void bgemm_internal<at::BFloat16>(CUDABLAS_BGEMM_ARGTYPES(at::BFloat16))
       bgemm_internal_cublas<at::BFloat16>(CUDABLAS_BGEMM_ARGS(at::BFloat16));
     }
   }
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
+=======
+#if defined(USE_ROCM) && !defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
     at::native::bgemm_internal_ck<at::BFloat16>(CUDABLAS_BGEMM_ARGS(at::BFloat16));
   }
@@ -1007,6 +1110,12 @@ void bgemm<at::BFloat16>(CUDABLAS_BGEMM_ARGTYPES(at::BFloat16)) {
 
 template <>
 void bgemm<at::Half, float>(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(at::Half, float)) {
+<<<<<<< HEAD
+=======
+  #ifdef USE_ROCM
+  TORCH_CHECK(false, "bgemm input type at::Half and output type float is not supported for ROCm");
+  #endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // TODO: Support tuning for Half inputs and FP32 output
   bgemm_internal<at::Half, float>(CUDABLAS_BGEMM_ARGS(at::Half));
 }
@@ -1014,7 +1123,13 @@ void bgemm<at::Half, float>(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(at::Half, float)
 
 template <>
 void bgemm<at::BFloat16, float>(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(at::BFloat16, float)) {
+<<<<<<< HEAD
   #ifndef USE_ROCM
+=======
+  #ifdef USE_ROCM
+  TORCH_CHECK(false, "bgemm input type at::BFloat16 and output type float is not supported for ROCm");
+  #else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cudaDeviceProp* prop = at::cuda::getCurrentDeviceProperties();
 
     if (prop->major < 8)
@@ -1033,6 +1148,11 @@ inline void gemm_internal_cublas(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(Dtype, C_Dty
 
 template <>
 void gemm_internal_cublas<double>(CUDABLAS_GEMM_ARGTYPES(double)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1044,6 +1164,11 @@ void gemm_internal_cublas<double>(CUDABLAS_GEMM_ARGTYPES(double)) {
 
 template <>
 void gemm_internal_cublas<float>(CUDABLAS_GEMM_ARGTYPES(float)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1055,6 +1180,11 @@ void gemm_internal_cublas<float>(CUDABLAS_GEMM_ARGTYPES(float)) {
 
 template <>
 void gemm_internal_cublas<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<double>)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1068,6 +1198,11 @@ void gemm_internal_cublas<c10::complex<double>>(CUDABLAS_GEMM_ARGTYPES(c10::comp
 
 template <>
 void gemm_internal_cublas<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::complex<float>)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1081,6 +1216,11 @@ void gemm_internal_cublas<c10::complex<float>>(CUDABLAS_GEMM_ARGTYPES(c10::compl
 
 template <typename C_Dtype>
 inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(at::Half, C_Dtype)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1097,8 +1237,11 @@ inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(
   GEMM_CHECK_ARGVALUES(at::Half);
 #ifdef USE_ROCM
   int flag = 0;
+<<<<<<< HEAD
   rocblas_datatype c_type = std::is_same<C_Dtype, float>::value ? rocblas_datatype_f32_r : rocblas_datatype_f16_r;
   rocblas_datatype d_type = c_type;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if USE_GEMM_FLAGS_FP16_ALT_IMPL
   flag = at::ROCmBackwardPassGuard::is_backward_pass() ? rocblas_gemm_flags_fp16_alt_impl : 0;
 #endif
@@ -1118,10 +1261,17 @@ inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(
       ldb,
       beta_ptr,
       c,
+<<<<<<< HEAD
       c_type,
       ldc,
       c,
       d_type,
+=======
+      rocblas_datatype_f16_r,
+      ldc,
+      c,
+      rocblas_datatype_f16_r,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ldc,
       rocblas_datatype_f32_r,
       rocblas_gemm_algo_standard,
@@ -1138,6 +1288,7 @@ inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(
   }
   if (prop->major >= 5) {
     cublasMath_t cublas_flags = CUBLAS_DEFAULT_MATH;
+<<<<<<< HEAD
     auto fp16_reduction = at::globalContext().allowFP16ReductionCuBLAS();
     TORCH_CHECK(fp16_reduction !=
         at::CuBLASReductionOption::DisallowReducedPrecisionDisallowSplitK,
@@ -1147,6 +1298,10 @@ inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(
         at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
       cublas_flags = static_cast<cublasMath_t>(
           cublas_flags | CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION);
+=======
+    if (!at::globalContext().allowFP16ReductionCuBLAS()) {
+      cublas_flags = static_cast<cublasMath_t>(cublas_flags | CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     // Disallow fp16 reductions that could lead to unexpected overflow issues.
     TORCH_CUDABLAS_CHECK(cublasSetMathMode(handle, cublas_flags));
@@ -1196,6 +1351,10 @@ inline void gemm_internal_cublas_half_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(
 
 template <typename C_Dtype>
 inline void gemm_internal_cublas_bfloat16_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(at::BFloat16, C_Dtype)) {
+<<<<<<< HEAD
+=======
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t opa = _cublasOpFromChar(transa);
   cublasOperation_t opb = _cublasOpFromChar(transb);
@@ -1205,6 +1364,7 @@ inline void gemm_internal_cublas_bfloat16_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DT
   GEMM_CHECK_ARGVALUES(at::BFloat16);
 #ifndef USE_ROCM
   cublasMath_t cublas_flags = CUBLAS_DEFAULT_MATH;
+<<<<<<< HEAD
   auto bf16_reduction = at::globalContext().allowBF16ReductionCuBLAS();
   TORCH_CHECK(bf16_reduction !=
       at::CuBLASReductionOption::DisallowReducedPrecisionDisallowSplitK,
@@ -1214,6 +1374,10 @@ inline void gemm_internal_cublas_bfloat16_helper(CUDABLAS_GEMM_ARGTYPES_AND_C_DT
       at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
     cublas_flags = static_cast<cublasMath_t>(
         cublas_flags | CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION);
+=======
+  if (!at::globalContext().allowBF16ReductionCuBLAS()) {
+    cublas_flags = static_cast<cublasMath_t>(cublas_flags | CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 #endif
 #if defined(USE_ROCM)
@@ -1284,7 +1448,11 @@ void gemm_internal<double>(CUDABLAS_GEMM_ARGTYPES(double))
     gemm_internal_cublaslt<double>(CUDABLAS_GEMM_ARGS(double));
 #endif
   }
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
+=======
+#if defined(USE_ROCM) && !defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
     at::native::gemm_internal_ck<double>(CUDABLAS_GEMM_ARGS(double));
   }
@@ -1300,9 +1468,15 @@ void gemm_internal<float>(CUDABLAS_GEMM_ARGTYPES(float))
   if (at::globalContext().blasPreferredBackend() == BlasBackend::Cublaslt) {
     gemm_internal_cublaslt<float>(CUDABLAS_GEMM_ARGS(float));
   }
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
   else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
     if (at::detail::getCUDAHooks().isGPUArch({"gfx11", "gfx12"})) { //no CK GEMM version
+=======
+#if defined(USE_ROCM) && !defined(_MSC_VER)
+  else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
+    if (at::detail::getCUDAHooks().isGPUArch({"gfx1100"})) { //no CK GEMM version for gfx1100
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       gemm_internal_cublaslt<float>(CUDABLAS_GEMM_ARGS(float));
     } else{
       at::native::gemm_internal_ck<float>(CUDABLAS_GEMM_ARGS(float));
@@ -1352,7 +1526,11 @@ void gemm_internal<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half))
   if (at::globalContext().blasPreferredBackend() == BlasBackend::Cublaslt) {
     gemm_internal_cublaslt<at::Half>(CUDABLAS_GEMM_ARGS(at::Half));
   }
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
+=======
+#if defined(USE_ROCM) && !defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
     at::native::gemm_internal_ck<at::Half>(CUDABLAS_GEMM_ARGS(at::Half));
   }
@@ -1368,7 +1546,11 @@ void gemm_internal<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16))
   if (at::globalContext().blasPreferredBackend() == BlasBackend::Cublaslt) {
     gemm_internal_cublaslt<at::BFloat16>(CUDABLAS_GEMM_ARGS(at::BFloat16));
   }
+<<<<<<< HEAD
 #if defined(USE_ROCM) && defined(USE_ROCM_CK_GEMM)
+=======
+#if defined(USE_ROCM) && !defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else if (at::globalContext().blasPreferredBackend() == BlasBackend::Ck) {
     at::native::gemm_internal_ck<at::BFloat16>(CUDABLAS_GEMM_ARGS(at::BFloat16));
   }
@@ -1524,6 +1706,12 @@ void gemm<at::BFloat16>(CUDABLAS_GEMM_ARGTYPES(at::BFloat16)) {
 
 template <>
 void gemm<at::Half, float>(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(at::Half, float)) {
+<<<<<<< HEAD
+=======
+  #ifdef USE_ROCM
+  TORCH_CHECK(false, "gemm input type at::Half and output type float is not supported for ROCm");
+  #endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // TODO: Support Tuning for fp16-fp32 gemm
   gemm_internal<at::Half, float>(CUDABLAS_GEMM_ARGS(at::Half));
 }
@@ -1531,7 +1719,13 @@ void gemm<at::Half, float>(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(at::Half, float)) 
 
 template <>
 void gemm<at::BFloat16, float>(CUDABLAS_GEMM_ARGTYPES_AND_C_DTYPE(at::BFloat16, float)) {
+<<<<<<< HEAD
   #ifndef USE_ROCM
+=======
+  #ifdef USE_ROCM
+  TORCH_CHECK(false, "gemm input type at::BFloat16 and output type float is not supported for ROCm");
+  #else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cudaDeviceProp* prop = at::cuda::getCurrentDeviceProperties();
 
     if (prop->major < 8)
@@ -1591,7 +1785,11 @@ bool gemm_and_bias(
     computeType = CUBLAS_COMPUTE_64F;
     scaleType = CUDA_R_64F;
   } else if constexpr (std::is_same_v<Dtype, float>) {
+<<<<<<< HEAD
     if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32) {
+=======
+    if (at::globalContext().allowTF32CuBLAS()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
     }
   } else if constexpr (std::is_same_v<Dtype, at::Half>) {
@@ -1609,6 +1807,7 @@ bool gemm_and_bias(
     abType = CUDA_R_16F;
     cType = (std::is_same_v<C_Dtype, float>) ? CUDA_R_32F : CUDA_R_16F;
 #ifndef USE_ROCM
+<<<<<<< HEAD
     auto fp16_reduction = at::globalContext().allowFP16ReductionCuBLAS();
     if (fp16_reduction !=
         at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
@@ -1620,12 +1819,18 @@ bool gemm_and_bias(
               : CUBLASLT_REDUCTION_SCHEME_NONE;
       preference.setAttribute(
           CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK, mask);
+=======
+    if (!at::globalContext().allowFP16ReductionCuBLAS()) {
+      preference.setAttribute(CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK,
+        CUBLASLT_REDUCTION_SCHEME_COMPUTE_TYPE | CUBLASLT_REDUCTION_SCHEME_NONE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 #endif
   } else if constexpr (std::is_same_v<Dtype, at::BFloat16>) {
     abType = CUDA_R_16BF;
     cType = (std::is_same_v<C_Dtype, float>) ? CUDA_R_32F : CUDA_R_16BF;
 #ifndef USE_ROCM
+<<<<<<< HEAD
     auto bf16_reduction = at::globalContext().allowBF16ReductionCuBLAS();
     if (bf16_reduction !=
         at::CuBLASReductionOption::AllowReducedPrecisionWithSplitK) {
@@ -1637,6 +1842,11 @@ bool gemm_and_bias(
               : CUBLASLT_REDUCTION_SCHEME_NONE;
       preference.setAttribute(
           CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK, mask);
+=======
+    if (!at::globalContext().allowBF16ReductionCuBLAS()) {
+      preference.setAttribute(CUBLASLT_MATMUL_PREF_REDUCTION_SCHEME_MASK,
+        CUBLASLT_REDUCTION_SCHEME_COMPUTE_TYPE | CUBLASLT_REDUCTION_SCHEME_NONE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 #endif
   }
@@ -1646,7 +1856,10 @@ bool gemm_and_bias(
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSA, transa);
   cublasOperation_t transb = transpose_mat2 ? CUBLAS_OP_T : CUBLAS_OP_N;
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSB, transb);
+<<<<<<< HEAD
   auto stream = at::cuda::getCurrentCUDAStream();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     computeDesc.setAttribute<int32_t>(
@@ -1654,18 +1867,27 @@ bool gemm_and_bias(
         at::cuda::getCurrentDeviceProperties()->multiProcessorCount -
             at::globalContext()._SMCarveout_EXPERIMENTAL().value());
   }
+<<<<<<< HEAD
 #else
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     stream = _getCarveoutStream(
         at::globalContext()._SMCarveout_EXPERIMENTAL().value());
     _syncCurrentWithCarveoutStream(stream, true);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   cublasLtEpilogue_t epilogue = CUBLASLT_EPILOGUE_BIAS;
   if (activation == GEMMAndBiasActivationEpilogue::RELU) {
     epilogue = CUBLASLT_EPILOGUE_RELU_BIAS;
   } else if (activation == GEMMAndBiasActivationEpilogue::GELU) {
+<<<<<<< HEAD
     epilogue = CUBLASLT_EPILOGUE_GELU_BIAS;
+=======
+#if CUDA_VERSION >= 11040 || defined(USE_ROCM)
+    epilogue = CUBLASLT_EPILOGUE_GELU_BIAS;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (bias != nullptr) {
@@ -1726,12 +1948,16 @@ bool gemm_and_bias(
       &heuristicResult.algo,
       ltworkspace.ptr,
       ltworkspace.size,
+<<<<<<< HEAD
       stream);
 #ifdef USE_ROCM
     if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
       _syncCurrentWithCarveoutStream(stream, false);
     }
 #endif
+=======
+      at::cuda::getCurrentCUDAStream());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (cublasStatus != CUBLAS_STATUS_SUCCESS) {
     TORCH_WARN(
@@ -1863,6 +2089,7 @@ template bool gemm_and_bias(
     int64_t result_ld,
     GEMMAndBiasActivationEpilogue activation);
 
+<<<<<<< HEAD
 using at::blas::ScalingType;
 
 int get_scale_mode(ScalingType scaling_type, ScalarType scale_dtype, bool use_fast_accum) {
@@ -1932,6 +2159,8 @@ case ScalingType::TensorWise:
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void scaled_gemm(
     char transa,
     char transb,
@@ -1943,13 +2172,19 @@ void scaled_gemm(
     int64_t mat1_ld,
     ScalarType mat1_dtype,
     ScalarType mat1_scale_dtype,
+<<<<<<< HEAD
     ScalingType mat1_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const void* mat2_ptr,
     const void* mat2_scale_ptr,
     int64_t mat2_ld,
     ScalarType mat2_dtype,
     ScalarType mat2_scale_dtype,
+<<<<<<< HEAD
     ScalingType mat2_scaling_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const void* bias_ptr,
     ScalarType bias_dtype,
     void* result_ptr,
@@ -1957,6 +2192,7 @@ void scaled_gemm(
     int64_t result_ld,
     ScalarType result_dtype,
     bool use_fast_accum,
+<<<<<<< HEAD
     const std::optional<Tensor>& alpha) {
   // Note: see `cublasCommonArgs` for various non-intuitive manipulations
   // of input arguments to this function.
@@ -1965,20 +2201,38 @@ void scaled_gemm(
   // Note: alpha_val may change later depending on user-passed argument
   float alpha_val = 1.0;
   float beta_val = 0.0;
+=======
+    bool use_rowwise) {
+  // Note: see `cublasCommonArgs` for various non-intuitive manupulations
+  // of input arguments to this function.
+#if CUDA_VERSION >= 11080 || defined(USE_ROCM)
+  const auto computeType = CUBLAS_COMPUTE_32F;
+  const auto scaleType = CUDA_R_32F;
+  const float alpha_val = 1.0;
+  const float beta_val = 0.0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CuBlasLtMatmulDescriptor computeDesc(computeType, scaleType);
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSA, _cublasOpFromChar(transa));
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSB, _cublasOpFromChar(transb));
   cublasLtMatmulDescAttributes_t matmulDescA = CUBLASLT_MATMUL_DESC_A_SCALE_POINTER;
   cublasLtMatmulDescAttributes_t matmulDescB = CUBLASLT_MATMUL_DESC_B_SCALE_POINTER;
+<<<<<<< HEAD
 #if defined(USE_ROCM) && !defined(HIPBLASLT_OUTER_VEC) && defined(HIPBLASLT_VEC_EXT)
   // hipblaslt supported row-wise before cublas, and did so their own way (via
   // the SCALE_POINTERSs), but then migrated to match how cublas does it (via
   // the SCALE_MODEs). Here we check for this early custom mode.
   bool use_rowwise = (mat1_scaling_type == ScalingType::RowWise && mat2_scaling_type == ScalingType::RowWise);
+=======
+#if defined(USE_ROCM)
+#if defined(HIPBLASLT_OUTER_VEC)
+  // this case is handled later as hipified CUBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F
+#elif defined(HIPBLASLT_VEC_EXT)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (use_rowwise) {
     matmulDescA = HIPBLASLT_MATMUL_DESC_A_SCALE_POINTER_VEC_EXT;
     matmulDescB = HIPBLASLT_MATMUL_DESC_B_SCALE_POINTER_VEC_EXT;
   }
+<<<<<<< HEAD
   else if (mat1_scale_dtype == kFloat8_e8m0fnu && mat2_scale_dtype == kFloat8_e8m0fnu) {
   #if ROCM_VERSION >= 70000
             if (at::detail::getCUDAHooks().isGPUArch({"gfx950"})) {
@@ -1997,12 +2251,32 @@ void scaled_gemm(
   // rowwise isn't supported using older cublaslt or older hipblaslt
   TORCH_INTERNAL_ASSERT(use_rowwise == false, "rowwise scaled_gemm not supported with blaslt");
 #endif  // if defined(USE_ROCM) && !defined(HIPBLASLT_OUTER_VEC) && defined(HIPBLASLT_VEC_EXT)
+=======
+    else if(mat1_scale_dtype == kFloat8_e8m0fnu && mat2_scale_dtype == kFloat8_e8m0fnu) {
+#if ROCM_VERSION >= 70000
+          if (at::detail::getCUDAHooks().isGPUArch(0, {"gfx950"})) {
+            // Validate matrix dimensions for MX format
+            TORCH_CHECK((m % 32 == 0) && (n % 32 == 0) && (k % 32 == 0),
+                       "Matrix dimensions must be multiples of 32 for MX format. ",
+                       "Got m=", m, ", n=", n, ", k=", k);
+          }
+#endif
+  }
+#else
+  // rowwise isn't supported using older hipblaslt
+  TORCH_INTERNAL_ASSERT(use_rowwise == false, "rowwise scaled_gemm not supported with older hipblaslt");
+#endif
+#endif // defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   computeDesc.setAttribute(matmulDescA, mat1_scale_ptr);
   computeDesc.setAttribute(matmulDescB, mat2_scale_ptr);
   if (result_scale_ptr != nullptr) {
     computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_D_SCALE_POINTER, result_scale_ptr);
   }
+<<<<<<< HEAD
   auto stream = at::cuda::getCurrentCUDAStream();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     computeDesc.setAttribute<int32_t>(
@@ -2010,12 +2284,15 @@ void scaled_gemm(
         at::cuda::getCurrentDeviceProperties()->multiProcessorCount -
             at::globalContext()._SMCarveout_EXPERIMENTAL().value());
   }
+<<<<<<< HEAD
 #else
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     stream = _getCarveoutStream(
         at::globalContext()._SMCarveout_EXPERIMENTAL().value());
     _syncCurrentWithCarveoutStream(stream, true);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // ifndef USE_ROCM
 #ifndef USE_ROCM
   const int8_t fastAccuMode = use_fast_accum ? 1 : 0;
@@ -2036,6 +2313,7 @@ void scaled_gemm(
     computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_BIAS_DATA_TYPE, ScalarTypeToCudaDataType(bias_dtype));
   }
 
+<<<<<<< HEAD
   // Handle user-passed alpha
   float *alpha_ptr = &alpha_val;
   float *beta_ptr = &beta_val;
@@ -2073,13 +2351,44 @@ void scaled_gemm(
     computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_B_SCALE_MODE, b_scale_mode);
 #endif // if CUDA_VERSION >= 12080 || (defined(USE_ROCM) && ROCM_VERSION >= 70000 && defined(HIPBLASLT_OUTER_VEC))
 
+=======
+  if (mat1_scale_dtype == kFloat8_e8m0fnu && mat2_scale_dtype == kFloat8_e8m0fnu) {
+#if (!defined(USE_ROCM) && CUDA_VERSION >= 12080) || (defined(USE_ROCM) && ROCM_VERSION >= 70000)
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_A_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0);
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_B_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_VEC32_UE8M0);
+#else
+    TORCH_CHECK(false, "scaled_gemm with `torch.float8_e8m0fnu` scales is only supported for CUDA 12.8 or ROCm 7.0(with gfx950) and above");
+#endif // if CUDA_VERSION >= 12080
+  } else if (mat1_scale_dtype == kFloat8_e4m3fn && mat2_scale_dtype == kFloat8_e4m3fn) {
+#if CUDA_VERSION >= 12080
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_A_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3);
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_B_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_VEC16_UE4M3);
+#else
+    TORCH_CHECK(false, "scaled_gemm with `torch.float8_e4m3fn` scales is only supported for CUDA 12.8 and above");
+#endif // if CUDA_VERSION >= 12080
+  } else if (mat1_scale_dtype == kFloat && mat2_scale_dtype == kFloat && use_rowwise) {
+#if CUDA_VERSION >= 12090 || (defined(USE_ROCM) && defined(HIPBLASLT_OUTER_VEC))
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_A_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F);
+    computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_B_SCALE_MODE, CUBLASLT_MATMUL_MATRIX_SCALE_OUTER_VEC_32F);
+#elif defined(USE_ROCM) && defined(HIPBLASLT_VEC_EXT)
+    // no-op here for older hipblaslt ext enums, to avoid TORCH_CHECK below
+#else
+    TORCH_CHECK(false, "scaled_gemm with `torch.float` outer vector scaling is only supported for CUDA 12.9 and above");
+#endif // if CUDA_VERSION >= 12090
+  }
+
+  auto stream = c10::cuda::getCurrentCUDAStream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CuBlasLtMatmulPreference preference;
   auto ltworkspace = CublasLtWorkspace();
   preference.setAttribute(CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, ltworkspace.size);
   cublasLtMatmulHeuristicResult_t heuristicResult = {};
   int returnedResult = 0;
   cublasLtHandle_t ltHandle = at::cuda::getCurrentCUDABlasLtHandle();
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CUDABLAS_CHECK(cublasLtMatmulAlgoGetHeuristic(
       ltHandle,
       computeDesc.descriptor(),
@@ -2120,10 +2429,17 @@ void scaled_gemm(
         auto is_valid_status = hipblaslt_ext::matmulIsAlgoSupported(
                 ltHandle,
                 computeDesc.descriptor(),
+<<<<<<< HEAD
                 alpha_ptr,
                 Adesc.descriptor(),
                 Bdesc.descriptor(),
                 beta_ptr,
+=======
+                &alpha_val,
+                Adesc.descriptor(),
+                Bdesc.descriptor(),
+                &beta_val,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Cdesc.descriptor(),
                 Ddesc.descriptor(),
                 all_algos[i].algo,
@@ -2142,14 +2458,27 @@ void scaled_gemm(
   cublasStatus_t cublasStatus = cublasLtMatmul(
       ltHandle,
       computeDesc.descriptor(),
+<<<<<<< HEAD
       alpha_ptr,
+=======
+      &alpha_val,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       mat1_ptr,
       Adesc.descriptor(),
       mat2_ptr,
       Bdesc.descriptor(),
+<<<<<<< HEAD
       beta_ptr,
       // NOTE: always use result_ptr here, because cuBLASLt w/device beta=0 can't handle nullptr either
       result_ptr, // unused, since beta_val is 0, but hipblaslt can't handle nullptr
+=======
+      &beta_val,
+#ifdef USE_ROCM
+      result_ptr, // unused, since beta_val is 0, but hipblaslt can't handle nullptr
+#else
+      nullptr,
+#endif // ifdef USE_ROCM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       Cdesc.descriptor(),
       result_ptr,
       Ddesc.descriptor(),
@@ -2157,11 +2486,14 @@ void scaled_gemm(
       ltworkspace.ptr,
       ltworkspace.size,
       stream);
+<<<<<<< HEAD
 #ifdef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     _syncCurrentWithCarveoutStream(stream, false);
   }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       cublasStatus == CUBLAS_STATUS_SUCCESS,
       "CUDA error: ",
@@ -2187,6 +2519,11 @@ void scaled_gemm(
       " scaleType ",
       scaleType);
   return;
+<<<<<<< HEAD
+=======
+#endif // if CUDA_VERSION >= 11080 || defined(USE_ROCM)
+  TORCH_CHECK(false, "scaled_gemm is only supported for CUDA 11.8 and above");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void int8_gemm(
@@ -2213,7 +2550,10 @@ void int8_gemm(
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSA, transa);
   cublasOperation_t transb = transpose_mat2 ? CUBLAS_OP_T : CUBLAS_OP_N;
   computeDesc.setAttribute(CUBLASLT_MATMUL_DESC_TRANSB, transb);
+<<<<<<< HEAD
   auto stream = at::cuda::getCurrentCUDAStream();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     computeDesc.setAttribute<int32_t>(
@@ -2221,12 +2561,15 @@ void int8_gemm(
         at::cuda::getCurrentDeviceProperties()->multiProcessorCount -
             at::globalContext()._SMCarveout_EXPERIMENTAL().value());
   }
+<<<<<<< HEAD
 #else
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     stream = _getCarveoutStream(
         at::globalContext()._SMCarveout_EXPERIMENTAL().value());
     _syncCurrentWithCarveoutStream(stream, true);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
   CuBlasLtMatrixLayout Adesc(abType, m, k, mat1_ld, transpose_mat1);
@@ -2288,7 +2631,11 @@ void int8_gemm(
 #else
       0,
 #endif
+<<<<<<< HEAD
       stream);
+=======
+      at::cuda::getCurrentCUDAStream());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       cublasStatus == CUBLAS_STATUS_SUCCESS,
       "CUDA error: ",
@@ -2317,11 +2664,14 @@ void int8_gemm(
       computeType,
       " scaleType ",
       scaleType);
+<<<<<<< HEAD
 #ifdef USE_ROCM
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     _syncCurrentWithCarveoutStream(stream, false);
   }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
@@ -2461,6 +2811,11 @@ void trsmBatched<c10::complex<double>>(
 
 template <>
 void gemv<c10::complex<double>>(CUDABLAS_GEMV_ARGTYPES(c10::complex<double>)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t op = _cublasOpFromChar(trans);
   _cublasAdjustLdLevel2(m, n, &lda);
@@ -2476,6 +2831,11 @@ void gemv<c10::complex<float>>(CUDABLAS_GEMV_ARGTYPES(c10::complex<float>)) {
   // gemv is bw bound, and does not benefit from TF32. But the precision
   // loss still happens on TF32. So we disable it here.
   NoTF32Guard disable_tf32;
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t op = _cublasOpFromChar(trans);
   _cublasAdjustLdLevel2(m, n, &lda);
@@ -2488,6 +2848,11 @@ void gemv<c10::complex<float>>(CUDABLAS_GEMV_ARGTYPES(c10::complex<float>)) {
 
 template <>
 void gemv<double>(CUDABLAS_GEMV_ARGTYPES(double)) {
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t op = _cublasOpFromChar(trans);
   _cublasAdjustLdLevel2(m, n, &lda);
@@ -2501,6 +2866,11 @@ void gemv<float>(CUDABLAS_GEMV_ARGTYPES(float)) {
   // gemv is bw bound, and does not benefit from TF32. But the precision
   // loss still happens on TF32. So we disable it here.
   NoTF32Guard disable_tf32;
+<<<<<<< HEAD
+=======
+  // See Note [Writing Nondeterministic Operations]
+  globalContext().alertCuBLASConfigNotDeterministic();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cublasHandle_t handle = at::cuda::getCurrentCUDABlasHandle();
   cublasOperation_t op = _cublasOpFromChar(trans);
   _cublasAdjustLdLevel2(m, n, &lda);
@@ -2625,6 +2995,11 @@ void vdot<c10::complex<double>>(CUDABLAS_DOT_ARGTYPES(c10::complex<double>)) {
                                    reinterpret_cast<cuDoubleComplex*>(result)));
 }
 
+<<<<<<< HEAD
+=======
+// HIP on Windows does not support
+#if !(defined(USE_ROCM) && defined(_MSC_VER))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 void getrsBatched<float>(CUDABLAS_GETRS_ARGTYPES(float)) {
   TORCH_CUDABLAS_CHECK(cublasSgetrsBatched(
@@ -2823,5 +3198,9 @@ void gelsBatched<c10::complex<float>>(CUDABLAS_GELS_BATCHED_ARGTYPES(c10::comple
       devInfoArray,
       batchSize));
 }
+<<<<<<< HEAD
+=======
+#endif // !(defined(USE_ROCM) && defined(_MSC_VER))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace at::cuda::blas

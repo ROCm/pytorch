@@ -53,7 +53,13 @@ class XpuBasicTests(TestCase):
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
+<<<<<<< HEAD
     from torch.testing._internal.inductor_utils import HAS_XPU_AND_TRITON
 
     if HAS_XPU_AND_TRITON:
+=======
+    from torch.testing._internal.inductor_utils import HAS_XPU
+
+    if HAS_XPU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

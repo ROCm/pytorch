@@ -55,7 +55,10 @@ def report_download_progress(
     Pretty printer for file download progress.
     """
     if file_size != -1:
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         percent = min(1, (chunk_number * chunk_size) / file_size)
         bar = "#" * int(64 * percent)
         sys.stdout.write(f"\r0% |{bar:<64}| {int(percent * 100)}%")
@@ -95,8 +98,13 @@ Deleting %s just to be safe.
 
     try:
         binary_path.unlink()
+<<<<<<< HEAD
     except OSError:
         logging.critical("Failed to delete binary", exc_info=True)
+=======
+    except OSError as e:
+        logging.critical("Failed to delete binary: %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         logging.critical(
             "Delete this binary as soon as possible and do not execute it!"
         )

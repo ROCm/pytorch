@@ -62,7 +62,11 @@ constexpr const char* unknown_eventname = "eventname not specified";
 #endif
 }  // namespace (anonymous)
 
+<<<<<<< HEAD
 MapAllocator::MapAllocator(WithFd /*unused*/, std::string_view filename, int fd, int flags, size_t size)
+=======
+MapAllocator::MapAllocator(WithFd, std::string_view filename, int fd, int flags, size_t size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   : filename_(filename.empty() ? unknown_filename : filename)
   , size_(0) // to be filled later
 #ifdef _WIN32
@@ -292,6 +296,7 @@ MapAllocator::MapAllocator(WithFd /*unused*/, std::string_view filename, int fd,
           if (ftruncate(fd, static_cast<off_t>(size)) == -1) {
             TORCH_CHECK(false, "unable to resize file <", filename_, "> to the right size: ", c10::utils::str_error(errno), " (", errno, ")");
           }
+<<<<<<< HEAD
 
 #ifdef HAVE_POSIX_FALLOCATE
           if (flags_ & ALLOCATOR_MAPPED_SHAREDMEM) {
@@ -314,6 +319,8 @@ MapAllocator::MapAllocator(WithFd /*unused*/, std::string_view filename, int fd,
           }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           if (fstat(fd, &file_stat) == -1 || file_stat.st_size < static_cast<int64_t>(size)) {
 #ifndef STRIP_ERROR_MESSAGES
             int last_err = errno;
@@ -321,7 +328,11 @@ MapAllocator::MapAllocator(WithFd /*unused*/, std::string_view filename, int fd,
             ::close(fd);
             TORCH_CHECK(false, "unable to stretch file <", filename_, "> to the right size: ", c10::utils::str_error(last_err), " (", last_err, ")");
           }
+<<<<<<< HEAD
 /* on macOS write returns with errno 45 (Operation not supported) when used
+=======
+/* on macOS write returns with errno 45 (Opperation not supported) when used
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * with a file descriptor obtained via shm_open
  */
 #ifndef __APPLE__
@@ -494,7 +505,11 @@ RefcountedMapAllocator::RefcountedMapAllocator(const char *filename, int flags, 
 
     initializeAlloc();
 }
+<<<<<<< HEAD
 RefcountedMapAllocator::RefcountedMapAllocator(WithFd /*unused*/, const char *filename, int fd, int flags, size_t size)
+=======
+RefcountedMapAllocator::RefcountedMapAllocator(WithFd, const char *filename, int fd, int flags, size_t size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   : RefcountedMapAllocatorArgCheck(flags)
   , MapAllocator(WITH_FD, filename, flags, fd, size + map_alloc_alignment) {
 
@@ -614,7 +629,11 @@ at::DataPtr MapAllocator::makeDataPtr(std::string_view filename, int flags, size
   return {context->data(), context, &deleteMapAllocator, at::DeviceType::CPU};
 }
 
+<<<<<<< HEAD
 at::DataPtr MapAllocator::makeDataPtr(WithFd /*unused*/, const char *filename, int fd, int flags, size_t size, size_t* actual_size_out) {
+=======
+at::DataPtr MapAllocator::makeDataPtr(WithFd, const char *filename, int fd, int flags, size_t size, size_t* actual_size_out) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto* context = new MapAllocator(WITH_FD, filename, fd, flags, size);
   if (actual_size_out) *actual_size_out = context->size();
   return {context->data(), context, &deleteMapAllocator, at::DeviceType::CPU};
@@ -626,7 +645,11 @@ at::DataPtr RefcountedMapAllocator::makeDataPtr(const char *filename, int flags,
   return {context->data(), context, &deleteRefcountedMapAllocator, at::DeviceType::CPU};
 }
 
+<<<<<<< HEAD
 at::DataPtr RefcountedMapAllocator::makeDataPtr(WithFd /*unused*/, const char *filename, int fd, int flags, size_t size, size_t* actual_size_out) {
+=======
+at::DataPtr RefcountedMapAllocator::makeDataPtr(WithFd, const char *filename, int fd, int flags, size_t size, size_t* actual_size_out) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto* context = new RefcountedMapAllocator(WITH_FD, filename, fd, flags, size);
   if (actual_size_out) *actual_size_out = context->size() - map_alloc_alignment;
   return {context->data(), context, &deleteRefcountedMapAllocator, at::DeviceType::CPU};

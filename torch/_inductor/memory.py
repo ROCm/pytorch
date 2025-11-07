@@ -4,6 +4,7 @@ import collections
 import dataclasses
 import heapq
 import logging
+<<<<<<< HEAD
 from typing import Callable, Optional, TYPE_CHECKING, TypedDict, Union
 
 from torch._environment import is_fbcode
@@ -13,6 +14,15 @@ from torch.utils._ordered_set import OrderedSet
 from . import config
 from .ir import MultiOutputLayout, NoneLayout
 from .utils import get_dtype_size, is_nonfreeable_buffers
+=======
+from typing import Callable, TYPE_CHECKING, TypedDict, Union
+
+from torch._utils_internal import signpost_event
+from torch.utils._ordered_set import OrderedSet
+
+from .ir import MultiOutputLayout, NoneLayout
+from .utils import get_dtype_size, is_wait
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .virtualized import V
 
 
@@ -77,11 +87,30 @@ def get_freeable_input_buf(
     Create and keep track of all input buffers that can be freed during the program
 
     Returns:
+<<<<<<< HEAD
         A dictionary containing all freeable input buffers, keyed by their names.
     """
 
     def _dep_size_hint(dep: Dep) -> int:
         return V.graph.get_dep_size_hint(dep)
+=======
+        A dictionary containing all freeble input buffers, keyed by their names.
+    """
+
+    # this function is copied from torch/_inductor/scheduler.py
+    # TODO: would be nice to remove the try/except block for both places
+    def _dep_size_hint(dep: Dep) -> int:
+        res = 0
+        try:
+            if not dep.has_unbacked_symbols():
+                res = dep.numbytes_hint()
+        except KeyError:
+            # In at least one test (test/inductor/test_torchbind.py) we
+            # create a StarDep that doesn't exist in the graph and calling
+            # `has_unbacked_symbols()` throws an error.
+            pass
+        return res
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # get freeable input buffers' successor nodes and their sizes
     # note that different deps can have the same name, so we use name as keys
@@ -89,6 +118,7 @@ def get_freeable_input_buf(
         collections.defaultdict(OrderedSet)
     )
     dep_name_to_size: dict[str, int] = dict()
+<<<<<<< HEAD
 
     for node in nodes:
         for dep in node.read_writes.reads:
@@ -96,6 +126,15 @@ def get_freeable_input_buf(
                 if not is_nonfreeable_buffers(dep):
                     dep_name_to_succ_nodes[dep.name].add(node)
                     dep_name_to_size[dep.name] = _dep_size_hint(dep)
+=======
+    for node in nodes:
+        for dep in node.read_writes.reads:
+            if dep.name in graph_inputs and not dep.name.startswith(
+                ("primals_", "arg", "fwd_rng_state", "bwd_rng_state")
+            ):
+                dep_name_to_succ_nodes[dep.name].add(node)
+                dep_name_to_size[dep.name] = _dep_size_hint(dep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # create FreeableInputBuffer objects and add them to the returned dictionary
     name_to_freeable_input_buf: dict[str, FreeableInputBuffer] = dict()
@@ -126,6 +165,7 @@ def compute_size_for_scheduler_buffer(
         buf1: at creation, 0 bytes allocated, when deleted, 10 bytes freed
         buf2: at creation, 0 bytes allocated, when deleted, 20 bytes freed
 
+<<<<<<< HEAD
     When an operation mutates a buffer in-place, the scheduler creates a new buffer name
     to track the "before" and "after" states, even though they share the same memory.
 
@@ -148,6 +188,8 @@ def compute_size_for_scheduler_buffer(
 
     The only memory events are the creation prior to op0, and the deletion following buf1.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Returns:
         A dictionary mapping a scheduler buffer to a tuple of (size_alloc, size_free).
     """
@@ -159,12 +201,33 @@ def compute_size_for_scheduler_buffer(
     def _compute_and_update_buf_size(
         sched_buf: SchedulerBuffer, user_of_MultiOutputLayout: bool = False
     ) -> int:
+<<<<<<< HEAD
         if sched_buf.get_name() in V.graph.scheduler.mutation_real_name:
             sched_buf_to_size[sched_buf.get_name()] = (0, 0)
             return 0
         elif isinstance(sched_buf.node.layout, NoneLayout):
             sched_buf_to_size[sched_buf.get_name()] = (0, 0)
             return 0
+=======
+        if isinstance(sched_buf.node.layout, NoneLayout):
+            _size = 0
+            # for a wait tensor op, its schedulerBuffer NoneLayout layout. However,
+            # the schedulerBuffer is treated as a mutation of the collective output
+            # so it needs to inherit the size of the collectives
+            if (
+                sched_buf.defining_op
+                and is_wait(sched_buf.defining_op.node)
+                and sched_buf.get_mutations()
+            ):
+                mutated_buf_name = sched_buf.get_mutations()[0]
+                _size = (
+                    sched_buf_to_size[mutated_buf_name][1]
+                    if mutated_buf_name in sched_buf_to_size
+                    else 0
+                )
+            sched_buf_to_size[sched_buf.get_name()] = (_size, _size)
+            return _size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(sched_buf.node.layout, MultiOutputLayout):
             size_alloc = 0
             for user in sched_buf.users:
@@ -217,6 +280,7 @@ def assign_memory_planning_info_for_scheduler_buffers(
         for dep in node.unmet_dependencies:
             dep_name_to_succ_nodes[dep.name].add(node)
 
+<<<<<<< HEAD
     # iterate in reverse, so dependencies are picked up transitively.
     for mutating_buf_name, real_buf_name in reversed(
         V.graph.scheduler.mutation_real_name.items()
@@ -225,6 +289,8 @@ def assign_memory_planning_info_for_scheduler_buffers(
             mutating_buf_name
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # populate the MemoryPlanningInfoForBuffer attribute to each scheduler buffer
     # note: there are scheduler buffers not in dep_name_to_succ_nodes (e.g., graph outputs)
     for buf_name in name_to_buf.keys():
@@ -244,6 +310,7 @@ def assign_memory_planning_info_for_scheduler_nodes(
     """
     Assign to each scheduler node its predecessor and successor nodes.
     """
+<<<<<<< HEAD
 
     node_to_pred_nodes: dict[BaseSchedulerNode, OrderedSet[BaseSchedulerNode]] = (
         collections.defaultdict(OrderedSet)
@@ -255,11 +322,29 @@ def assign_memory_planning_info_for_scheduler_nodes(
 
     # collect all predecessors using existing successor mappings
     for node in nodes:
+=======
+    from .scheduler import SchedulerBuffer
+
+    for index, node in enumerate(nodes):
+        size_alloc = sum(buffer.mpi_buffer.size_alloc for buffer in node.get_outputs())
+        pred_buffers = OrderedSet[Union[SchedulerBuffer, FreeableInputBuffer]]()
+        for dep in node.read_writes.reads:
+            if dep.name in name_to_buf and dep in node.unmet_dependencies:
+                pred_buffers.add(name_to_buf[dep.name])
+            elif dep.name in name_to_freeable_input_buf:
+                pred_buffers.add(name_to_freeable_input_buf[dep.name])
+        pred_nodes = OrderedSet(
+            name_to_fused_node[pred_buffer.defining_op_name()]
+            for pred_buffer in pred_buffers
+            if (isinstance(pred_buffer, SchedulerBuffer))
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         succ_nodes = OrderedSet(
             succ_node
             for buffer in node.get_outputs()
             for succ_node in buffer.mpi_buffer.succ_nodes
         )
+<<<<<<< HEAD
         node_to_succ_nodes[node] = succ_nodes
 
         # For each successor, add current node as its predecessor
@@ -291,10 +376,18 @@ def assign_memory_planning_info_for_scheduler_nodes(
             size=size_alloc,
             pred_buffers=node_to_pred_buffers[node],
             pred_nodes=node_to_pred_nodes[node],
+=======
+        node.mpi_node = MemoryPlanningInfoForNode(
+            index=index,
+            size=size_alloc,
+            pred_buffers=pred_buffers,
+            pred_nodes=pred_nodes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             succ_nodes=succ_nodes,
         )
 
 
+<<<<<<< HEAD
 # map each scheduler buffer to its size, start step, and end step
 @dataclasses.dataclass
 class BufferInfo:
@@ -394,6 +487,8 @@ def compute_memory_timeline(
     return buf_info_list, node_to_step, buf_to_snode_last_use
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def estimate_peak_memory(
     nodes: list[BaseSchedulerNode],
     name_to_freeable_input_buf: dict[str, FreeableInputBuffer],
@@ -408,9 +503,74 @@ def estimate_peak_memory(
         List[int]: memory usage at each node (or each step).
     """
 
+<<<<<<< HEAD
     buf_info_list, _, _ = compute_memory_timeline(
         nodes, name_to_freeable_input_buf, graph_outputs
     )
+=======
+    # map each scheduler buffer to its size, start step, and end step
+    @dataclasses.dataclass
+    class BufferInfo:
+        buffer: Union[SchedulerBuffer, FreeableInputBuffer]
+        size_alloc: int
+        size_free: int
+        start_step: int
+        end_step: int
+
+    # get the execution step of each node, this will be used to determine
+    # the end_step of buffers
+    node_to_step: dict[BaseSchedulerNode, int] = {
+        node: step for step, node in enumerate(nodes)
+    }
+
+    # get buffers' size and liveliness information
+    buf_info_list: list[BufferInfo] = []
+    # 1. for freeable input buffers
+    for buf_name, input_buf in name_to_freeable_input_buf.items():
+        end_step = (
+            len(nodes) - 1
+            if buf_name in graph_outputs
+            else max(
+                node_to_step[succ_node] for succ_node in input_buf.mpi_buffer.succ_nodes
+            )
+        )
+        buf_info_list.append(
+            BufferInfo(
+                input_buf,
+                input_buf.mpi_buffer.size_free,
+                input_buf.mpi_buffer.size_free,
+                0,
+                end_step,
+            )
+        )
+
+    # 2. for scheduler buffers
+    for step, node in enumerate(nodes):
+        for sched_buf in node.get_outputs():
+            # note: it is possible for a non-graph-output sched_buf to have no succ_nodes and
+            # to be only used by its defining op (e.g., due to fusion when all consumers of
+            # the buffer are fused with its defining op). In such cases, end_step is step.
+            end_step = (
+                len(nodes) - 1
+                if sched_buf.get_name() in graph_outputs
+                else max(
+                    [
+                        node_to_step[succ_node]
+                        for succ_node in sched_buf.mpi_buffer.succ_nodes
+                    ],
+                    default=step,
+                )
+            )
+            buf_info_list.append(
+                BufferInfo(
+                    sched_buf,
+                    sched_buf.mpi_buffer.size_alloc,
+                    sched_buf.mpi_buffer.size_free,
+                    step,
+                    end_step,
+                )
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # incremental memory changes at each step
     memory = [0 for _ in range(len(nodes) + 1)]
@@ -432,6 +592,7 @@ def estimate_peak_memory(
     return (max_memory, memories_at_nodes)
 
 
+<<<<<<< HEAD
 @dataclasses.dataclass
 class SNodeMemory:
     size_alloc: int
@@ -499,6 +660,8 @@ def estimate_peak_memory_allocfree(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def topological_sort_lpmf(
     nodes: list[BaseSchedulerNode],
     name_to_freeable_input_buf: dict[str, FreeableInputBuffer],
@@ -512,7 +675,11 @@ def topological_sort_lpmf(
     Buffer memory optimization for video codec application modeled in Simulink
     https://www.cs.york.ac.uk/rts/docs/DAC-1964-2006/PAPERS/2006/DAC06/PDFFILES/P0689.PDF
 
+<<<<<<< HEAD
     The algorithm maintains the max memory so far.
+=======
+    The algorithm maintain the max memory so far.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     At every iteration, for each scheduleable node, it computes:
         - how much memory needs to be allocated for the output buffers of this node;
         - how much memory can be freed as a result of executing this node.
@@ -568,7 +735,10 @@ def topological_sort_lpmf(
         elif buf_name in name_to_freeable_input_buf:
             output_memory += name_to_freeable_input_buf[buf_name].mpi_buffer.size_free
     max_memory = max(live_memory, output_memory)
+<<<<<<< HEAD
     memory_gap = max_memory - live_memory
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # compute the amount of memory that is allocated when a node is scheduled
     # and the amount of memory that can be freed when a node is scheduled
@@ -584,6 +754,7 @@ def topological_sort_lpmf(
 
     # schedule nodes one at a time
     schedule: list[BaseSchedulerNode] = []
+<<<<<<< HEAD
     size_threshold = config.size_threshold_for_succ_based_strategy
     num_iters: int = 0
     while num_iters < len(nodes) and nodes_to_schedule:
@@ -611,6 +782,19 @@ def topological_sort_lpmf(
                     node.mpi_node.index,
                 ),
             )
+=======
+    num_iters: int = 0
+    while num_iters < len(nodes) and nodes_to_schedule:
+        # select a node to schedule:
+        selected_node = min(
+            nodes_to_schedule,
+            key=lambda node: (
+                max(live_memory + node.mpi_node.size, max_memory),
+                node.mpi_node.size - node_info[node]["memory_to_free"],
+                node.mpi_node.index,
+            ),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nodes_to_schedule.remove(selected_node)
         schedule.append(selected_node)
         num_iters += 1
@@ -619,7 +803,10 @@ def topological_sort_lpmf(
         live_memory += selected_node.mpi_node.size
         max_memory = max(max_memory, live_memory)
         live_memory -= node_info[selected_node]["memory_to_free"]
+<<<<<<< HEAD
         memory_gap = max_memory - live_memory
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # update successor nodes and nodes_to_schedule
         for succ_node in selected_node.mpi_node.succ_nodes:
@@ -756,6 +943,7 @@ def topological_sort_dfs(nodes: list[BaseSchedulerNode]) -> list[BaseSchedulerNo
     return result
 
 
+<<<<<<< HEAD
 def validate_graph_acyclic(nodes: list[BaseSchedulerNode]) -> None:
     """
     Validate that the graph is acyclic by checking predecessor relationships.
@@ -843,6 +1031,8 @@ def validate_unique_buffer_names(
                 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def prepare_planning_info(
     nodes: list[BaseSchedulerNode],
     name_to_buf: dict[str, SchedulerBuffer],
@@ -899,6 +1089,7 @@ def reorder_for_peak_memory(
         graph_outputs,
     )
 
+<<<<<<< HEAD
     # export graph for simulator if needed
     if config.reorder_for_peak_memory_debug:
         export_graph_for_simulator(
@@ -918,6 +1109,8 @@ def reorder_for_peak_memory(
         if not is_fbcode():  # TODO: remove after ensuring OSS side is safe
             raise
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # keep track of the peak memory estimates of different methods
     peak_memory_diff_methods: list[PeakMemoryResult] = []
     peak_memory_diff_methods.append(
@@ -942,10 +1135,15 @@ def reorder_for_peak_memory(
                 PeakMemoryResult(order, peak_memory, method.__name__)
             )
             torch_log.info("%s peak memory: %d", method.__name__, peak_memory)
+<<<<<<< HEAD
         except Exception:
             torch_log.exception("Failed to reorder for %s", method.__name__)
             if not is_fbcode():  # TODO: remove after ensuring OSS side is safe
                 raise
+=======
+        except Exception as e:
+            torch_log.error("Failed to reorder for %s: %s", method.__name__, e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     signpost_event(
         category="inductor",
@@ -959,6 +1157,7 @@ def reorder_for_peak_memory(
     best_result = min(peak_memory_diff_methods, key=lambda x: x.peak_memory)
 
     return best_result.order
+<<<<<<< HEAD
 
 
 def export_graph_for_simulator(
@@ -1068,3 +1267,5 @@ def export_graph_for_simulator(
         },
         payload_fn=lambda: g_str,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

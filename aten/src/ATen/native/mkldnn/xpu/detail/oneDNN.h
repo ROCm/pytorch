@@ -164,7 +164,11 @@ void quantized_matmul(
     std::string_view unary_post_op_algorithm,
     bool m2_trnas);
 
+<<<<<<< HEAD
 void sdpa(
+=======
+void gpu_float_sdpa(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int batch_size,
     int seq_len_q,
     int seq_len_kv,
@@ -178,6 +182,7 @@ void sdpa(
     std::optional<at::Tensor> attn_mask,
     bool is_causal,
     float softmax_scale,
+<<<<<<< HEAD
     const Tensor& attention,
     bool compute_logsumexp,
     const Tensor& logsumexp);
@@ -202,4 +207,7 @@ void sdpa_backward(
     Tensor& grad_query,
     Tensor& grad_key,
     Tensor& grad_value);
+=======
+    const Tensor& output);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native::onednn

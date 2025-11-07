@@ -24,6 +24,7 @@ static void _assert_match(const O& original, const C& compared, const std::strin
   }
 }
 
+<<<<<<< HEAD
 template<>
 void _assert_match<c10::Device, std::optional<c10::Device>>(
     const c10::Device& original,
@@ -47,6 +48,8 @@ void _assert_match<c10::Device, std::optional<c10::Device>>(
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void _assert_tensor_metadata_meta_symint(at::Tensor const& tensor, at::OptionalSymIntArrayRef sizes, at::OptionalSymIntArrayRef strides, std::optional<c10::ScalarType> dtype, std::optional<c10::Device> device, std::optional<c10::Layout> layout) {
   _assert_match(tensor.sym_sizes(), sizes, "sizes");
   _assert_match(tensor.sym_strides(), strides, "strides");

@@ -115,16 +115,25 @@ from torch.testing._internal.common_utils import (
     set_default_dtype,
     set_rng_seed,
     skipIfTorchDynamo,
+<<<<<<< HEAD
     TEST_XPU,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 # load_tests from torch.testing._internal.common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
 load_tests = load_tests  # noqa: PLW0127
+=======
+# load_tests from torch.testing._internal.common_utils is used to automatically filter tests for
+# sharding on sandcastle. This line silences flake warnings
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TEST_NUMPY = True
 try:
@@ -1791,6 +1800,7 @@ class TestDistributions(DistributionsTestCase):
             ).logpmf(sample)
             self.assertEqual(log_prob, expected, atol=1e-4, rtol=0)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "CUDA and XPU not found")
     def test_zero_excluded_binomial(self):
         vals = Binomial(
@@ -1806,11 +1816,26 @@ class TestDistributions(DistributionsTestCase):
         vals = Binomial(
             total_count=torch.tensor(1.0).to(device_type),
             probs=torch.tensor(0.5).to(device_type),
+=======
+    @unittest.skipIf(not TEST_CUDA, "CUDA not found")
+    def test_zero_excluded_binomial(self):
+        vals = Binomial(
+            total_count=torch.tensor(1.0).cuda(), probs=torch.tensor(0.9).cuda()
+        ).sample(torch.Size((100000000,)))
+        self.assertTrue((vals >= 0).all())
+        vals = Binomial(
+            total_count=torch.tensor(1.0).cuda(), probs=torch.tensor(0.1).cuda()
+        ).sample(torch.Size((100000000,)))
+        self.assertTrue((vals < 2).all())
+        vals = Binomial(
+            total_count=torch.tensor(1.0).cuda(), probs=torch.tensor(0.5).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).sample(torch.Size((10000,)))
         # vals should be roughly half zeroes, half ones
         assert (vals == 0.0).sum() > 4000
         assert (vals == 1.0).sum() > 4000
 
+<<<<<<< HEAD
     def test_torch_binomial_dtype_errors(self):
         dtypes = [torch.int, torch.long, torch.short]
 
@@ -1834,6 +1859,8 @@ class TestDistributions(DistributionsTestCase):
             ):
                 torch.binomial(total_count, total_prob)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @set_default_dtype(torch.double)
     def test_multinomial_1d(self):
         total_count = 10
@@ -2056,15 +2083,25 @@ class TestDistributions(DistributionsTestCase):
                 )
         torch.set_default_dtype(saved_dtype)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "CUDA and XPU not found")
+=======
+    @unittest.skipIf(not TEST_CUDA, "CUDA not found")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_NUMPY, "Numpy not found")
     def test_poisson_gpu_sample(self):
         set_rng_seed(1)
         for rate in [0.12, 0.9, 4.0]:
             self._check_sampler_discrete(
+<<<<<<< HEAD
                 Poisson(torch.tensor([rate]).to(device_type)),
                 scipy.stats.poisson(rate),
                 f"Poisson(lambda={rate}, {device_type})",
+=======
+                Poisson(torch.tensor([rate]).cuda()),
+                scipy.stats.poisson(rate),
+                f"Poisson(lambda={rate}, cuda)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 failure_rate=1e-3,
             )
 
@@ -3496,6 +3533,7 @@ class TestDistributions(DistributionsTestCase):
 
         self._check_log_prob(Gamma(alpha, beta), ref_log_prob)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "CUDA and XPU not found")
     @unittest.skipIf(not TEST_NUMPY, "NumPy not found")
     def test_gamma_gpu_shape(self):
@@ -3503,6 +3541,15 @@ class TestDistributions(DistributionsTestCase):
         beta = torch.randn(2, 3).to(device_type).exp().requires_grad_()
         alpha_1d = torch.randn(1).to(device_type).exp().requires_grad_()
         beta_1d = torch.randn(1).to(device_type).exp().requires_grad_()
+=======
+    @unittest.skipIf(not TEST_CUDA, "CUDA not found")
+    @unittest.skipIf(not TEST_NUMPY, "NumPy not found")
+    def test_gamma_gpu_shape(self):
+        alpha = torch.randn(2, 3).cuda().exp().requires_grad_()
+        beta = torch.randn(2, 3).cuda().exp().requires_grad_()
+        alpha_1d = torch.randn(1).cuda().exp().requires_grad_()
+        beta_1d = torch.randn(1).cuda().exp().requires_grad_()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(Gamma(alpha, beta).sample().size(), (2, 3))
         self.assertEqual(Gamma(alpha, beta).sample((5,)).size(), (5, 2, 3))
         self.assertEqual(Gamma(alpha_1d, beta_1d).sample((1,)).size(), (1, 1))
@@ -3533,10 +3580,14 @@ class TestDistributions(DistributionsTestCase):
     def test_gamma_gpu_sample(self):
         set_rng_seed(0)
         for alpha, beta in product([0.1, 1.0, 5.0], [0.1, 1.0, 10.0]):
+<<<<<<< HEAD
             a, b = (
                 torch.tensor([alpha]).to(device_type),
                 torch.tensor([beta]).to(device_type),
             )
+=======
+            a, b = torch.tensor([alpha]).cuda(), torch.tensor([beta]).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._check_sampler_sampler(
                 Gamma(a, b),
                 scipy.stats.gamma(alpha, scale=1.0 / beta),
@@ -3982,11 +4033,19 @@ class TestDistributions(DistributionsTestCase):
             self.assertEqual(frac_zeros, 0.5, atol=0.05, rtol=0)
             self.assertEqual(frac_ones, 0.5, atol=0.05, rtol=0)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "CUDA and XPU not found")
     def test_beta_underflow_gpu(self):
         set_rng_seed(1)
         num_samples = 50000
         conc = torch.tensor(1e-2, dtype=torch.float64).to(device_type)
+=======
+    @unittest.skipIf(not TEST_CUDA, "CUDA not found")
+    def test_beta_underflow_gpu(self):
+        set_rng_seed(1)
+        num_samples = 50000
+        conc = torch.tensor(1e-2, dtype=torch.float64).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         beta_samples = Beta(conc, conc).sample([num_samples])
         self.assertEqual((beta_samples == 0).sum(), 0)
         self.assertEqual((beta_samples == 1).sum(), 0)
@@ -5722,11 +5781,19 @@ class TestKL(DistributionsTestCase):
     def test_kl_multivariate_normal(self):
         set_rng_seed(0)  # see Note [Randomized statistical tests]
         n = 5  # Number of tests for multivariate_normal
+<<<<<<< HEAD
         for i in range(n):
             loc = [torch.randn(4) for _ in range(2)]
             scale_tril = [
                 transform_to(constraints.lower_cholesky)(torch.randn(4, 4))
                 for _ in range(2)
+=======
+        for i in range(0, n):
+            loc = [torch.randn(4) for _ in range(0, 2)]
+            scale_tril = [
+                transform_to(constraints.lower_cholesky)(torch.randn(4, 4))
+                for _ in range(0, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             p = MultivariateNormal(loc=loc[0], scale_tril=scale_tril[0])
             q = MultivariateNormal(loc=loc[1], scale_tril=scale_tril[1])
@@ -5755,10 +5822,17 @@ class TestKL(DistributionsTestCase):
 
     def test_kl_multivariate_normal_batched(self):
         b = 7  # Number of batches
+<<<<<<< HEAD
         loc = [torch.randn(b, 3) for _ in range(2)]
         scale_tril = [
             transform_to(constraints.lower_cholesky)(torch.randn(b, 3, 3))
             for _ in range(2)
+=======
+        loc = [torch.randn(b, 3) for _ in range(0, 2)]
+        scale_tril = [
+            transform_to(constraints.lower_cholesky)(torch.randn(b, 3, 3))
+            for _ in range(0, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         expected_kl = torch.stack(
             [
@@ -5766,7 +5840,11 @@ class TestKL(DistributionsTestCase):
                     MultivariateNormal(loc[0][i], scale_tril=scale_tril[0][i]),
                     MultivariateNormal(loc[1][i], scale_tril=scale_tril[1][i]),
                 )
+<<<<<<< HEAD
                 for i in range(b)
+=======
+                for i in range(0, b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
         )
         actual_kl = kl_divergence(
@@ -5777,7 +5855,11 @@ class TestKL(DistributionsTestCase):
 
     def test_kl_multivariate_normal_batched_broadcasted(self):
         b = 7  # Number of batches
+<<<<<<< HEAD
         loc = [torch.randn(b, 3) for _ in range(2)]
+=======
+        loc = [torch.randn(b, 3) for _ in range(0, 2)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         scale_tril = [
             transform_to(constraints.lower_cholesky)(torch.randn(b, 3, 3)),
             transform_to(constraints.lower_cholesky)(torch.randn(3, 3)),
@@ -5788,7 +5870,11 @@ class TestKL(DistributionsTestCase):
                     MultivariateNormal(loc[0][i], scale_tril=scale_tril[0][i]),
                     MultivariateNormal(loc[1][i], scale_tril=scale_tril[1]),
                 )
+<<<<<<< HEAD
                 for i in range(b)
+=======
+                for i in range(0, b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
         )
         actual_kl = kl_divergence(
@@ -5800,6 +5886,7 @@ class TestKL(DistributionsTestCase):
     def test_kl_lowrank_multivariate_normal(self):
         set_rng_seed(0)  # see Note [Randomized statistical tests]
         n = 5  # Number of tests for lowrank_multivariate_normal
+<<<<<<< HEAD
         for i in range(n):
             loc = [torch.randn(4) for _ in range(2)]
             cov_factor = [torch.randn(4, 3) for _ in range(2)]
@@ -5809,6 +5896,17 @@ class TestKL(DistributionsTestCase):
             covariance_matrix = [
                 cov_factor[i].matmul(cov_factor[i].t()) + cov_diag[i].diag()
                 for i in range(2)
+=======
+        for i in range(0, n):
+            loc = [torch.randn(4) for _ in range(0, 2)]
+            cov_factor = [torch.randn(4, 3) for _ in range(0, 2)]
+            cov_diag = [
+                transform_to(constraints.positive)(torch.randn(4)) for _ in range(0, 2)
+            ]
+            covariance_matrix = [
+                cov_factor[i].matmul(cov_factor[i].t()) + cov_diag[i].diag()
+                for i in range(0, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             p = LowRankMultivariateNormal(loc[0], cov_factor[0], cov_diag[0])
             q = LowRankMultivariateNormal(loc[1], cov_factor[1], cov_diag[1])
@@ -5861,10 +5959,17 @@ class TestKL(DistributionsTestCase):
 
     def test_kl_lowrank_multivariate_normal_batched(self):
         b = 7  # Number of batches
+<<<<<<< HEAD
         loc = [torch.randn(b, 3) for _ in range(2)]
         cov_factor = [torch.randn(b, 3, 2) for _ in range(2)]
         cov_diag = [
             transform_to(constraints.positive)(torch.randn(b, 3)) for _ in range(2)
+=======
+        loc = [torch.randn(b, 3) for _ in range(0, 2)]
+        cov_factor = [torch.randn(b, 3, 2) for _ in range(0, 2)]
+        cov_diag = [
+            transform_to(constraints.positive)(torch.randn(b, 3)) for _ in range(0, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         expected_kl = torch.stack(
             [
@@ -5876,7 +5981,11 @@ class TestKL(DistributionsTestCase):
                         loc[1][i], cov_factor[1][i], cov_diag[1][i]
                     ),
                 )
+<<<<<<< HEAD
                 for i in range(b)
+=======
+                for i in range(0, b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
         )
         actual_kl = kl_divergence(
@@ -5887,7 +5996,11 @@ class TestKL(DistributionsTestCase):
 
     def test_kl_exponential_family(self):
         for (p, _), (_, q) in self.finite_examples:
+<<<<<<< HEAD
             if type(p) is type(q) and issubclass(type(p), ExponentialFamily):
+=======
+            if type(p) == type(q) and issubclass(type(p), ExponentialFamily):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 actual = kl_divergence(p, q)
                 expected = _kl_expfamily_expfamily(p, q)
                 self.assertEqual(
@@ -6378,7 +6491,11 @@ class TestLazyLogitsInitialization(DistributionsTestCase):
             except NotImplementedError:
                 pass
             self.assertNotIn("probs", dist.__dict__, msg=message)
+<<<<<<< HEAD
             _ = (dist.batch_shape, dist.event_shape)
+=======
+            dist.batch_shape, dist.event_shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertNotIn("probs", dist.__dict__, msg=message)
 
     def test_lazy_probs_initialization(self):
@@ -6395,7 +6512,11 @@ class TestLazyLogitsInitialization(DistributionsTestCase):
             except NotImplementedError:
                 pass
             self.assertNotIn("logits", dist.__dict__, msg=message)
+<<<<<<< HEAD
             _ = (dist.batch_shape, dist.event_shape)
+=======
+            dist.batch_shape, dist.event_shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertNotIn("logits", dist.__dict__, msg=message)
 
 

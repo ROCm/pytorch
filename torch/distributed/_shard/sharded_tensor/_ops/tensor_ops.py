@@ -40,7 +40,10 @@ _register_default_op(torch.Tensor.is_leaf.__get__, _sharded_op_impl)  # type: ig
 # the device property on each rank
 @_sharded_op_impl(torch.Tensor.device.__get__)
 def tensor_device(types, args=(), kwargs=None, pg=None):
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self_st = args[0]
     # Validate types
     if not isinstance(self_st, ShardedTensor):
@@ -57,7 +60,10 @@ def tensor_device(types, args=(), kwargs=None, pg=None):
 
 @_sharded_op_impl(torch.Tensor.is_meta.__get__)  # type: ignore[attr-defined]
 def st_is_meta(types, args=(), kwargs=None, pg=None):
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return args[0].local_tensor().is_meta
 
 
@@ -198,7 +204,10 @@ _register_sharded_op_on_local_shards(
 
 @_sharded_op_impl(torch.Tensor.requires_grad_)
 def tensor_requires_grad_set(types, args=(), kwargs=None, pg=None):
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self_st = args[0]
     # Validate types
     if not isinstance(self_st, ShardedTensor):

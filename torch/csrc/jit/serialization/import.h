@@ -140,6 +140,15 @@ TORCH_API Module load_jit_module_from_stream(
     ExtraFilesMap& extra_files,
     std::optional<at::Device> device = std::nullopt);
 
+<<<<<<< HEAD
+=======
+TORCH_API Module parse_and_initialize_jit_module(
+    const std::shared_ptr<char>& data,
+    size_t size,
+    ExtraFilesMap& extra_files,
+    std::optional<at::Device> device);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API c10::intrusive_ptr<c10::ivalue::Object> ObjLoaderFunc(
     const at::StrongTypePtr& type,
     IValue input);

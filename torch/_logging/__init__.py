@@ -12,7 +12,10 @@ from ._internal import (
     dtrace_structured,
     get_structured_logging_overhead,
     getArtifactLogger,
+<<<<<<< HEAD
     hide_warnings,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LazyString,
     set_logs,
     trace_structured,

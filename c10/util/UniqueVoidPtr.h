@@ -13,7 +13,11 @@ using DeleterFnPtr = void (*)(void*);
 namespace detail {
 
 // Does not delete anything
+<<<<<<< HEAD
 C10_API void deleteNothing(void* /*unused*/);
+=======
+C10_API void deleteNothing(void*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // A detail::UniqueVoidPtr is an owning smart pointer like unique_ptr, but
 // with three major differences:

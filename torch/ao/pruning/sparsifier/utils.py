@@ -51,12 +51,19 @@ def swap_module(
             new_mod.register_forward_hook(hook_fn)
 
         # respect device affinity when swapping modules
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         devices = {p.device for p in chain(mod.parameters(), mod.buffers())}
         if len(devices) > 1:
             raise AssertionError(
                 f"swap_module only works with cpu or single-device CUDA modules, but got devices {devices}"
             )
+=======
+        devices = {p.device for p in chain(mod.parameters(), mod.buffers())}
+        assert len(devices) <= 1, (
+            f"swap_module only works with cpu or single-device CUDA modules, but got devices {devices}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device = next(iter(devices)) if len(devices) > 0 else None
         if device:
             new_mod.to(device)
@@ -100,7 +107,11 @@ def get_arg_info_from_tensor_fqn(model: nn.Module, tensor_fqn: str) -> dict[str,
     # string manip to split tensor_fqn into module_fqn and tensor_name
     # if tensor_fqn is 'weight' then module_fqn and tensor_name are '' and 'weight'
     # if tensor_fqn is 'linear.weight' then module_fqn and tensor_name are 'linear' and 'weight'
+<<<<<<< HEAD
     tensor_name = tensor_fqn.rsplit(".", maxsplit=1)[-1]
+=======
+    tensor_name = tensor_fqn.split(".")[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module_fqn = tensor_fqn[: -len(tensor_name) - ("." in tensor_fqn)]
 
     module = fqn_to_module(model, module_fqn)
@@ -130,10 +141,14 @@ class FakeSparsity(nn.Module):
         self.register_buffer("mask", mask)
 
     def forward(self, x):
+<<<<<<< HEAD
         if self.mask.shape != x.shape:
             raise AssertionError(
                 f"mask shape ({self.mask.shape}) must match x shape ({x.shape})"
             )
+=======
+        assert self.mask.shape == x.shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.mask * x
 
     def state_dict(self, *args, **kwargs):

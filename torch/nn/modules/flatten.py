@@ -50,6 +50,7 @@ class Flatten(Module):
         self.end_dim = end_dim
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -59,6 +60,11 @@ class Flatten(Module):
         """
         Returns the extra representation of the module.
         """
+=======
+        return input.flatten(self.start_dim, self.end_dim)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"start_dim={self.start_dim}, end_dim={self.end_dim}"
 
 
@@ -130,7 +136,11 @@ class Unflatten(Module):
         self.dim = dim
         self.unflattened_size = unflattened_size
 
+<<<<<<< HEAD
     def _require_tuple_tuple(self, input) -> None:
+=======
+    def _require_tuple_tuple(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(input, tuple):
             for idx, elem in enumerate(input):
                 if not isinstance(elem, tuple):
@@ -144,7 +154,11 @@ class Unflatten(Module):
             + f"but found type {type(input).__name__}"
         )
 
+<<<<<<< HEAD
     def _require_tuple_int(self, input) -> None:
+=======
+    def _require_tuple_int(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(input, (tuple, list)):
             for idx, elem in enumerate(input):
                 if not isinstance(elem, int):
@@ -158,6 +172,7 @@ class Unflatten(Module):
         )
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -167,4 +182,9 @@ class Unflatten(Module):
         """
         Returns the extra representation of the module.
         """
+=======
+        return input.unflatten(self.dim, self.unflattened_size)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"dim={self.dim}, unflattened_size={self.unflattened_size}"

@@ -465,11 +465,16 @@ inline bool mps_conv_use_channels_last(const at::Tensor& input, const at::Tensor
     return false;
   }
 
+<<<<<<< HEAD
   auto is_channel_last = [](const at::Tensor& t) {
     auto fmt = t.suggest_memory_format();
     return fmt == at::MemoryFormat::ChannelsLast || fmt == at::MemoryFormat::ChannelsLast3d;
   };
   return is_channel_last(input) || is_channel_last(weight);
+=======
+  auto fmt = input.suggest_memory_format();
+  return fmt == at::MemoryFormat::ChannelsLast || fmt == at::MemoryFormat::ChannelsLast3d;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace at::native

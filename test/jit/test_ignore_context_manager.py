@@ -2,6 +2,10 @@
 
 import os
 import sys
+<<<<<<< HEAD
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -9,11 +13,19 @@ import torch
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
+=======
+from torch.jit.frontend import _IS_ASTUNPARSE_INSTALLED
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import raise_on_run_directly
 from torch.testing._internal.jit_utils import JitTestCase
 
 
 class TestIgnoreContextManager(JitTestCase):
+<<<<<<< HEAD
+=======
+    @unittest.skipUnless(_IS_ASTUNPARSE_INSTALLED, "astunparse package is required")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_with_ignore_context_manager_with_inp_out(self):
         class A(torch.nn.Module):
             def forward(self):
@@ -65,6 +77,10 @@ class TestIgnoreContextManager(JitTestCase):
         self.assertEqual(s(), 6)
         self.assertEqual(s(), model())
 
+<<<<<<< HEAD
+=======
+    @unittest.skipUnless(_IS_ASTUNPARSE_INSTALLED, "astunparse package is required")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_with_ignore_context_manager_with_just_inp(self):
         class A(torch.nn.Module):
             def forward(self):
@@ -79,6 +95,10 @@ class TestIgnoreContextManager(JitTestCase):
         self.assertEqual(s(), 4)
         self.assertEqual(s(), model())
 
+<<<<<<< HEAD
+=======
+    @unittest.skipUnless(_IS_ASTUNPARSE_INSTALLED, "astunparse package is required")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_with_ignore_context_manager_with_just_out(self):
         class A(torch.nn.Module):
             def forward(self):

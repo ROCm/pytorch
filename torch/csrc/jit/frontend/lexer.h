@@ -412,7 +412,15 @@ struct Token {
 
 struct Lexer {
   explicit Lexer(std::shared_ptr<Source> source)
+<<<<<<< HEAD
       : source(std::move(source)), shared(sharedParserData()) {
+=======
+      : source(std::move(source)),
+
+        indent_stack(),
+        next_tokens(),
+        shared(sharedParserData()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto first_indent = lexRaw(true);
     indent_stack.push_back(first_indent.range.size());
     lex();

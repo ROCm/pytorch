@@ -10,14 +10,21 @@ from torch.nn import MultiheadAttention
 from torch.testing._internal.common_device_type import (
     dtypes,
     instantiate_device_type_tests,
+<<<<<<< HEAD
     onlyOn,
+=======
+    onlyCUDAAndPRIVATEUSE1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_nn import NNTestCase
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize as parametrize_test,
     run_tests,
+<<<<<<< HEAD
     TEST_CUDA,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_NUMPY,
     TEST_WITH_CROSSREF,
 )
@@ -33,9 +40,14 @@ if TEST_NUMPY:
 
 
 class TestMultiheadAttentionNN(NNTestCase):
+<<<<<<< HEAD
     if TEST_CUDA:
         _do_cuda_memory_leak_check = True
         _do_cuda_non_default_stream = True
+=======
+    _do_cuda_memory_leak_check = True
+    _do_cuda_non_default_stream = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not TEST_NUMPY, "numpy not found")
     @parametrize_test("average_attn_weights", [True, False])
@@ -487,7 +499,11 @@ class TestMultiheadAttentionNN(NNTestCase):
         )[0]
         output_3d = output_3d.transpose(0, 1)  # [N, T, D]
 
+<<<<<<< HEAD
         for i in range(batch_size):
+=======
+        for i in range(0, batch_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_2d = mta_model(
                 query[i].unsqueeze(0).transpose(0, 1),
                 key[i].unsqueeze(0).transpose(0, 1),
@@ -836,6 +852,7 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
         and key padding mask (mask type 1) are provided at the same time on CPU and CUDA and PrivateUse1
         """
         device = device.rstrip(":0123456789")
+<<<<<<< HEAD
         if device not in [
             "cpu",
             "cuda",
@@ -843,6 +860,10 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
             torch._C._get_privateuse1_backend_name(),
         ]:
             self.skipTest("Fastpath only runs on CPU and CUDA and XPU and PrivateUse1.")
+=======
+        if device not in ["cpu", "cuda", torch._C._get_privateuse1_backend_name()]:
+            self.skipTest("Fastpath only runs on CPU and CUDA and PrivateUse1.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with torch.autocast(device_type=device, enabled=False):
             embed_dim = 16
@@ -876,7 +897,11 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
                 # If mock was called, fastpath was taken
                 self.assertTrue(fastpath_mock.called)
 
+<<<<<<< HEAD
     @onlyOn(["cuda", "xpu", torch._C._get_privateuse1_backend_name()])
+=======
+    @onlyCUDAAndPRIVATEUSE1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.half, torch.float, torch.double)
     def test_multihead_attention_dtype(self, device, dtype):
         embed_dim = 128
@@ -891,7 +916,11 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
         self.assertEqual(q.size(), out[0].size())
         self.assertEqual(dtype, out[0].dtype)
 
+<<<<<<< HEAD
     @onlyOn(["cuda", "xpu", torch._C._get_privateuse1_backend_name()])
+=======
+    @onlyCUDAAndPRIVATEUSE1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.half, torch.float, torch.double)
     def test_multihead_attention_dtype_batch_first(self, device, dtype):
         embed_dim = 128
@@ -945,6 +974,7 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
         mha(query, query, query)
 
     @dtypes(torch.double)
+<<<<<<< HEAD
     def test_fast_path_check_with_mask_does_not_break_in_compile(self, device, dtype):
         # Test TransformerEncoder fast path determination with src_key_padding_mask set.
         # Specifically, ensure the mask left-align check doesn't fail in torch.compile.
@@ -965,6 +995,8 @@ class TestMultiheadAttentionNNDeviceType(NNTestCase):
         encoder(x, mask=None, src_key_padding_mask=pad_mask)
 
     @dtypes(torch.double)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.no_grad()
     def test_multihead_attn_in_proj_bias_none(self, device, dtype):
         mha = torch.nn.MultiheadAttention(2, 2, bias=False, dtype=dtype, device=device)

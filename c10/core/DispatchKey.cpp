@@ -354,8 +354,11 @@ c10::DispatchKey parseDispatchKey(const std::string& k) {
 
       {"SparseCPU", c10::DispatchKey::SparseCPU},
       {"SparseCUDA", c10::DispatchKey::SparseCUDA},
+<<<<<<< HEAD
       {"SparseMPS", c10::DispatchKey::SparseMPS},
       {"SparseCsrMPS", c10::DispatchKey::SparseCsrMPS},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {"SparseHIP", c10::DispatchKey::SparseHIP},
       {"SparseXPU", c10::DispatchKey::SparseXPU},
       {"SparseVE", c10::DispatchKey::SparseVE},

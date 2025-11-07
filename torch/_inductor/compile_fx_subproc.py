@@ -20,7 +20,11 @@ from .compile_fx_ext import (
     _WireProtocolPickledInput,
     _WireProtocolPickledOutput,
 )
+<<<<<<< HEAD
 from .output_code import complex_memory_overlap  # noqa: F401
+=======
+from .output_code import complex_memory_overlap as complex_memory_overlap  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:

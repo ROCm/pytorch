@@ -10,8 +10,11 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, TYPE_CHECKING
 
+<<<<<<< HEAD
 from torch._utils_internal import log_triton_builds
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
     from torch._inductor.runtime.triton_heuristics import CachingAutotuner
@@ -40,7 +43,11 @@ def _reload_python_module(
 def _set_triton_ptxas_path() -> None:
     if os.environ.get("TRITON_PTXAS_PATH") is not None:
         return
+<<<<<<< HEAD
     ptxas = Path(__file__).absolute().parents[2] / "bin" / "ptxas"
+=======
+    ptxas = Path(__file__).absolute().parents[1] / "bin" / "ptxas"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not ptxas.exists():
         return
     if ptxas.is_file() and os.access(ptxas, os.X_OK):
@@ -59,6 +66,7 @@ def _worker_compile_triton(
     from torch._inductor import config
 
     with config.patch(extra_config):
+<<<<<<< HEAD
         fail = None
         try:
             start_ns = time.time_ns()
@@ -74,3 +82,13 @@ def _worker_compile_triton(
             raise
         finally:
             log_triton_builds(fail=fail)
+=======
+        start_ns = time.time_ns()
+        kernel = load_kernel()
+        kernel.precompile(warm_cache_only=True)
+        elapsed_ns = time.time_ns() - start_ns
+        kernel.prepare_for_pickle()
+        # We can release this memory in the compile subprocesses:
+        linecache.clearcache()
+        return kernel, elapsed_ns // 1000
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

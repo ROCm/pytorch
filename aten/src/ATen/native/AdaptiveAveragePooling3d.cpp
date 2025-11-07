@@ -24,7 +24,11 @@ namespace at::native {
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_avg_pool3d_out_frame(
+=======
+static void adaptive_avg_pool3d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const scalar_t* input_p,
     scalar_t* output_p,
     int64_t sizeD,
@@ -176,7 +180,11 @@ void adaptive_avg_pool3d_out_cpu_template(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_avg_pool3d_backward_out_frame(
+=======
+static void adaptive_avg_pool3d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* gradInput_p,
     const scalar_t* gradOutput_p,
     int64_t sizeD,

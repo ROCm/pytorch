@@ -2,6 +2,7 @@
 # flake8: noqa: B950
 
 import functools
+<<<<<<< HEAD
 import json
 import os
 import random
@@ -15,17 +16,34 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import product
 from typing import Optional, TypeVar, Union
+=======
+import random
+import string
+import unittest
+from collections import namedtuple
+from contextlib import contextmanager
+from dataclasses import dataclass
+from itertools import product
+from typing import Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest import expectedFailure, skip, skipUnless
 from unittest.mock import patch
 
 import torch
 import torch.nn as nn
 from torch._dynamo.testing import CompileCounterWithBackend, normalize_gm
+<<<<<<< HEAD
 from torch._inductor import config, metrics
 from torch._inductor.runtime.triton_compat import HAS_WARP_SPEC
 from torch._inductor.test_case import TestCase as InductorTestCase
 from torch._inductor.utils import run_and_get_code
 from torch.nn.attention import SDPBackend
+=======
+from torch._inductor import metrics
+from torch._inductor.runtime.triton_compat import HAS_WARP_SPEC
+from torch._inductor.test_case import TestCase as InductorTestCase
+from torch._inductor.utils import run_and_get_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.nn.attention.experimental._paged_attention import PagedAttention
 from torch.nn.attention.flex_attention import (
     _create_empty_block_mask,
@@ -33,10 +51,14 @@ from torch.nn.attention.flex_attention import (
     _identity,
     _mask_mod_signature,
     _score_mod_signature,
+<<<<<<< HEAD
     _WARNINGS_SHOWN,
     and_masks,
     AuxOutput,
     AuxRequest,
+=======
+    and_masks,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BlockMask,
     create_block_mask,
     flex_attention,
@@ -50,26 +72,39 @@ from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_BF16, TEST_MUL
 from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfCUDA,
+<<<<<<< HEAD
     dtypesIfXPU,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     flex_attention_supported_platform as supported_platform,
     instantiate_device_type_tests,
     largeTensorTest,
     skipCPUIf,
     skipCUDAIf,
+<<<<<<< HEAD
     skipXPUIf,
 )
 from torch.testing._internal.inductor_utils import HAS_GPU
+=======
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton, has_triton_tma_device
 
 
 # Use this decorator only when hitting Triton bugs on H100
 running_on_a100_only = skipUnless(
+<<<<<<< HEAD
     (
         (torch.cuda.is_available() and has_triton())
         and (torch.cuda.get_device_capability() == (8, 0) or torch.version.hip)
     )
     or (torch.xpu.is_available() and has_triton()),
     "Requires Triton + A100 or Triton + ROCm or Triton + Intel GPU",
+=======
+    (torch.cuda.is_available() and has_triton())
+    and (torch.cuda.get_device_capability() == (8, 0) or torch.version.hip),
+    "Requires Triton + A100 or Triton + ROCm",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 Tolerances = namedtuple("Tolerances", ["atol", "rtol"])
@@ -103,6 +138,7 @@ def temp_float32_matmul_precision(precision: str):
     Args:
     precision (str): The precision to set ('highest', 'high', or 'medium').
     """
+<<<<<<< HEAD
 
     def set_float32_matmul_precision_xpu(precision: str):
         if precision == "highest":
@@ -120,6 +156,14 @@ def temp_float32_matmul_precision(precision: str):
         torch.set_float32_matmul_precision(original_precision)
         if TEST_ON_XPU:
             set_float32_matmul_precision_xpu(original_precision)
+=======
+    original_precision = torch.get_float32_matmul_precision()
+    try:
+        torch.set_float32_matmul_precision(precision)
+        yield
+    finally:
+        torch.set_float32_matmul_precision(original_precision)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def skip_on_cpu(test_func):
@@ -141,28 +185,41 @@ def skip_on_rocm(test_func):
     return decorated_func
 
 
+<<<<<<< HEAD
 def skip_on_xpu(test_func):
     """Decorator to skip tests that are not supported on Intel GPU."""
     decorated_func = skipXPUIf(True, "Not supported on Intel GPU")(test_func)
     return decorated_func
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def rmse(ref, res):
     """
     Calculate root mean squared error
     """
+<<<<<<< HEAD
     ref = ref.to(torch.float64)
     res = res.to(torch.float64)
     return torch.sqrt(torch.mean(torch.square(ref - res)))
 
 
 def create_attention(score_mod, block_mask, enable_gqa=False, kernel_options=None):
+=======
+    return torch.sqrt(torch.mean(torch.square(ref - res)))
+
+
+def create_attention(score_mod, block_mask, enable_gqa=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return functools.partial(
         flex_attention,
         score_mod=score_mod,
         block_mask=block_mask,
         enable_gqa=enable_gqa,
+<<<<<<< HEAD
         kernel_options=kernel_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -189,6 +246,7 @@ TEST_ON_CUDA = (
     and torch.utils._triton.has_triton()
     and torch.cuda.get_device_capability() >= (8, 0)
 )
+<<<<<<< HEAD
 TEST_ON_XPU = torch.xpu.is_available() and torch.utils._triton.has_triton()
 
 device_configs = {}
@@ -203,6 +261,11 @@ if HAS_GPU:
         test_device = ("xpu",)
 else:
     test_device = ("cpu",)
+=======
+
+device_configs = {}
+test_device = ("cpu", "cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SubstringSet:
@@ -212,8 +275,11 @@ class SubstringSet:
     def __contains__(self, item):
         if "cuda" in item:
             item = "cuda"
+<<<<<<< HEAD
         if "xpu" in item:
             item = "xpu"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return item in self.items
 
 
@@ -231,10 +297,13 @@ device_configs["cuda"] = DeviceConfig(
     ),
     dtypes_fast=[torch.float16],
 )
+<<<<<<< HEAD
 device_configs["xpu"] = DeviceConfig(
     dtypes=([torch.float32, torch.bfloat16, torch.float16]),
     dtypes_fast=[torch.float16],
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 device_configs["cpu"] = DeviceConfig(
     dtypes=(
         [torch.float32, torch.bfloat16, torch.float16]
@@ -443,7 +512,11 @@ def batch_reserve(paged_attention: PagedAttention, target_seq_len: Tensor):
         )
 
 
+<<<<<<< HEAD
 @large_tensor_test_class("2GB", device=test_device[0])
+=======
+@large_tensor_test_class("2GB", device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestFlexAttention(InductorTestCase):
     def setUp(self):
         super().setUp()
@@ -459,17 +532,28 @@ class TestFlexAttention(InductorTestCase):
         compiled_out: torch.Tensor,
         fudge_factor: float,
         tensor_name: Optional[str] = None,
+<<<<<<< HEAD
         fudge_atol: float = 0,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         compiled_error = (golden_out - compiled_out).abs().mean()
         ref_error = (golden_out - ref_out).abs().mean()
         if torch.isnan(compiled_error).any() or torch.isnan(ref_error).any():
+<<<<<<< HEAD
             self.fail("Output/Grad with NaN")
         name = tensor_name if tensor_name is not None else ""
         msg = f"{name} Compiled error {compiled_error} is greater than ref error {ref_error} by more than {fudge_factor}X."
         torch.testing.assert_close(
             compiled_error, ref_error, rtol=fudge_factor, atol=1e-7, msg=msg
         )
+=======
+            self.assertTrue(False, "Output/Grad with NaN")
+        if compiled_error > ref_error * fudge_factor:
+            name = tensor_name if tensor_name is not None else ""
+            msg = f"{name} Compiled error {compiled_error} is greater than ref error {ref_error} by more than {fudge_factor}X."
+            self.assertTrue(False, msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _check_out(
         self,
@@ -588,7 +672,13 @@ class TestFlexAttention(InductorTestCase):
             )
         q_ref, k_ref, v_ref = query_key_value_clones(q, k, v)
         q_gold, k_gold, v_gold = query_key_value_clones(q, k, v, torch.float64)
+<<<<<<< HEAD
         sdpa_partial = create_attention(score_mod, block_mask, enable_gqa=(Q_H != KV_H))
+=======
+        sdpa_partial = create_attention(
+            score_mod, block_mask, enable_gqa=(not Q_H == KV_H)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         compiled_sdpa = torch.compile(sdpa_partial)
         golden_out = sdpa_partial(q_gold, k_gold, v_gold)
@@ -709,6 +799,7 @@ class TestFlexAttention(InductorTestCase):
         paged_attention.assign(batch_idx, input_pos, k, v, k_cache, v_cache)
 
         # convert block mask and score mod
+<<<<<<< HEAD
         kv_len_tensor = torch.full((KV_B,), KV_S, device=device, dtype=torch.int64)
         converted_block_mask = paged_attention.convert_logical_block_mask(
             block_mask, kv_len=kv_len_tensor
@@ -716,6 +807,10 @@ class TestFlexAttention(InductorTestCase):
         converted_score_mod = paged_attention.get_score_mod(
             score_mod, kv_len=kv_len_tensor
         )
+=======
+        converted_block_mask = paged_attention.convert_logical_block_mask(block_mask)
+        converted_score_mod = paged_attention.get_score_mod(score_mod)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return k_cache, v_cache, converted_block_mask, converted_score_mod
 
     def run_paged_attention(
@@ -727,7 +822,10 @@ class TestFlexAttention(InductorTestCase):
         dtype: torch.dtype,
         device: str,
         block_mask: Optional[BlockMask] = None,
+<<<<<<< HEAD
         kernel_options: Optional[dict] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[Tensor, Tensor]:
         B, Q_H, Q_S, KV_H, KV_S = (
             q.shape[0],
@@ -762,8 +860,12 @@ class TestFlexAttention(InductorTestCase):
                 return_lse=return_lse,
                 block_mask=converted_block_mask,
                 score_mod=converted_score_mod,
+<<<<<<< HEAD
                 enable_gqa=(Q_H != KV_H),
                 kernel_options=kernel_options,
+=======
+                enable_gqa=(not Q_H == KV_H),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             return_lse = False
@@ -775,8 +877,12 @@ class TestFlexAttention(InductorTestCase):
                 return_lse=return_lse,
                 block_mask=converted_block_mask,
                 score_mod=converted_score_mod,
+<<<<<<< HEAD
                 enable_gqa=(Q_H != KV_H),
                 kernel_options=kernel_options,
+=======
+                enable_gqa=(not Q_H == KV_H),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return compiled_out, compiled_lse
 
@@ -820,7 +926,13 @@ class TestFlexAttention(InductorTestCase):
         if block_mask is None:
             block_mask = create_block_mask(noop_mask, Q_B, 1, Q_S, KV_S, device=device)
 
+<<<<<<< HEAD
         sdpa_partial = create_attention(score_mod, block_mask, enable_gqa=(Q_H != KV_H))
+=======
+        sdpa_partial = create_attention(
+            score_mod, block_mask, enable_gqa=(not Q_H == KV_H)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         golden_out, golden_lse = sdpa_partial(q_gold, k_gold, v_gold, return_lse=True)
         ref_out, ref_lse = sdpa_partial(q_ref, k_ref, v_ref, return_lse=True)
 
@@ -1247,7 +1359,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     def test_builtin_score_mods(self, device, dtype, score_mod: Callable):
         self.run_test(score_mod, dtype, device=device)
@@ -1257,7 +1372,10 @@ class TestFlexAttention(InductorTestCase):
     @common_utils.parametrize("score_mod", test_score_mods)
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_builtin_score_mods_seqlen_lt_default_sparse_block_size(
         self, device, dtype, score_mod: Callable
     ):
@@ -1272,7 +1390,10 @@ class TestFlexAttention(InductorTestCase):
     @running_on_a100_only
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     def test_builtin_score_mods_seqlen_lt_custom_sparse_block_size(
         self, device, dtype: torch.dtype, score_mod: Callable
@@ -1306,7 +1427,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mask_mod", test_score_mask_mod_map.items())
     def test_builtin_score_mods_dynamic(
         self, device, dtype: torch.dtype, score_mask_mod: tuple[Callable, Callable]
@@ -1316,7 +1440,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     def test_builtin_score_mods_automatic_dynamic(
         self, device, dtype: torch.dtype, score_mod: Callable
@@ -1326,7 +1453,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     def test_builtin_score_mods_different_seqlen(
         self, device, dtype: torch.dtype, score_mod: Callable
@@ -1350,7 +1480,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     @common_utils.parametrize("BLOCK_SIZE", test_block_size)
     def test_builtin_score_mods_different_block_size(
@@ -1371,7 +1504,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("batch_dims", test_Bq_Bkv)
     @common_utils.parametrize("head_dims", test_Hq_Hkv)
     @common_utils.parametrize("score_mod", test_score_mods)
@@ -1442,7 +1578,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("batch_dims", test_Bq_Bkv)
     @common_utils.parametrize("head_dims", test_Hq_Hkv)
     @common_utils.parametrize("score_mod", test_score_mods)
@@ -1465,7 +1604,11 @@ class TestFlexAttention(InductorTestCase):
 
         block_mask = create_block_mask(mask_mod, Bq, 1, S, S, device=device)
         attention = functools.partial(
+<<<<<<< HEAD
             flex_attention, block_mask=block_mask, enable_gqa=(Hq != Hkv)
+=======
+            flex_attention, block_mask=block_mask, enable_gqa=(not Hq == Hkv)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.run_test_with_call(attention, dtype, device, Bq, Hq, S, D, Bkv, Hkv, S, D)
@@ -1473,10 +1616,15 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
     @common_utils.parametrize("score_mod", test_score_mods)
     @skip_on_rocm  # TODO: NaNs on ROCM
     @skip_on_xpu  # TODO: NaNs on XPU like ROCM, need another PR to fix.
+=======
+    @common_utils.parametrize("score_mod", test_score_mods)
+    @skip_on_rocm  # TODO: NaNs on ROCM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_GQA(self, device, dtype: torch.dtype, score_mod: Callable):
         inputs = (
             score_mod,
@@ -1497,7 +1645,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize(
         "q_s", test_strides[:2]
     )  # TODO: fix layout for query braodcasting
@@ -1540,6 +1691,7 @@ class TestFlexAttention(InductorTestCase):
         v = coerce_to_strides(v1, v_shape, v_s)
         do = coerce_to_strides(do1, do_shape, do_s)
 
+<<<<<<< HEAD
         kernel_options = {"USE_TMA": True}
 
         block_mask = _create_empty_block_mask(q, k)
@@ -1547,6 +1699,11 @@ class TestFlexAttention(InductorTestCase):
         sdpa_partial = create_attention(
             score_mod=score_mod, block_mask=block_mask, kernel_options=kernel_options
         )
+=======
+        block_mask = _create_empty_block_mask(q, k)
+        score_mod = _generate_alibi_bias(8)
+        sdpa_partial = create_attention(score_mod=score_mod, block_mask=block_mask)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled_sdpa = torch.compile(sdpa_partial, fullgraph=True)
         ref_out = sdpa_partial(q, k, v)
         compiled_out = compiled_sdpa(q, k, v)
@@ -1589,7 +1746,11 @@ class TestFlexAttention(InductorTestCase):
         # test paged attention which does not support backward
         q.requires_grad, k.requires_grad, v.requires_grad = False, False, False
         paged_compiled_out, _ = self.run_paged_attention(
+<<<<<<< HEAD
             score_mod, q, k, v, dtype, device=device, kernel_options=kernel_options
+=======
+            score_mod, q, k, v, dtype, device=device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         torch.testing.assert_close(
             ref_out, paged_compiled_out, atol=tolerance.atol, rtol=tolerance.rtol
@@ -1645,7 +1806,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_skip_odd_keys(self, device, dtype: torch.dtype):
         def score_mod(score, b, h, q, kv):
             return torch.where(kv % 2 == 0, score, float("-inf"))
@@ -1656,7 +1820,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_function_composition(self, device, dtype: torch.dtype):
         def score_mod_1(score, b, h, m, n):
             return score + (m - n)
@@ -1673,7 +1840,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_captured_buffers_all_dims(self, device, dtype: torch.dtype):
         head_scale = torch.randn(H, device=device)
         batch_scale = torch.randn(B, device=device)
@@ -1691,7 +1861,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_seq_masking(self, device, dtype):
         seq_idx = torch.zeros(S, device=device, dtype=torch.bool)
         seq_idx[S // 2 :] = 1
@@ -1705,7 +1878,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_from_bias_seq_only(self, device, dtype):
         bias = torch.randn(S, S, device=device, dtype=dtype)
 
@@ -1718,7 +1894,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_from_bias_seq_batch(self, device, dtype):
         bias = torch.randn(B, S, S, device=device, dtype=dtype)
 
@@ -1778,7 +1957,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_from_bias_head_seq_batch(self, device, dtype):
         bias = torch.randn(B, H, S, S, device=device, dtype=dtype)
 
@@ -1791,7 +1973,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_load_rel_bias(self, device, dtype):
         rel_bias = torch.randn(2 * S, device=device, dtype=dtype)
 
@@ -1804,7 +1989,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dependent_causal_bidirectional(self, device, dtype):
         num_bidirectional = torch.randint(0, S, (B,), device=device, dtype=torch.int32)
 
@@ -1826,7 +2014,10 @@ class TestFlexAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_natten_2d(self, device, dtype):
         H = 32
         W = S // H
@@ -1865,7 +2056,11 @@ class TestFlexAttention(InductorTestCase):
             requires_grad=True,
         )
         query, key, value = make_tensor(), make_tensor(), make_tensor()
+<<<<<<< HEAD
         # floor_div is not decomposed in decomposition_table is empty
+=======
+        # floor_div is not decomposed in decompostion_table is empty
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         attention = functools.partial(flex_attention, score_mod=score_mod_func)
         gm = make_fx(attention, decomposition_table={})(query, key, value)
         self.assertExpectedInline(
@@ -1895,7 +2090,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_silu_on_score(self, device, dtype):
         def silu_score(score, b, h, q, kv):
             return torch.nn.functional.silu(score)
@@ -1906,7 +2104,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_padded_dense_causal(self, device, dtype):
         seq_len = torch.arange(B, device=device, dtype=torch.int32) + 1
 
@@ -1925,7 +2126,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_captured_scale(self, device, dtype):
         scale = torch.ones((), device=device, dtype=torch.int32)
 
@@ -1938,7 +2142,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_recompile_changed_score_mod(self, device, dtype):
         scale = torch.ones((), device=device, dtype=torch.int32)
         ADD = True
@@ -1960,7 +2167,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @expectedFailure  # If we capture a tensor then we can perform a reduction on it, and that shouldn't be allowed
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_captured_reduction(self, device, dtype):
         scale = torch.randn((B, 8), device=device)
 
@@ -1970,6 +2180,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         self.run_test(score_mod_scale, dtype, device=device)
 
     @supported_platform
+<<<<<<< HEAD
     @skip_on_cpu
     @dtypes(torch.float16)
     @dtypesIfCUDA(torch.float16)
@@ -2278,6 +2489,8 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         _ = [test_shape(S, backend) for S in test_shapes]
 
     @supported_platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multiple_score_mod_calls(self, device):
         query = torch.randn((1, 8, 1024, 64), dtype=torch.float32, device=device)
         keys = [
@@ -2684,7 +2897,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_njt_causal(self, device, dtype):
         offsets = torch.tensor(
             [0, 1024, 1024 + 512, S], device=device, dtype=torch.int32
@@ -2726,12 +2942,15 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         self.run_test_with_paged_attention(
             score_mod, dtype=torch.float16, device=device
         )
+<<<<<<< HEAD
         self.run_test_with_paged_attention(
             score_mod=score_mod,
             dtype=torch.bfloat16,
             KV_S=64,
             device=device,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @supported_platform
     @skip("TODO: Figure out why this is erroring")
@@ -2753,7 +2972,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @common_utils.parametrize("score_mod", test_score_mods)
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("head_dims", [(D, D // 2), (D // 2, D)])
     def test_non_equal_head_dims(self, device, dtype, score_mod, head_dims):
         qk_d, v_d = head_dims
@@ -2847,7 +3069,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @common_utils.parametrize("head_dim", [17, 24, 94, 121])
     @dtypes(*device_configs["cpu"].dtypes_fast)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes_fast)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes_fast)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_non_pow_2_headdim(self, device, dtype, head_dim):
         self.run_test(_rel_bias, dtype, device, B, H, S, head_dim, B, H, S, head_dim)
 
@@ -2912,7 +3137,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     @skip_on_cpu
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", [_identity, _causal])
     def test_logsumexp_correctness(self, device, dtype, score_mod):
         make_tensor = functools.partial(
@@ -3048,7 +3276,13 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         def flex_attention_lse_only(q, k, v):
             return flex_attention(q, k, v, return_lse=True)[1]
 
+<<<<<<< HEAD
         func = torch.compile(flex_attention_lse_only, backend="aot_eager")
+=======
+        func = torch.compile(
+            flex_attention_lse_only, backend="aot_eager", fullgraph=True
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertTrue(
             torch.autograd.gradcheck(func, (query, key, value), raise_exception=True)
@@ -3074,7 +3308,13 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         k.grad = None
         v.grad = None
 
+<<<<<<< HEAD
         out2, lse2 = torch.compile(flex_attention)(q, k, v, return_lse=True)
+=======
+        out2, lse2 = torch.compile(flex_attention, fullgraph=True)(
+            q, k, v, return_lse=True
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (out2.mean() + (lse2 * lse_mask).sum()).backward()
         q_grad2, k_grad2, v_grad2 = q.grad, k.grad, v.grad
         tolerance = Tolerances(atol=1e-1, rtol=1e-1)
@@ -3121,7 +3361,11 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         )
         q, k, v = make_tensor2(), make_tensor2(), make_tensor2()
 
+<<<<<<< HEAD
         # Compile 2nd version with q/k/v(seqlen=2048) and block_mask(seqlen=4096),
+=======
+        # Compile 2st version with q/k/v(seqlen=2048) and block_mask(seqlen=4096),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The graph includes the BlockMask._adjust part.
         out = torch.compile(flex_attention, dynamic=True, fullgraph=True)(
             q, k, v, block_mask=block_mask
@@ -3260,7 +3504,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
             torch.testing.assert_close(eager, compiled, atol=9e-3, rtol=0)
 
     @supported_platform
+<<<<<<< HEAD
     @skip_on_cpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("mode", ["eager", "inductor", "paged_attention"])
     @common_utils.parametrize(
         "permute_order",
@@ -3276,11 +3523,14 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     def test_flex_attention_stride_ordering(self, device, mode, permute_order, shape):
         from torch._inductor.ir import get_stride_order
 
+<<<<<<< HEAD
         if torch.version.hip and mode == "paged_attention":
             raise self.skipTest(
                 "TODO: figure out why mode_paged_attention_permute_order3_shape0 on MI200 caused mem fault"
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype = torch.float32
         # Setup
         requires_grad = device in DEVICE_SUPPORTS_BACKWARDS
@@ -3371,7 +3621,11 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
     def test_non_contiguous_last_dim(self, device):
         """Test flex_attention with tensors having non contiguous last dimension."""
         B, H, D = 4, 8, 64
+<<<<<<< HEAD
         dtype = torch.float16 if device in DEVICE_SUPPORTS_BACKWARDS else torch.float32
+=======
+        dtype = torch.float16 if device == "cuda" else torch.float32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for S in [16, 64]:
 
             def column_major_tensor():
@@ -3593,7 +3847,11 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         query, key, value = make_tensor(), make_tensor(), make_tensor()
         out_eager, lse_eager = flex_attention(query, key, value, return_lse=True)
 
+<<<<<<< HEAD
         flex_compile = torch.compile(flex_attention)
+=======
+        flex_compile = torch.compile(flex_attention, fullgraph=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out_compiled, lse_compiled = flex_compile(query, key, value, return_lse=True)
 
         out_paged, lse_paged = self.run_paged_attention(
@@ -3601,9 +3859,13 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         )
 
         torch.testing.assert_close(lse_eager, lse_compiled, atol=3e-3, rtol=0)
+<<<<<<< HEAD
         requires_grad = device in DEVICE_SUPPORTS_BACKWARDS
         if requires_grad:
             torch.testing.assert_close(lse_eager, lse_paged, atol=3e-3, rtol=0)
+=======
+        torch.testing.assert_close(lse_eager, lse_paged, atol=3e-3, rtol=0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @supported_platform
     @skip_on_cpu
@@ -4008,7 +4270,10 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
 
     @supported_platform
     @skip_on_cpu
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "different dynamo counters")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_free_symbol_dynamic(self, device):
         def batch_flip_causal(b, h, q_idx, kv_idx):
             return (q_idx >= kv_idx) & (b % 2 == 0)
@@ -4128,9 +4393,13 @@ def forward(self, child : torch.Tensor, child_1 : torch.Tensor, child_2 : torch.
         self.assertEqual(len(cnt.graphs), 1)
         graph = cnt.graphs[0]
         norm_graph = normalize_gm(graph.print_readable(print_output=False))
+<<<<<<< HEAD
         self.assertExpectedInline(
             norm_graph,
             """\
+=======
+        expected_graph = """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GraphModule(torch.nn.Module):
     def forward(self, L_query_: "f64[2, 2, 128, 4]", L_key_: "f64[2, 2, 128, 4]", L_value_: "f64[2, 2, 128, 4]", L_block_mask_kv_indices: "i32[1, 1, 1, 1]", L_block_mask_kv_num_blocks: "i32[1, 1, 1]", L_block_mask_full_kv_num_blocks: "i32[1, 1, 1]", L_block_mask_full_kv_indices: "i32[1, 1, 1, 1]", L_block_mask_q_num_blocks: "i32[1, 1, 1]", L_block_mask_q_indices: "i32[1, 1, 1, 1]", L_block_mask_full_q_num_blocks: "i32[1, 1, 1]", L_block_mask_full_q_indices: "i32[1, 1, 1, 1]"):
         l_query_ = L_query_
@@ -4147,7 +4416,11 @@ class GraphModule(torch.nn.Module):
 
         score_mod_0 = self.score_mod_0
         mask_fn_0 = self.mask_fn_0
+<<<<<<< HEAD
         flex_attention = torch.ops.higher_order.flex_attention(l_query_, l_key_, l_value_, score_mod_0, (128, 128, l_block_mask_kv_num_blocks, l_block_mask_kv_indices, l_block_mask_full_kv_num_blocks, l_block_mask_full_kv_indices, l_block_mask_q_num_blocks, l_block_mask_q_indices, l_block_mask_full_q_num_blocks, l_block_mask_full_q_indices, 128, 128, mask_fn_0), 0.5, {'PRESCALE_QK': False, 'ROWS_GUARANTEED_SAFE': False, 'BLOCKS_ARE_CONTIGUOUS': False, 'WRITE_DQ': True, 'OUTPUT_LOGSUMEXP': True, 'OUTPUT_MAX': False}, (), ());  l_query_ = l_key_ = l_value_ = score_mod_0 = l_block_mask_kv_num_blocks = l_block_mask_kv_indices = l_block_mask_full_kv_num_blocks = l_block_mask_full_kv_indices = l_block_mask_q_num_blocks = l_block_mask_q_indices = l_block_mask_full_q_num_blocks = l_block_mask_full_q_indices = mask_fn_0 = None
+=======
+        flex_attention = torch.ops.higher_order.flex_attention(l_query_, l_key_, l_value_, score_mod_0, (128, 128, l_block_mask_kv_num_blocks, l_block_mask_kv_indices, l_block_mask_full_kv_num_blocks, l_block_mask_full_kv_indices, l_block_mask_q_num_blocks, l_block_mask_q_indices, l_block_mask_full_q_num_blocks, l_block_mask_full_q_indices, 128, 128, mask_fn_0), 0.5, {'PRESCALE_QK': False, 'ROWS_GUARANTEED_SAFE': False, 'BLOCKS_ARE_CONTIGUOUS': False, 'WRITE_DQ': True, 'OUTPUT_LOGSUMEXP': True}, (), ());  l_query_ = l_key_ = l_value_ = score_mod_0 = l_block_mask_kv_num_blocks = l_block_mask_kv_indices = l_block_mask_full_kv_num_blocks = l_block_mask_full_kv_indices = l_block_mask_q_num_blocks = l_block_mask_q_indices = l_block_mask_full_q_num_blocks = l_block_mask_full_q_indices = mask_fn_0 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out: "f64[2, 2, 128, 4]" = flex_attention[0];  flex_attention = None
         return (out,)
 
@@ -4160,7 +4433,14 @@ class GraphModule(torch.nn.Module):
         def forward(self, child: "i32[]", child_1: "i32[]", child_2: "i32[]", child_3: "i32[]"):
             ge: "b8[]" = child_2 >= child_3;  child_2 = child_3 = None
             return ge
+<<<<<<< HEAD
 """,  # noqa: B950
+=======
+"""
+        self.assertExpectedInline(
+            norm_graph,
+            expected_graph,  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # Save the AOT graphs
         aot_graphs = []
@@ -4178,20 +4458,32 @@ class GraphModule(torch.nn.Module):
         out.sum().backward()
 
         joint_graph = normalize_gm(aot_graphs[1].print_readable(print_output=False))
+<<<<<<< HEAD
         self.assertExpectedInline(
             joint_graph,
             """\
+=======
+        expected_joint_graph = """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GraphModule(torch.nn.Module):
     def forward(self, primals_1: "f64[2, 2, 128, 4]", primals_2: "f64[2, 2, 128, 4]", primals_3: "f64[2, 2, 128, 4]", full: "i32[1, 1, 1]", full_default: "i32[1, 1, 1, 1]", convert_element_type: "i32[1, 1, 1]", convert_element_type_1: "i32[1, 1, 1, 1]", getitem_2: "f64[2, 2, 128, 4]", getitem_3: "f32[2, 2, 128]", tangents_1: "f64[2, 2, 128, 4]"):
         full_default_4: "f32[2, 2, 128]" = torch.ops.aten.full.default([2, 2, 128], 0, dtype = torch.float32, layout = torch.strided, device = device(type='GPU_TYPE', index=0), pin_memory = False)
         fw_graph0 = self.fw_graph0
         joint_graph0 = self.joint_graph0
         mask_graph0 = self.mask_graph0
+<<<<<<< HEAD
         flex_attention_backward = torch.ops.higher_order.flex_attention_backward(primals_1, primals_2, primals_3, getitem_2, getitem_3, tangents_1, full_default_4, fw_graph0, joint_graph0, (1, 1, full, full_default, None, None, convert_element_type, convert_element_type_1, None, None, 1073741824, 1073741824, mask_graph0), 0.5, {'PRESCALE_QK': False, 'ROWS_GUARANTEED_SAFE': False, 'BLOCKS_ARE_CONTIGUOUS': False, 'WRITE_DQ': True, 'OUTPUT_LOGSUMEXP': True, 'OUTPUT_MAX': False}, (), ());  primals_1 = primals_2 = primals_3 = getitem_2 = getitem_3 = tangents_1 = full_default_4 = fw_graph0 = joint_graph0 = full = full_default = convert_element_type = convert_element_type_1 = mask_graph0 = None
         getitem_5: "f64[2, 2, 128, 4]" = flex_attention_backward[0]
         getitem_6: "f64[2, 2, 128, 4]" = flex_attention_backward[1]
         getitem_7: "f64[2, 2, 128, 4]" = flex_attention_backward[2];  flex_attention_backward = None
         return (getitem_5, getitem_6, getitem_7)
+=======
+        flex_attention_backward = torch.ops.higher_order.flex_attention_backward(primals_1, primals_2, primals_3, getitem_2, getitem_3, tangents_1, full_default_4, fw_graph0, joint_graph0, (1, 1, full, full_default, None, None, convert_element_type, convert_element_type_1, None, None, 1073741824, 1073741824, mask_graph0), 0.5, {'PRESCALE_QK': False, 'ROWS_GUARANTEED_SAFE': False, 'BLOCKS_ARE_CONTIGUOUS': False, 'WRITE_DQ': True, 'OUTPUT_LOGSUMEXP': True}, (), ());  primals_1 = primals_2 = primals_3 = getitem_2 = getitem_3 = tangents_1 = full_default_4 = fw_graph0 = joint_graph0 = full = full_default = convert_element_type = convert_element_type_1 = mask_graph0 = None
+        getitem_4: "f64[2, 2, 128, 4]" = flex_attention_backward[0]
+        getitem_5: "f64[2, 2, 128, 4]" = flex_attention_backward[1]
+        getitem_6: "f64[2, 2, 128, 4]" = flex_attention_backward[2];  flex_attention_backward = None
+        return (getitem_4, getitem_5, getitem_6)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class fw_graph0(torch.nn.Module):
         def forward(self, arg0_1: "f64[]", arg1_1: "i32[]", arg2_1: "i32[]", arg3_1: "i32[]", arg4_1: "i32[]"):
@@ -4207,11 +4499,23 @@ class GraphModule(torch.nn.Module):
 
     class mask_graph0(torch.nn.Module):
         def forward(self, arg0_1: "i32[]", arg1_1: "i32[]", arg2_1: "i32[]", arg3_1: "i32[]"):
+<<<<<<< HEAD
             full_default: "b8[]" = torch.ops.aten.full.default([], True, dtype = torch.bool, layout = torch.strided, device = device(type='GPU_TYPE', index=0), pin_memory = False)
             return full_default
 """.replace(  # noqa: B950
                 "GPU_TYPE", torch.device(device).type
             ),
+=======
+            full_default: "b8[]" = torch.ops.aten.full.default([], True, dtype = torch.bool, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False)
+            return full_default
+""".replace(  # noqa: B950
+            "GPU_TYPE", torch.device(device).type
+        )
+
+        self.assertExpectedInline(
+            joint_graph,
+            expected_joint_graph,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @supported_platform
@@ -4297,7 +4601,11 @@ class GraphModule(torch.nn.Module):
             mask_mod_other_buffers=(),
         ):
             inner_q, inner_k, inner_v = query.elem, key.elem, value.elem
+<<<<<<< HEAD
             out, lse, max_scores = flex_attention_hop(
+=======
+            out, lse = flex_attention_hop(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inner_q,
                 inner_k,
                 inner_v,
@@ -4308,11 +4616,15 @@ class GraphModule(torch.nn.Module):
                 score_mod_other_buffers,
                 mask_mod_other_buffers,
             )
+<<<<<<< HEAD
             return (
                 AsStridedErrorTensor(out),
                 AsStridedErrorTensor(lse),
                 AsStridedErrorTensor(max_scores),
             )
+=======
+            return AsStridedErrorTensor(out), AsStridedErrorTensor(lse)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Test setup
         B, H, S, D = 2, 1, 128, 16
@@ -4333,7 +4645,11 @@ class GraphModule(torch.nn.Module):
             )
 
         # Test 2: Run flex_attention with normal tensors first
+<<<<<<< HEAD
         compiled_fn = torch.compile(flex_attention, backend="aot_eager")
+=======
+        compiled_fn = torch.compile(flex_attention, backend="aot_eager", fullgraph=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         normal_out, normal_lse = compiled_fn(
             query_elem, key_elem, value_elem, return_lse=True
         )
@@ -4398,6 +4714,7 @@ class GraphModule(torch.nn.Module):
 
     @supported_platform
     @skip_on_cpu
+<<<<<<< HEAD
     def test_custom_score_mod_layout_freeze(self, device):
         torch.manual_seed(0)
 
@@ -4481,6 +4798,8 @@ class GraphModule(torch.nn.Module):
 
     @supported_platform
     @skip_on_cpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize(
         "ops_to_save",
         [
@@ -4578,9 +4897,15 @@ class GraphModule(torch.nn.Module):
                 return output
 
         flex_module = SacModule(hidden_size=512, num_heads=8, context_fn=context_fn).to(
+<<<<<<< HEAD
             device, dtype=torch.bfloat16
         )
         x = torch.ones(8, 1024, 512, device=device, dtype=torch.bfloat16)
+=======
+            "cuda", dtype=torch.bfloat16
+        )
+        x = torch.ones(8, 1024, 512, device="cuda", dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Run without compilation
         output_module = flex_module(x)
@@ -4607,6 +4932,7 @@ class GraphModule(torch.nn.Module):
 
     @supported_platform
     @skip_on_cpu
+<<<<<<< HEAD
     def test_selective_ac_with_max_autotune_short_query(self, device):
         from functools import partial
 
@@ -4712,6 +5038,8 @@ class GraphModule(torch.nn.Module):
 
     @supported_platform
     @skip_on_cpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_validate_small_embedding_size_error_message(self, device):
         # eager support for small embedding size
         q, k, v = [torch.randn(2, 2, 128, 8, device=device) for _ in range(3)]
@@ -4781,11 +5109,19 @@ class GraphModule(torch.nn.Module):
     @supported_platform
     @skip_on_cpu
     @skipCUDAIf(not has_triton_tma_device(), "Requires TMA enabled CUDA device")
+<<<<<<< HEAD
     def test_tma_with_customer_kernel_options(self, device):
         make_tensor = functools.partial(
             torch.ones,
             (1, 1, 256, 128),
             device=device,
+=======
+    def test_tma_with_customer_kernel_options(self):
+        make_tensor = functools.partial(
+            torch.ones,
+            (1, 1, 256, 128),
+            device="cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dtype=torch.bfloat16,
         )
         query, key, value = make_tensor(), make_tensor(), make_tensor()
@@ -4806,6 +5142,7 @@ class GraphModule(torch.nn.Module):
         # vanilla compiled vs TMA compiled
         torch.testing.assert_close(out_tma_compiled, out_compiled, atol=2e-1, rtol=2e-1)
 
+<<<<<<< HEAD
     @supported_platform
     @skip_on_cpu
     def test_large_batch_heads_grid_dimension(self, device):
@@ -4882,6 +5219,8 @@ class GraphModule(torch.nn.Module):
             fa._FLEX_ATTENTION_DISABLE_COMPILE_DEBUG = original_flag
             fa._WARNINGS_SHOWN = original_warnings_shown
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestBlockMask(InductorTestCase):
     def setUp(self):
@@ -4896,8 +5235,13 @@ class TestBlockMask(InductorTestCase):
 
         block_mask = create_block_mask(causal_mask, 4, 2, 2048, 2048, device=device)
         self.assertEqual(block_mask.shape, (4, 2, 2048, 2048))
+<<<<<<< HEAD
         self.assertEqual(block_mask[0].shape, (1, 2, 2048, 2048))
         self.assertEqual(block_mask[0, 0].shape, (1, 1, 2048, 2048))
+=======
+        self.assertEqual(block_mask[0].shape, (2, 2048, 2048))
+        self.assertEqual(block_mask[0, 0].shape, (2048, 2048))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(block_mask.numel(), 4 * 2 * 2048 * 2048)
         self.assertEqual(block_mask.sparsity(), 46.875)
         self.assertEqual(block_mask[0].sparsity(), 46.875)
@@ -4941,6 +5285,7 @@ class TestBlockMask(InductorTestCase):
 
         # Index on batch dimension
         new_block_mask = block_mask[0]
+<<<<<<< HEAD
         assert new_block_mask.kv_num_blocks.shape == (1, 2, 4)
         assert new_block_mask.kv_indices.shape == (1, 2, 4, 4)
 
@@ -4961,6 +5306,15 @@ class TestBlockMask(InductorTestCase):
             4,
         )
         assert new_block_mask.kv_indices.shape == (1, 1, 4, 4)
+=======
+        assert new_block_mask.kv_num_blocks.shape == (2, 4)
+        assert new_block_mask.kv_indices.shape == (2, 4, 4)
+
+        # Index on batch and head dimension
+        new_block_mask = block_mask[0, 1]
+        assert new_block_mask.kv_num_blocks.shape == (4,)
+        assert new_block_mask.kv_indices.shape == (4, 4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # slicing on batch and head dimension
         new_block_mask = block_mask[0:2, 1:2]
@@ -4999,6 +5353,7 @@ class TestBlockMask(InductorTestCase):
             )
 
     @supported_platform
+<<<<<<< HEAD
     def test_sliced_blockmask_mask_mod_error(self, device):
         """Test that sliced BlockMask raises helpful error when used with flex_attention"""
 
@@ -5021,6 +5376,8 @@ class TestBlockMask(InductorTestCase):
             compiled_fa(q, k, v, block_mask=sliced_mask)
 
     @supported_platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_block_mask_device_change(self, device):
         device = torch.device(device)
         offset = torch.zeros(8, device=device)
@@ -5291,6 +5648,47 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
             )
 
     @supported_platform
+<<<<<<< HEAD
+=======
+    @common_utils.parametrize("compile", [False, True])
+    def test_no_q_info(self, device, compile: bool):
+        def causal_mask(b, h, q_idx, kv_idx):
+            return q_idx >= kv_idx
+
+        block_mask = create_block_mask(causal_mask, 1, 1, 2048, 2048, device=device)
+        # manually set q_num_blocks and q_indices to None
+        block_mask.q_num_blocks = None
+        block_mask.q_indices = None
+        block_mask.full_q_num_blocks = None
+        block_mask.full_q_indices = None
+
+        mask_mod_sparse_flex = functools.partial(flex_attention, block_mask=block_mask)
+        if compile:
+            mask_mod_sparse_flex = torch.compile(
+                mask_mod_sparse_flex, backend="inductor"
+            )
+        inputs = [
+            torch.randn(
+                2,
+                2,
+                2048,
+                64,
+                device=device,
+                dtype=torch.float16,
+                requires_grad=True,
+            )
+            for _ in range(3)
+        ]
+
+        causal_mask_out = mask_mod_sparse_flex(*inputs)
+        sdpa_mask_out = torch.nn.functional.scaled_dot_product_attention(
+            *inputs, is_causal=True
+        )
+
+        torch.testing.assert_close(causal_mask_out, sdpa_mask_out, atol=5e-3, rtol=0.0)
+
+    @supported_platform
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_doc_mask_clamped_repro(self, device):
         def _offsets_to_doc_ids_tensor(offsets):
             device = offsets.device
@@ -5404,7 +5802,10 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
         )
 
     @supported_platform
+<<<<<<< HEAD
     @skip_on_xpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_create_is_cuda_graphable(self, device):
         def mask_mod(b, h, q, kv):
             return q >= kv
@@ -5445,6 +5846,7 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
         with self.assertRaisesRegex(ValueError, "block_mask was created for"):
             flex_attention_call(*create_inputs(1024), block_mask=block_mask)
 
+<<<<<<< HEAD
     @supported_platform
     @common_utils.parametrize("full_indices", [False, True])
     def test_from_kv_blocks_without_q_computation(self, device, full_indices: bool):
@@ -5874,6 +6276,10 @@ BlockMask(shape=(1,s1,s2048,s2048),ssparsity=46.88%,s
 
 
 @large_tensor_test_class("2GB", device=test_device[0])
+=======
+
+@large_tensor_test_class("2GB", device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestPagedAttention(InductorTestCase):
     def setUp(self):
         super().setUp()
@@ -5995,12 +6401,16 @@ class TestPagedAttention(InductorTestCase):
         block_mask = create_block_mask(
             causal_mask, max_batch_size, 1, max_seq_len, max_seq_len, device=device
         )
+<<<<<<< HEAD
         kv_len_tensor = torch.full(
             (max_batch_size,), max_seq_len, device=device, dtype=torch.int64
         )
         new_block_mask = paged_cache.convert_logical_block_mask(
             block_mask, kv_len=kv_len_tensor
         )
+=======
+        new_block_mask = paged_cache.convert_logical_block_mask(block_mask)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         zeros = [0, 0, 0, 0]
         # Check that the new block mask is correct
@@ -6193,7 +6603,10 @@ class TestPagedAttention(InductorTestCase):
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
     @dtypesIfCUDA(*device_configs["cuda"].dtypes)
+<<<<<<< HEAD
     @dtypesIfXPU(*device_configs["xpu"].dtypes)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("score_mod", test_score_mods)
     def test_paged_builtin_score_mods(
         self, device, dtype: torch.dtype, score_mod: Callable
@@ -6276,6 +6689,7 @@ class TestPagedAttention(InductorTestCase):
         )
         paged_cache.assign(batch_idx, input_pos, k, v, k_cache, v_cache)
 
+<<<<<<< HEAD
         kv_len_tensor = torch.full(
             (max_batch_size,), max_seq_len, device=device, dtype=torch.int64
         )
@@ -6288,6 +6702,13 @@ class TestPagedAttention(InductorTestCase):
                 paged_cache.get_score_mod(score_mod, kv_len=kv_len_tensor),
                 block_mask,
                 enable_gqa=False,
+=======
+        new_block_mask = paged_cache.convert_logical_block_mask(block_mask)
+
+        compiled_sdpa = torch.compile(
+            create_attention(
+                paged_cache.get_score_mod(score_mod), block_mask, enable_gqa=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
         paged_out = compiled_sdpa(q, k_cache, v_cache, block_mask=new_block_mask)
@@ -6329,16 +6750,25 @@ def get_params(dtypes: list[torch.dtype]) -> list[Params]:
 
 
 supports_learnable_bias = unittest.skipUnless(
+<<<<<<< HEAD
     (
         (torch.cuda.is_available() and has_triton())
         and (torch.cuda.get_device_capability() >= (8, 0) or torch.version.hip)
     ),
+=======
+    (torch.cuda.is_available() and has_triton())
+    and (torch.cuda.get_device_capability() >= (8, 0) or torch.version.hip),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Requires Triton + A100 or Triton + ROCm",
 )
 
 
 @supports_learnable_bias
+<<<<<<< HEAD
 @large_tensor_test_class("2GB", device=test_device[0])
+=======
+@large_tensor_test_class("2GB", device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestLearnableBiases(InductorTestCase):
     def setUp(self):
         super().setUp()
@@ -6391,7 +6821,11 @@ class TestLearnableBiases(InductorTestCase):
     def _check_outputs_and_grads(
         self, out_eager, out_compiled, out_gold, tensors, names=None
     ):
+<<<<<<< HEAD
         backwards_grad = torch.randn_like(out_eager, device="cpu").to(out_eager.device)
+=======
+        backwards_grad = torch.randn_like(out_eager)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grads_eager = torch.autograd.grad((out_eager,), tensors, backwards_grad)
         grads_compiled = torch.autograd.grad((out_compiled,), tensors, backwards_grad)
         grads_gold = torch.autograd.grad((out_gold,), tensors, backwards_grad)
@@ -6593,7 +7027,11 @@ class TestLearnableBiases(InductorTestCase):
         bias = torch.randn(
             2 * window_size + 1,
             device=device,
+<<<<<<< HEAD
             dtype=torch.float32,
+=======
+            dtype=params.dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=True,
         )
 
@@ -6627,7 +7065,11 @@ class TestLearnableBiases(InductorTestCase):
         bias = torch.randn(
             params.seq_length,
             device=device,
+<<<<<<< HEAD
             dtype=torch.float32,
+=======
+            dtype=params.dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=True,
         )
 
@@ -6756,7 +7198,11 @@ class TestLearnableBiases(InductorTestCase):
         )
         # Error in backwards
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             torch._inductor.exc.InductorError,
+=======
+            torch._inductor.exc.LoweringException,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "Using multiple indexing operations on the same tensor that requires gradients",
         ):
             self._check_outputs_and_grads(
@@ -6810,12 +7256,20 @@ class TestLearnableBiases(InductorTestCase):
         gate_score = torch.randn(
             params.num_heads,
             device=device,
+<<<<<<< HEAD
             dtype=torch.float32,
+=======
+            dtype=params.dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=True,
         )
 
         def bias_func(score, b, h, q_idx, kv_idx):
+<<<<<<< HEAD
             return score * torch.sigmoid(gate_score[h])
+=======
+            return score * torch.sigmoid(gate_score[h].to(torch.float32))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         flex_compiled = torch.compile(flex_attention, mode=mode)
         out_eager = flex_attention(query, key, value, score_mod=bias_func)
@@ -6850,7 +7304,11 @@ class TestLearnableBiases(InductorTestCase):
         bias2 = torch.randn(
             params.seq_length,
             device=device,
+<<<<<<< HEAD
             dtype=torch.float32,
+=======
+            dtype=params.dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requires_grad=True,
         )
 
@@ -6887,6 +7345,7 @@ class TestLearnableBiases(InductorTestCase):
     @common_utils.parametrize(
         "params", get_params(device_configs["cuda"].dtypes), name_fn=lambda x: f"{x}"
     )
+<<<<<<< HEAD
     @torch.compile
     def test_learnable_bias_global_compiled(self, device, params):
         batch_size = 1
@@ -6966,6 +7425,8 @@ class TestLearnableBiases(InductorTestCase):
     @common_utils.parametrize(
         "params", get_params(device_configs["cuda"].dtypes), name_fn=lambda x: f"{x}"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_relative_1d_bias_only_grad(self, device, params):
         query, key, value = self._init_tensors(params, device=device)
         query = query.detach().requires_grad_(False)
@@ -7049,6 +7510,7 @@ class TestLearnableBiases(InductorTestCase):
         self._test_flex_attention_with_dynamic_max_autotune(device)
 
     @skip_on_cpu
+<<<<<<< HEAD
     def test_flex_attention_logging(self, device):
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "flex_attention_configs")
@@ -7163,6 +7625,8 @@ class TestLearnableBiases(InductorTestCase):
                             self.assertLessEqual(choices[0]["time"], choice["time"])
 
     @skip_on_cpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_inspect_bug(self, device):
         # https://github.com/pytorch/pytorch/issues/139374
         def sliding_window(b, h, q_idx, kv_idx, val):
@@ -7422,6 +7886,7 @@ class TestLearnableBiases(InductorTestCase):
             )
 
 
+<<<<<<< HEAD
 instantiate_device_type_tests(
     TestFlexAttention, globals(), only_for=test_device, allow_xpu=True
 )
@@ -7438,6 +7903,12 @@ instantiate_device_type_tests(
     TestLearnableBiases, globals(), only_for=test_device, allow_xpu=True
 )
 
+=======
+instantiate_device_type_tests(TestFlexAttention, globals(), only_for=test_device)
+instantiate_device_type_tests(TestPagedAttention, globals(), only_for=test_device)
+instantiate_device_type_tests(TestBlockMask, globals(), only_for=("cuda",))
+instantiate_device_type_tests(TestLearnableBiases, globals(), only_for=test_device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

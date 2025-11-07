@@ -82,11 +82,19 @@ void lu_factor_looped_cusolver(const Tensor& self, const Tensor& pivots, const T
 #if defined(BUILD_LAZY_CUDA_LINALG)
 namespace cuda { namespace detail {
 // This is only used for an old-style dispatches
+<<<<<<< HEAD
 // Please do not add any new entries to it
 struct LinalgDispatch {
    Tensor (*cholesky_solve_helper)(const Tensor& self, const Tensor& A, bool upper);
 };
 C10_EXPORT void registerLinalgDispatch(const LinalgDispatch& /*disp_*/);
+=======
+// Please do not add any new entires to it
+struct LinalgDispatch {
+   Tensor (*cholesky_solve_helper)(const Tensor& self, const Tensor& A, bool upper);
+};
+C10_EXPORT void registerLinalgDispatch(const LinalgDispatch&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }} // namespace cuda::detail
 #endif
 

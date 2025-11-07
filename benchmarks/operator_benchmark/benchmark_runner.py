@@ -63,6 +63,7 @@ def parse_args():
     )
 
     parser.add_argument(
+<<<<<<< HEAD
         "--benchmark-name",
         "--benchmark_name",
         help="Name of the benchmark to store results to",
@@ -70,6 +71,8 @@ def parse_args():
     )
 
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--list-tests",
         "--list_tests",
         help="List all test cases without running them",
@@ -143,6 +146,7 @@ def parse_args():
     )
 
     parser.add_argument(
+<<<<<<< HEAD
         "--use-compile",
         "--use_compile",
         type=benchmark_utils.str2bool,
@@ -153,6 +157,8 @@ def parse_args():
     )
 
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--forward-only",
         "--forward_only",
         type=benchmark_utils.str2bool,
@@ -179,7 +185,11 @@ def parse_args():
         "--output-json-for-dashboard",
         "--output_json_for_dashboard",
         help="Save results in JSON format for display on the OSS dashboard",
+<<<<<<< HEAD
         default="benchmark-results.json",
+=======
+        default="False",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     args, _ = parser.parse_known_args()

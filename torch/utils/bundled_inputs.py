@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Any, TypeVar, Optional, NamedTuple, Union
 from collections.abc import Callable, Sequence
+=======
+from typing import Any, TypeVar, Optional, NamedTuple, Union, Callable
+from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import torch
 from torch._C import TupleType, ListType
@@ -116,6 +121,7 @@ def bundle_inputs(
     )
 
     # The above cloning function returns a torch._C.scriptmodule and we need a torch.jit.scriptmodule.
+<<<<<<< HEAD
     # Fortunately there is a function in _recursive that does exactly that conversion.
     cloned_module = wrap_cpp_module(clone)
     if isinstance(inputs, dict):
@@ -125,6 +131,15 @@ def bundle_inputs(
     else:
         if not isinstance(info, list) and info is not None:
             raise AssertionError("If inputs is a list, info must be a list or None")
+=======
+    # Fortunately theres a function in _recursive that does exactly that conversion.
+    cloned_module = wrap_cpp_module(clone)
+    if isinstance(inputs, dict):
+        assert isinstance(info, dict) or info is None
+        augment_many_model_functions_with_bundled_inputs(cloned_module, inputs, _receive_inflate_expr, info)
+    else:
+        assert isinstance(info, list) or info is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         augment_model_with_bundled_inputs(cloned_module, inputs, _receive_inflate_expr, info)
     return cloned_module
 

@@ -62,7 +62,11 @@ ncclResult_t to_nccl_result(torch::cuda::nccl::ncclResult var) {
     case torch::cuda::nccl::ncclResult::NumResults:
       return ncclResult_t::ncclNumResults;
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unconvertible NCCL type");
+=======
+      throw std::runtime_error("Unconvertible NCCL type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -91,7 +95,11 @@ torch::cuda::nccl::ncclResult from_nccl_result(ncclResult_t var) {
     case ncclNumResults:
       return torch::cuda::nccl::ncclResult::NumResults;
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unconvertible NCCL type");
+=======
+      throw std::runtime_error("Unconvertible NCCL type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -194,9 +202,16 @@ static void NCCL_CHECK_TIMEOUT(ncclResult status, ncclComm_t comm) {
     auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(
                            currentTimepoint - startTimepoint)
                            .count();
+<<<<<<< HEAD
     TORCH_CHECK(
         timeElapsed <= nccl_nonblocking_timeout(),
         "NCCL timeout when waiting for nonblocking call to become successful.");
+=======
+    if (timeElapsed > nccl_nonblocking_timeout()) {
+      throw std::runtime_error(
+          "NCCL timeout when waiting for nonblocking call to become successful.");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sched_yield(); // yield to other threads
     ncclCommGetAsyncError(to_nccl_comm(comm), &result);
   }
@@ -226,9 +241,16 @@ static void NCCL_CHECK_TIMEOUT(
         auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(
                                currentTimepoint - startTimepoint)
                                .count();
+<<<<<<< HEAD
         TORCH_CHECK(
             timeElapsed <= nccl_nonblocking_timeout(),
             "NCCL timeout when waiting for nonblocking call to become successful.");
+=======
+        if (timeElapsed > nccl_nonblocking_timeout()) {
+          throw std::runtime_error(
+              "NCCL timeout when waiting for nonblocking call to become successful.");
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sched_yield(); // yield to other threads
         ncclCommGetAsyncError(to_nccl_comm(comms[i]), &result);
       } while (result == ncclInProgress);
@@ -256,7 +278,11 @@ void throw_nccl_error(torch::cuda::nccl::ncclResult status) {
   std::ostringstream err;
   err << "NCCL Error " << static_cast<int>(status) << ": "
       << ncclGetErrorString(to_nccl_result(status));
+<<<<<<< HEAD
   TORCH_CHECK(false, err.str());
+=======
+  throw std::runtime_error(err.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 struct NcclCommList {
@@ -316,6 +342,7 @@ static void check_tensor(
     int64_t ref_numel,
     ScalarType ref_dtype) {
   auto check_one = [&](const at::Tensor& tensor) {
+<<<<<<< HEAD
     TORCH_CHECK(
         tensor.is_cuda() && !tensor.is_sparse(),
         "input and output elements have to be cuda dense Tensors");
@@ -326,19 +353,42 @@ static void check_tensor(
 
     TORCH_CHECK(
         tensor.is_contiguous(), "all inputs and outputs have to be contiguous");
+=======
+    if (!tensor.is_cuda() || tensor.is_sparse()) {
+      throw std::runtime_error(
+          "input and output elements have to be cuda dense Tensors");
+    }
+
+    if (ref_dtype != tensor.scalar_type()) {
+      throw std::runtime_error(
+          "all inputs and outputs must be of the same Tensor dtype");
+    }
+
+    if (!tensor.is_contiguous()) {
+      throw std::runtime_error("all inputs and outputs have to be contiguous");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   check_one(input);
 
   // all inputs must be same size
+<<<<<<< HEAD
   TORCH_CHECK(
       input.numel() == ref_numel,
       "all inputs must have the same number of elements");
+=======
+  if (input.numel() != ref_numel) {
+    throw std::runtime_error(
+        "all inputs must have the same number of elements");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (output) {
     check_one(*output);
 
     // inputs and outputs must be on same device respectively
+<<<<<<< HEAD
     TORCH_CHECK(
         input.get_device() == output->get_device(),
         "input and output must be on the same device");
@@ -346,6 +396,16 @@ static void check_tensor(
     TORCH_CHECK(
         output->numel() * output_multiplier == ref_numel * input_multiplier,
         "output must be of size input_size * size_multiplier");
+=======
+    if (input.get_device() != output->get_device()) {
+      throw std::runtime_error("input and output must be on the same device");
+    }
+
+    if (output->numel() * output_multiplier != ref_numel * input_multiplier) {
+      throw std::runtime_error(
+          "output must be of size input_size * size_multiplier");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -357,13 +417,23 @@ void check_inputs(
   // len(inputs) == len(outputs)
   size_t len = inputs.size();
 
+<<<<<<< HEAD
   TORCH_CHECK(len != 0, "input sequence can't be empty");
+=======
+  if (len == 0) {
+    throw std::runtime_error("input sequence can't be empty");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (len != outputs.size()) {
     std::stringstream err;
     err << "inputs and outputs sequences have to be of the same length, but got input of length "
         << len << " and output of length " << outputs.size();
+<<<<<<< HEAD
     TORCH_CHECK(false, err.str());
+=======
+    throw std::runtime_error(err.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   device_set devices;
@@ -379,8 +449,14 @@ void check_inputs(
 
     auto input_device = input.get_device();
     // inputs must be on unique devices
+<<<<<<< HEAD
     TORCH_CHECK(
         !devices.test(input_device), "inputs must be on unique devices");
+=======
+    if (devices.test(input_device)) {
+      throw std::runtime_error("inputs must be on unique devices");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     devices.set(input_device);
   }
 }
@@ -393,7 +469,13 @@ void check_inputs(
     int output_multiplier) {
   auto len = inputs.size();
 
+<<<<<<< HEAD
   TORCH_CHECK(len > 0, "input sequence can't be empty");
+=======
+  if (len <= 0) {
+    throw std::runtime_error("input sequence can't be empty");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   device_set devices;
   int64_t numel = inputs[0].numel();
@@ -414,8 +496,14 @@ void check_inputs(
 
     auto input_device = input.get_device();
     // inputs must be on unique devices
+<<<<<<< HEAD
     TORCH_CHECK(
         !devices.test(input_device), "inputs must be on unique devices");
+=======
+    if (devices.test(input_device)) {
+      throw std::runtime_error("inputs must be on unique devices");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     devices.set(input_device);
   }
 }
@@ -611,7 +699,11 @@ void broadcast(
         ")");
     ncclComm_t comm = comms[i];
     NCCL_CHECK(ncclBcast(
+<<<<<<< HEAD
         tensors[i].mutable_data_ptr(),
+=======
+        tensors[i].data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         numel,
         data_type,
         0,
@@ -656,9 +748,15 @@ void reduce(
 
     ncclComm_t comm = comms_ref[i];
     NCCL_CHECK(ncclReduce(
+<<<<<<< HEAD
         inputs[i].const_data_ptr(),
         static_cast<std::remove_cv_t<decltype(i)>>(root) == i
             ? output.mutable_data_ptr()
+=======
+        inputs[i].data_ptr(),
+        static_cast<std::remove_cv_t<decltype(i)>>(root) == i
+            ? output.data_ptr()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             : nullptr,
         count,
         data_type,
@@ -710,8 +808,13 @@ void all_reduce(
 
     ncclComm_t comm = comms_ref[i];
     NCCL_CHECK(ncclAllReduce(
+<<<<<<< HEAD
         inputs[i].const_data_ptr(),
         outputs[i].mutable_data_ptr(),
+=======
+        inputs[i].data_ptr(),
+        outputs[i].data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         count,
         data_type,
         to_nccl_red_op(op),
@@ -752,8 +855,13 @@ void reduce_scatter(
 
     ncclComm_t comm = comms_ref[i];
     NCCL_CHECK(ncclReduceScatter(
+<<<<<<< HEAD
         inputs[i].const_data_ptr(),
         outputs[i].mutable_data_ptr(),
+=======
+        inputs[i].data_ptr(),
+        outputs[i].data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         count,
         data_type,
         to_nccl_red_op(op),
@@ -794,18 +902,30 @@ void all_gather(
     ncclComm_t comm = comms_ref[i];
 #if defined(NCCL_MAJOR) && (NCCL_MAJOR >= 2)
     NCCL_CHECK(ncclAllGather(
+<<<<<<< HEAD
         inputs[i].const_data_ptr(),
         outputs[i].mutable_data_ptr(),
+=======
+        inputs[i].data_ptr(),
+        outputs[i].data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         count,
         data_type,
         to_nccl_comm(comm),
         stream));
 #else
     NCCL_CHECK(ncclAllGather(
+<<<<<<< HEAD
         inputs[i].const_data_ptr(),
         count,
         data_type,
         outputs[i].mutable_data_ptr(),
+=======
+        inputs[i].data_ptr(),
+        count,
+        data_type,
+        outputs[i].data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to_nccl_comm(comm),
         stream));
 #endif
@@ -830,7 +950,11 @@ void all2all_single_equal_split(
   size_t count = input.numel() / size;
   [[maybe_unused]] size_t rankdiff = input.nbytes() / size;
   const auto* sendbuff = reinterpret_cast<const char*>(input.const_data_ptr());
+<<<<<<< HEAD
   auto* recvbuff = reinterpret_cast<char*>(output.mutable_data_ptr());
+=======
+  auto* recvbuff = reinterpret_cast<char*>(output.data_ptr());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto comm = to_nccl_comm(_comm);
 #if defined(USE_ROCM) || defined(NCCL_ALLTOALL_SUPPORTED)
   // NCCL_ALLTOALL_SUPPORTED is used so NCCL can differentiate send/recv
@@ -951,7 +1075,11 @@ void all2all(
 
     if (_nccl_should_send_recv(input.numel())) {
       NCCL_CHECK(ncclSend(
+<<<<<<< HEAD
           input.const_data_ptr(),
+=======
+          input.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           input.numel(),
           to_nccl_data_type(input),
           r,
@@ -960,7 +1088,11 @@ void all2all(
     }
     if (_nccl_should_send_recv(output.numel())) {
       NCCL_CHECK(ncclRecv(
+<<<<<<< HEAD
           output.mutable_data_ptr(),
+=======
+          output.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           output.numel(),
           to_nccl_data_type(output),
           r,
@@ -992,7 +1124,11 @@ void send(
   using namespace torch::cuda::nccl::detail;
 #ifndef NCCL_HAS_COMM_NONBLOCKING
   NCCL_CHECK(ncclSend(
+<<<<<<< HEAD
       input.const_data_ptr(),
+=======
+      input.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       input.numel(),
       to_nccl_data_type(input),
       dst,
@@ -1001,7 +1137,11 @@ void send(
 #else
   NCCL_CHECK_TIMEOUT(
       ncclSend(
+<<<<<<< HEAD
           input.const_data_ptr(),
+=======
+          input.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           input.numel(),
           to_nccl_data_type(input),
           dst,
@@ -1028,7 +1168,11 @@ void recv(
   using namespace torch::cuda::nccl::detail;
 #ifndef NCCL_HAS_COMM_NONBLOCKING
   NCCL_CHECK(ncclRecv(
+<<<<<<< HEAD
       output.mutable_data_ptr(),
+=======
+      output.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       output.numel(),
       to_nccl_data_type(output),
       src,
@@ -1037,7 +1181,11 @@ void recv(
 #else
   NCCL_CHECK_TIMEOUT(
       ncclRecv(
+<<<<<<< HEAD
           output.mutable_data_ptr(),
+=======
+          output.data_ptr(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           output.numel(),
           to_nccl_data_type(output),
           src,
@@ -1078,7 +1226,11 @@ void gather(
   if (cur_rank == root) {
     for (const auto r : c10::irange(numranks)) {
       if (r != root) {
+<<<<<<< HEAD
         auto* recvbuff = reinterpret_cast<char*>(outputs[r].mutable_data_ptr());
+=======
+        auto* recvbuff = reinterpret_cast<char*>(outputs[r].data_ptr());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         NCCL_CHECK(ncclRecv(recvbuff, count, type, r, comm, stream));
       } else {
         // on its own rank, simply copy from the input
@@ -1139,7 +1291,11 @@ void scatter(
   } else {
     size_t recv_count = outputs.numel();
     auto recv_type = to_nccl_data_type(outputs);
+<<<<<<< HEAD
     auto* recvbuff = reinterpret_cast<char*>(outputs.mutable_data_ptr());
+=======
+    auto* recvbuff = reinterpret_cast<char*>(outputs.data_ptr());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NCCL_CHECK(ncclRecv(recvbuff, recv_count, recv_type, root, comm, stream));
   }
 #ifndef NCCL_HAS_COMM_NONBLOCKING

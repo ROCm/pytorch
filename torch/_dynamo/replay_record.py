@@ -15,9 +15,14 @@ and recreate specific program states.
 
 import dataclasses
 from dataclasses import field
+<<<<<<< HEAD
 from io import BufferedReader, BufferedWriter
 from types import CellType, CodeType, ModuleType
 from typing import Any, IO, Union
+=======
+from types import CellType, CodeType, ModuleType
+from typing import Any, IO
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 from torch.utils._import_utils import import_dill
@@ -52,12 +57,20 @@ class ExecutionRecord:
     builtins: dict[str, Any] = field(default_factory=dict)
     code_options: dict[str, Any] = field(default_factory=dict)
 
+<<<<<<< HEAD
     def dump(self, f: Union[IO[str], BufferedWriter]) -> None:
+=======
+    def dump(self, f: IO[str]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert dill is not None, "replay_record requires `pip install dill`"
         dill.dump(self, f)
 
     @classmethod
+<<<<<<< HEAD
     def load(cls, f: Union[IO[bytes], BufferedReader]) -> Self:
+=======
+    def load(cls, f: IO[bytes]) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert dill is not None, "replay_record requires `pip install dill`"
         return dill.load(f)
 

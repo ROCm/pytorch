@@ -8,8 +8,13 @@ import logging
 import operator
 import threading
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Never
 
 import sympy
@@ -18,7 +23,10 @@ import torch.fx as fx
 import torch.utils._pytree as pytree
 from torch import SymInt, Tensor
 from torch._C import DispatchKey
+<<<<<<< HEAD
 from torch._higher_order_ops.utils import redirect_to_mode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._ops import HigherOrderOperator
 from torch._prims_common import clone_preserve_strides
 from torch._subclasses.fake_tensor import FakeTensorMode
@@ -29,7 +37,10 @@ from torch.fx.experimental.proxy_tensor import (
 )
 from torch.fx.experimental.symbolic_shapes import guard_scalar
 from torch.types import IntLikeType
+<<<<<<< HEAD
 from torch.utils.checkpoint import _CachedTorchDispatchMode, _CachingTorchDispatchMode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -95,7 +106,11 @@ def create_tma_experimental_metadata(
 
 
 def maybe_unpack_tma_experimental_metadata(
+<<<<<<< HEAD
     tma_meta: Union[TMAExperimentalMetadata, TMAStableMetadata],
+=======
+    tma_meta: Union[TMAExperimentalMetadata, TMAStableMetadata]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[tuple[list[IntLikeType], list[IntLikeType], IntLikeType]]:
     if not tma_meta or len(tma_meta) != 2:
         return None
@@ -111,7 +126,11 @@ def create_tma_stable_metadata(
 
 
 def maybe_unpack_tma_stable_metadata(
+<<<<<<< HEAD
     tma_meta: Union[TMAExperimentalMetadata, TMAStableMetadata],
+=======
+    tma_meta: Union[TMAExperimentalMetadata, TMAStableMetadata]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[tuple[list[IntLikeType]]]:
     if not tma_meta or len(tma_meta) != 2:
         return None
@@ -292,7 +311,10 @@ def generate_ttir(
             ordered_args[name] = 2
         elif (
             stable_meta := maybe_unpack_tma_stable_metadata(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tma_descriptor_metadata.get(name, None)
             )
         ) is not None:
@@ -387,6 +409,7 @@ def generate_ttir(
                         triton.runtime.jit.create_specialize_impl(),
                         specialize_extra=backend.get_arg_specialization,
                     )
+<<<<<<< HEAD
             # create_specialize_impl is removed in https://github.com/triton-lang/triton/pull/7771
             # switch to native_specialize_impl instead
             elif hasattr(triton.runtime.jit, "native_specialize_impl"):
@@ -404,6 +427,8 @@ def generate_ttir(
                     )
 
                 specialize_impl = _native_specialize_impl
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 from triton.runtime.jit import specialize_impl as specialize_impl_orig
 
@@ -426,7 +451,10 @@ def generate_ttir(
                         specialize_value=not kp.do_not_specialize,
                         align=not kp.do_not_specialize_on_alignment,
                     )
+<<<<<<< HEAD
                     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     attrvals.append(spec[1])
 
             attrs = find_paths_if(attrvals, lambda _, x: isinstance(x, str))
@@ -445,7 +473,10 @@ def generate_ttir(
         def get_signature_value(idx: int, arg: Any) -> str:
             if kernel.params[idx].is_constexpr:
                 return "constexpr"
+<<<<<<< HEAD
             # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return mangle_type(arg)
 
     else:
@@ -461,11 +492,18 @@ def generate_ttir(
         }
     else:
         # In older versions of Triton, the signature does not include constexpr args
+<<<<<<< HEAD
         constexprs = [p.num for p in kernel.params if p.is_constexpr]
         signature = {
             name: get_signature_value(i, arg)
             for i, (name, arg) in enumerate(ordered_args.items())
             if i not in constexprs
+=======
+        signature = {
+            name: get_signature_value(i, arg)
+            for i, (name, arg) in enumerate(ordered_args.items())
+            if i not in kernel.constexprs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
     triton._C.libtriton.ir.load_dialects(context)
@@ -480,6 +518,7 @@ def generate_ttir(
         inspect.signature(backend.get_codegen_implementation).parameters
     )
     if make_ir_sig_params == 2:
+<<<<<<< HEAD
         ttir_module = src.make_ir(target, options, context)
     elif make_ir_sig_params == 3:
         codegen_fns = backend.get_codegen_implementation()
@@ -489,11 +528,21 @@ def generate_ttir(
         codegen_fns = backend.get_codegen_implementation(*codegen_args)
         module_map = backend.get_module_map()
         ttir_module = src.make_ir(target, codegen_fns, module_map, context)
+=======
+        ttir_module = src.make_ir(options, context)
+    elif make_ir_sig_params == 3:
+        codegen_fns = backend.get_codegen_implementation()
+        ttir_module = src.make_ir(options, codegen_fns, context)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         codegen_args = [options] if get_codegen_implementation_sig_params == 1 else []
         codegen_fns = backend.get_codegen_implementation(*codegen_args)
         module_map = backend.get_module_map()
+<<<<<<< HEAD
         ttir_module = src.make_ir(target, options, codegen_fns, module_map, context)
+=======
+        ttir_module = src.make_ir(options, codegen_fns, module_map, context)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not ttir_module.verify():
         raise RuntimeError("Verification for TTIR module has failed")
 
@@ -819,7 +868,10 @@ def get_tma_stores(
         for op in op_list:
             if op.name == "tt.call":
                 assert op.fn_call_name in functions
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tma_stores = get_tma_stores(functions, op.fn_call_name)
                 for i, inp in enumerate(op.args):
                     if Param(idx=i) in tma_stores:
@@ -827,9 +879,12 @@ def get_tma_stores(
             elif op.name == "tt.experimental_descriptor_store":
                 assert len(op.args) >= 1
                 result.add(op.args[0])
+<<<<<<< HEAD
             elif op.name == "tt.descriptor_store":
                 assert len(op.args) >= 1
                 result.add(op.args[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for val in list(result):
         if val in ops:
@@ -879,6 +934,12 @@ def analyze_kernel_mutations(
             # (e.g. `tt.elementwise_inline_asm`), we assume it does not mutate any input parameters.
             if op.name in UNKNOWN_OPS:
                 if op.name == "tt.elementwise_inline_asm" and op.is_pure:
+<<<<<<< HEAD
+=======
+                    log.warning(
+                        "TTIR mutation analysis: Skipping pure tt.elementwise_inline_asm op (is_pure=True)"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
                 raise RuntimeError(
                     f"ttir analysis hit an op we do not know how to analyze: {op.name}"
@@ -900,10 +961,14 @@ def analyze_kernel_mutations(
             if op.name == "tt.call":
                 assert op.fn_call_name in functions
                 mutations = analyze_kernel_mutations(
+<<<<<<< HEAD
                     functions,
                     # pyrefly: ignore [bad-argument-type]
                     op.fn_call_name,
                     len(op.args),
+=======
+                    functions, op.fn_call_name, len(op.args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 stack.extend(arg for arg, mutated in zip(op.args, mutations) if mutated)
             else:
@@ -956,7 +1021,10 @@ def identify_mutated_tensors(
         assert functions is not None
         kernel_name = next(iter(functions.keys()))
         # Triton codegen modifies the name
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert kernel.fn.__name__ in kernel_name
         # Reset the cache between top level invocations
         # The cache for analyze kernel mutations is mainly used for cycle
@@ -1060,11 +1128,15 @@ def triton_kernel_wrapper_mutation_dense(
         grid_fn = grid[0]
     else:
         fn_name, code = user_defined_kernel_grid_fn_code(
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             kernel.fn.__name__,
             # pyrefly: ignore [missing-attribute]
             kernel.configs,
             grid,
+=======
+            kernel.fn.__name__, kernel.configs, grid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         namespace: dict[str, Any] = {}
         exec(code, namespace)
@@ -1074,7 +1146,11 @@ def triton_kernel_wrapper_mutation_dense(
         # as we need to launch the kernel here, we "unwrap" the
         # tma_descriptor_metadata, create the TMA descriptors
         # from it, and replace the tensors in the kwargs by the
+<<<<<<< HEAD
         # corresponding TMA descriptors before launching
+=======
+        # correspoinding TMA descriptors before launching
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs = kwargs.copy()
         for k, v in tma_descriptor_metadata.items():
             tensor = kwargs[k]
@@ -1113,7 +1189,10 @@ def triton_kernel_wrapper_mutation_dense(
     # avoid mutating the original inputs
     kwargs = kwargs.copy()
     constant_args = constant_args.copy()
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for name in kernel.arg_names:
         if name in kwargs:
             args.append(kwargs.pop(name))
@@ -1122,7 +1201,10 @@ def triton_kernel_wrapper_mutation_dense(
         else:
             break
 
+<<<<<<< HEAD
     # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     kernel[grid_fn](*args, **kwargs, **constant_args)
 
 
@@ -1161,8 +1243,12 @@ def trace_triton_kernel_wrapper(
         out = func_overload(**node_args)
 
     proxy_args = pytree.tree_map(
+<<<<<<< HEAD
         proxy_mode.tracer.unwrap_proxy,  # type: ignore[union-attr]
         node_args,
+=======
+        proxy_mode.tracer.unwrap_proxy, node_args  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     out_proxy = proxy_mode.tracer.create_proxy(
         "call_function",
@@ -1376,9 +1462,12 @@ triton_kernel_wrapper_functional.fallthrough(DispatchKey.AutogradCUDA)
 triton_kernel_wrapper_functional.fallthrough(DispatchKey.AutogradCUDA)
 triton_kernel_wrapper_functional.fallthrough(DispatchKey.AutogradCPU)
 
+<<<<<<< HEAD
 # Adds SAC support for triton ops
 redirect_to_mode(triton_kernel_wrapper_mutation, _CachingTorchDispatchMode)
 redirect_to_mode(triton_kernel_wrapper_mutation, _CachedTorchDispatchMode)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ###############################################################################
 # The "TritonHOPifier": a class that transforms a call to a triton kernel into
@@ -1528,7 +1617,10 @@ class TritonHOPifier:
 
         assert kernel_idx is None or variable.kernel_idx == kernel_idx
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         variable.grid = grid
 
         if isinstance(kernel, Autotuner):
@@ -1704,9 +1796,15 @@ class TritonHOPifier:
 
                         # Update the kwargs in each config
                         # maybe_unpack_heuristic_result raises unsupported if the value is non-constant
+<<<<<<< HEAD
                         new_configs[config_idx].__dict__["kwargs"][kwarg_key] = (
                             self.maybe_unpack_heuristic_result(heuristic_result)
                         )
+=======
+                        new_configs[config_idx].__dict__["kwargs"][
+                            kwarg_key
+                        ] = self.maybe_unpack_heuristic_result(heuristic_result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 iter_kernel = iter_kernel.fn
             assert isinstance(iter_kernel, JITFunction)
@@ -1729,7 +1827,10 @@ class TritonHOPifier:
             "num_ctas",
             "num_consumer_groups",
             "num_buffers_warp_spec",
+<<<<<<< HEAD
             "num_cpu_threads",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         # move special config names to configs out of kwargs
@@ -1787,9 +1888,15 @@ class TritonHOPifier:
                 for config in new_configs:
                     for name in special_param_names:
                         if name not in config.__dict__["kwargs"]:
+<<<<<<< HEAD
                             assert name in config.__dict__, (
                                 f"{name} must be in autotuning configs to be used as a kernel parameter"
                             )
+=======
+                            assert (
+                                name in config.__dict__
+                            ), f"{name} must be in autotuning configs to be used as a kernel parameter"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             config.__dict__["kwargs"][name] = config.__dict__[name]
                             updated = True
 
@@ -1901,16 +2008,26 @@ class TritonHOPifier:
 
         assert len(grids) != 0
         if isinstance(variable.kernel, JITFunction):
+<<<<<<< HEAD
             constexprs = [p.num for p in variable.kernel.params if p.is_constexpr]
             arg_names = [p.name for p in variable.kernel.params]
+=======
+            constexprs = variable.kernel.constexprs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # If we are looking at an @triton.autotune decorator, the nested function should be a JITFunction
             # This is because we don't support @triton.heuristics or nested @triton.autotune decorators yet
             assert isinstance(variable.kernel, Autotuner)
+<<<<<<< HEAD
             constexprs = [p.num for p in variable.kernel.fn.params if p.is_constexpr]
             arg_names = [p.name for p in variable.kernel.fn.params]
 
         for idx, arg_name in enumerate(arg_names):
+=======
+            constexprs = variable.kernel.fn.constexprs
+
+        for idx, arg_name in enumerate(variable.kernel.arg_names):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if idx in constexprs:
                 if arg_name in combined_args_raw:
                     # [Note: Specialize tl.constexpr args in user-defined triton kernels]
@@ -2076,7 +2193,10 @@ class TraceableTritonKernelWrapper:
             return tracing_triton_hopifier_singleton.call_run(self, args, kwargs, None)
         else:
             assert self.kernel is not None
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.kernel.run(*args, **kwargs)
 
     def __call__(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> Any:
@@ -2088,7 +2208,10 @@ class TraceableTritonKernelWrapper:
             )
         else:
             assert self.kernel is not None
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.kernel[self.grid](*args, **kwargs)
 
     def specialize_symbolic(self, arg: Sequence[Any]) -> Any:

@@ -3,7 +3,10 @@
 #include <chrono>
 #include <memory>
 #include <string_view>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <c10/macros/Macros.h>
 #include <c10/util/ScopeExit.h>
@@ -35,7 +38,11 @@ class WaitCounterBackendFactoryIf {
 };
 
 C10_API void registerWaitCounterBackend(
+<<<<<<< HEAD
     std::unique_ptr<WaitCounterBackendFactoryIf> /*factory*/);
+=======
+    std::unique_ptr<WaitCounterBackendFactoryIf>);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C10_API std::vector<std::shared_ptr<WaitCounterBackendFactoryIf>>
 getRegisteredWaitCounterBackends();

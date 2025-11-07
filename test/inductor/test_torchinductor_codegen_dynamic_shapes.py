@@ -25,7 +25,10 @@ importlib.import_module("filelock")
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 from inductor.test_torchinductor import (  # @manual=fbcode//caffe2/test/inductor:test_inductor-library
+<<<<<<< HEAD
     add_test_failures,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CommonTemplate,
     copy_tests,
     run_and_get_cpp_code,
@@ -104,6 +107,7 @@ test_failures = {
         ("cpu", "cuda", "xpu"), is_skip=True
     ),
     "test_to_device_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu"), is_skip=True),
+<<<<<<< HEAD
     "test_as_strided_on_views_dynamic_shapes": TestFailure(
         ("cpu", "cuda", "xpu"), is_skip=True
     ),
@@ -116,6 +120,11 @@ test_failures = {
     ),
     # XPU always convert conv1d to conv2d and can not match the expected codegen result.
     "test_conv1d_depthwise_dynamic_shapes": TestFailure(("xpu",), is_skip=True),
+=======
+    #
+    # Failed to find dynamic for loop variable:
+    #
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_arange1_dynamic_shapes": TestFailure(("cpu",)),
     "test_arange2_dynamic_shapes": TestFailure(("cpu",)),
     "test_arange3_dynamic_shapes": TestFailure(("cpu",)),
@@ -147,12 +156,15 @@ test_failures = {
     "test_mul_index_expr_dynamic_shapes": TestFailure(("cpu",)),
     "test_flip_cat_dynamic_shapes": TestFailure(("cpu",)),
     "test_pad_single_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
     "test_slice_scatter_dtype_consistency_dynamic_shapes": TestFailure(
         (
             "cpu",
             "mps",
         )
     ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_embedding_sparse_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     #
     # Failed to find for loop/triton kernel:
@@ -168,7 +180,10 @@ test_failures = {
     "test_bmm2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_both_scalars_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_compar_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
     "test_complex_from_real_imag_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_const_int32_to_float_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_conv2d_backward_channels_last_dynamic_shapes": TestFailure(("cpu",)),
     "test_conv_backward_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
@@ -194,7 +209,10 @@ test_failures = {
     "test_bucketize_int_int64_int64_dynamic_shapes": TestFailure(("cpu",)),
     "test_searchsorted_dynamic_shapes": TestFailure(("cpu",)),
     "test_like_rands_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+<<<<<<< HEAD
     "test_like_rands_sliced_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_linspace2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_linspace3_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_linspace4_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
@@ -260,9 +278,12 @@ test_failures = {
     "test_pointwise_laguerre_polynomial_l_dynamic_shapes": TestFailure(("cuda", "xpu")),
     "test_pointwise_legendre_polynomial_p_dynamic_shapes": TestFailure(("cuda", "xpu")),
     "test_polar_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu"), is_skip=True),
+<<<<<<< HEAD
     "test_add_complex7_dynamic_shapes": TestFailure(("cpu",), is_skip=True),
     "test_add_complex8_dynamic_shapes": TestFailure(("cpu",), is_skip=True),
     "test_add_complex9_dynamic_shapes": TestFailure(("cpu",), is_skip=True),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_randn_generator_dynamic_shapes": TestFailure(("cpu",)),
     "test_randn_like_empty_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_single_elem_dynamic_shapes": TestFailure(("cpu",)),
@@ -367,7 +388,11 @@ test_failures = {
     "test_rand_like_deterministic_dynamic_shapes": TestFailure(
         ("cpu", "cuda", "xpu"), is_skip=True
     ),
+<<<<<<< HEAD
     "test_repeat_interleave_2_dynamic_shapes": TestFailure(("cpu",)),
+=======
+    "test_repeat_interleave_2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_slice_mutation2_dynamic_shapes": TestFailure(
         ("cpu", "cuda", "xpu"), is_skip=True
     ),
@@ -402,10 +427,16 @@ test_failures = {
     # Refinement means we don't actually generate dynamic shapes (but only on
     # cpu apparently?!)
     "test_nonzero_unbacked_refinement_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
 }
 
 add_test_failures(test_failures, dynamic_shapes_test_failures)
 
+=======
+    **dynamic_shapes_test_failures,
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if not TEST_WITH_ROCM:
     test_failures.update(
         {

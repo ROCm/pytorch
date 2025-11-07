@@ -117,8 +117,11 @@ namespace at::cuda {
   _(nvrtcGetPTXSize)                              \
   _(nvrtcGetPTX)                                  \
   _(cuModuleLoadData)                             \
+<<<<<<< HEAD
   _(cuModuleLoad)                                 \
   _(cuGetErrorString)                             \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _(cuModuleGetFunction)                          \
   _(HIPOCCUPANCYMAXACTIVEBLOCKSPERMULTIPROCESSOR) \
   _(nvrtcGetErrorString)                          \

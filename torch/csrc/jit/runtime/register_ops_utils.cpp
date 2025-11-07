@@ -11,7 +11,10 @@
 #include <torch/csrc/jit/runtime/slice_indices_adjust.h>
 #include <limits>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 
 namespace torch::jit {
@@ -113,6 +116,7 @@ void listRemove<at::Tensor>(Stack& stack) {
 }
 
 void checkImplicitTensorToNum(const at::Tensor& t, bool toInt) {
+<<<<<<< HEAD
   TORCH_CHECK(
       !t.requires_grad(),
       "Cannot input a tensor that requires grad as a scalar argument");
@@ -124,6 +128,22 @@ void checkImplicitTensorToNum(const at::Tensor& t, bool toInt) {
       "Cannot input a tensor of type ",
       t.scalar_type(),
       " as an integral argument");
+=======
+  if (t.requires_grad()) {
+    throw std::runtime_error(
+        "Cannot input a tensor that requires grad as a scalar argument");
+  }
+  if (!t.sizes().empty()) {
+    throw std::runtime_error(
+        "Cannot input a tensor of dimension other than 0 as a scalar argument");
+  }
+  if (toInt && !isIntegralType(t.scalar_type(), /*includeBool=*/false)) {
+    std::stringstream ss;
+    ss << "Cannot input a tensor of type " << t.scalar_type()
+       << " as an integral argument";
+    throw std::runtime_error(ss.str());
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void checkDoubleInRange(double a) {

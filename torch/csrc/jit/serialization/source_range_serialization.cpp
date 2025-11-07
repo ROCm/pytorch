@@ -167,7 +167,13 @@ std::vector<char> SourceRangePickler::pickle(
     }
 
     ivalues.emplace_back(c10::ivalue::Tuple::create(
+<<<<<<< HEAD
         {(int64_t)range.bytes, srs->serialize(range.range), source_range_tag}));
+=======
+        {(int64_t)range.bytes,
+         srs->serialize(range.range),
+         static_cast<int64_t>(source_range_tag)}));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::vector<at::Tensor> table;

@@ -48,7 +48,11 @@ static PyObject* THPEvent_pynew(
     TORCH_CHECK(ptr, "Failed to allocate memory for Event");
   }
 
+<<<<<<< HEAD
   THPEvent* self = reinterpret_cast<THPEvent*>(ptr.get());
+=======
+  THPEvent* self = (THPEvent*)ptr.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // TODO: blocking and interprocess are not supported yet. To support them, the
   // flag system of c10::Event needs to be refactored. C10::Event should also
@@ -64,12 +68,20 @@ static PyObject* THPEvent_pynew(
       (enable_timing ? c10::EventFlag::BACKEND_DEFAULT
                      : c10::EventFlag::PYTORCH_DEFAULT));
 
+<<<<<<< HEAD
   return static_cast<PyObject*>(ptr.release());
+=======
+  return (PyObject*)ptr.release();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
 PyObject* THPEvent_new(c10::DeviceType device_type, c10::EventFlag flag) {
+<<<<<<< HEAD
   auto type = &THPEventType;
+=======
+  auto type = (PyTypeObject*)&THPEventType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{type->tp_alloc(type, 0)};
   TORCH_CHECK(self, "Failed to allocate memory for Event");
   auto self_ = reinterpret_cast<THPEvent*>(self.get());
@@ -82,7 +94,11 @@ static void THPEvent_dealloc(THPEvent* self) {
     pybind11::gil_scoped_release no_gil{};
     self->event.~Event();
   }
+<<<<<<< HEAD
   Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+=======
+  Py_TYPE(self)->tp_free((PyObject*)self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static PyObject* THPEvent_get_device(THPEvent* self, void* unused) {
@@ -96,7 +112,11 @@ static PyObject* THPEvent_record(
     PyObject* args,
     PyObject* kwargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPEvent*>(_self);
+=======
+  auto self = (THPEvent*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyObject* _stream = Py_None;
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
   constexpr const char* accepted_args[] = {"stream", nullptr};
@@ -111,7 +131,11 @@ static PyObject* THPEvent_record(
     return nullptr;
   }
   if (_stream != Py_None) {
+<<<<<<< HEAD
     auto stream = reinterpret_cast<THPStream*>(_stream);
+=======
+    auto stream = (THPStream*)_stream;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self->event.record(c10::Stream::unpack3(
         stream->stream_id,
         static_cast<c10::DeviceIndex>(stream->device_index),
@@ -130,7 +154,11 @@ static PyObject* THPEvent_from_ipc_handle(
     PyObject* args,
     PyObject* kwargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto type = reinterpret_cast<PyTypeObject*>(_type);
+=======
+  auto type = (PyTypeObject*)_type;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static torch::PythonArgParser parser({
       "from_ipc_handle(Device device, std::string ipc_handle)",
@@ -146,13 +174,21 @@ static PyObject* THPEvent_from_ipc_handle(
   if (!ptr) {
     return nullptr;
   }
+<<<<<<< HEAD
   THPEvent* self = reinterpret_cast<THPEvent*>(ptr.get());
+=======
+  THPEvent* self = (THPEvent*)ptr.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // TODO: for constructing event from ipc handle, the c10::Event needs to have
   // more general constructor to achieve that.
   new (&self->event) c10::Event(device.type(), c10::EventFlag::PYTORCH_DEFAULT);
 
+<<<<<<< HEAD
   return static_cast<PyObject*>(ptr.release());
+=======
+  return (PyObject*)ptr.release();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -174,7 +210,11 @@ static PyObject* THPEvent_wait(
     PyObject* args,
     PyObject* kwargs) {
   HANDLE_TH_ERRORS {
+<<<<<<< HEAD
     auto self = reinterpret_cast<THPEvent*>(_self);
+=======
+    auto self = (THPEvent*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* _stream = Py_None;
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     constexpr const char* accepted_args[] = {"stream", nullptr};
@@ -189,7 +229,11 @@ static PyObject* THPEvent_wait(
       return nullptr;
     }
     if (_stream != Py_None) {
+<<<<<<< HEAD
       auto stream = reinterpret_cast<THPStream*>(_stream);
+=======
+      auto stream = (THPStream*)_stream;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       self->event.block(c10::Stream::unpack3(
           stream->stream_id,
           static_cast<c10::DeviceIndex>(stream->device_index),
@@ -206,15 +250,24 @@ static PyObject* THPEvent_wait(
 
 static PyObject* THPEvent_query(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPEvent*>(_self);
+=======
+  auto self = (THPEvent*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return PyBool_FromLong(self->event.query());
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPEvent_elapsed_time(PyObject* _self, PyObject* _other) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPEvent*>(_self);
   auto other = reinterpret_cast<THPEvent*>(_other);
+=======
+  auto self = (THPEvent*)_self;
+  auto other = (THPEvent*)_other;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return PyFloat_FromDouble(self->event.elapsedTime(other->event));
   END_HANDLE_TH_ERRORS
 }
@@ -222,7 +275,11 @@ static PyObject* THPEvent_elapsed_time(PyObject* _self, PyObject* _other) {
 static PyObject* THPEvent_synchronize(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS {
     pybind11::gil_scoped_release no_gil{};
+<<<<<<< HEAD
     auto self = reinterpret_cast<THPEvent*>(_self);
+=======
+    auto self = (THPEvent*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self->event.synchronize();
   }
   Py_RETURN_NONE;
@@ -231,7 +288,11 @@ static PyObject* THPEvent_synchronize(PyObject* _self, PyObject* noargs) {
 
 static PyObject* THPEvent_evend_id(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPEvent*>(_self);
+=======
+  auto self = (THPEvent*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return PyLong_FromVoidPtr(self->event.eventId());
   END_HANDLE_TH_ERRORS
 }
@@ -251,6 +312,7 @@ static PyObject* THPEvent_repr(THPEvent* self) {
 
 // NOLINTNEXTLINE(*c-arrays*, *global-variables)
 static struct PyGetSetDef THPEvent_properties[] = {
+<<<<<<< HEAD
     {"device",
      reinterpret_cast<getter>(THPEvent_get_device),
      nullptr,
@@ -261,6 +323,10 @@ static struct PyGetSetDef THPEvent_properties[] = {
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"device", (getter)THPEvent_get_device, nullptr, nullptr, nullptr},
+    {"event_id", (getter)THPEvent_evend_id, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 // NOLINTNEXTLINE(*c-arrays*, *global-variables)
@@ -288,12 +354,20 @@ PyTypeObject THPEventType = {
     "torch.Event", /* tp_name */
     sizeof(THPEvent), /* tp_basicsize */
     0, /* tp_itemsize */
+<<<<<<< HEAD
     reinterpret_cast<destructor>(THPEvent_dealloc), /* tp_dealloc */
+=======
+    (destructor)THPEvent_dealloc, /* tp_dealloc */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     0, /* tp_vectorcall_offset */
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPEvent_repr), /* tp_repr */
+=======
+    (reprfunc)THPEvent_repr, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
@@ -330,8 +404,12 @@ void THPEvent_init(PyObject* module) {
     throw python_error();
   }
   Py_INCREF(&THPEventType);
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "Event", reinterpret_cast<PyObject*>(&THPEventType)) < 0) {
+=======
+  if (PyModule_AddObject(module, "Event", (PyObject*)&THPEventType) < 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

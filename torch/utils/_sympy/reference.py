@@ -76,8 +76,12 @@ class ReferenceAnalysis:
 
     @staticmethod
     def not_(a):
+<<<<<<< HEAD
         if isinstance(a, bool):
             raise AssertionError("not_ needs sympy expr")
+=======
+        assert not isinstance(a, bool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ~a
 
     @staticmethod
@@ -176,7 +180,10 @@ class ReferenceAnalysis:
 
     @staticmethod
     def pow(a, b):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _keep_float(FloatPow)(a, b)
 
     @staticmethod

@@ -36,19 +36,29 @@ import re
 import sys
 import traceback
 import types
+<<<<<<< HEAD
 import weakref
 from collections.abc import Callable, MutableMapping
 from typing import Any, NamedTuple, Optional, TYPE_CHECKING, Union
+=======
+import warnings
+import weakref
+from collections.abc import MutableMapping
+from typing import Any, Callable, NamedTuple, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
 import torch
 from torch import SymInt
+<<<<<<< HEAD
 from torch._dispatch.python import enable_python_dispatcher
 from torch._dynamo.graph_bytecode_inputs import (
     get_user_object_by_index,
     register_user_object,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.utils import (
     get_metrics_context,
     is_int_specialization_case,
@@ -56,7 +66,10 @@ from torch._dynamo.utils import (
     set_feature_use,
 )
 from torch._guards import TracingContext
+<<<<<<< HEAD
 from torch._higher_order_ops.flat_apply import flat_apply
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.torchbind import call_torchbind
 from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensor, is_fake, maybe_get_fake_mode
@@ -64,7 +77,10 @@ from torch._subclasses.meta_utils import is_sparse_any, safe_grad
 from torch._utils_internal import justknobs_check
 from torch.fx.experimental._backward_state import BackwardState
 from torch.fx.experimental._dynamism import normalize_source_name
+<<<<<<< HEAD
 from torch.fx.experimental.sym_node import _DynamicScalar, DynamicInt
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import (
     _constrain_range_for_size,
     _nested_int_aware_sort,
@@ -106,19 +122,28 @@ from ..source import (
     ConvertIntSource,
     DictGetItemSource,
     DictSubclassGetItemSource,
+<<<<<<< HEAD
     DynamicScalarSource,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FloatTensorSource,
     GetItemSource,
     GradSource,
     is_constant_source,
+<<<<<<< HEAD
     is_from_closure_source,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_from_global_source,
     is_from_nonlocal_source,
     is_from_optimizer_source,
     is_from_unspecialized_nn_module_source,
     ListGetItemSource,
     LocalSource,
+<<<<<<< HEAD
     NonSerializableSetGetItemSource,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NumpyTensorSource,
     OptimizerSource,
     RandomValueSource,
@@ -140,7 +165,10 @@ from ..utils import (
     get_locals_to_steal,
     get_static_address_type,
     is_frozen_dataclass,
+<<<<<<< HEAD
     is_function,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_function_or_wrapper,
     is_invoke_subgraph,
     is_lru_cache_wrapped_function,
@@ -170,14 +198,25 @@ from .base import (
     VariableTracker,
     VariableTrackerMeta,
 )
+<<<<<<< HEAD
 from .builtin import BuiltinVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .constant import ConstantVariable, EnumVariable
 from .ctx_manager import (
     AutocastModeVariable,
     DynamoConfigPatchVariable,
+<<<<<<< HEAD
     ErrorOnGraphBreakVariable,
     NullContextVariable,
     PreserveVersionContextVariable,
+=======
+    EventVariable,
+    NullContextVariable,
+    PreserveVersionContextVariable,
+    StreamContextVariable,
+    StreamVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from .dicts import (
     ConstDictVariable,
@@ -209,10 +248,14 @@ from .functions import (
     UserMethodVariable,
     WrapperUserFunctionVariable,
 )
+<<<<<<< HEAD
 from .higher_order_ops import (
     LocalMapWrappedHigherOrderVariable,
     TorchHigherOrderOperatorVariable,
 )
+=======
+from .higher_order_ops import TorchHigherOrderOperatorVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .iter import ItertoolsVariable
 from .lazy import LazyVariableTracker
 from .lists import (
@@ -258,7 +301,10 @@ from .nn_module import (
 from .optimizer import OptimizerVariable
 from .script_object import TorchScriptObjectVariable
 from .sdpa import SDPAParamsVariable
+<<<<<<< HEAD
 from .streams import EventVariable, StreamContextVariable, StreamVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .tensor import (
     NumpyNdarrayVariable,
     supported_const_comparison_op_values,
@@ -289,7 +335,10 @@ from .user_defined import (
     UserDefinedExceptionClassVariable,
     UserDefinedListVariable,
     UserDefinedObjectVariable,
+<<<<<<< HEAD
     UserDefinedSetVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UserDefinedTupleVariable,
 )
 
@@ -315,7 +364,12 @@ DimList = list
 
 
 def safe_has_grad(t):
+<<<<<<< HEAD
     with torch._logging.hide_warnings(torch._logging._internal.safe_grad_filter):
+=======
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "The .grad attribute of a Tensor")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return hasattr(t, "grad")
 
 
@@ -444,6 +498,7 @@ class VariableBuilder:
             dup_guard = make_dupe_guard(self.source, side_effect_result.source)
             if dup_guard:
                 self.install_guards(dup_guard)
+<<<<<<< HEAD
 
             if isinstance(value, torch.nn.Module) and isinstance(
                 side_effect_result, UnspecializedNNModuleVariable
@@ -456,6 +511,8 @@ class VariableBuilder:
                 # lets return the old variable tracker but update its
                 # nn_module_stack
                 side_effect_result.set_nn_module_stack_source(self.source)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return side_effect_result
 
         cached_vt = self.tx.output.variable_tracker_cache.lookup(value, self.source)
@@ -467,6 +524,7 @@ class VariableBuilder:
         if vt.source is None:
             vt.source = self.source
 
+<<<<<<< HEAD
         def _is_deduplicable_sym_variable(value, vt):
             # Constants like 0, 1, 2, etc. can be unspecialized as SymNodeVariables sometimes, but we
             # should NOT track them. If we use a single SymNodeVariable instance to track them
@@ -481,6 +539,10 @@ class VariableBuilder:
                 self._can_lift_attrs_to_inputs(vt)
                 or _is_deduplicable_sym_variable(value, vt)
             )
+=======
+        if (
+            self._can_lift_attrs_to_inputs(vt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and value not in self.tx.output.side_effects
             and not is_wrapper_or_member_descriptor(value)
         ):
@@ -628,7 +690,11 @@ class VariableBuilder:
                 lambda self, value: LambdaVariable(
                     _dataclasses_fields_lambda,
                     source=self.source,
+<<<<<<< HEAD
                     **self.install_guards(GuardBuilder.CLOSURE_MATCH),
+=======
+                    **self.install_guards(GuardBuilder.FUNCTION_MATCH),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             ),
             (torch.__version__, lambda self, value: TorchVersionVariable()),
@@ -650,10 +716,14 @@ class VariableBuilder:
             has_triton_tensor_descriptor_host_tma,
         )
 
+<<<<<<< HEAD
         from ..decorators import (
             DynamoConfigPatchProxy,
             ErrorOnGraphBreakDecoratorContextManager,
         )
+=======
+        from ..decorators import DynamoConfigPatchProxy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if has_triton():
             from triton.runtime.autotuner import Autotuner
@@ -711,10 +781,20 @@ class VariableBuilder:
             )
             and type(value) not in config.nontraceable_tensor_subclasses
         ):
+<<<<<<< HEAD
             if (
                 type(value).__torch_dispatch__ is torch.Tensor.__torch_dispatch__
                 or is_traceable_wrapper_subclass(value)
             ):
+=======
+            if type(value).__torch_dispatch__ is torch.Tensor.__torch_dispatch__:
+                # This case it's either tensor or subclass with default
+                # torch_dispatch (they might override torch_function or not),
+                # and we can always trace into them.
+                return self.wrap_tensor(value)
+            elif is_traceable_wrapper_subclass(value):
+                # For non-default torch_dispatch, we have more requirements.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self.wrap_tensor(value)
 
         if is_namedtuple(value):
@@ -729,7 +809,11 @@ class VariableBuilder:
             result = NamedTupleVariable(
                 output, tuple_cls=type(value), source=self.source
             )
+<<<<<<< HEAD
             return self.tx.output.side_effects.track_object_existing(value, result)
+=======
+            return result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif istype(value, (dict, collections.defaultdict, collections.OrderedDict)):
             self.install_guards(GuardBuilder.TYPE_MATCH)
             all_const = all(ConstantVariable.is_literal(k) for k in value.keys())
@@ -805,6 +889,7 @@ class VariableBuilder:
             var = TorchFunctionModeVariable(value, source=self.source)
             self.tx.output.side_effects.track_object_existing(value, var)
             return var
+<<<<<<< HEAD
         elif istype(value, set):
             if any(isinstance(x, torch.Tensor) for x in value):
                 unimplemented_v2(
@@ -837,6 +922,8 @@ class VariableBuilder:
             ]
             result = SetVariable(items, source=self.source)
             return self.tx.output.side_effects.track_object_existing(value, result)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif istype(value, frozenset) and all(
             (
                 # For DBR quantization, we could get a frozenset of torch funcs.
@@ -865,14 +952,21 @@ class VariableBuilder:
             self.install_guards(GuardBuilder.BUILTIN_MATCH)
             return DebuggingVariable(value, source=self.source)
         elif isinstance(value, logging.Logger):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.TYPE_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return LoggingLoggerVariable(value, source=self.source)
         elif is_utils_checkpoint(value):
             return build_checkpoint_variable(source=self.source)
         elif is_invoke_subgraph(value):
             return build_invoke_subgraph_variable(source=self.source)
+<<<<<<< HEAD
         elif LocalMapWrappedHigherOrderVariable.should_wrap_in_hop(value):
             return LocalMapWrappedHigherOrderVariable.build(source=self.source)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(value, functools.partial):
             func_src = AttrSource(self.get_source(), "func")
             func_obj = VariableBuilder(self.tx, func_src)(value.func)
@@ -916,6 +1010,7 @@ class VariableBuilder:
             return self.wrap_numpy_ndarray(np.asarray(value))
         elif trace_rules.is_numpy(value):
             assert np
+<<<<<<< HEAD
             if istype(value, types.MethodType):
                 # Dont guard on cython functions as they dont change ids
                 if inspect.isfunction(value.__func__):
@@ -932,6 +1027,13 @@ class VariableBuilder:
                 self.install_guards(GuardBuilder.ID_MATCH)
             else:
                 self.install_guards(GuardBuilder.TYPE_MATCH)
+=======
+            self.install_guards(
+                GuardBuilder.FUNCTION_MATCH
+                if callable(value)
+                else GuardBuilder.TYPE_MATCH
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return NumpyVariable(value, source=self.source)
         elif trace_rules.is_numpy_dtype(value):
             self.install_guards(GuardBuilder.ID_MATCH)
@@ -946,14 +1048,22 @@ class VariableBuilder:
             return NumpyTypeInfoVariable(value, source=self.source)
         # NB: These can't be put in type_dispatch, they have to run later
         elif CollectiveFunctionRewriteVariable.can_rewrite(value):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.CLOSURE_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return CollectiveFunctionRewriteVariable.create(
                 self.tx,
                 value,
                 source=self.source,
             )
         elif istype(value, torch.autograd.function.FunctionMeta):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.CLASS_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return AutogradFunctionVariable(
                 value,
                 source=self.source,
@@ -997,11 +1107,15 @@ class VariableBuilder:
             and value == getattr(value.__self__, "apply", None)
         ):
             # handle aliased autograd function `apply` calls
+<<<<<<< HEAD
             install_guard(
                 AttrSource(self.get_source(), "__func__").make_guard(
                     GuardBuilder.CLOSURE_MATCH
                 )
             )
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return GetAttrVariable(
                 AutogradFunctionVariable(
                     value.__self__, source=AttrSource(self.source, member="__self__")
@@ -1015,7 +1129,11 @@ class VariableBuilder:
             value
             is torch._dynamo.external_utils.FakeCompiledAutogradEngine._exec_final_callbacks_stub
         ):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.CLOSURE_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return LambdaVariable(
                 lambda: UserFunctionVariable(
                     torch._dynamo.external_utils.FakeCompiledAutogradEngine.exec_final_callbacks,
@@ -1027,8 +1145,11 @@ class VariableBuilder:
             )
         elif isinstance(value, DynamoConfigPatchProxy):
             return DynamoConfigPatchVariable(value.changes)
+<<<<<<< HEAD
         elif isinstance(value, ErrorOnGraphBreakDecoratorContextManager):
             return ErrorOnGraphBreakVariable(value.error_on_graph_break)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif callable(value) and trace_rules.lookup_callable(value) is not None:
             if trace_rules.is_callable_allowed(value):
                 self.tx.output.has_user_defined_allowed_in_graph = True
@@ -1045,7 +1166,11 @@ class VariableBuilder:
                     explanation="Directly using invoke_subgraph is not supported. Use nested_compile_region",
                     hints=[],
                 )
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.TYPE_MATCH)
+=======
+            self.install_guards(GuardBuilder.TYPE_MATCH, GuardBuilder.NAME_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return TorchHigherOrderOperatorVariable.make(value, source=self.source)
         elif isinstance(value, torch.cuda.StreamContext):
             self.install_guards(GuardBuilder.ID_MATCH)
@@ -1053,6 +1178,7 @@ class VariableBuilder:
             stream_var = VariableBuilder(self.tx, stream_source)(value.stream)
             return StreamContextVariable.create(self.tx, stream_var)
         elif isinstance(value, torch.Stream):
+<<<<<<< HEAD
             # This refers to the device-agnostic torch.Stream
             self.install_guards(GuardBuilder.TYPE_MATCH)
             index = register_user_object(value, self.source)
@@ -1061,12 +1187,30 @@ class VariableBuilder:
             )
             set_example_value(stream_proxy.node, value)
             var = StreamVariable(
+=======
+            self.install_guards(GuardBuilder.ID_MATCH)
+            stream_proxy = self.tx.output.create_proxy(
+                "call_function",
+                type(value),
+                (),
+                {
+                    "stream_id": value.stream_id,
+                    "device_index": value.device_index,
+                    "device_type": value.device_type,
+                },
+            )
+            set_example_value(stream_proxy.node, value)
+            return StreamVariable(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 stream_proxy,
                 value,
                 value.device,
                 source=self.source,
             )
+<<<<<<< HEAD
             return self.tx.output.side_effects.track_object_existing(value, var)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(value, (torch._C._SDPAParams)):
             self.install_guards(GuardBuilder.TYPE_MATCH)
             return SDPAParamsVariable.create(self.tx, value, self.source)
@@ -1074,12 +1218,21 @@ class VariableBuilder:
             self.install_guards(GuardBuilder.ID_MATCH)
             return FuncTorchInterpreterVariable(value)
         elif isinstance(value, torch.Event):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.TYPE_MATCH)
             index = register_user_object(value, self.source)
             event_proxy = self.tx.output.create_proxy(
                 "call_function",
                 get_user_object_by_index,
                 (index,),
+=======
+            self.install_guards(GuardBuilder.ID_MATCH)
+            torch._dynamo.utils.store_user_object_weakref(value)
+            event_proxy = self.tx.output.create_proxy(
+                "call_function",
+                torch._dynamo.utils.get_user_object_from_id,
+                (id(value),),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 {},
             )
             set_example_value(event_proxy.node, value)
@@ -1130,6 +1283,7 @@ class VariableBuilder:
             id(value) in ITERTOOLS_TYPE_IDS
             and id(value) not in ITERTOOLS_POLYFILLED_TYPE_IDS
         ):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.CLASS_MATCH)
             return ItertoolsVariable(value, source=self.source)
         elif isinstance(value, _DynamicScalar):
@@ -1172,6 +1326,10 @@ class VariableBuilder:
             )
             self.tx.output.tracked_fakes.append(TrackedFake(node, source, None))
             return SymNodeVariable(sym_node_proxy, node)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+            return ItertoolsVariable(value, source=self.source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif is_torch_sym(value):
             # Note: this doesn't handle nested symints.
             # For SymBool input, we reuse the infra for SymInt by simulating SymBool with a SymInt in dynamo.
@@ -1264,10 +1422,14 @@ class VariableBuilder:
                 source=self.source,
             )
         elif TorchCtxManagerClassVariable.is_matching_cls(value):
+<<<<<<< HEAD
             if inspect.isclass(value):
                 self.install_guards(GuardBuilder.CLASS_MATCH)
             elif inspect.isfunction(value):
                 self.install_guards(GuardBuilder.CLOSURE_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return TorchCtxManagerClassVariable(value, source=self.source)
         elif inspect.getattr_static(value, "__script_if_tracing_wrapper", False):
             self.install_guards(GuardBuilder.TYPE_MATCH)
@@ -1301,12 +1463,15 @@ class VariableBuilder:
         ) and BuiltinMethodVariable.is_supported_builtin_method(value):
             self.install_guards(GuardBuilder.ID_MATCH)
             return BuiltinMethodVariable(value, source=self.source)
+<<<<<<< HEAD
         elif is_function(value) and value in (float.fromhex, float.hex):
             self.install_guards(GuardBuilder.ID_MATCH)
             return GetAttrVariable(
                 BuiltinVariable(float, source=self.source),
                 value.__name__,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif is_function_or_wrapper(value):
             value, attr_name = unwrap_with_attr_name_if_wrapper(value)
             # For these wrappers, Dynamo points to the wrapped function,
@@ -1330,7 +1495,11 @@ class VariableBuilder:
         # E.g, type(torch.ops) -> <class 'torch._ops._Ops'>,
         # type(torch.backends.cudnn) -> <class 'torch.backends.cudnn.CudnnModule'>
         elif isinstance(value, (types.ModuleType, replay_record.DummyModule)):
+<<<<<<< HEAD
             self.install_guards(GuardBuilder.MODULE_MATCH)
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = PythonModuleVariable(
                 value,
                 source=self.source,
@@ -1357,6 +1526,10 @@ class VariableBuilder:
             assert self_obj and isinstance(self_obj, VariableTracker), (
                 "Failed to produce a valid self obj"
             )
+<<<<<<< HEAD
+=======
+            self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return UserMethodVariable(
                 value.__func__,
                 self_obj,
@@ -1373,7 +1546,11 @@ class VariableBuilder:
         elif isinstance(value, types.MethodWrapperType):
             # Method-wrappers are written in C, and they are not guaranteed to
             # return the same object on attribute lookup. Therefore, we cannot
+<<<<<<< HEAD
             # insert a ID_MATCH guard here. method-wrappers are very
+=======
+            # insert a FUNCTION_MATCH guard here. method-wrappers are very
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # unlikely to change, so its ok to skip the guard here.
             return MethodWrapperVariable(value)
         elif issubclass(type(value), type) and issubclass(value, BaseException):
@@ -1391,7 +1568,11 @@ class VariableBuilder:
                     value, source=self.source
                 )
             if value is torch.autograd._unsafe_preserve_version_counter:
+<<<<<<< HEAD
                 self.install_guards(GuardBuilder.CLASS_MATCH)
+=======
+                self.install_guards(GuardBuilder.FUNCTION_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return PreserveVersionContextVariable.constructor(self.tx)
             if (
                 # `value` must be a strict subclass of `torch.Tensor`
@@ -1407,6 +1588,7 @@ class VariableBuilder:
                 and not is_traceable_wrapper_subclass_type(value)
             ):
                 return TensorSubclassVariable(value, source=self.source)
+<<<<<<< HEAD
 
             if not is_from_closure_source(self.source):
                 # For closure source, the variable comes from LOAD_SUPER_ATTR,
@@ -1417,6 +1599,11 @@ class VariableBuilder:
                 # ID_MATCH even if its a global variable.
                 self.install_guards(GuardBuilder.CLASS_MATCH)
 
+=======
+            # This is a userdefined class, so install an ID_MATCH even if its a
+            # global variable.
+            self.install_guards(GuardBuilder.ID_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return UserDefinedClassVariable(
                 value,
                 source=self.source,
@@ -1578,6 +1765,7 @@ class VariableBuilder:
             )
             result = UserDefinedListVariable(value, list_vt=list_vt, source=self.source)
             return self.tx.output.side_effects.track_object_existing(value, result)
+<<<<<<< HEAD
         elif isinstance(value, (set, frozenset)):
             self.install_guards(GuardBuilder.TYPE_MATCH)
             self.install_guards(GuardBuilder.SEQUENCE_LENGTH)
@@ -1600,6 +1788,11 @@ class VariableBuilder:
             self.install_guards(GuardBuilder.TYPE_MATCH)
             result = MutableMappingVariable(value, source=self.source)
             return self.tx.output.side_effects.track_object_existing(value, result)
+=======
+        elif issubclass(type(value), MutableMapping):
+            self.install_guards(GuardBuilder.TYPE_MATCH)
+            return MutableMappingVariable(value, source=self.source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif is_frozen_dataclass(value):
             self.install_guards(GuardBuilder.TYPE_MATCH)
             result = FrozenDataClassVariable.create(self.tx, value, source=self.source)
@@ -1732,8 +1925,11 @@ class VariableBuilder:
                 source=source,
             )
 
+<<<<<<< HEAD
             # Apply relevant logic from `VariableTracker.build(value[i])`
             # (except for the `create_graph_input` stuff).
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             guards = []
             for i, tensor_variable in enumerate(list_variable.items):
                 source_i = GetItemSource(base=source, index=i, index_is_slice=False)
@@ -1742,6 +1938,10 @@ class VariableBuilder:
                 tensor_variable.proxy.node.meta["tensor_dict"] = _extract_tensor_dict(
                     value[i]
                 )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 guard = functools.partial(
                     GuardBuilder.TENSOR_MATCH, value=TensorWeakRef(value[i])
                 )
@@ -1758,6 +1958,7 @@ class VariableBuilder:
             )
             tensor_list_proxy.node.meta["grapharg"] = grapharg
 
+<<<<<<< HEAD
             # The following is very important for maintaining the "python object
             # <==> variable tracker" 1-to-1 mapping, which is mainly handled via
             # `side_effects`. Note that constructing `tensor_variable` above
@@ -1779,6 +1980,8 @@ class VariableBuilder:
             for vt in output:
                 vt.realize()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = BaseListVariable.cls_for_instance(value)(output, source=self.source)
         if istype(value, (list, collections.deque)):
             return self.tx.output.side_effects.track_mutable(value, result)
@@ -1812,7 +2015,11 @@ class VariableBuilder:
         ]
         self.install_guards(GuardBuilder.TYPE_MATCH)
         if isinstance(value, slice):
+<<<<<<< HEAD
             return SliceVariable(items, self.tx, source=self.source)
+=======
+            return SliceVariable(items, source=self.source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return RangeVariable(items, source=self.source)
 
@@ -1970,8 +2177,11 @@ class VariableBuilder:
                 result = UnspecializedNNModuleVariable(value, source=new_source)
                 install_guard(new_source.make_guard(GuardBuilder.TYPE_MATCH))
 
+<<<<<<< HEAD
             self.tx.output.add_fqn_info_for_inlined_modules(value, self.source)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not SideEffects.cls_supports_mutation_side_effects(type(value)):
                 # don't allow STORE_ATTR mutation with custom __setattr__
                 return result
@@ -2021,12 +2231,15 @@ class VariableBuilder:
                             "integer into a tensor."
                         )
 
+<<<<<<< HEAD
                     process_automatic_dynamic(
                         self.tx,
                         self.source.name(),
                         FrameStateSizeEntry.make_scalar(value),
                         is_unspecialized_nn_module=self.source.guard_source().is_unspecialized_nn_module(),
                     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.install_guards(
                         functools.partial(
                             GuardBuilder.EQUALS_MATCH, recompile_hint=recompile_hint
@@ -2132,8 +2345,37 @@ class VariableBuilder:
             return self.tx.output.input_source_to_var[source]
 
         options = {}
+<<<<<<< HEAD
         subclass_type = infer_subclass_type(value)
         if subclass_type is not None:
+=======
+        if type(value) in (
+            torch.Tensor,
+            torch.nn.Parameter,
+            torch._subclasses.fake_tensor.FakeTensor,
+            torch._subclasses.functional_tensor.FunctionalTensor,
+        ) or is_traceable_wrapper_subclass(value):
+            # Ordinarily, we would fakeify a tensor so that it can get dynamic
+            # shapes and be computed on without triggering actual operations.
+            # However, how can we fakeify a tensor subclass?  Ordinary
+            # inheritance (nor multiple inheritance) won't work work.
+            #
+            # Instead, our plan is to *manually simulate* the tensor subclass
+            # inheriting from a fake tensor with dynamo.  This means our
+            # data representation for a tensor subclass will be a fake tensor
+            # + tensor subclass type + any extra data the subclass may have
+            # been storing on the tensor.  Because all Python accesses are
+            # mediated through TensorWithTFOverrideVariable, we can ensure
+            # that we dispatch differently, e.g., according to
+            # __torch_function__
+            #
+            # To simplify things for now, the __dict__ tracking bits haven't
+            # been implemented yet, but they can be added into this design at
+            # a later point in time.
+            subclass_type = None
+        else:
+            subclass_type = type(value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.install_guards(GuardBuilder.TYPE_MATCH)
 
         if get_static_address_type(value) == "guarded":
@@ -2898,6 +3140,7 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
     import torch._utils
 
     if isinstance(example_value, torch.Tensor):
+<<<<<<< HEAD
         # Check if the result is a sparse tensor -
         # We generally don't support sparse tensor so better to graph break here
         if is_sparse_any(example_value) and (
@@ -2909,6 +3152,8 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
                 explanation="torch.compile does not support sparse Tensors with VariableTracker",
                 hints=[*graph_break_hints.SUPPORTABLE],
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var = construct_tensor_variable(
             target_cls, tx, proxy, example_value, subclass_type, options
         )
@@ -3002,7 +3247,11 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
     elif example_value is None or proxy.node.target is torch.manual_seed:
         return ConstantVariable.create(None, **options)
     elif isinstance(example_value, (torch.SymInt, torch.SymFloat, torch.SymBool)):
+<<<<<<< HEAD
         tx.output.current_tracer.track_produced_symints(example_value, proxy)
+=======
+        tx.output.current_tracer.track_unbacked_symbols(example_value, proxy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         set_example_value(proxy.node, example_value)
         return SymNodeVariable(proxy, example_value, **options)
     elif (
@@ -3044,8 +3293,11 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
             torch.seed,
             operator.mod,
             torch._functorch.vmap._validate_and_get_batch_size,
+<<<<<<< HEAD
             torch._functorch.predispatch._vmap_increment_nesting,
             torch._functorch.predispatch._vmap_decrement_nesting,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # some mac builds are missing torch.distributed.get_rank()
             getattr(torch.distributed, "get_rank", _missing),
             getattr(torch.distributed, "get_world_size", _missing),
@@ -3055,7 +3307,11 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
         ]
         or (
             # TODO: this is a little sus, because we didn't check what the self is
+<<<<<<< HEAD
             proxy.node.op == "call_method" and proxy.node.target == "bit_length"
+=======
+            proxy.node.op == "call_method" and proxy.node.target in ["bit_length"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     ):
         set_example_value(proxy.node, example_value)
@@ -3073,21 +3329,30 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
             torch.backends.cuda.is_flash_attention_available,
             torch.backends.cuda.can_use_flash_attention,
             torch.backends.cuda.can_use_efficient_attention,
+<<<<<<< HEAD
             torch._C._get_cudnn_sdp_enabled,
             torch._C._get_flash_sdp_enabled,
             torch._C._get_mem_efficient_sdp_enabled,
             torch._C._get_math_sdp_enabled,
             torch._C._get_overrideable_sdp_enabled,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "is_integer",
         ]
         + list(supported_const_comparison_op_values.keys())
     ):
         set_example_value(proxy.node, example_value)
         return ConstantVariable.create(example_value, **options)
+<<<<<<< HEAD
     elif isinstance(example_value, (int, float, bool)) and (
         proxy.node.target is call_torchbind
         or proxy.node.target is flat_apply
         or (proxy.node.op == "call_method" and proxy.node.target == "item")
+=======
+    elif (
+        isinstance(example_value, (int, float, bool))
+        and proxy.node.target is call_torchbind
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         set_example_value(proxy.node, example_value)
         return ConstantVariable.create(example_value, **options)
@@ -3103,6 +3368,7 @@ def handle_traced_output(example_value, tx, proxy, options, subclass_type, targe
         )
 
 
+<<<<<<< HEAD
 def infer_subclass_type(value):
     if type(value) in (
         torch.Tensor,
@@ -3152,6 +3418,8 @@ def get_specialized_props(target_cls, tx, example_value, subclass_type):
     return specialized_props
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def construct_tensor_variable(
     target_cls, tx, proxy, example_value, subclass_type, options
 ):
@@ -3168,9 +3436,30 @@ def construct_tensor_variable(
     # So that subgraphs can access the unbacked symbol's proxy in parent graph
     # when lifting unbacked symbols of input tensors to subgraph inputs.
     # We do it lazily because the tensor may not be used in subgraphs.
+<<<<<<< HEAD
     if proxy.node.op != "placeholder":
         tx.output.current_tracer.track_produced_symints(example_value, proxy)
     options.update(get_specialized_props(target_cls, tx, example_value, subclass_type))
+=======
+    tx.output.current_tracer.track_unbacked_symbols(example_value, proxy)
+    specialized_props = target_cls.specialize(example_value)
+    # TODO: not sure about this fake mode test
+    if (
+        isinstance(example_value, torch._subclasses.fake_tensor.FakeTensor)
+        and example_value.fake_mode is tx.fake_mode
+    ):
+        if subclass_type:
+            tensor_type = subclass_type
+        elif isinstance(example_value, torch.nn.Parameter):
+            tensor_type = torch.nn.Parameter
+        elif isinstance(example_value, torch.nn.Buffer):
+            tensor_type = torch.nn.Buffer
+        else:
+            tensor_type = torch.Tensor
+        specialized_props["class_type"] = tensor_type
+
+    options.update(specialized_props)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return target_cls(proxy, **options)
 
 
@@ -3342,6 +3631,10 @@ def _automatic_dynamic(
         )
 
     if static_shapes and not is_dynamic_source(name):
+<<<<<<< HEAD
+=======
+        record_automatic_dynamic(tx, name, e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return StatefulSymbolicContext(
             dynamic_sizes=[DimDynamic.STATIC] * e.dim(),
             dynamic_strides=[DimDynamic.INFER_STRIDE] * e.dim(),
@@ -3458,10 +3751,18 @@ def _automatic_dynamic(
         if is_dynamic_source(name):
             log.debug("%s marked dynamic via source whitelist", name)
             automatic_dynamic_size = True
+<<<<<<< HEAD
+=======
+            automatic_dynamic_stride = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if is_unbacked_source(name):
             log.debug("%s marked unbacked via source whitelist", name)
             automatic_dynamic_size = True
+<<<<<<< HEAD
+=======
+            automatic_dynamic_stride = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         automatic_dynamic = automatic_dynamic_size or automatic_dynamic_stride
 
@@ -3592,6 +3893,7 @@ def wrap_to_fake_tensor_and_record(
             type(e),
         )
 
+<<<<<<< HEAD
         # Note [enable_python_dispatcher in dynamo]
         # Dynamo disables itself when it runs fake tensor prop, which means that tensor subclasses
         # have no way to know (purely based off of global state) if they are currently being run under compile or not.
@@ -3605,6 +3907,15 @@ def wrap_to_fake_tensor_and_record(
                     symbolic_context=symbolic_context,
                 )
             )
+=======
+        fake_e = wrap_fake_exception(
+            lambda: tx.fake_mode.from_tensor(
+                e,
+                source=source,
+                symbolic_context=symbolic_context,
+            )
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             source is not None
             and isinstance(fake_e, FakeTensor)
@@ -3696,12 +4007,15 @@ class SourcelessBuilder:
             if trace_rules.is_callable_allowed(value):
                 tx.output.has_user_defined_allowed_in_graph = True
             return trace_rules.lookup_callable(value)(value)
+<<<<<<< HEAD
         elif callable(value) and UserDefinedClassVariable.is_supported_new_method(
             value
         ):
             # NamedTuple._make uses an alias of tuple.__new__
             obj = trace_rules.lookup_callable(value.__self__)(value.__self__)
             return GetAttrVariable(obj, "__new__")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif is_function_or_wrapper(value):
             return trace_rules.lookup(value)(value)
         elif isinstance(
@@ -3727,7 +4041,13 @@ class SourcelessBuilder:
                 pass  # failthrough to unimplemented branch
         elif isinstance(value, torch.fx.graph_module.GraphModule):
             return SourcelessGraphModuleVariable(value)
+<<<<<<< HEAD
         elif isinstance(value, torch.utils._pytree.TreeSpec):
+=======
+        elif isinstance(
+            value, (torch.utils._pytree.TreeSpec, torch.utils._pytree.LeafSpec)
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return UserDefinedObjectVariable(value)
         elif PlacementVariable.is_placement(value):
             return PlacementVariable(value)

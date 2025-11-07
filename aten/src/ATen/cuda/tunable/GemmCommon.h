@@ -13,7 +13,10 @@
 #include <c10/core/ScalarType.h>
 
 #include <ATen/cuda/tunable/TunableOp.h>
+<<<<<<< HEAD
 #include <ATen/cuda/tunable/Tunable.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/cuda/CUDABlas.h>
 #include <ATen/cuda/Exceptions.h>
 #include <c10/util/StringUtil.h>
@@ -30,8 +33,11 @@
 
 namespace at::cuda::tunable {
 
+<<<<<<< HEAD
 using at::blas::ScalingType;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum class BlasOp {
   N = 0,
   T = 1
@@ -151,7 +157,10 @@ inline std::string ScalarTypeToBLASType(c10::ScalarType scalar_type) {
       BLASType = "unknown";
   }
   return BLASType;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Similar to Compute Type in GemmRocblas.h
@@ -164,7 +173,11 @@ inline std::string ComputeTypeFor() {
 // ROCBLAS and hipBLASLt.
 template <>
 inline std::string ComputeTypeFor<float>() {
+<<<<<<< HEAD
   if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) != at::Float32Precision::TF32) {
+=======
+  if (!at::globalContext().allowTF32CuBLAS()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return "f32_r";
   } else {
     return "xf32_r";
@@ -246,6 +259,7 @@ inline std::string to_string_epilogue(const at::cuda::blas::GEMMAndBiasActivatio
 
 namespace detail {
 
+<<<<<<< HEAD
 static bool NumericalCheck(ScalarType dtype, void* c, void* other_c, int64_t size, const NumericalCheckConfig& config) {
 
   if (!config.enabled) {
@@ -253,10 +267,16 @@ static bool NumericalCheck(ScalarType dtype, void* c, void* other_c, int64_t siz
   }
 
   auto options = at::TensorOptions().dtype(dtype).device(at::kCUDA);
+=======
+static bool NumericalCheck(ScalarType dtype, void* c, void* other_c, int64_t size) {
+  auto options = at::TensorOptions().dtype(dtype).device(at::kCUDA);
+  // comparison done as 1D tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor ref = at::from_blob(c,       {size}, options);
   at::Tensor oth = at::from_blob(other_c, {size}, options);
   at::Tensor ref_float = ref.to(at::kFloat);
   at::Tensor oth_float = oth.to(at::kFloat);
+<<<<<<< HEAD
 
   const bool ok = at::allclose(ref_float, oth_float, config.rtol, config.atol);
   if (ok) {
@@ -265,6 +285,28 @@ static bool NumericalCheck(ScalarType dtype, void* c, void* other_c, int64_t siz
     TUNABLE_LOG3("├──verify numerics: FAILED with atol=", config.atol, ", rtol=", config.rtol);
   }
   return ok;
+=======
+  std::vector<double> atols{1e-1, 1e-2, 1e-3, 1e-4, 1e-5};
+  std::vector<double> rtols{1e-1, 1e-2, 1e-3, 1e-4, 1e-5};
+  double last_succeed_atol = 1;
+  double last_succeed_rtol = 1;
+  for (auto& atol : atols) {
+    for (auto& rtol : rtols) {
+      if (at::allclose(ref_float, oth_float, rtol, atol)) {
+        last_succeed_atol = atol;
+        last_succeed_rtol = rtol;
+      }
+    }
+  }
+  if (last_succeed_atol == 1) {
+    return false;
+  }
+  else {
+    TUNABLE_LOG3("├──verify numerics: atol=", last_succeed_atol, ", rtol=", last_succeed_rtol);
+  }
+
+  return true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 }
@@ -349,10 +391,15 @@ struct GemmParams : OpParams {
   }
 
   TuningStatus NumericalCheck(GemmParams<T> *other) {
+<<<<<<< HEAD
     auto* ctx = getTuningContext();
     auto cfg = ctx->GetNumericalCheckConfig();
     auto c_dtype = c10::CppTypeToScalarType<T>::value;
     return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T), cfg) ? OK : FAIL;
+=======
+    auto c_dtype = c10::CppTypeToScalarType<T>::value;
+    return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T)) ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   char transa{};
@@ -445,10 +492,15 @@ struct GemmAndBiasParams : OpParams {
   }
 
   TuningStatus NumericalCheck(GemmAndBiasParams<T> *other) {
+<<<<<<< HEAD
     auto* ctx = getTuningContext();
     auto cfg = ctx->GetNumericalCheckConfig();
     auto c_dtype = c10::CppTypeToScalarType<T>::value;
     return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T), cfg) ? OK : FAIL;
+=======
+    auto c_dtype = c10::CppTypeToScalarType<T>::value;
+    return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T)) ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   char transa{};
@@ -544,10 +596,15 @@ struct GemmStridedBatchedParams : OpParams {
   }
 
   TuningStatus NumericalCheck(GemmStridedBatchedParams<T> *other) {
+<<<<<<< HEAD
     auto* ctx = getTuningContext();
     auto cfg = ctx->GetNumericalCheckConfig();
     auto c_dtype = c10::CppTypeToScalarType<C_Dtype>::value;
     return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T), cfg) ? OK : FAIL;
+=======
+    auto c_dtype = c10::CppTypeToScalarType<C_Dtype>::value;
+    return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T)) ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   char transa{};
@@ -600,8 +657,12 @@ struct ScaledGemmParams : OpParams {
     //
     // In TunableOp, we must distinguish in param signature these two cases: with and without a bias vector.
     return fmt::sprintf("%c%c_%ld_%ld_%ld_ld_%ld_%ld_%ld_rw_%d_bias_%s",
+<<<<<<< HEAD
       transa, transb, m, n, k, lda, ldb, ldc,
       a_scaling_type == ScalingType::RowWise && b_scaling_type == ScalingType::RowWise,
+=======
+      transa, transb, m, n, k, lda, ldb, ldc, use_rowwise,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       bias_ptr == nullptr ? "None" : at::toString(bias_dtype));
   }
 
@@ -663,9 +724,13 @@ struct ScaledGemmParams : OpParams {
   }
 
   TuningStatus NumericalCheck(ScaledGemmParams<T> *other) {
+<<<<<<< HEAD
     auto* ctx = getTuningContext();
     auto cfg = ctx->GetNumericalCheckConfig();
     return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T), cfg) ? OK : FAIL;
+=======
+    return detail::NumericalCheck(c_dtype, c, other->c, GetSizeC()/sizeof(T)) ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   char transa{};
@@ -678,13 +743,19 @@ struct ScaledGemmParams : OpParams {
   int64_t lda{};
   ScalarType a_dtype{};
   ScalarType a_scale_dtype{};
+<<<<<<< HEAD
   ScalingType a_scaling_type{};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const void* b{};
   const void* b_scale_ptr{};
   int64_t ldb{};
   ScalarType b_dtype{};
   ScalarType b_scale_dtype{};
+<<<<<<< HEAD
   ScalingType b_scaling_type{};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const void* bias_ptr{};
   ScalarType bias_dtype{};
   void* c{};
@@ -693,6 +764,10 @@ struct ScaledGemmParams : OpParams {
   ScalarType c_dtype{};
   void* amax_ptr{};
   bool use_fast_accum{};
+<<<<<<< HEAD
+=======
+  bool use_rowwise{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 private:
   bool duplicate_inputs_{false};
 };

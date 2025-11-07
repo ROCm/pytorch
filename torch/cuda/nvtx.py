@@ -53,7 +53,10 @@ def range_start(msg) -> int:
     Args:
         msg (str): ASCII message to associate with the range.
     """
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _nvtx.rangeStartA(msg)
 
 
@@ -64,7 +67,10 @@ def range_end(range_id) -> None:
     Args:
         range_id (int): an unique handle for the start range.
     """
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _nvtx.rangeEnd(range_id)
 
 
@@ -85,7 +91,10 @@ def _device_range_start(msg: str, stream: int = 0) -> object:
         msg (str): ASCII message to associate with the range.
         stream (int): CUDA stream id.
     """
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _nvtx.deviceRangeStart(msg, stream)
 
 
@@ -98,7 +107,10 @@ def _device_range_end(range_handle: object, stream: int = 0) -> None:
         range_handle: an unique handle for the start range.
         stream (int): CUDA stream id.
     """
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _nvtx.deviceRangeEnd(range_handle, stream)
 
 

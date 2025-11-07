@@ -26,7 +26,10 @@ from torch._dynamo.utils import counters, dynamo_timed
 from torch._inductor.codegen.debug_utils import DebugPrinterManager
 from torch._inductor.codegen.multi_kernel import MultiKernelState
 from torch._inductor.runtime.runtime_utils import cache_dir
+<<<<<<< HEAD
 from torch._logging import trace_structured
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import (
     CallMethodKey,
     ConvertIntKey,
@@ -48,11 +51,18 @@ from ..utils import (
     cache_on_self,
     DelayReplaceLine,
     get_benchmark_name,
+<<<<<<< HEAD
     get_dtype_size,
     IndentedBuffer,
     is_codegen_graph_partition_subgraph,
     is_using_cudagraph_partition,
     LineContext,
+=======
+    IndentedBuffer,
+    is_codegen_graph_partition_subgraph,
+    LineContext,
+    set_kernel_post_grad_provenance_tracing,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_product,
     sympy_str,
     sympy_subs,
@@ -228,6 +238,7 @@ def user_defined_kernel_grid_fn_code(
                 key=lambda x: len(x[1].kwargs),
                 reverse=True,
             ):
+<<<<<<< HEAD
                 guardslist = []
                 if c.kwargs:
                     # Remove AMD specific kwargs.
@@ -240,6 +251,13 @@ def user_defined_kernel_grid_fn_code(
                             guardslist.append(f"meta['{kwarg}'] == {c.kwargs[kwarg]}")
                 if guardslist:
                     guards = " and ".join(guardslist)
+=======
+                if c.kwargs:
+                    guards = [
+                        f"meta['{name}'] == {val}" for name, val in c.kwargs.items()
+                    ]
+                    guards = " and ".join(guards)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     guards = "True"  # for configs with empty kwargs
                 grid, example_grid = determine_grid(grid, example_grid)
@@ -261,7 +279,10 @@ def user_defined_triton_kernel_transitive_closure_source_code(kernel) -> str:
     compile_wrapper.splice(kernel.src, strip=True)
 
     # Also include any possible kernel being called indirectly
+<<<<<<< HEAD
     import triton
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from triton import JITFunction  # type: ignore[name-defined, attr-defined]
     from triton.language import constexpr  # type: ignore[name-defined]
 
@@ -290,6 +311,7 @@ def user_defined_triton_kernel_transitive_closure_source_code(kernel) -> str:
                     compile_wrapper.splice(symbol.src, strip=True)
                     symbols_included.add(symbol_name)
                     traverse(symbol)
+<<<<<<< HEAD
                 elif hasattr(triton, "constexpr_function") and isinstance(
                     symbol, triton.runtime.jit.ConstexprFunction
                 ):
@@ -298,6 +320,8 @@ def user_defined_triton_kernel_transitive_closure_source_code(kernel) -> str:
                     compile_wrapper.splice(symbol.src, strip=True)
                     symbols_included.add(symbol_name)
                     traverse(symbol)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elif isinstance(symbol, (int, str, bool, constexpr)):
                     compile_wrapper.newline()
                     if isinstance(symbol, constexpr):
@@ -340,7 +364,11 @@ def user_defined_triton_kernel_transitive_closure_source_code(kernel) -> str:
 
 @dataclasses.dataclass
 class SymbolicCallArg:
+<<<<<<< HEAD
     inner: sympy.Symbol
+=======
+    inner: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # the original symbolic expression represented by inner
     inner_expr: sympy.Expr
 
@@ -371,7 +399,11 @@ class MemoryPlanningState:
 
 class WrapperLine:
     def codegen_fx(self, converter: FxConverter) -> FxConversionFunc:
+<<<<<<< HEAD
         raise NotImplementedError(f"FX codegen not yet supported for type {type(self)}")
+=======
+        raise NotImplementedError("FX codegen not yet supported for type {type(self)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclasses.dataclass
@@ -391,6 +423,7 @@ class EnterSubgraphLine(WrapperLine):
 
 
 @dataclasses.dataclass
+<<<<<<< HEAD
 class ConditionalLine(WrapperLine):
     wrapper: PythonWrapperCodegen
     node: ir.Conditional
@@ -404,6 +437,8 @@ class ConditionalLine(WrapperLine):
 
 
 @dataclasses.dataclass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CommentLine(WrapperLine):
     line: LineContext
 
@@ -416,6 +451,7 @@ class CommentLine(WrapperLine):
 
 
 @dataclasses.dataclass
+<<<<<<< HEAD
 class DynamicScalarLine(WrapperLine):
     wrapper: PythonWrapperCodegen
     node: ir.DynamicScalar
@@ -429,6 +465,8 @@ class DynamicScalarLine(WrapperLine):
 
 
 @dataclasses.dataclass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ExitSubgraphLine(WrapperLine):
     wrapper: PythonWrapperCodegen
 
@@ -522,6 +560,12 @@ class ExternKernelOutLine(WrapperLine):
         else:
             kernel_name = node.get_kernel_name()
         device = d.type if (d := node.get_device()) else V.graph.device_type
+<<<<<<< HEAD
+=======
+        # set provenance tracing kernel mapping for ExternKernel types
+        if config.trace.enabled:
+            set_kernel_post_grad_provenance_tracing(node, kernel_name, is_extern=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.wrapper._generate_extern_kernel_out_helper(
             kernel_name,
             node.codegen_reference(),
@@ -627,6 +671,7 @@ class MemoryPlanningLine(WrapperLine):
         return f"{type(self).__name__}({', '.join(args)})"
 
 
+<<<<<<< HEAD
 class EfficientPeakEstimate:
     def __init__(self):
         from ..memory import estimate_peak_memory, get_freeable_input_buf
@@ -667,10 +712,13 @@ class EfficientPeakEstimate:
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class AllocateLine(MemoryPlanningLine):
     node: BufferLike
 
+<<<<<<< HEAD
     def __post_init__(self):
         assert V.graph.scheduler.current_node is not None
         self.scheduler_node_index = V.graph.scheduler.nodes.index(
@@ -685,6 +733,8 @@ class AllocateLine(MemoryPlanningLine):
         new_peak_memory = size + peak_memory_in_range
         return new_peak_memory <= overall_peak_memory
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def plan(self, state: MemoryPlanningState) -> MemoryPlanningLine:
         if self.node.get_name() in V.graph.removed_buffers:
             return NullLine(self.wrapper)
@@ -693,6 +743,7 @@ class AllocateLine(MemoryPlanningLine):
         key = buffer_reuse_key(self.node)
         if config.allow_buffer_reuse and key in state:
             free_line = state.pop(key)
+<<<<<<< HEAD
             size = V.graph.sizevars.size_hint(
                 V.graph.get_allocation_storage_size(self.node), fallback=0
             ) * get_dtype_size(self.node.get_dtype())
@@ -703,6 +754,10 @@ class AllocateLine(MemoryPlanningLine):
             else:
                 state.push(key, free_line)
                 return self
+=======
+            free_line.is_reused = True
+            return ReuseLine(self.wrapper, free_line.node, self.node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.node.get_device_or_error().type == "cpu":
             static_shape = self.wrapper.static_shape_for_buffer_or_none(self.node)
@@ -727,12 +782,15 @@ class FreeIfNotReusedLine(MemoryPlanningLine):
     node: BufferLike
     is_reused: bool = False
 
+<<<<<<< HEAD
     def __post_init__(self):
         assert V.graph.scheduler.current_node is not None
         self.scheduler_node_index = V.graph.scheduler.nodes.index(
             V.graph.scheduler.current_node
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def plan(self, state: MemoryPlanningState) -> MemoryPlanningLine:
         if len(self.node.get_inputs_that_alias_output()) > 0:
             return self
@@ -928,6 +986,7 @@ class MultiOutputLine(WrapperLine):
 
 
 @dataclasses.dataclass
+<<<<<<< HEAD
 class IndexPutFallbackLine(WrapperLine):
     wrapper: PythonWrapperCodegen
     node: ir.IndexPutFallback
@@ -978,6 +1037,8 @@ class ScatterFallbackLine(WrapperLine):
 
 
 @dataclasses.dataclass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SymbolicCallArgLine(WrapperLine):
     wrapper: PythonWrapperCodegen
     arg: SymbolicCallArg
@@ -990,6 +1051,7 @@ class SymbolicCallArgLine(WrapperLine):
         return converter._generate_symbolic_call_arg
 
 
+<<<<<<< HEAD
 @dataclasses.dataclass
 class UnbackedSymbolDefsLine(WrapperLine):
     wrapper: PythonWrapperCodegen
@@ -1006,6 +1068,8 @@ class UnbackedSymbolDefsLine(WrapperLine):
         return converter._generate_unbacked_symbol_defs
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BufferName = str
 Line = Union[MemoryPlanningLine, LineContext]
 
@@ -1128,7 +1192,10 @@ class PythonWrapperCodegen(CodeGen):
         return PythonWrapperCodegen()
 
     def set_launcher_fn_name(self) -> None:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.launcher_fn_name = "call"
 
     def write_constant(self, name: str, hashed: str) -> None:
@@ -1139,12 +1206,18 @@ class PythonWrapperCodegen(CodeGen):
         aot_config_comment = ""
         if context is not None and context.aot_graph_name is not None:
             aot_config_comment = f"# AOT ID: {context.aot_graph_name}"
+<<<<<<< HEAD
         inductor_debug_utils = ""
         if int(config.aot_inductor.debug_intermediate_value_printer) > 0:
             inductor_debug_utils = "from torch._inductor.codegen.debug_utils import _print_debugging_tensor_value_info"
         elif torch._inductor.config.test_configs.track_memory_lifecycle:
             inductor_debug_utils = "from torch._inductor.runtime.debug_utils import tracked_empty_strided\n"
 
+=======
+        aot_inductor_debug_utils = ""
+        if int(config.aot_inductor.debug_intermediate_value_printer) > 0:
+            aot_inductor_debug_utils = "from torch._inductor.codegen.debug_utils import _print_debugging_tensor_value_info"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.imports.splice(
             f"""
                 {aot_config_comment}
@@ -1162,7 +1235,11 @@ class PythonWrapperCodegen(CodeGen):
                 from torch import device, empty_strided
                 from {async_compile.__name__} import AsyncCompile
                 from torch._inductor.select_algorithm import extern_kernels
+<<<<<<< HEAD
                 {inductor_debug_utils}
+=======
+                {aot_inductor_debug_utils}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """,
             strip=True,
         )
@@ -1174,10 +1251,15 @@ class PythonWrapperCodegen(CodeGen):
                 assert_size_stride = torch._C._dynamo.guards.assert_size_stride
                 assert_alignment = torch._C._dynamo.guards.assert_alignment
                 empty_strided_cpu = torch._C._dynamo.guards._empty_strided_cpu
+<<<<<<< HEAD
                 empty_strided_cpu_pinned = torch._C._dynamo.guards._empty_strided_cpu_pinned
                 empty_strided_cuda = torch._C._dynamo.guards._empty_strided_cuda
                 empty_strided_xpu = torch._C._dynamo.guards._empty_strided_xpu
                 empty_strided_mtia = torch._C._dynamo.guards._empty_strided_mtia
+=======
+                empty_strided_cuda = torch._C._dynamo.guards._empty_strided_cuda
+                empty_strided_xpu = torch._C._dynamo.guards._empty_strided_xpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 reinterpret_tensor = torch._C._dynamo.guards._reinterpret_tensor
                 alloc_from_pool = torch.ops.inductor._alloc_from_pool
                 async_compile = AsyncCompile()
@@ -1219,6 +1301,7 @@ class PythonWrapperCodegen(CodeGen):
             """
         )
 
+<<<<<<< HEAD
         try:
             from torch._C import _cuda_getCurrentRawStream  # noqa: F401
 
@@ -1231,6 +1314,8 @@ class PythonWrapperCodegen(CodeGen):
         except (ImportError, AttributeError):
             pass
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @cache_on_self
     def write_triton_header_once(self) -> None:
         import_str = f"""
@@ -1250,6 +1335,7 @@ class PythonWrapperCodegen(CodeGen):
             )
 
     def write_get_raw_stream_header(self) -> None:
+<<<<<<< HEAD
         import_get_raw_stream_str = V.graph.device_ops.import_get_raw_stream_as(
             "get_raw_stream"
         )
@@ -1259,23 +1345,42 @@ class PythonWrapperCodegen(CodeGen):
         if not V.graph.cpp_wrapper:
             if not self.imports.contains(import_get_raw_stream_str):
                 self.imports.writeline(import_get_raw_stream_str)
+=======
+        if config.triton.autotune_at_compile_time:
+            self.kernel_autotune_calls.writeline(
+                V.graph.device_ops.import_get_raw_stream_as("get_raw_stream")
+            )
+        if not V.graph.cpp_wrapper:
+            self.imports.writeline(
+                V.graph.device_ops.import_get_raw_stream_as("get_raw_stream")
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @cache_on_self
     def write_get_raw_stream_header_once(self) -> None:
         self.write_get_raw_stream_header()
 
     def add_meta_once(self, meta: TritonMetaParams) -> str:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         meta = repr(meta)
         if meta not in self._metas:
             var = f"meta{len(self._metas)}"
             # pyrefly: ignore [unsupported-operation]
+=======
+        meta = repr(meta)
+        if meta not in self._metas:
+            var = f"meta{len(self._metas)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._metas[meta] = var
             self.header.writeline(f"{var} = {meta}")
             if config.triton.autotune_at_compile_time:
                 self.kernel_autotune_calls.writeline(f"{var} = {meta}")
                 self._meta_vars.add(var)
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._metas[meta]
 
     @cache_on_self
@@ -1389,6 +1494,7 @@ class PythonWrapperCodegen(CodeGen):
                 self.write_args(graph_input_names)
 
             self.codegen_inputs()
+<<<<<<< HEAD
 
             # avoid duplicating asserts for both partition functions and
             # the call function when using cudagraph partition
@@ -1397,6 +1503,9 @@ class PythonWrapperCodegen(CodeGen):
                 and (not is_codegen_graph_partition_subgraph(self))
             ):
                 self.codegen_input_size_and_nan_asserts()
+=======
+            self.codegen_input_size_and_nan_asserts()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_input_size_and_nan_asserts(self) -> None:
         if config.size_asserts:
@@ -1408,7 +1517,11 @@ class PythonWrapperCodegen(CodeGen):
     # that stream caching happens per graph instance. this
     # is important for nested subgraph codegening.
     def write_get_raw_stream(self, device_idx: int, graph_name: str) -> str:
+<<<<<<< HEAD
         self.write_get_raw_stream_header()
+=======
+        self.write_get_raw_stream_header_once()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = f"stream{device_idx}"
         if config.triton.autotune_at_compile_time:
             self.kernel_autotune_calls.writeline(
@@ -1451,6 +1564,12 @@ class PythonWrapperCodegen(CodeGen):
                 f"with {V.graph.device_ops.device_guard(device_idx)}:"
             )
             self.kernel_autotune_calls.do_indent()
+<<<<<<< HEAD
+=======
+            self.kernel_autotune_calls.writeline(
+                V.graph.device_ops.set_device(device_idx)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if is_codegen_graph_partition_subgraph(self):
                 # Need get_raw_stream for subgraph
                 self.write_get_raw_stream_header()
@@ -1611,10 +1730,14 @@ class PythonWrapperCodegen(CodeGen):
         line = f"{desc.name} = {call}{self.ending}"
         self.writeline(line)
 
+<<<<<<< HEAD
     def generate_scatter_fallback(self, node: ir.ScatterFallback):
         self.writeline(ScatterFallbackLine(self, node))
 
     def _generate_scatter_fallback(
+=======
+    def generate_scatter_fallback(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         output,
         inputs,
@@ -1633,6 +1756,7 @@ class PythonWrapperCodegen(CodeGen):
         line += ")"
         self.writeline(line)
 
+<<<<<<< HEAD
     def generate_index_put_fallback(self, node: ir.IndexPutFallback) -> None:
         # Collect index tensors into a list.
         indices: list[Optional[ir.IRNode]] = []
@@ -1649,6 +1773,9 @@ class PythonWrapperCodegen(CodeGen):
         self.writeline(IndexPutFallbackLine(self, node, indices))
 
     def _generate_index_put_fallback(self, kernel, x, indices, values, accumulate):
+=======
+    def generate_index_put_fallback(self, kernel, x, indices, values, accumulate):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         indices_str = f"[{', '.join(indices)}]"
         args = [x, indices_str, values, accumulate]
         self.writeline(self.wrap_kernel_call(kernel, args))
@@ -1711,7 +1838,10 @@ class PythonWrapperCodegen(CodeGen):
             with self.set_writeline(self.wrapper_call.writeline):
                 for line in self.lines:
                     if isinstance(line, WrapperLine):
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         line.codegen(self.wrapper_call)
                     else:
                         self.wrapper_call.writeline(line)
@@ -1806,6 +1936,7 @@ class PythonWrapperCodegen(CodeGen):
                 "Auto-tuning code written to %s",
                 file_path,
             )
+<<<<<<< HEAD
         trace_structured(
             "artifact",
             metadata_fn=lambda: {
@@ -1814,6 +1945,8 @@ class PythonWrapperCodegen(CodeGen):
             },
             payload_fn=lambda: tuning_code,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Execute the code to autotune kernels
         try:
             exec(tuning_code, scope)
@@ -1826,8 +1959,12 @@ class PythonWrapperCodegen(CodeGen):
         self.lines = MemoryPlanner(self).plan(self.lines)
 
     def memory_plan_reuse(self):
+<<<<<<< HEAD
         outputs = self.get_graph_outputs()
         out_names = V.graph._get_output_names(outputs)
+=======
+        out_names = V.graph.get_output_names()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         while (
             self.lines
@@ -1864,8 +2001,11 @@ class PythonWrapperCodegen(CodeGen):
         if is_inference and config.memory_planning:
             self.memory_plan()
         else:
+<<<<<<< HEAD
             if config.allow_buffer_reuse:
                 self.estimate_peak = EfficientPeakEstimate()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.memory_plan_reuse()
 
     def codegen_input_symbol_assignment(
@@ -1957,8 +2097,12 @@ class PythonWrapperCodegen(CodeGen):
                 return
             self.computed_sizes.add(sym)
             expr = V.graph.sizevars.inv_precomputed_replacements[sym]
+<<<<<<< HEAD
             arg = SymbolicCallArg(sym, expr)
             self.writeline(SymbolicCallArgLine(self, arg, V.graph))
+=======
+            self.writeline(f"{sym} = {pexpr(expr)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def finalize_prefix(self):
         pass
@@ -1986,9 +2130,13 @@ class PythonWrapperCodegen(CodeGen):
     def codegen_shape_tuple(self, shape: Sequence[Expr]) -> str:
         return self.codegen_python_shape_tuple(shape)
 
+<<<<<<< HEAD
     def codegen_alloc_from_pool(
         self, name, offset, dtype, shape, stride
     ) -> tuple[str, list[str]]:
+=======
+    def codegen_alloc_from_pool(self, name, offset, dtype, shape, stride) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return "alloc_from_pool({})".format(
             ", ".join(
                 [
@@ -1999,7 +2147,11 @@ class PythonWrapperCodegen(CodeGen):
                     self.codegen_python_shape_tuple(stride),
                 ]
             )
+<<<<<<< HEAD
         ), []
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_reinterpret_view(
         self,
@@ -2030,11 +2182,16 @@ class PythonWrapperCodegen(CodeGen):
                     f"reinterpret_tensor({data.get_name()}, {size}, {stride}, {offset})"
                 )
 
+<<<<<<< HEAD
     def codegen_device_copy(self, src, dst, non_blocking: Union[bool, str]):
+=======
+    def codegen_device_copy(self, src, dst, non_blocking: bool):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.writeline(f"{dst}.copy_({src}, {non_blocking})")
 
     def codegen_multi_output(self, node: ir.MultiOutput):
         result_name = node.get_name()
+<<<<<<< HEAD
         arg_name = node.input_name(0)
         self.writeline(MultiOutputLine(self, result_name, arg_name, node.indices))
 
@@ -2076,6 +2233,12 @@ class PythonWrapperCodegen(CodeGen):
         self.writeline(DynamicScalarLine(self, node))
 
     def _codegen_dynamic_scalar(self, node):
+=======
+        arg_name = node.inputs[0].get_name()
+        self.writeline(MultiOutputLine(self, result_name, arg_name, node.indices))
+
+    def codegen_dynamic_scalar(self, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (data,) = (t.codegen_reference() for t in node.inputs)
         if len(node.keypath) == 0:
             self.writeline(f"{node.sym} = {data}.item()")
@@ -2230,10 +2393,13 @@ class PythonWrapperCodegen(CodeGen):
     def _format_kernel_definition(
         kernel_name: str, kernel_body: str, metadata: Optional[str] = None
     ):
+<<<<<<< HEAD
         if config.triton.autotune_at_compile_time and metadata:
             # Generating autotune block
             # Need to replace C++ comment starter with Python comment starter
             metadata = re.sub(r"^// ", "# ", metadata, flags=re.MULTILINE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metadata_comment = f"{metadata}\n" if metadata else ""
         body = f"\n\n{metadata_comment}{kernel_name} = {kernel_body}"
         return body
@@ -2247,8 +2413,14 @@ class PythonWrapperCodegen(CodeGen):
         cpp_definition: Optional[str] = None,
     ):
         if config.triton.autotune_at_compile_time:
+<<<<<<< HEAD
             body = self._format_kernel_definition(
                 kernel_name, kernel_body, metadata=metadata
+=======
+            # Skip inserting comments for the autotune block as they may contain cpp style comments
+            body = self._format_kernel_definition(
+                kernel_name, kernel_body, metadata=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.kernel_autotune_defs.splice(body)
             if V.graph.cpp_wrapper:
@@ -2260,8 +2432,13 @@ class PythonWrapperCodegen(CodeGen):
         )
         self.header.splice(body)
 
+<<<<<<< HEAD
     def define_subgraph_launcher_fn(self, name: str, subgraph_code):
         self.subgraph_definitions.splice(subgraph_code.value)
+=======
+    def define_subgraph_launcher_fn(self, fn_code: str):
+        self.subgraph_definitions.splice(fn_code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def define_user_defined_triton_kernel(
         self,
@@ -2332,10 +2509,15 @@ class PythonWrapperCodegen(CodeGen):
                 else:
                     add_to_signature(idx, arg)
 
+<<<<<<< HEAD
         arg_names = [p.name for p in kernel.params]
         constexprs = [p.num for p in kernel.params if p.is_constexpr]
         for idx, key in enumerate(arg_names):
             if idx in constexprs:
+=======
+        for idx, key in enumerate(kernel.arg_names):
+            if idx in kernel.constexprs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 add_arg(idx, ConstexprArg(name=key), is_constexpr=True)
                 continue
 
@@ -2462,7 +2644,10 @@ class PythonWrapperCodegen(CodeGen):
                         "config": config_to_dict(cfg),
                         "python": [*map(pexpr, grid)],
                         "cpp": [*map(cexpr, grid)],
+<<<<<<< HEAD
                         "python_slow": [*map(pexpr, grid)],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     }
                 )
             inductor_meta = {
@@ -2534,10 +2719,16 @@ class PythonWrapperCodegen(CodeGen):
         return name, triton_meta, extra_launcher_call_args
 
     def generate_numel_expr(self, kernel_name: str, tree, suffix: Optional[str] = None):
+<<<<<<< HEAD
         sym_name = f"{kernel_name}_{tree.prefix}numel"
         if suffix is not None:
             sym_name += f"_{suffix}"
         sym = sympy.Symbol(sym_name, is_integer=True, is_positive=True)
+=======
+        expr = f"{kernel_name}_{tree.prefix}numel"
+        if suffix is not None:
+            expr += f"_{suffix}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # We can get symbolic expressions here, like s0*64
         # It is fine to have them here, but we need to handle them correctly as their own type
@@ -2546,11 +2737,16 @@ class PythonWrapperCodegen(CodeGen):
         # This is handled in `generate_args_decl` which has a correct comment of: TODO: only works for
         # constant now, need type info. I agree, this needs type info, and while this is not true type info
         # it suffices as a type hint for the purposes of producing the correct code for this type.
+<<<<<<< HEAD
         arg = SymbolicCallArg(sym, tree.numel)
 
         is_benchmark_kernel = kernel_name == ""
         if not is_benchmark_kernel:
             self.writeline(SymbolicCallArgLine(self, arg, V.graph))
+=======
+        arg = SymbolicCallArg(expr, tree.numel)
+        self.writeline(SymbolicCallArgLine(self, arg, V.graph))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return arg
 
@@ -2649,6 +2845,10 @@ class PythonWrapperCodegen(CodeGen):
                         if len(kernel.launchers) == 0:
                             kernel.precompile()
                         kernel.save_gpu_kernel(
+<<<<<<< HEAD
+=======
+                            grid=(0, 0, 0),   # use dummy grid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             stream="stream",  # use dummy stream
                             launcher=kernel.launchers[0],
                         )
@@ -2796,6 +2996,7 @@ class PythonWrapperCodegen(CodeGen):
                 self,
                 kernel_name=kernel_name,
                 call_args=call_args,
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 raw_keys=raw_keys,
                 # pyrefly: ignore [bad-argument-type]
@@ -2808,6 +3009,15 @@ class PythonWrapperCodegen(CodeGen):
                 device=device,
                 graph_name=V.graph.name,
                 # pyrefly: ignore [bad-argument-type]
+=======
+                raw_keys=raw_keys,
+                raw_args=raw_args,
+                arg_types=arg_types,
+                triton=triton,
+                triton_meta=triton_meta,
+                device=device,
+                graph_name=V.graph.name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 original_fxnode_name=original_fxnode_name,
             )
         )
@@ -2827,6 +3037,7 @@ class PythonWrapperCodegen(CodeGen):
         original_fxnode_name=None,
     ):
         device = device or V.graph.get_current_device_or_throw()
+<<<<<<< HEAD
         if not triton and device.type != "cuda":
             if device.type == "cpu":
                 self.writeline(self.wrap_kernel_call(kernel_name, call_args))
@@ -2837,6 +3048,10 @@ class PythonWrapperCodegen(CodeGen):
                 )
             else:
                 raise RuntimeError(f"device {device.type} nyi")
+=======
+        if not (triton or device.type != "cpu"):
+            self.writeline(self.wrap_kernel_call(kernel_name, call_args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         call_args_str = self.prepare_triton_kernel_call(call_args)
@@ -2928,7 +3143,10 @@ class PythonWrapperCodegen(CodeGen):
 
             reused_args = {}
             for i, (arg, arg_type, raw_key, raw_arg) in enumerate(
+<<<<<<< HEAD
                 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 zip(call_args, arg_types, raw_keys, raw_args)
             ):
                 key = None
@@ -2971,6 +3189,7 @@ class PythonWrapperCodegen(CodeGen):
                     arg_str = self.generate_example_arg_value(arg, arg_type, raw_arg)
                 all_args.append(arg_str if key is None else f"{key}={arg_str}")
 
+<<<<<<< HEAD
             # Make sure kernel launch under a device guard because models don't always run on device 0
             self.kernel_autotune_calls.writeline(
                 f"with {V.graph.device_ops.device_guard(device.index)}:"
@@ -2981,6 +3200,11 @@ class PythonWrapperCodegen(CodeGen):
             )
             self.kernel_autotune_calls.do_unindent()
 
+=======
+            self.kernel_autotune_calls.writeline(
+                f"{kernel_name}.run({', '.join(all_args)}, stream={stream_name})"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.kernel_autotune_calls.writeline(
                 DelayReplaceLine("<del_call>", get_autotune_deletion_call, "<del_call>")
             )
@@ -3047,6 +3271,7 @@ class PythonWrapperCodegen(CodeGen):
         shape = tuple(buffer.get_size())
         allocation_shape = tuple(V.graph.get_allocation_size(buffer))
         stride = tuple(buffer.get_stride())
+<<<<<<< HEAD
         is_pinned = buffer.get_is_pinned()
         return self.make_allocation(
             buffer.get_name(), device, dtype, shape, stride, allocation_shape, is_pinned
@@ -3062,6 +3287,14 @@ class PythonWrapperCodegen(CodeGen):
 
     def make_allocation(
         self, name, device, dtype, shape, stride, allocation_shape=None, is_pinned=False
+=======
+        return self.make_allocation(
+            buffer.get_name(), device, dtype, shape, stride, allocation_shape
+        )
+
+    def make_allocation(
+        self, name, device, dtype, shape, stride, allocation_shape=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if allocation_shape is None:
             allocation_shape = shape
@@ -3071,6 +3304,7 @@ class PythonWrapperCodegen(CodeGen):
             allocation_shape
         )
         codegen_stride_tuple = self.codegen_python_shape_tuple(stride)
+<<<<<<< HEAD
         if torch._inductor.config.test_configs.track_memory_lifecycle:
             out = (
                 f"{name} = tracked_empty_strided("
@@ -3088,6 +3322,9 @@ class PythonWrapperCodegen(CodeGen):
                 f"{dtype})"
             )
         elif device.type in ("cpu", "cuda", "xpu", "mtia"):
+=======
+        if device.type in ("cpu", "cuda", "xpu"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # optimized path for faster allocations, saving ~2us versus the stuff below
             out = (
                 f"{name} = empty_strided_{device.type}("
@@ -3123,6 +3360,7 @@ class PythonWrapperCodegen(CodeGen):
     def codegen_exact_buffer_reuse(self, old_name: str, new_name: str, del_line: str):
         return f"{self.declare_maybe_reference}{new_name} = {old_name}{del_line}{self.ending}  {self.comment} reuse"
 
+<<<<<<< HEAD
     def write_provenance_debug_handle(
         self,
         kernel_name,
@@ -3133,6 +3371,8 @@ class PythonWrapperCodegen(CodeGen):
                 f"{self.comment} [Provenance debug handles] {kernel_name}:{debug_handle}"
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def make_buffer_reuse(self, old: BufferLike, new: BufferLike, delete_old: bool):
         assert old.get_dtype() == new.get_dtype()
         old_name = old.get_name()
@@ -3269,6 +3509,7 @@ class PythonWrapperCodegen(CodeGen):
         unbacked_bindings = resolve_unbacked_bindings(
             V.graph.sizevars.shape_env, unbacked_bindings
         )
+<<<<<<< HEAD
         self.writeline(
             UnbackedSymbolDefsLine(self, output_name, outputs, unbacked_bindings)
         )
@@ -3279,6 +3520,9 @@ class PythonWrapperCodegen(CodeGen):
         outputs: Any,
         unbacked_bindings: Optional[dict[sympy.Symbol, pytree.KeyPath]],
     ) -> None:
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not unbacked_bindings:
             return
 
@@ -3467,12 +3711,20 @@ class PythonWrapperCodegen(CodeGen):
 
     def codegen_subgraph_common(self, subgraph):
         self.push_codegened_graph(subgraph.graph)
+<<<<<<< HEAD
         self.make_comment("")
         self.make_comment(f"{self.comment} subgraph: {subgraph.name}")
 
         parent_graph = V.graph
         subgraph.graph.cpp_wrapper = parent_graph.cpp_wrapper
         subgraph.graph.fx_wrapper = parent_graph.fx_wrapper
+=======
+        self.writeline("")
+        self.writeline(f"{self.comment} subgraph: {subgraph.name}")
+
+        parent_graph = V.graph
+        subgraph.graph.cpp_wrapper = parent_graph.cpp_wrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if subgraph.graph.name not in self.already_codegened_subgraphs:
             # If it is already codegened, the parent wrapper already has
@@ -3482,9 +3734,14 @@ class PythonWrapperCodegen(CodeGen):
                 with config.patch("graph_partition", False):
                     # Call the codegen of subgraph recursively
                     subgraph_code, _ = subgraph.graph.codegen()
+<<<<<<< HEAD
             subgraph_name = subgraph.graph.name
             self.already_codegened_subgraphs.add(subgraph_name)
             self.define_subgraph_launcher_fn(subgraph_name, subgraph_code)
+=======
+            self.already_codegened_subgraphs.add(subgraph.graph.name)
+            self.define_subgraph_launcher_fn(subgraph_code.value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_subgraph_with_flattened_outputs(
         self, subgraph, outer_inputs, outer_flattened_outputs
@@ -3516,7 +3773,11 @@ class PythonWrapperCodegen(CodeGen):
         else:
             self.codegen_subgraph(invoke_subgraph.subgraph, outer_inputs, name)
 
+<<<<<<< HEAD
     def codegen_conditional(self, conditional) -> None:
+=======
+    def codegen_conditional(self, conditional):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = conditional.get_name()
 
         outer_inputs = [buf.codegen_reference() for buf in conditional.operands]
@@ -3549,6 +3810,7 @@ class PythonWrapperCodegen(CodeGen):
             self.codegen_subgraph(conditional.false_subgraph, outer_inputs, name)
         self.writeline(ExitSubgraphLine(self))
 
+<<<<<<< HEAD
     def codegen_while_loop(self, while_loop, stack_output):
         """while_loop is codegened as a host side while_loop"""
 
@@ -3561,6 +3823,9 @@ class PythonWrapperCodegen(CodeGen):
                     subgraph, outer_inputs, outer_outputs
                 )
 
+=======
+    def codegen_while_loop(self, while_loop):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = while_loop.get_name()
         outer_carried_inputs = [
             buf.codegen_reference() for buf in while_loop.carried_inputs
@@ -3569,6 +3834,7 @@ class PythonWrapperCodegen(CodeGen):
             buf.codegen_reference() for buf in while_loop.additional_inputs
         ]
 
+<<<<<<< HEAD
         ckp_offset = len(outer_carried_inputs)
         self.writeline(f"{name} = [None] * {len(outer_carried_inputs)}")
         if stack_output:
@@ -3576,6 +3842,9 @@ class PythonWrapperCodegen(CodeGen):
                 f"{name}.extend([[] for _ in range({len(outer_carried_inputs)})])"
             )
 
+=======
+        self.writeline(f"{name} = [None] * {len(outer_carried_inputs)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, inp in enumerate(outer_carried_inputs):
             # set the initial state before the loop
             self.writeline(f"{name}[{i}] = {inp}")
@@ -3592,6 +3861,7 @@ class PythonWrapperCodegen(CodeGen):
         # the carried_inputs part of the inputs, the additional ones
         # are passed in as they're before.
         body_outer_outputs = body_outer_inputs[: len(outer_carried_inputs)]
+<<<<<<< HEAD
         # Check condition at the beginning and set up flag
         codegen_subgraph(
             while_loop.cond_subgraph, cond_outer_inputs, cond_outer_outputs
@@ -3647,6 +3917,34 @@ class PythonWrapperCodegen(CodeGen):
                     f"{name}[{i}] = torch.stack({name}[{i + ckp_offset}], dim=0)"
                 )
                 self.writeline(ExitSubgraphLine(self))
+=======
+
+        self.writeline("while True:")
+        self.writeline(EnterSubgraphLine(self, while_loop.cond_subgraph.graph))
+
+        if V.graph.aot_mode:
+            self.codegen_subgraph_by_inlining(
+                while_loop.cond_subgraph, cond_outer_inputs, cond_outer_outputs
+            )
+        else:
+            self.codegen_subgraph_with_flattened_outputs(
+                while_loop.cond_subgraph, cond_outer_inputs, cond_outer_outputs
+            )
+        self.writeline(
+            f"if not {cond_outer_outputs[0]}: break"
+        )  # condition doesn't hold
+        self.writeline(ExitSubgraphLine(self))
+        self.writeline(EnterSubgraphLine(self, while_loop.body_subgraph.graph))
+        if V.graph.aot_mode:
+            self.codegen_subgraph_by_inlining(
+                while_loop.body_subgraph, body_outer_inputs, body_outer_outputs
+            )
+        else:
+            self.codegen_subgraph_with_flattened_outputs(
+                while_loop.body_subgraph, body_outer_inputs, body_outer_outputs
+            )
+        self.writeline(ExitSubgraphLine(self))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def statically_known_int_or_none(x):
@@ -3716,7 +4014,10 @@ class SubgraphPythonWrapperCodegen(PythonWrapperCodegen):
     def set_launcher_fn_name(self) -> None:
         # This sets up the name of the function containing the launcher code of
         # the subgraph.
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.launcher_fn_name = self.subgraph_name
 
     def write_header(self) -> None:
@@ -3752,7 +4053,11 @@ class SubgraphPythonWrapperCodegen(PythonWrapperCodegen):
 
     def get_graph_inputs(
         self,
+<<<<<<< HEAD
     ) -> dict[str, Union[ir.TensorBox, ir.TorchBindObject, sympy.Expr, None]]:
+=======
+    ) -> dict[str, Union[ir.TensorBox, ir.TorchBindObject, sympy.Expr]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if signature := self.partition_signatures:
             inputs = signature.input_nodes | {
                 str(s): s for s in signature.symbol_inputs

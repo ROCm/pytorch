@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ATen/core/Generator.h>
+<<<<<<< HEAD
 #include <ATen/core/TensorBase.h>
 #include <ATen/xpu/PhiloxXpuState.h>
 #include <unordered_set>
@@ -38,6 +39,14 @@ struct TORCH_XPU_API XPUGeneratorImpl : public GeneratorImpl {
   XPUGeneratorImpl(
       DeviceIndex device_index,
       c10::intrusive_ptr<XPUGeneratorState> state_);
+=======
+
+namespace at {
+
+struct TORCH_XPU_API XPUGeneratorImpl : public GeneratorImpl {
+  // Constructors
+  XPUGeneratorImpl(DeviceIndex device_index = -1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~XPUGeneratorImpl() override = default;
 
   // XPUGeneratorImpl methods
@@ -49,18 +58,28 @@ struct TORCH_XPU_API XPUGeneratorImpl : public GeneratorImpl {
   uint64_t seed() override;
   void set_state(const c10::TensorImpl& new_state) override;
   c10::intrusive_ptr<c10::TensorImpl> get_state() const override;
+<<<<<<< HEAD
 
   void set_philox_offset_per_thread(uint64_t offset);
   uint64_t philox_offset_per_thread() const;
 
   PhiloxXpuState philox_xpu_state(uint64_t increment);
   // will remove once all ops are refactored to use philox_xpu_state.
+=======
+  void set_philox_offset_per_thread(uint64_t offset);
+  uint64_t philox_offset_per_thread() const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::pair<uint64_t, uint64_t> philox_engine_inputs(uint64_t increment);
   static c10::DeviceType device_type();
 
  private:
   XPUGeneratorImpl* clone_impl() const override;
+<<<<<<< HEAD
   c10::intrusive_ptr<XPUGeneratorState> state_;
+=======
+  uint64_t seed_ = default_rng_seed_val;
+  uint64_t philox_offset_per_thread_ = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 namespace xpu::detail {

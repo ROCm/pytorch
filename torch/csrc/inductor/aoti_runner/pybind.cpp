@@ -51,11 +51,15 @@ void initAOTIRunnerBindings(PyObject* module) {
           &AOTIModelContainerRunnerCpu::swap_constant_buffer)
       .def(
           "free_inactive_constant_buffer",
+<<<<<<< HEAD
           &AOTIModelContainerRunnerCpu::free_inactive_constant_buffer)
       .def(
           "update_constant_buffer_from_blob",
           &AOTIModelContainerRunnerCpu::update_constant_buffer_from_blob,
           py::arg("weights_path"));
+=======
+          &AOTIModelContainerRunnerCpu::free_inactive_constant_buffer);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef USE_CUDA
   py::class_<AOTIModelContainerRunnerCuda>(m, "AOTIModelContainerRunnerCuda")
@@ -95,11 +99,15 @@ void initAOTIRunnerBindings(PyObject* module) {
           &AOTIModelContainerRunnerCuda::swap_constant_buffer)
       .def(
           "free_inactive_constant_buffer",
+<<<<<<< HEAD
           &AOTIModelContainerRunnerCuda::free_inactive_constant_buffer)
       .def(
           "update_constant_buffer_from_blob",
           &AOTIModelContainerRunnerCuda::update_constant_buffer_from_blob,
           py::arg("weights_path"));
+=======
+          &AOTIModelContainerRunnerCuda::free_inactive_constant_buffer);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 #ifdef USE_XPU
   py::class_<AOTIModelContainerRunnerXpu>(m, "AOTIModelContainerRunnerXpu")
@@ -139,11 +147,16 @@ void initAOTIRunnerBindings(PyObject* module) {
           &AOTIModelContainerRunnerXpu::swap_constant_buffer)
       .def(
           "free_inactive_constant_buffer",
+<<<<<<< HEAD
           &AOTIModelContainerRunnerXpu::free_inactive_constant_buffer)
       .def(
           "update_constant_buffer_from_blob",
           &AOTIModelContainerRunnerXpu::update_constant_buffer_from_blob,
           py::arg("weights_path"));
+=======
+          &AOTIModelContainerRunnerXpu::free_inactive_constant_buffer);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 #if defined(USE_MPS) && defined(__APPLE__) && \
     !(defined(FBCODE_CAFFE2) || defined(OVRSOURCE))
@@ -178,11 +191,16 @@ void initAOTIRunnerBindings(PyObject* module) {
           &AOTIModelContainerRunnerMps::swap_constant_buffer)
       .def(
           "free_inactive_constant_buffer",
+<<<<<<< HEAD
           &AOTIModelContainerRunnerMps::free_inactive_constant_buffer)
       .def(
           "update_constant_buffer_from_blob",
           &AOTIModelContainerRunnerMps::update_constant_buffer_from_blob,
           py::arg("weights_path"));
+=======
+          &AOTIModelContainerRunnerMps::free_inactive_constant_buffer);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
   m.def(

@@ -6,10 +6,14 @@ from torch._C import _get_privateuse1_backend_name, _rename_privateuse1_backend
 from torch.overrides import handle_torch_function, has_torch_function_unary
 
 
+<<<<<<< HEAD
 __all__ = [
     "rename_privateuse1_backend",
     "generate_methods_for_privateuse1_backend",
 ]
+=======
+__all__ = ["rename_privateuse1_backend", "generate_methods_for_privateuse1_backend"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: Should use `torch._C._get_privateuse1_backend_name()` to get
 # renamed-backend name for `privateuse1`, but the func will cause an
@@ -109,7 +113,11 @@ def _normalization_device(
     elif isinstance(device, str):
         device = torch.device(device)
 
+<<<<<<< HEAD
     # variable device can only be torch.device type or int type
+=======
+    # variable devcie can only be torch.device type or int type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(device, torch.device):
         if device.type != custom_backend_name:
             raise RuntimeError(f"Invalid device, must be {custom_backend_name} device")
@@ -202,7 +210,10 @@ def _generate_module_methods_for_privateuse1_backend(custom_backend_name: str) -
         Args:
             device (int, optional): if specified, all parameters will be copied to that device
         """
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._apply(lambda t: getattr(t, custom_backend_name)(device))
 
     _check_register_once(torch.nn.Module, custom_backend_name)
@@ -252,6 +263,7 @@ def _generate_packed_sequence_methods_for_privateuse1_backend(
             device (int, optional): if specified, all parameters will be copied to that device
         """
         ex = torch.tensor((), dtype=self.data.dtype, device=self.data.device).to(
+<<<<<<< HEAD
             # pyrefly: ignore [not-iterable]
             *args,
             **kwargs,
@@ -261,6 +273,13 @@ def _generate_packed_sequence_methods_for_privateuse1_backend(
             return self.to(*args, **kwargs)
         kwargs.update({"device": custom_backend_name})
         # pyrefly: ignore [not-iterable]
+=======
+            *args, **kwargs
+        )
+        if ex.device.type == custom_backend_name:
+            return self.to(*args, **kwargs)
+        kwargs.update({"device": custom_backend_name})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.to(*args, **kwargs)
 
     _check_register_once(torch.nn.utils.rnn.PackedSequence, custom_backend_name)
@@ -434,17 +453,27 @@ def _get_custom_mod_func(func_name: str):
     it is marked as private. It is a convenience function for backend implementers to
     more easily call the hooks into their backend extensions.
     """
+<<<<<<< HEAD
     if not isinstance(func_name, str):
         raise AssertionError(f"func_name must be `str`, but got `{type(func_name)}`.")
     backend_name = _get_privateuse1_backend_name()
     custom_device_mod = getattr(torch, backend_name, None)
     function = getattr(custom_device_mod, func_name, None)
+=======
+    assert isinstance(
+        func_name, str
+    ), f"func_name must be `str`, but got `{type(func_name)}`."
+    backend_name = _get_privateuse1_backend_name()
+    custom_device_mod = getattr(torch, backend_name, None)  # type: ignore[arg-type]
+    function = getattr(custom_device_mod, func_name, None)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if custom_device_mod is None or function is None:
         message = f"Try to call torch.{backend_name}.{func_name}. The backend must register a custom backend "
         message += f"module with `torch._register_device_module('{backend_name}', BackendModule)`. And "
         message += f"BackendModule needs to have the following API's:\n `{func_name}(*args, **kwargs)`. \n"
         raise RuntimeError(message)
     return function
+<<<<<<< HEAD
 
 
 class _DummyBackendModule:
@@ -520,3 +549,5 @@ def _setup_privateuseone_for_python_backend(
     torch._register_device_module(rename, backend_module)
     torch._C._acc.register_python_privateuseone_hook(hook)
     torch._C._acc.register_python_privateuseone_device_guard(device_guard)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

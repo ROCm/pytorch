@@ -7,7 +7,10 @@ import torch
 import torch.distributed as dist
 import torch.distributed._functional_collectives as funcol
 import torch.nn as nn
+<<<<<<< HEAD
 from torch._C._distributed_c10d import FakeProcessGroup
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.tensor import DeviceMesh, Shard
@@ -23,7 +26,10 @@ from torch.testing._internal.common_fsdp import get_devtype
 from torch.testing._internal.common_utils import run_tests, skipIfHpu, TestCase
 from torch.testing._internal.distributed._tensor.common_dtensor import MLPModule
 from torch.testing._internal.distributed.fake_pg import FakeStore
+<<<<<<< HEAD
 from torch.utils._python_dispatch import TorchDispatchMode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if not dist.is_available():
@@ -42,14 +48,24 @@ class TestFakePG(TestCase):
             pass
 
     def test_all_reduce(self):
+<<<<<<< HEAD
         dist.init_process_group(backend="fake", rank=1, world_size=2)
+=======
+        store = FakeStore()
+        dist.init_process_group(backend="fake", rank=1, world_size=2, store=store)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         output = torch.ones(3, 3) * dist.get_rank()
         dist.all_reduce(output)
         self.assertEqual(tuple(output.shape), (3, 3))
 
     def test_allgather(self):
+<<<<<<< HEAD
         dist.init_process_group(backend="fake", rank=1, world_size=2)
+=======
+        store = FakeStore()
+        dist.init_process_group(backend="fake", rank=1, world_size=2, store=store)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         input_tensor = torch.ones(3, 3) * dist.get_rank()
         output_tensors = [torch.empty_like(input_tensor) for _ in range(2)]
@@ -106,7 +122,12 @@ class TestFakePG(TestCase):
         FileCheck().check("all_gather").check("wait_tensor").run(str(gm.graph))
 
     def test_broadcast(self):
+<<<<<<< HEAD
         dist.init_process_group(backend="fake", rank=0, world_size=2)
+=======
+        store = FakeStore()
+        dist.init_process_group(backend="fake", rank=0, world_size=2, store=store)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # src == rank
         output = torch.ones(3, 3)
@@ -218,6 +239,7 @@ class TestFakePG(TestCase):
                 loss.backward()
                 optim.step()
 
+<<<<<<< HEAD
     def test_error_on_collective(self):
         from torch.testing._internal.distributed.fake_pg import FakeStore
 
@@ -302,6 +324,8 @@ class TestFakePG(TestCase):
         self.assertIn("aten.lift_fresh.default", op_names)
         self.assertIn("c10d.allreduce_.default", op_names)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

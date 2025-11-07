@@ -88,7 +88,11 @@ class CutlassEVTOpsMixIn:
 
     @staticmethod
     def sigmoid(x0: str) -> str:
+<<<<<<< HEAD
         return CutlassEVTOpsMixIn._prefix_un_op("sigmoid", x0)
+=======
+        raise NotImplementedError("sigmoid is not supported in CUTLASS python evt")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def sub(x0: str, x1: str) -> str:
@@ -96,11 +100,15 @@ class CutlassEVTOpsMixIn:
 
     @staticmethod
     def tanh(x0: str) -> str:
+<<<<<<< HEAD
         return CutlassEVTOpsMixIn._prefix_un_op("tanh", x0)
 
     @staticmethod
     def exp(x0: str) -> str:
         return CutlassEVTOpsMixIn._prefix_un_op("exp", x0)
+=======
+        raise NotImplementedError("tanh is not supported in CUTLASS python evt")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class MockCutlassHandler(CutlassEVTOpsMixIn, WrapperHandler):

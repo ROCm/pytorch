@@ -39,7 +39,11 @@ from __future__ import annotations
 import copy
 import dataclasses
 import functools
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import numpy as np
@@ -52,7 +56,11 @@ from torch.testing._internal.opinfo import definitions as opinfo_definitions
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Collection
+=======
+    from collections.abc import Collection
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Create a copy of the op_db to modify
@@ -275,7 +283,11 @@ def _empty_input_wrangler(
 def _grid_sample_input_wrangler(
     args: list[Any], kwargs: dict[str, Any]
 ) -> tuple[list[Any], dict[str, Any]]:
+<<<<<<< HEAD
     # Convert string attribute to int as input
+=======
+    # Convert string attriute to int as input
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     inter_mode_options = {"bilinear": 0, "nearest": 1, "bicubic": 2}
     padding_mode_options = {"zeros": 0, "border": 1, "reflection": 2}
     args.append(inter_mode_options[kwargs["mode"]])

@@ -8,12 +8,20 @@ import math
 import operator
 import unittest
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
+=======
+from collections.abc import Iterable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from functools import partial
 from itertools import product
+<<<<<<< HEAD
 from typing import Any, Optional, TypeVar, Union
+=======
+from typing import Any, Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.testing import make_tensor
@@ -162,11 +170,21 @@ class SampleInput:
         # Allow calling either as SampleInput(input, args=args, kwargs=kwargs), or as
         # SampleInput(input, *args, **kwargs) but not to mix the two forms
         if args is not None or kwargs is not None:
+<<<<<<< HEAD
             assert not var_args and not var_kwargs, """
 A SampleInput can be constructed "naturally" with *args and **kwargs or by
 explicitly setting the "args" and "kwargs" parameters, but the two
 methods of construction cannot be mixed!"""
         elif var_args or var_kwargs:
+=======
+            assert (
+                not var_args and not var_kwargs
+            ), """
+A SampleInput can be constructed "naturally" with *args and **kwargs or by
+explicitly setting the "args" and "kwargs" parameters, but the two
+methods of construction cannot be mixed!"""
+        elif len(var_args) or len(var_kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert (
                 output_process_fn_grad is None
                 and broadcasts_input is None
@@ -224,7 +242,11 @@ cannot specify additional metadata in keyword arguments"""
             f"name={repr(self.name)}",
         ]
 
+<<<<<<< HEAD
         return f"SampleInput({', '.join(a for a in arguments if a is not None)})"
+=======
+        return f'SampleInput({", ".join(a for a in arguments if a is not None)})'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self):
         return self._repr_helper(lambda x: x)
@@ -1534,10 +1556,14 @@ def test_foo(self, device, dtype, op):
         device_type = torch.device(device_type).type
         if device_type == "cuda" and TEST_WITH_ROCM:
             device_type = "rocm"
+<<<<<<< HEAD
         result = self.dtypesIf.get(device_type, self.dtypes)
         if device_type == "mps":
             return result - {torch.float64, torch.cdouble}
         return result
+=======
+        return self.dtypesIf.get(device_type, self.dtypes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def supported_backward_dtypes(self, device_type):
         if not self.supports_autograd:
@@ -1555,8 +1581,11 @@ def test_foo(self, device, dtype, op):
             )
         elif device_type == "hpu":
             backward_dtypes = self.backward_dtypesIfHpu
+<<<<<<< HEAD
         elif device_type == "mps":
             backward_dtypes = self.backward_dtypes - {torch.double, torch.cdouble}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             backward_dtypes = self.backward_dtypes
 
@@ -1604,11 +1633,21 @@ class SampleRule(ABC):
 
     # returns a string identifier of the rule type
     @abstractmethod
+<<<<<<< HEAD
     def type(self) -> str: ...
 
     # returns an appropriate context that handles the xfail, skips, etc.
     @abstractmethod
     def get_context(self, test_case): ...
+=======
+    def type(self) -> str:
+        ...
+
+    # returns an appropriate context that handles the xfail, skips, etc.
+    @abstractmethod
+    def get_context(self, test_case):
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # useful for specifying xfails
@@ -1792,10 +1831,15 @@ class ReductionOpInfo(OpInfo):
         # kwargs to use when calling the op. This is required for operators that
         # have other required parameters besides the input tensor.
         generate_args_kwargs: Callable = lambda t, dim=None, keepdim=False: (
+<<<<<<< HEAD
             yield (
                 (),
                 {},
             )
+=======
+            yield (),
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         # Options from the OpInfo base class
         **kwargs,
@@ -2479,9 +2523,15 @@ class BinaryUfuncInfo(OpInfo):
             self.supports_one_python_scalar = True
 
         if self.supports_one_python_scalar:
+<<<<<<< HEAD
             assert supports_rhs_python_scalar, (
                 "Can't support lhs and rhs Python scalars but not rhs scalars!"
             )
+=======
+            assert (
+                supports_rhs_python_scalar
+            ), "Can't support lhs and rhs Python scalars but not rhs scalars!"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # The following functions and classes are for testing elementwise unary operators.

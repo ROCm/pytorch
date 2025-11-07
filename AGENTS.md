@@ -1,4 +1,5 @@
 - This is the only AGENTS.md, there are no recursive AGENTS.md
+<<<<<<< HEAD
 - When you are working on a bug, first create a standalone file that
   reproduces the bug and verify it fails in the expected way.  Use this to
   test if your changes work.  Once the change is passing, find an appropriate
@@ -15,3 +16,5 @@
   - git reset --hard $(cat /tmp/orig_work.txt) # NB: reset to the LOCAL branch, do NOT fetch
   - git stash pop
   - Resolve conflicts if necessary
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

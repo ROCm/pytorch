@@ -5,12 +5,18 @@ file(GLOB_RECURSE NATIVERT_ALL_TEST_FILES "${NATIVERT_TEST_ROOT}/test_*.cpp")
 # Build the cpp gtest binary containing the cpp-only tests.
 set(NATIVERT_TEST_SRCS
   ${NATIVERT_ALL_TEST_FILES}
+<<<<<<< HEAD
   ${TORCH_ROOT}/torch/nativert/ModelRunner.cpp
   ${TORCH_ROOT}/torch/nativert/graph/TensorMeta.cpp
   ${TORCH_ROOT}/torch/nativert/graph/Graph.cpp
   ${TORCH_ROOT}/torch/nativert/graph/GraphPasses.cpp
   ${TORCH_ROOT}/torch/nativert/graph/GraphSignature.cpp
   ${TORCH_ROOT}/torch/nativert/graph/GraphUtils.cpp
+=======
+  ${TORCH_ROOT}/torch/nativert/graph/TensorMeta.cpp
+  ${TORCH_ROOT}/torch/nativert/graph/Graph.cpp
+  ${TORCH_ROOT}/torch/nativert/graph/GraphSignature.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${TORCH_ROOT}/torch/nativert/graph/Serialization.cpp
   ${TORCH_ROOT}/torch/nativert/executor/OpKernel.cpp
   ${TORCH_ROOT}/torch/nativert/executor/PlacementUtils.cpp
@@ -23,6 +29,7 @@ set(NATIVERT_TEST_SRCS
   ${TORCH_ROOT}/torch/nativert/kernels/C10Kernel.cpp
   ${TORCH_ROOT}/torch/nativert/executor/memory/GreedyBySize.cpp
   ${TORCH_ROOT}/torch/nativert/executor/memory/Bump.cpp
+<<<<<<< HEAD
   ${TORCH_ROOT}/torch/nativert/executor/memory/DisjointStorageGroups.cpp
   ${TORCH_ROOT}/torch/nativert/executor/memory/LayoutPlanner.cpp
   ${TORCH_ROOT}/torch/nativert/executor/memory/LayoutManager.cpp
@@ -53,21 +60,31 @@ if(USE_CUDA OR USE_ROCM)
   list(APPEND NATIVERT_TEST_SRCS ${TORCH_ROOT}/torch/nativert/executor/AOTInductorModelContainerCudaShim.cpp)
 endif()
 
+=======
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 add_executable(test_nativert
   ${TORCH_ROOT}/test/cpp/common/main.cpp
   ${NATIVERT_TEST_SRCS}
 )
 
+<<<<<<< HEAD
 if(MSVC)
   target_compile_definitions(test_nativert PRIVATE NATIVERT_MSVC_TEST)
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO temporary until we can delete the old gtest polyfills.
 target_compile_definitions(test_nativert PRIVATE USE_GTEST)
 
 set(NATIVERT_TEST_DEPENDENCIES torch gtest_main)
 
+<<<<<<< HEAD
 target_link_libraries(test_nativert PRIVATE ${CMAKE_DL_LIBS})
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 target_link_libraries(test_nativert PRIVATE ${NATIVERT_TEST_DEPENDENCIES})
 target_link_libraries(test_nativert PRIVATE fmt::fmt-header-only)
 target_include_directories(test_nativert PRIVATE ${ATen_CPU_INCLUDE})

@@ -4,23 +4,39 @@ from __future__ import annotations
 import operator
 import typing
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from contextlib import AbstractContextManager, nullcontext
+=======
+from collections.abc import Sequence
+from contextlib import nullcontext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from enum import Enum
 from functools import reduce
 from typing import (
     Any,
+<<<<<<< HEAD
+=======
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cast,
     NamedTuple,
     Optional,
     overload,
     TYPE_CHECKING,
+<<<<<<< HEAD
     TypeAlias,
     TypeGuard,
     TypeVar,
     Union,
 )
 from typing_extensions import deprecated
+=======
+    TypeVar,
+    Union,
+)
+from typing_extensions import deprecated, TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import sym_float, sym_int, sym_max
@@ -34,6 +50,7 @@ if TYPE_CHECKING:
     import sympy
 
     class _WorksWithInt(typing.Protocol):
+<<<<<<< HEAD
         def __add__(self, other: Any) -> typing.Self: ...
 
         def __radd__(self, other: Any) -> typing.Self: ...
@@ -41,6 +58,19 @@ if TYPE_CHECKING:
         def __mul__(self, other: Any) -> typing.Self: ...
 
         def __rmul__(self, other: Any) -> typing.Self: ...
+=======
+        def __add__(self, other: Any) -> typing.Self:
+            ...
+
+        def __radd__(self, other: Any) -> typing.Self:
+            ...
+
+        def __mul__(self, other: Any) -> typing.Self:
+            ...
+
+        def __rmul__(self, other: Any) -> typing.Self:
+            ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _IntLikeT = TypeVar("_IntLikeT", bound=_WorksWithInt)
 
@@ -108,18 +138,36 @@ CustomOutParamAnnotation = "__custom_out_param__"
 
 
 def same_shape(a: ShapeType, b: ShapeType, *, allow_rhs_unbacked=False) -> bool:
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_true
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if len(a) != len(b):
         return False
 
     for x, y in zip(a, b):
         if allow_rhs_unbacked:
+<<<<<<< HEAD
             if isinstance(y, torch.SymInt):
                 continue
 
         # if we do not know, then they are not the same.
         if guard_or_true(x != y):
+=======
+            # TODO: We should check that the symbols are consistent
+            # with each other
+            if isinstance(y, torch.SymInt):
+                continue
+        # NB: Naively, you would not expect to have to do an oblivious guard
+        # here because there is seemingly no broadcasting here, but in fact we
+        # use this in some situations to determine if we need to do an expand
+        # on the tensor because they don't line up, so you can definitely end
+        # up trying to prove u0 != 1 in this situation.  See
+        # python test/test_proxy_tensor.py -k test_cumsum_unbacked
+        if guard_size_oblivious(x != y):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
     return True
@@ -249,6 +297,7 @@ def check_all_strides(
     return _check_strides_helper(a, b, only_cuda=only_cuda, significant_only=False)
 
 
+<<<<<<< HEAD
 def check_contiguous_sizes_strides(sizes, strides, false_if_dde=False):
     """
     Performs an equality check between actual stride & expected stride (based on composed sizes),
@@ -293,6 +342,8 @@ def check_contiguous_sizes_strides(sizes, strides, false_if_dde=False):
     return True
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This function is equivalent to compute_contiguous() from TensorImpl.cpp
 def is_contiguous(a: TensorLikeType, false_if_dde=False) -> bool:
     """
@@ -303,6 +354,7 @@ def is_contiguous(a: TensorLikeType, false_if_dde=False) -> bool:
     """
     from torch.fx.experimental.symbolic_shapes import (
         guard_or_false,
+<<<<<<< HEAD
         guard_size_oblivious,
     )
 
@@ -310,13 +362,43 @@ def is_contiguous(a: TensorLikeType, false_if_dde=False) -> bool:
         return bool(x)
 
     maybe_guard_or_false = guard_or_false if false_if_dde else eval_eager
+=======
+        guard_or_true,
+        guard_size_oblivious,
+        is_nested_int,
+    )
+
+    maybe_guard_or_false = guard_or_false if false_if_dde else guard_size_oblivious
+    maybe_guard_or_true = guard_or_true if false_if_dde else guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if maybe_guard_or_false(a.numel() < 2):
         return True
 
+<<<<<<< HEAD
     return check_contiguous_sizes_strides(
         a.shape, a.stride(), false_if_dde=false_if_dde
     )
+=======
+    expected_stride = 1
+    for x, y in reversed(tuple(zip(a.shape, a.stride()))):
+        # Skips checking strides when a dimension has length 1.
+        if maybe_guard_or_false(x == 1):
+            continue
+
+        if maybe_guard_or_true(y != expected_stride):
+            return False
+
+        # if x is 0 then a is contiguous anyway. So in the check above for non-contiguity condition we can
+        # can assume x is not 0 in expected_stride equation. This make the check consistent with
+        # make_contiguous_strides_for. If we make a tensor and used strides from make_contiguous_strides_for
+        # and then called definitely_contiguous we should get True.
+        expected_stride *= (
+            x if is_nested_int(x) else sym_max(x, 1)
+        )  # type:ignore[assignment]
+
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This function is equivalent to compute_channels_last_contiguous_2d() in TensorImpl.cpp
@@ -325,6 +407,7 @@ def is_channels_last_contiguous_2d(a: Tensor, false_if_dde=False) -> bool:
     if a.ndim != 4:
         return False
 
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false, guard_or_true
 
     def eval_eager(x):
@@ -332,6 +415,16 @@ def is_channels_last_contiguous_2d(a: Tensor, false_if_dde=False) -> bool:
 
     maybe_guard_or_false = guard_or_false if false_if_dde else eval_eager
     maybe_guard_or_true = guard_or_true if false_if_dde else eval_eager
+=======
+    from torch.fx.experimental.symbolic_shapes import (
+        guard_or_false,
+        guard_or_true,
+        guard_size_oblivious,
+    )
+
+    maybe_guard_or_false = guard_or_false if false_if_dde else guard_size_oblivious
+    maybe_guard_or_true = guard_or_true if false_if_dde else guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     expected_stride = 1
     for idx in (1, 3, 2, 0):
@@ -353,6 +446,7 @@ def is_channels_last_contiguous_3d(a: Tensor, false_if_dde=False) -> bool:
     if a.ndim != 5:
         return False
 
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false, guard_or_true
 
     def eval_eager(x):
@@ -360,6 +454,16 @@ def is_channels_last_contiguous_3d(a: Tensor, false_if_dde=False) -> bool:
 
     maybe_guard_or_false = guard_or_false if false_if_dde else eval_eager
     maybe_guard_or_true = guard_or_true if false_if_dde else eval_eager
+=======
+    from torch.fx.experimental.symbolic_shapes import (
+        guard_or_false,
+        guard_or_true,
+        guard_size_oblivious,
+    )
+
+    maybe_guard_or_false = guard_or_false if false_if_dde else guard_size_oblivious
+    maybe_guard_or_true = guard_or_true if false_if_dde else guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     expected_stride = 1
     for idx in (1, 4, 3, 2, 0):
@@ -392,11 +496,15 @@ def validate_memory_format(memory_format: torch.memory_format):
 
 
 def is_contiguous_for_memory_format(  # type: ignore[return]
+<<<<<<< HEAD
     a: Tensor,
     *,
     memory_format: torch.memory_format,
     false_if_dde=False,
     # pyrefly: ignore [bad-return]
+=======
+    a: Tensor, *, memory_format: torch.memory_format, false_if_dde=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> bool:
     validate_memory_format(memory_format)
 
@@ -413,22 +521,38 @@ def is_contiguous_for_memory_format(  # type: ignore[return]
     )
 
 
+<<<<<<< HEAD
 def is_contiguous_or_false(a: TensorLikeType) -> bool:
+=======
+def definitely_contiguous(a: TensorLikeType) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return is_contiguous(a, false_if_dde=True)
 
 
 # similar to is_channels_last_contiguous_2d but return false on data dependency.
+<<<<<<< HEAD
 def is_channels_last_contiguous_or_false_2d(a: Tensor) -> bool:
+=======
+def definitely_channels_last_contiguous_2d(a: Tensor) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return is_channels_last_contiguous_2d(a, false_if_dde=True)
 
 
 # similar to is_channels_last_contiguous_3d but return false on data dependency.
+<<<<<<< HEAD
 def is_channels_last_contiguous_or_false_3d(a: Tensor) -> bool:
+=======
+def definitely_channels_last_contiguous_3d(a: Tensor) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return is_channels_last_contiguous_3d(a, false_if_dde=True)
 
 
 # similar to is_contiguous_for_memory_format but return false on data dependency.
+<<<<<<< HEAD
 def is_contiguous_for_memory_format_or_false(  # type: ignore[return]
+=======
+def definitely_contiguous_for_memory_format(  # type: ignore[return]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     a: Tensor, *, memory_format: torch.memory_format
 ) -> bool:
     return is_contiguous_for_memory_format(
@@ -454,6 +578,7 @@ def is_channels_last_contiguous(a: Tensor) -> bool:
 
 
 # similar to is_channels_last_contiguous but return false on data dependency.
+<<<<<<< HEAD
 def is_channels_last_contiguous_or_false(a: Tensor) -> bool:
     return is_channels_last_contiguous_or_false_2d(
         a
@@ -481,6 +606,37 @@ def _is_non_overlapping_and_dense_or_false(sizes, strides) -> bool:
     # non-overlapping and "dense" if their stride is one
     if len(sizes) == 1:
         return guard_or_false(strides[0] == 1)
+=======
+def definitely_channels_last_contiguous(a: Tensor) -> bool:
+    return definitely_channels_last_contiguous_2d(
+        a
+    ) or definitely_channels_last_contiguous_3d(a)
+
+
+def is_non_overlapping_and_dense(a: Tensor) -> bool:
+    """
+    True when a tensor is non-overlapping and dense.
+
+    A tensor is non-overlapping and dense when there exists a permutation of
+    its dimensions that is contiguous.
+    """
+
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+
+    if a.is_sparse:
+        return False
+
+    # Short-circuits if the tensor is already contiguous or channels-last contiguous
+    if definitely_contiguous(a) or definitely_channels_last_contiguous(a):
+        return True
+
+    # The following is equivalent to compute_non_overlapping_and_dense in TensorImpl.cpp
+
+    # Short-circuits for tensors of rank one, which are
+    # non-overlapping and "dense" if their stride is one
+    if a.ndim == 1:
+        return a.stride()[0] == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Checks that there exists a permutation of the strides s.t. the tensor would be contiguous
     # Sorts (length, stride) pairs by stride
@@ -493,6 +649,7 @@ def _is_non_overlapping_and_dense_or_false(sizes, strides) -> bool:
         stride: int
 
         def __lt__(self, other):
+<<<<<<< HEAD
             # for backed symbols, this is practically a < operation
             # for unbacked, we return True if < is statically known,
             # then try to answer this symbolically, with stride ordering semantics
@@ -531,6 +688,35 @@ def is_non_overlapping_and_dense(a: Tensor) -> bool:
         return False
 
     return _is_non_overlapping_and_dense_or_false(a.shape, a.stride())
+=======
+            return guard_size_oblivious(self.stride < other.stride)
+
+        def __gt__(self, other):
+            return guard_size_oblivious(self.stride > other.stride)
+
+        def __le__(self, other):
+            return guard_size_oblivious(self.stride <= other.stride)
+
+        def __ge__(self, other):
+            return guard_size_oblivious(self.stride >= other.stride)
+
+        def __eq__(self, other):
+            return guard_size_oblivious(self.stride == other.stride)
+
+    lengths_and_strides = sorted(map(K, a.shape, a.stride()))
+
+    expected_stride = 1
+    for length, stride in lengths_and_strides:
+        if guard_size_oblivious(length == 1):
+            continue
+
+        if guard_size_oblivious(stride != expected_stride):
+            return False
+
+        expected_stride *= length
+
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # NOTE: Based on the implementation in TensorIterator.cpp, but note that
@@ -542,9 +728,15 @@ def is_non_overlapping_and_dense(a: Tensor) -> bool:
 # This is also INCORRECT because it does not model TensorIterator's
 # short-circuit, which can cause different strides.
 def compute_elementwise_output_logical_to_physical_perm(
+<<<<<<< HEAD
     *tensors, _skip_checks=False, ambiguity_check=False
 ) -> tuple[list[int], bool]:
     from torch.fx.experimental.symbolic_shapes import guard_or_false
+=======
+    *tensors, _skip_checks=False
+) -> list[int]:
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not _skip_checks and len(tensors) == 0:
         msg = "Can't compute elementwise output strides for zero tensors!"
@@ -563,21 +755,32 @@ def compute_elementwise_output_logical_to_physical_perm(
 
     # Short-circuits for CPU scalar case
     if len(tensors) == 0:
+<<<<<<< HEAD
         return [], False
+=======
+        return []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Short-circuits for shapes with zero or one dimensions
     # TODO: are these necessary?
     ndim = tensors[0].ndim
     if ndim == 0:
+<<<<<<< HEAD
         return [], False
     if ndim == 1:
         return [0], False
+=======
+        return []
+    if ndim == 1:
+        return [0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Short-circuits if contiguous or channels last, following the fake fast path.
     # This reduces the number of guards we end up making
     is_contiguous = True
     is_channels_last = True
     for t in tensors:
+<<<<<<< HEAD
         is_contiguous = is_contiguous and is_contiguous_for_memory_format_or_false(
             t, memory_format=torch.contiguous_format
         )
@@ -593,10 +796,25 @@ def compute_elementwise_output_logical_to_physical_perm(
 
     if is_channels_last and not is_contiguous:
         return [0, *list(range(2, ndim)), 1], False
+=======
+        is_contiguous = is_contiguous and definitely_contiguous_for_memory_format(
+            t, memory_format=torch.contiguous_format
+        )
+        is_channels_last = is_channels_last and definitely_contiguous_for_memory_format(
+            t, memory_format=torch.channels_last
+        )
+
+    if is_contiguous and not is_channels_last:
+        return list(range(ndim))
+
+    if is_channels_last and not is_contiguous:
+        return [0, *list(range(2, ndim)), 1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     shape = tensors[0].shape
 
     def should_swap(idx_a, idx_b):
+<<<<<<< HEAD
         def ge(a, b):
             """
             Returns true if a is symbolically greater than or equal to b, assuming a >= 0, b >= 0.
@@ -607,10 +825,13 @@ def compute_elementwise_output_logical_to_physical_perm(
                 return False
             return guard_or_false(a >= b) or guard_or_false(a % b == 0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for tensor in tensors:
             stride_a = tensor.stride()[idx_a]
             stride_b = tensor.stride()[idx_b]
 
+<<<<<<< HEAD
             if guard_or_false(stride_a == 0) or guard_or_false(stride_b == 0):
                 continue
 
@@ -623,6 +844,21 @@ def compute_elementwise_output_logical_to_physical_perm(
                 return -1
 
             if ge(stride_a, stride_b):
+=======
+            if guard_size_oblivious(stride_a == 0) or guard_size_oblivious(
+                stride_b == 0
+            ):
+                continue
+
+            if guard_size_oblivious(stride_a < stride_b):
+                return -1
+
+            if guard_size_oblivious(stride_a > stride_b):
+                return 1
+
+            # stride_a == stride_b
+            if guard_size_oblivious(shape[idx_a] > shape[idx_b]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return 1
 
         # Note: this case is hit if all strides are zero,
@@ -647,6 +883,7 @@ def compute_elementwise_output_logical_to_physical_perm(
             elif comparison < 0:
                 break
 
+<<<<<<< HEAD
     # verify we've imposed ordering if ambiguity_check=True
     raise_ambiguous = False
     if ambiguity_check:
@@ -657,6 +894,9 @@ def compute_elementwise_output_logical_to_physical_perm(
                 break
 
     return list(reversed(perm)), raise_ambiguous
+=======
+    return list(reversed(perm))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def compute_elementwise_output_strides(*tensors) -> tuple[int, ...]:
@@ -686,7 +926,11 @@ def compute_elementwise_output_strides(*tensors) -> tuple[int, ...]:
     if ndim == 1:
         return (1,)
 
+<<<<<<< HEAD
     logical_to_physical_perm, _ = compute_elementwise_output_logical_to_physical_perm(
+=======
+    logical_to_physical_perm = compute_elementwise_output_logical_to_physical_perm(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *tensors, _skip_checks=True
     )
     permuted_shape = apply_perm(shape, logical_to_physical_perm)  # to physical
@@ -728,7 +972,11 @@ def validate_dim_length(length: int):
     """
 
     if isinstance(length, (int, torch.SymInt)):
+<<<<<<< HEAD
         torch._check(length >= 0)
+=======
+        torch._check_is_size(length)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         # sometimes called with sympy expression by inductor
         assert length >= 0
@@ -817,16 +1065,23 @@ def canonicalize_dim(rank: int, idx: int, wrap_scalar: bool = True) -> int:
 # mapping negative offsets to positive ones
 @overload
 def canonicalize_dims(
+<<<<<<< HEAD
     rank: int,
     indices: Sequence[int],
     wrap_scalar: bool = True,
     # pyrefly: ignore [bad-return]
+=======
+    rank: int, indices: Sequence[int], wrap_scalar: bool = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[int, ...]:
     pass
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def canonicalize_dims(rank: int, indices: int, wrap_scalar: bool = True) -> int:
     pass
 
@@ -855,7 +1110,11 @@ def is_same_shape(a: Sequence, b: Sequence) -> bool:
     return tuple(a) == tuple(b)
 
 
+<<<<<<< HEAD
 def is_cpu_scalar_tensor(a: object) -> TypeGuard[TensorLike]:
+=======
+def is_cpu_scalar_tensor(a: Any) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return isinstance(a, TensorLike) and a.ndim == 0 and a.device.type == "cpu"
 
 
@@ -873,7 +1132,10 @@ def check_same_device(*args, allow_cpu_scalar_tensors):
 
     # Note: cannot initialize device to the first arg's device (it may not have one)
     device = None
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in args:
         if isinstance(arg, Number):
             continue
@@ -921,7 +1183,10 @@ def check_same_shape(*args, allow_cpu_scalar_tensors: bool):
     """
     shape = None
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in args:
         if isinstance(arg, Number):
             continue
@@ -948,7 +1213,10 @@ def extract_shape(*args, allow_cpu_scalar_tensors: bool) -> Optional[ShapeType]:
     shape = None
     scalar_shape = None
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in args:
         if isinstance(arg, Number):
             continue
@@ -971,7 +1239,11 @@ def extract_shape(*args, allow_cpu_scalar_tensors: bool) -> Optional[ShapeType]:
 # Extracts dimensions that might be passed either as a list/tuple or as varargs.
 # A typical case is Tensor.permute .
 def extract_dims_from_varargs(
+<<<<<<< HEAD
     dims: Union[DimsSequenceType, tuple[DimsSequenceType, ...]],
+=======
+    dims: Union[DimsSequenceType, tuple[DimsSequenceType, ...]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> DimsSequenceType:
     if dims and isinstance(dims[0], Sequence):
         assert len(dims) == 1
@@ -1005,7 +1277,10 @@ def extract_shape_from_varargs(
 
     # Handles tuple unwrapping
     if len(shape) == 1 and isinstance(shape[0], Sequence):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shape = shape[0]
 
     if validate:
@@ -1083,7 +1358,17 @@ def infer_size(shape: ShapeType, numel: int) -> tuple[int, ...]:
         # PyTorch, which prints sequences in square brackets.
         shape = list(shape)
         shape[dim] = numel // newsize
+<<<<<<< HEAD
         torch._check(shape[dim] >= 0)
+=======
+        # NB: This is pretty important when you have unbacked SymInts.
+        # Suppose you have (i0, 12) resizing into (2, -1, 12).  The old
+        # range for i0 is typically [2, inf], which means if you divide
+        # by two the new range should be [1, inf].  But this is bad news
+        # if you have an unbacked SymInt: we need to reapply the unsound
+        # assumption that the size is >= 2.
+        torch._check_is_size(shape[dim])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return tuple(shape)
 
 
@@ -1288,7 +1573,11 @@ def get_higher_dtype(
     assert b is None or isinstance(b, (torch.dtype, TensorLike, Number))
 
     def _extract_dtype(
+<<<<<<< HEAD
         x: Optional[Union[torch.dtype, TensorLikeType, NumberType]],
+=======
+        x: Optional[Union[torch.dtype, TensorLikeType, NumberType]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Optional[torch.dtype]:
         if x is None:
             return None
@@ -1301,7 +1590,10 @@ def get_higher_dtype(
 
         raise RuntimeError("Unexpected type given to _extract_dtype!")
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     a, b = _extract_dtype(a), _extract_dtype(b)
 
     if a is b:
@@ -1397,7 +1689,10 @@ def check_same_dtype(*args):
     full_dtype = None
     scalar_type = None
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for arg in args:
         if isinstance(arg, Number):
             # Scalar type checking is disabled (and may be removed in the future)
@@ -1508,7 +1803,11 @@ class RETURN_TYPE(Enum):
 
 # TODO: when NumberType contains the sym types, can simplify this
 def number_type(
+<<<<<<< HEAD
     x: Union[NumberType, torch.SymInt, torch.SymFloat, torch.SymBool],
+=======
+    x: Union[NumberType, torch.SymInt, torch.SymFloat, torch.SymBool]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> type:
     if isinstance(x, torch.SymInt):
         return int
@@ -1668,10 +1967,15 @@ def elementwise_dtypes(
 
         # Prefers dtype of tensors with one or more dimensions
         if one_plus_dim_tensor_dtype is not None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
             return one_plus_dim_tensor_dtype
 
         # pyrefly: ignore [bad-return]
+=======
+            return one_plus_dim_tensor_dtype
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return zero_dim_tensor_dtype
 
     if highest_type is float:
@@ -1766,7 +2070,13 @@ def make_contiguous_strides_for(
     strides = []
     for l in reversed(shape):
         strides.append(multiplier)
+<<<<<<< HEAD
         multiplier *= l if is_nested_int(l) else sym_max(l, 1)  # type:ignore[assignment]
+=======
+        multiplier *= (
+            l if is_nested_int(l) else sym_max(l, 1)
+        )  # type:ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     result = tuple(reversed(strides))
 
@@ -1916,9 +2226,13 @@ def compute_required_storage_length(
 
     >>> # xdoctest: +SKIP(failing)
     >>> t2 = torch.empty_strided((1, 2, 3), (5, 7, 11))
+<<<<<<< HEAD
     >>> size = compute_required_storage_length(
     ...     t2.shape, t2.stride(), t2.storage_offset()
     ... )
+=======
+    >>> size = compute_required_storage_length(t2.shape, t2.stride(), t2.storage_offset())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> size == t.storage().size()
     True
 
@@ -1928,6 +2242,7 @@ def compute_required_storage_length(
     >>> slice.storage().size()
     100
 
+<<<<<<< HEAD
     >>> compute_required_storage_length(
     ...     slice.shape, slice.stride(), slice.storage_offset()
     ... )
@@ -1940,6 +2255,16 @@ def compute_required_storage_length(
     # Note: we are unsafely assuming tensor is not empty here, without
     # runtime assertions.
     if guard_or_false(reduce(operator.mul, shape, 1) == 0):
+=======
+    >>> compute_required_storage_length(slice.shape, slice.stride(), slice.storage_offset())
+    40
+
+    """
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+
+    # Short-circuits if the shape has no elements
+    if guard_size_oblivious(reduce(operator.mul, shape, 1) == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return 0
 
     max_offset = sum((x - 1) * y for x, y in zip(shape, strides))
@@ -1989,6 +2314,7 @@ def check(
 
 # This combines is_channels_last_strides_2d and is_channels_last_strides_3d in
 # c10/core/MemoryFormat.h into one function
+<<<<<<< HEAD
 # May return False when input sizes are data-dependent and the property is not
 # determined.
 def are_strides_like_channels_last_or_false(
@@ -1998,6 +2324,12 @@ def are_strides_like_channels_last_or_false(
         guard_or_true,
         statically_known_true,
     )
+=======
+def are_strides_like_channels_last(
+    shape: Sequence[int], strides: Sequence[int]
+) -> bool:
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ndim = len(shape)
 
@@ -2010,22 +2342,36 @@ def are_strides_like_channels_last_or_false(
     else:
         return False
 
+<<<<<<< HEAD
     if guard_or_true(strides[1] == 0):
+=======
+    if guard_size_oblivious(strides[1] == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
     min = 0
     for d in dim_order:
+<<<<<<< HEAD
         if guard_or_true(shape[d] == 0):
             return False
         if guard_or_true(strides[d] < min):
+=======
+        if guard_size_oblivious(shape[d] == 0):
+            return False
+        if guard_size_oblivious(strides[d] < min):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
         if d == 0 and min == strides[1]:
             return False
         min = strides[d]
+<<<<<<< HEAD
         # Assume stride is not 1, the consequence is min could be larger than needed,
         # which would result in returning False for this function but not vice versa,
         # so it's ok.
         if guard_or_true(strides[d] > 1):
+=======
+        if guard_size_oblivious(strides[d] > 1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             min *= shape[d]
     return True
 
@@ -2034,7 +2380,11 @@ def suggest_memory_format(x: TensorLikeType) -> torch.memory_format:
     if x.layout != torch.strided:
         return torch.contiguous_format
 
+<<<<<<< HEAD
     if are_strides_like_channels_last_or_false(x.shape, x.stride()):
+=======
+    if are_strides_like_channels_last(x.shape, x.stride()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.channels_last if x.ndim == 4 else torch.channels_last_3d
 
     return torch.contiguous_format
@@ -2137,8 +2487,12 @@ def alert_not_deterministic(caller: str):
                 f"{caller} does not have a deterministic implementation, but you set "
                 f"'torch.use_deterministic_algorithms(True, warn_only=True)'. "
                 f"You can file an issue at https://github.com/pytorch/pytorch/issues "
+<<<<<<< HEAD
                 f"to help us prioritize adding deterministic support for this operation.",
                 stacklevel=2,
+=======
+                f"to help us prioritize adding deterministic support for this operation."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             torch._check(
@@ -2156,9 +2510,13 @@ def alert_not_deterministic(caller: str):
 
 class CUDARngStateHelper:
     @staticmethod
+<<<<<<< HEAD
     def get_torch_state_as_tuple(
         fake_mode: AbstractContextManager[Any] = nullcontext(),
     ):
+=======
+    def get_torch_state_as_tuple(fake_mode=nullcontext()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA not available")
 

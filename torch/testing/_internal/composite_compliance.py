@@ -10,7 +10,11 @@ from torch.utils import _pytree as pytree
 from functools import partial
 from torch.utils._mode_utils import no_dispatch, all_same_mode
 import torch.autograd.forward_ad as fwAD
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 
 
@@ -234,7 +238,11 @@ def generate_cct_and_mode(autograd_view_consistency=True):
                     #    tensor results to be that of the tensors that alias the input
                     result = func(*args, **kwargs)
                     if isinstance(result, (tuple, list)):
+<<<<<<< HEAD
                         for a, b in zip(rs, result, strict=True):
+=======
+                        for a, b in zip(rs, result):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             a.set_(b)
                     else:
                         rs.set_(result)
@@ -303,7 +311,11 @@ def generate_subclass_choices(flat_args, CCT, cct_mode):
     for which_args_are_wrapped in itertools.product(*subclass_options):
 
         result = [maybe_map(partial(wrap, CCT=CCT, cct_mode=cct_mode), should_wrap_arg, arg)
+<<<<<<< HEAD
                   for should_wrap_arg, arg in zip(which_args_are_wrapped, flat_args, strict=True)]
+=======
+                  for should_wrap_arg, arg in zip(which_args_are_wrapped, flat_args)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         yield result, which_args_are_wrapped
 
 
@@ -539,11 +551,19 @@ def check_forward_ad_formula(op: Callable, args, kwargs, gradcheck_wrapper=None,
                 return fwAD.make_dual(primal.detach(), tangent)
             elif is_tensorlist(primal):
                 return tuple(fwAD.make_dual(pri.detach(), tang) if tang is not None else pri
+<<<<<<< HEAD
                              for pri, tang in zip(primal, tangent, strict=True))
             return primal
 
         def compute_expected_grad(args, tangent_args, kwargs, tangent_kwargs):
             op_args = tuple(map(maybe_make_dual, zip(args, tangent_args, strict=True)))
+=======
+                             for pri, tang in zip(primal, tangent))
+            return primal
+
+        def compute_expected_grad(args, tangent_args, kwargs, tangent_kwargs):
+            op_args = tuple(map(maybe_make_dual, zip(args, tangent_args)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             op_kwargs = {k: maybe_make_dual((v, tangent_kwargs[k])) for k, v in kwargs.items()}
 
             if gradcheck_wrapper is None:
@@ -572,7 +592,11 @@ def check_forward_ad_formula(op: Callable, args, kwargs, gradcheck_wrapper=None,
                 new_tang_args, new_tang_kwargs, \
                     which_tang_args_are_wrapped, which_tang_kwargs_are_wrapped = tang_choice
 
+<<<<<<< HEAD
                 op_args = tuple(map(maybe_make_dual, zip(new_args, new_tang_args, strict=True)))
+=======
+                op_args = tuple(map(maybe_make_dual, zip(new_args, new_tang_args)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 op_kwargs = {k: maybe_make_dual((v, new_tang_kwargs[k])) for k, v in new_kwargs.items()}
 
                 try:

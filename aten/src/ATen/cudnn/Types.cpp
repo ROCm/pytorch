@@ -2,8 +2,11 @@
 
 #include <ATen/ATen.h>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at::native {
 
 cudnnDataType_t getCudnnDataTypeFromScalarType(const at::ScalarType dtype) {
@@ -22,10 +25,16 @@ cudnnDataType_t getCudnnDataTypeFromScalarType(const at::ScalarType dtype) {
   } else if (dtype == at::kByte) {
     return CUDNN_DATA_UINT8;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false,
     "getCudnnDataTypeFromScalarType() not supported for ",
     toString(dtype)
   );
+=======
+  std::string msg("getCudnnDataTypeFromScalarType() not supported for ");
+  msg += toString(dtype);
+  throw std::runtime_error(msg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 cudnnDataType_t getCudnnDataType(const at::Tensor& tensor) {

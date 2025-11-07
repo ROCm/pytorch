@@ -29,7 +29,11 @@
 namespace at::native { namespace {
 
 template <typename scalar_t, typename scalar_t_2 = int64_t, typename loop1d_t>
+<<<<<<< HEAD
 inline void compare_base_kernel_core(
+=======
+static inline void compare_base_kernel_core(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& result1,
     const Tensor& result2,
     const Tensor& self,
@@ -71,7 +75,11 @@ inline void compare_base_kernel_core(
 }
 
 template <typename scalar_t, typename scalar_t_2=int64_t, typename func_t>
+<<<<<<< HEAD
 inline void compare_base_kernel(const Tensor& result1, const Tensor& result2,
+=======
+static inline void compare_base_kernel(const Tensor& result1, const Tensor& result2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t dim,
     bool keepdim,
@@ -98,7 +106,11 @@ inline void compare_base_kernel(const Tensor& result1, const Tensor& result2,
       result1, result2, self, dim, keepdim, loop);
 }
 
+<<<<<<< HEAD
 void min_kernel_impl(
+=======
+static void min_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& result,
     const Tensor& indice,
     const Tensor& self,
@@ -131,7 +143,11 @@ void min_kernel_impl(
   });
 }
 
+<<<<<<< HEAD
 void max_kernel_impl(
+=======
+static void max_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& result,
     const Tensor& indice,
     const Tensor& self,
@@ -164,7 +180,11 @@ void max_kernel_impl(
   });
 }
 
+<<<<<<< HEAD
 void aminmax_kernel(
+=======
+static void aminmax_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t dim,
     bool keepdim,
@@ -212,7 +232,11 @@ void aminmax_kernel(
   });
 }
 
+<<<<<<< HEAD
 void where_kernel_impl(TensorIterator &iter) {
+=======
+static void where_kernel_impl(TensorIterator &iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_V2(
     iter.dtype(), "where_cpu", [&] {
       cpu_kernel(
@@ -224,19 +248,31 @@ void where_kernel_impl(TensorIterator &iter) {
   kComplexHalf, kHalf, kBFloat16, kBool, AT_EXPAND(AT_ALL_TYPES_AND_COMPLEX), AT_EXPAND(AT_FLOAT8_TYPES));
 }
 
+<<<<<<< HEAD
 void isposinf_kernel_impl(TensorIteratorBase& iter) {
+=======
+static void isposinf_kernel_impl(TensorIteratorBase& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, iter.input_dtype(), "isposinf_cpu", [&]() {
     cpu_kernel(iter, [](scalar_t a) -> bool { return a == std::numeric_limits<scalar_t>::infinity(); });
   });
 }
 
+<<<<<<< HEAD
 void isneginf_kernel_impl(TensorIteratorBase& iter) {
+=======
+static void isneginf_kernel_impl(TensorIteratorBase& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, iter.input_dtype(), "isneginf_cpu", [&]() {
     cpu_kernel(iter, [](scalar_t a) -> bool { return a == -std::numeric_limits<scalar_t>::infinity(); });
   });
 }
 
+<<<<<<< HEAD
 void mode_kernel_impl(
+=======
+static void mode_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& values,
     Tensor& indices,
     const Tensor& self,
@@ -308,7 +344,11 @@ void mode_kernel_impl(
 
 // Default brute force implementation of isin(). Used when the number of test elements is small.
 // Iterates through each element and checks it against each test element.
+<<<<<<< HEAD
 void isin_default_kernel_cpu(
+=======
+static void isin_default_kernel_cpu(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& elements,
     const Tensor& test_elements,
     bool invert,
@@ -339,7 +379,11 @@ void isin_default_kernel_cpu(
   });
 }
 
+<<<<<<< HEAD
 void clamp_kernel_impl(TensorIteratorBase& iter) {
+=======
+static void clamp_kernel_impl(TensorIteratorBase& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kBFloat16, kHalf, iter.common_dtype(), "clamp_cpu", [&]() {
     cpu_kernel_vec(iter,
       [](scalar_t a, scalar_t min, scalar_t max) -> scalar_t {
@@ -355,7 +399,11 @@ void clamp_kernel_impl(TensorIteratorBase& iter) {
   });
 }
 
+<<<<<<< HEAD
 void clamp_scalar_kernel_impl(TensorIteratorBase& iter, const Scalar& min_, const Scalar& max_) {
+=======
+static void clamp_scalar_kernel_impl(TensorIteratorBase& iter, const Scalar& min_, const Scalar& max_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kBFloat16, kHalf, iter.common_dtype(), "clamp_scalar_cpu", [&]() {
     const auto min = min_.to<scalar_t>();
     const auto max = max_.to<scalar_t>();
@@ -371,7 +419,11 @@ void clamp_scalar_kernel_impl(TensorIteratorBase& iter, const Scalar& min_, cons
   });
 }
 
+<<<<<<< HEAD
 void clamp_max_scalar_kernel_impl(TensorIteratorBase& iter, Scalar max_) {
+=======
+static void clamp_max_scalar_kernel_impl(TensorIteratorBase& iter, Scalar max_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kBFloat16, kHalf, iter.common_dtype(), "clamp_max_scalar_cpu", [&]() {
     const auto max = max_.to<scalar_t>();
     const Vectorized<scalar_t> max_vec(max);
@@ -385,7 +437,11 @@ void clamp_max_scalar_kernel_impl(TensorIteratorBase& iter, Scalar max_) {
   });
 }
 
+<<<<<<< HEAD
 void clamp_min_scalar_kernel_impl(TensorIteratorBase& iter, Scalar min_) {
+=======
+static void clamp_min_scalar_kernel_impl(TensorIteratorBase& iter, Scalar min_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_ALL_TYPES_AND2(kBFloat16, kHalf, iter.common_dtype(), "clamp_min_scalar_cpu", [&]() {
     const auto min = min_.to<scalar_t>();
     const Vectorized<scalar_t> min_vec(min);

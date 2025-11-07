@@ -30,7 +30,11 @@ def _flatten_tensor(
 
 @no_type_check
 def _unflatten_tensor(tensor, spec, *, device_handle=None, compute_stream=None):
+<<<<<<< HEAD
     # unflatten would mainly be called every time FSDP allgather parameters.
+=======
+    # unflatten would mainly be called everytime FSDP allgather parameters.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     result = DTensor.from_local(
         tensor,
         spec.mesh,

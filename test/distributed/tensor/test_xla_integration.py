@@ -3,9 +3,14 @@
 
 import os
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
+=======
+from functools import wraps
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 
@@ -151,7 +156,11 @@ class DTensorXLAIntegrationTest(TestCase):
 
         def shard_params(mod_name, mod, mesh):
             shard_spec = [Shard(0)]
+<<<<<<< HEAD
             # annotate fc1 and fc2
+=======
+            # annoate fc1 and fc2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(mod, nn.Linear):
                 for _, param in mod.named_parameters():
                     # annotate the parameter tensors directly

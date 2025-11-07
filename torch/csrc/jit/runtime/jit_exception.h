@@ -18,7 +18,11 @@ struct TORCH_API JITException : public std::runtime_error {
     return python_class_name_;
   }
 
+<<<<<<< HEAD
   // the original msg if this is from a python exception. The interpreter has
+=======
+  // the original msg if this is from a python exception. The interpretor has
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // changed the original message by adding "The following operation failed in
   // the TorchScript interpreter." in front of it in the handleError function.
   std::optional<std::string> getOriginalMsg() const {

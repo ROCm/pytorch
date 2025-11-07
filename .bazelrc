@@ -2,7 +2,11 @@ build --cxxopt=--std=c++17
 build --copt=-I.
 # Bazel does not support including its cc_library targets as system
 # headers. We work around this for generated code
+<<<<<<< HEAD
 # (e.g. torch/headeronly/macros/cmake_macros.h) by making the generated directory a
+=======
+# (e.g. c10/macros/cmake_macros.h) by making the generated directory a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # system include path.
 build --copt=-isystem --copt bazel-out/k8-fastbuild/bin
 build --copt=-isystem --copt bazel-out/darwin-fastbuild/bin

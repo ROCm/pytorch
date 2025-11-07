@@ -1,8 +1,14 @@
 import itertools
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from functools import partial
 from typing import Union
+=======
+from dataclasses import asdict, dataclass
+from functools import partial
+from typing import Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 from tabulate import tabulate

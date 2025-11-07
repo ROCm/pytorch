@@ -25,7 +25,11 @@ import torch.distributed as dist
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_distributed import (
     init_multigpu_helper,
+<<<<<<< HEAD
     MultiProcContinuousTest,
+=======
+    MultiProcContinousTest,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     requires_nccl,
     requires_nccl_version,
     sm_is_or_higher_than,
@@ -33,6 +37,10 @@ from torch.testing._internal.common_distributed import (
 from torch.testing._internal.common_utils import (
     run_tests,
     skip_but_pass_in_sandcastle_if,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_DEV_DBG_ASAN,
 )
 
@@ -44,7 +52,11 @@ if TEST_WITH_DEV_DBG_ASAN:
     sys.exit(0)
 
 
+<<<<<<< HEAD
 class ProcessGroupNCCLOpTest(MultiProcContinuousTest):
+=======
+class ProcessGroupNCCLOpTest(MultiProcContinousTest):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @classmethod
     def backend_str(cls) -> str:
         return "nccl"
@@ -318,6 +330,10 @@ class ProcessGroupNCCLOpTest(MultiProcContinuousTest):
 
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+<<<<<<< HEAD
+=======
+    @skipIfRocm()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nccl_watchdog_cudagraph(self):
         # test that the watchdog does not crash graphs with disallowed event query
         pg = self.pg
@@ -934,6 +950,7 @@ class ProcessGroupNCCLOpTest(MultiProcContinuousTest):
         )
         torch.testing.assert_close(output_tensor, expected)
 
+<<<<<<< HEAD
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_reduce_scatter_bfloat16(self):
         device = torch.device("cuda", self.rank_to_GPU[self.rank][0])
@@ -953,6 +970,8 @@ class ProcessGroupNCCLOpTest(MultiProcContinuousTest):
         )
         torch.testing.assert_close(output_tensor, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_barrier(self):

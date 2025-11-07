@@ -20,14 +20,26 @@ import functools
 import importlib
 import importlib.metadata
 import json
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import threading
 import types
 import warnings
 from collections import defaultdict, deque, namedtuple, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from enum import Enum
 from typing import (
     Any,
+=======
+from collections.abc import Hashable, Iterable, Mapping, Sequence
+from enum import Enum
+from typing import (
+    Any,
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cast,
     ClassVar,
     Final,
@@ -97,6 +109,7 @@ NO_SERIALIZED_TYPE_NAME_FOUND = "NO_SERIALIZED_TYPE_NAME_FOUND"
 
 
 class KeyEntry(Protocol):
+<<<<<<< HEAD
     def __hash__(self) -> int: ...
 
     def __eq__(self, other: object) -> bool: ...
@@ -104,6 +117,19 @@ class KeyEntry(Protocol):
     def __str__(self) -> str: ...
 
     def get(self, parent: Any) -> Any: ...
+=======
+    def __hash__(self) -> int:
+        ...
+
+    def __eq__(self, other: object) -> bool:
+        ...
+
+    def __str__(self) -> str:
+        ...
+
+    def get(self, parent: Any) -> Any:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class EnumEncoder(json.JSONEncoder):
@@ -368,7 +394,11 @@ def register_dataclass(
 
     def _flatten_fn_with_keys(obj: Any) -> tuple[list[Any], Context]:
         flattened, (flat_names, _none_names) = _flatten_fn(obj)  # type: ignore[misc]
+<<<<<<< HEAD
         return [(GetAttrKey(k), v) for k, v in zip(flat_names, flattened)], flat_names
+=======
+        return [(MappingKey(k), v) for k, v in zip(flat_names, flattened)], flat_names
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _private_register_pytree_node(
         cls,
@@ -471,13 +501,21 @@ class ConstantNode:
 
 def _is_constant_holder(spec: "TreeSpec") -> bool:
     """Checks if the spec is from a pytree registered with register_constant"""
+<<<<<<< HEAD
     return isinstance(spec._context, ConstantNode)
+=======
+    return isinstance(spec.context, ConstantNode)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _retrieve_constant(spec: "TreeSpec") -> Any:
     """Given a spec from a pytree registered with register_constant, retrieves the constant"""
+<<<<<<< HEAD
     if not _is_constant_holder(spec):
         raise AssertionError("spec does not correspond to a registered constant pytree")
+=======
+    assert _is_constant_holder(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return tree_unflatten([], spec)
 
 
@@ -603,7 +641,10 @@ def _private_register_pytree_node(
             warnings.warn(
                 f"{cls} is already registered as pytree node. "
                 "Overwriting the previous registration.",
+<<<<<<< HEAD
                 stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         node_def = NodeDef(cls, flatten_fn, unflatten_fn, flatten_with_keys_fn)
@@ -710,7 +751,10 @@ class structseq(tuple[_T_co, ...]):
     def __new__(
         cls: type[Self],
         sequence: Iterable[_T_co],
+<<<<<<< HEAD
         # pyrefly: ignore [bad-function-definition]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dict: dict[str, Any] = ...,
     ) -> Self:
         raise NotImplementedError
@@ -754,10 +798,16 @@ def _tuple_flatten(d: tuple[T, ...]) -> tuple[list[T], Context]:
 
 
 def _tuple_flatten_with_keys(
+<<<<<<< HEAD
     d: tuple[T, ...],
 ) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _tuple_flatten(d)
     # pyrefly: ignore [bad-return]
+=======
+    d: tuple[T, ...]
+) -> tuple[list[tuple[KeyEntry, T]], Context]:
+    values, context = _tuple_flatten(d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(SequenceKey(i), v) for i, v in enumerate(values)], context
 
 
@@ -771,7 +821,10 @@ def _list_flatten(d: list[T]) -> tuple[list[T], Context]:
 
 def _list_flatten_with_keys(d: list[T]) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _list_flatten(d)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(SequenceKey(i), v) for i, v in enumerate(values)], context
 
 
@@ -784,10 +837,16 @@ def _dict_flatten(d: dict[Any, T]) -> tuple[list[T], Context]:
 
 
 def _dict_flatten_with_keys(
+<<<<<<< HEAD
     d: dict[Any, T],
 ) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _dict_flatten(d)
     # pyrefly: ignore [bad-return]
+=======
+    d: dict[Any, T]
+) -> tuple[list[tuple[KeyEntry, T]], Context]:
+    values, context = _dict_flatten(d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(MappingKey(k), v) for k, v in zip(context, values)], context
 
 
@@ -803,7 +862,10 @@ def _namedtuple_flatten_with_keys(
     d: NamedTuple,
 ) -> tuple[list[tuple[KeyEntry, Any]], Context]:
     values, context = _namedtuple_flatten(d)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         [(GetAttrKey(field), v) for field, v in zip(context._fields, values)],
         context,
@@ -850,10 +912,16 @@ def _ordereddict_flatten(d: OrderedDict[Any, T]) -> tuple[list[T], Context]:
 
 
 def _ordereddict_flatten_with_keys(
+<<<<<<< HEAD
     d: OrderedDict[Any, T],
 ) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _ordereddict_flatten(d)
     # pyrefly: ignore [bad-return]
+=======
+    d: OrderedDict[Any, T]
+) -> tuple[list[tuple[KeyEntry, T]], Context]:
+    values, context = _ordereddict_flatten(d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(MappingKey(k), v) for k, v in zip(context, values)], context
 
 
@@ -874,11 +942,18 @@ def _defaultdict_flatten(d: defaultdict[Any, T]) -> tuple[list[T], Context]:
 
 
 def _defaultdict_flatten_with_keys(
+<<<<<<< HEAD
     d: defaultdict[Any, T],
 ) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _defaultdict_flatten(d)
     _, dict_context = context
     # pyrefly: ignore [bad-return]
+=======
+    d: defaultdict[Any, T]
+) -> tuple[list[tuple[KeyEntry, T]], Context]:
+    values, context = _defaultdict_flatten(d)
+    _, dict_context = context
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(MappingKey(k), v) for k, v in zip(dict_context, values)], context
 
 
@@ -901,14 +976,20 @@ def _defaultdict_serialize(context: Context) -> DumpableContext:
 
 
 def _defaultdict_deserialize(dumpable_context: DumpableContext) -> Context:
+<<<<<<< HEAD
     if not isinstance(dumpable_context, dict):
         raise AssertionError("dumpable_context must be a dict")
 
     expected_keys = {
+=======
+    assert isinstance(dumpable_context, dict)
+    assert set(dumpable_context) == {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "default_factory_module",
         "default_factory_name",
         "dict_context",
     }
+<<<<<<< HEAD
     if set(dumpable_context) != expected_keys:
         raise AssertionError(
             f"dumpable_context keys must be {expected_keys}, got {set(dumpable_context)}"
@@ -920,6 +1001,13 @@ def _defaultdict_deserialize(dumpable_context: DumpableContext) -> Context:
         raise AssertionError("default_factory_module must be a string")
     if not isinstance(default_factory_name, str):
         raise AssertionError("default_factory_name must be a string")
+=======
+
+    default_factory_module = dumpable_context["default_factory_module"]
+    default_factory_name = dumpable_context["default_factory_name"]
+    assert isinstance(default_factory_module, str)
+    assert isinstance(default_factory_name, str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module = importlib.import_module(default_factory_module)
     default_factory = getattr(module, default_factory_name)
 
@@ -935,7 +1023,10 @@ def _deque_flatten_with_keys(
     d: deque[T],
 ) -> tuple[list[tuple[KeyEntry, T]], Context]:
     values, context = _deque_flatten(d)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [(SequenceKey(i), v) for i, v in enumerate(values)], context
 
 
@@ -1047,9 +1138,15 @@ def tree_is_leaf(
     False
     >>> tree_is_leaf((1, 2, 3), is_leaf=lambda x: isinstance(x, tuple))
     True
+<<<<<<< HEAD
     >>> tree_is_leaf({"a": 1, "b": 2, "c": 3})
     False
     >>> tree_is_leaf({"a": 1, "b": 2, "c": None})
+=======
+    >>> tree_is_leaf({'a': 1, 'b': 2, 'c': 3})
+    False
+    >>> tree_is_leaf({'a': 1, 'b': 2, 'c': None})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     False
     """
     if is_leaf is not None and is_leaf(tree):
@@ -1074,14 +1171,20 @@ def _is_leaf(tree: PyTree, is_leaf: Optional[Callable[[PyTree], bool]] = None) -
 @dataclasses.dataclass(init=True, frozen=True, eq=True, repr=False)
 class TreeSpec:
     type: Any
+<<<<<<< HEAD
     _context: Context
     _children: list[Self]
+=======
+    context: Context
+    children_specs: list["TreeSpec"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     num_nodes: int = dataclasses.field(init=False)
     num_leaves: int = dataclasses.field(init=False)
     num_children: int = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
+<<<<<<< HEAD
         if self.type is None:
             assert self._context is None
             assert len(self._children) == 0
@@ -1092,21 +1195,38 @@ class TreeSpec:
             num_nodes = sum((spec.num_nodes for spec in self._children), start=1)
             num_leaves = sum(spec.num_leaves for spec in self._children)
             num_children = len(self._children)
+=======
+        num_nodes = sum((spec.num_nodes for spec in self.children_specs), start=1)
+        num_leaves = sum(spec.num_leaves for spec in self.children_specs)
+        num_children = len(self.children_specs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         object.__setattr__(self, "num_nodes", num_nodes)
         object.__setattr__(self, "num_leaves", num_leaves)
         object.__setattr__(self, "num_children", num_children)
 
     def __repr__(self, indent: int = 0) -> str:
+<<<<<<< HEAD
         repr_prefix: str = f"TreeSpec({self.type.__name__}, {self._context}, ["
         children_specs_str: str = ""
         if self.num_children > 0:
             indent += 2
             children_specs_str += self._children[0].__repr__(indent)
+=======
+        repr_prefix: str = f"TreeSpec({self.type.__name__}, {self.context}, ["
+        children_specs_str: str = ""
+        if self.num_children > 0:
+            indent += 2
+            children_specs_str += self.children_specs[0].__repr__(indent)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             children_specs_str += "," if self.num_children > 1 else ""
             children_specs_str += ",".join(
                 [
                     "\n" + " " * indent + child.__repr__(indent)
+<<<<<<< HEAD
                     for child in self._children[1:]
+=======
+                    for child in self.children_specs[1:]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             )
         repr_suffix: str = f"{children_specs_str}])"
@@ -1118,13 +1238,20 @@ class TreeSpec:
         elif other.__class__ is self.__class__:
             if str(self.type) != str(other.type):
                 return False
+<<<<<<< HEAD
             if self._context != other._context:
                 return False
             elif self._children != other._children:
+=======
+            if self.context != other.context:
+                return False
+            elif self.children_specs != other.children_specs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return False
             return True
         return NotImplemented
 
+<<<<<<< HEAD
     @property
     def context(self) -> Context:
         return self._context
@@ -1148,6 +1275,11 @@ class TreeSpec:
     def child(self, index: int) -> Self:
         return self._children[index]
 
+=======
+    def is_leaf(self) -> bool:
+        return self.num_nodes == 1 and self.num_leaves == 1
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def flatten_up_to(self, tree: PyTree) -> list[PyTree]:
         def helper(treespec: TreeSpec, tree: PyTree, subtrees: list[PyTree]) -> None:
             if treespec.is_leaf():
@@ -1169,7 +1301,11 @@ class TreeSpec:
                         f"Node arity mismatch; "
                         f"expected {treespec.num_children}, but got {len(children)}.",
                     )
+<<<<<<< HEAD
                 if context != treespec._context:
+=======
+                if context != treespec.context:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise ValueError(
                         f"Node context mismatch for custom node type {treespec.type!r}.",
                     )
@@ -1194,10 +1330,17 @@ class TreeSpec:
                 if both_standard_dict:
                     # dictionary types are compatible with each other
                     dict_context = (
+<<<<<<< HEAD
                         treespec._context
                         if treespec.type is not defaultdict
                         # ignore mismatch of `default_factory` for defaultdict
                         else treespec._context[1]
+=======
+                        treespec.context
+                        if treespec.type is not defaultdict
+                        # ignore mismatch of `default_factory` for defaultdict
+                        else treespec.context[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     expected_keys = dict_context
                     got_key_set = set(tree)
@@ -1218,6 +1361,7 @@ class TreeSpec:
                     children, context = flatten_fn(tree)
                     if (
                         node_type is not deque  # ignore mismatch of `maxlen` for deque
+<<<<<<< HEAD
                     ) and context != treespec._context:
                         raise ValueError(
                             f"Node context mismatch for node type {treespec.type!r}; "
@@ -1225,6 +1369,15 @@ class TreeSpec:
                         )
 
             for subtree, subspec in zip(children, treespec._children):
+=======
+                    ) and context != treespec.context:
+                        raise ValueError(
+                            f"Node context mismatch for node type {treespec.type!r}; "
+                            f"expected {treespec.context!r}, but got {context!r}.",  # namedtuple type mismatch
+                        )
+
+            for subtree, subspec in zip(children, treespec.children_specs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 helper(subspec, subtree, subtrees)
 
         subtrees: list[PyTree] = []
@@ -1249,16 +1402,25 @@ class TreeSpec:
         start = 0
         end = 0
         child_pytrees = []
+<<<<<<< HEAD
         for child_spec in self._children:
+=======
+        for child_spec in self.children_specs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             end += child_spec.num_leaves
             child_pytrees.append(child_spec.unflatten(leaves[start:end]))
             start = end
 
+<<<<<<< HEAD
         return unflatten_fn(child_pytrees, self._context)
+=======
+        return unflatten_fn(child_pytrees, self.context)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __hash__(self) -> int:
         node_type = self.type
         if node_type is defaultdict:
+<<<<<<< HEAD
             default_factory, dict_context = self._context
             hashable_context = (default_factory, tuple(dict_context))
         elif node_type in (dict, OrderedDict):
@@ -1267,6 +1429,16 @@ class TreeSpec:
             hashable_context = self._context
         elif isinstance(self._context, ConstantNode):
             hashable_context = self._context.value
+=======
+            default_factory, dict_context = self.context
+            hashable_context = (default_factory, tuple(dict_context))
+        elif node_type in (dict, OrderedDict):
+            hashable_context = tuple(self.context)
+        elif node_type is None or node_type in BUILTIN_TYPES:
+            hashable_context = self.context
+        elif isinstance(self.context, ConstantNode):
+            hashable_context = self.context.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # The context for user-defined node types might not be hashable.
             # Ignore it for hashing.
@@ -1274,13 +1446,18 @@ class TreeSpec:
             # same hash. This might increase the hash collision rate, but we
             # don't care about that.
             hashable_context = None
+<<<<<<< HEAD
         return hash((node_type, hashable_context, tuple(self._children)))
+=======
+        return hash((node_type, hashable_context, tuple(self.children_specs)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # NOTE: subclassing a dataclass is subtle. In order to enable reasoning about
 # this class with `dataclasses.fields`, etc., while having a simplified
 # constructor that takes no argument, we wrap with `dataclass(init=True, ...)`
 # again, with fields that have `init=False`.
+<<<<<<< HEAD
 @deprecated(
     "`isinstance(treespec, LeafSpec)` is deprecated, "
     "use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.",
@@ -1291,6 +1468,15 @@ class LeafSpec(TreeSpec):
     type: Any = dataclasses.field(default=None, init=False)
     _context: Context = dataclasses.field(default=None, init=False)
     _children: list[Self] = dataclasses.field(default_factory=list, init=False)
+=======
+@dataclasses.dataclass(init=True, frozen=True, eq=False, repr=False)
+class LeafSpec(TreeSpec):
+    type: Any = dataclasses.field(default=None, init=False)
+    context: Context = dataclasses.field(default=None, init=False)
+    children_specs: list["TreeSpec"] = dataclasses.field(
+        default_factory=list, init=False
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self) -> None:
         # Override `__post_init__` for `num_leaves` derivation.
@@ -1304,6 +1490,7 @@ class LeafSpec(TreeSpec):
 
 # All leaves are equivalent, so represent with a single object to save on
 # object construction time
+<<<<<<< HEAD
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore", category=FutureWarning, module=__name__, append=False
@@ -1334,6 +1521,9 @@ def treespec_dict(
     if any(not isinstance(child, TreeSpec) for child in dct.values()):
         raise ValueError(f"Expected a dictionary of TreeSpec values, got: {dct!r}.")
     return TreeSpec(dict, list(dct.keys()), list(dct.values()))
+=======
+_LEAF_SPEC = LeafSpec()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def tree_flatten(
@@ -1417,9 +1607,15 @@ def tree_map(
 
     See also :func:`tree_map_`.
 
+<<<<<<< HEAD
     >>> tree_map(lambda x: x + 1, {"x": 7, "y": (42, 64)})
     {'x': 8, 'y': (43, 65)}
     >>> tree_map(lambda x: x is None, {"x": 7, "y": (42, 64), "z": None})
+=======
+    >>> tree_map(lambda x: x + 1, {'x': 7, 'y': (42, 64)})
+    {'x': 8, 'y': (43, 65)}
+    >>> tree_map(lambda x: x is None, {'x': 7, 'y': (42, 64), 'z': None})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {'x': False, 'y': (False, False), 'z': True}
 
     If multiple inputs are given, the structure of the tree is taken from the first input;
@@ -1487,7 +1683,14 @@ def tree_map_(
 
 Type2 = tuple[type[T], type[S]]
 Type3 = tuple[type[T], type[S], type[U]]
+<<<<<<< HEAD
 TypeAny = Union[type[Any], tuple[type[Any], ...], types.UnionType]
+=======
+if sys.version_info >= (3, 10):
+    TypeAny = Union[type[Any], tuple[type[Any], ...], types.UnionType]
+else:
+    TypeAny = Union[type[Any], tuple[type[Any], ...]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Fn2 = Callable[[Union[T, S]], R]
 Fn3 = Callable[[Union[T, S, U]], R]
@@ -1500,6 +1703,7 @@ MapOnlyFn = Callable[[T], Callable[[Any], Any]]
 # These specializations help with type inference on the lambda passed to this
 # function
 @overload
+<<<<<<< HEAD
 def map_only(type_or_types_or_pred: type[T], /) -> MapOnlyFn[Fn[T, Any]]: ...
 
 
@@ -1511,10 +1715,25 @@ def map_only(type_or_types_or_pred: Type2[T, S], /) -> MapOnlyFn[Fn2[T, S, Any]]
 def map_only(
     type_or_types_or_pred: Type3[T, S, U], /
 ) -> MapOnlyFn[Fn3[T, S, U, Any]]: ...
+=======
+def map_only(type_or_types_or_pred: type[T], /) -> MapOnlyFn[Fn[T, Any]]:
+    ...
+
+
+@overload
+def map_only(type_or_types_or_pred: Type2[T, S], /) -> MapOnlyFn[Fn2[T, S, Any]]:
+    ...
+
+
+@overload
+def map_only(type_or_types_or_pred: Type3[T, S, U], /) -> MapOnlyFn[Fn3[T, S, U, Any]]:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This specialization is needed for the implementations below that call
 @overload
+<<<<<<< HEAD
 def map_only(type_or_types_or_pred: TypeAny, /) -> MapOnlyFn[FnAny[Any]]: ...
 
 
@@ -1522,6 +1741,15 @@ def map_only(type_or_types_or_pred: TypeAny, /) -> MapOnlyFn[FnAny[Any]]: ...
 def map_only(
     type_or_types_or_pred: Callable[[Any], bool], /
 ) -> MapOnlyFn[FnAny[Any]]: ...
+=======
+def map_only(type_or_types_or_pred: TypeAny, /) -> MapOnlyFn[FnAny[Any]]:
+    ...
+
+
+@overload
+def map_only(type_or_types_or_pred: Callable[[Any], bool], /) -> MapOnlyFn[FnAny[Any]]:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def map_only(
@@ -1545,7 +1773,14 @@ def map_only(
 
     You can also directly use 'tree_map_only'
     """
+<<<<<<< HEAD
     if isinstance(type_or_types_or_pred, (type, tuple, types.UnionType)):
+=======
+    if isinstance(type_or_types_or_pred, (type, tuple)) or (
+        sys.version_info >= (3, 10)
+        and isinstance(type_or_types_or_pred, types.UnionType)
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def pred(x: Any) -> bool:
             return isinstance(x, type_or_types_or_pred)  # type: ignore[arg-type]
@@ -1574,7 +1809,12 @@ def tree_map_only(
     func: Fn[T, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1584,7 +1824,12 @@ def tree_map_only(
     func: Fn2[T, S, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1594,7 +1839,12 @@ def tree_map_only(
     func: Fn3[T, S, U, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1604,7 +1854,12 @@ def tree_map_only(
     func: FnAny[Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1614,7 +1869,12 @@ def tree_map_only(
     func: FnAny[Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def tree_map_only(
@@ -1634,7 +1894,12 @@ def tree_map_only_(
     func: Fn[T, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1644,7 +1909,12 @@ def tree_map_only_(
     func: Fn2[T, S, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1654,7 +1924,12 @@ def tree_map_only_(
     func: Fn3[T, S, U, Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1664,7 +1939,12 @@ def tree_map_only_(
     func: FnAny[Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1674,7 +1954,12 @@ def tree_map_only_(
     func: FnAny[Any],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> PyTree: ...
+=======
+) -> PyTree:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def tree_map_only_(
@@ -1712,7 +1997,12 @@ def tree_all_only(
     pred: Fn[T, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1722,7 +2012,12 @@ def tree_all_only(
     pred: Fn2[T, S, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1732,7 +2027,12 @@ def tree_all_only(
     pred: Fn3[T, S, U, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def tree_all_only(
@@ -1753,7 +2053,12 @@ def tree_any_only(
     pred: Fn[T, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1763,7 +2068,12 @@ def tree_any_only(
     pred: Fn2[T, S, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -1773,7 +2083,12 @@ def tree_any_only(
     pred: Fn3[T, S, U, bool],
     tree: PyTree,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
+<<<<<<< HEAD
 ) -> bool: ...
+=======
+) -> bool:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def tree_any_only(
@@ -1800,8 +2115,12 @@ def _broadcast_to_and_flatten(
     treespec: TreeSpec,
     is_leaf: Optional[Callable[[PyTree], bool]] = None,
 ) -> Optional[list[Any]]:
+<<<<<<< HEAD
     if not isinstance(treespec, TreeSpec):
         raise AssertionError("treespec must be a TreeSpec")
+=======
+    assert isinstance(treespec, TreeSpec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if tree_is_leaf(tree, is_leaf=is_leaf):
         return [tree] * treespec.num_leaves
@@ -1812,15 +2131,26 @@ def _broadcast_to_and_flatten(
         return None
 
     flatten_fn = SUPPORTED_NODES[node_type].flatten_fn
+<<<<<<< HEAD
     child_pytrees, context = flatten_fn(tree)
 
     # Check if the Node is different from the spec
     if len(child_pytrees) != treespec.num_children or context != treespec._context:
+=======
+    child_pytrees, ctx = flatten_fn(tree)
+
+    # Check if the Node is different from the spec
+    if len(child_pytrees) != treespec.num_children or ctx != treespec.context:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
     # Recursively flatten the children
     result: list[Any] = []
+<<<<<<< HEAD
     for child, child_spec in zip(child_pytrees, treespec._children):
+=======
+    for child, child_spec in zip(child_pytrees, treespec.children_specs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat = _broadcast_to_and_flatten(child, child_spec, is_leaf=is_leaf)
         if flat is not None:
             result += flat
@@ -1874,7 +2204,11 @@ def _treespec_to_json(treespec: TreeSpec) -> _TreeSpecSchema:
 
     if serialize_node_def.to_dumpable_context is None:
         try:
+<<<<<<< HEAD
             serialized_context = json.dumps(treespec._context, cls=EnumEncoder)
+=======
+            serialized_context = json.dumps(treespec.context, cls=EnumEncoder)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except TypeError as e:
             raise TypeError(
                 "Unable to serialize context. "
@@ -1882,9 +2216,15 @@ def _treespec_to_json(treespec: TreeSpec) -> _TreeSpecSchema:
                 "custom serializer using _register_pytree_node."
             ) from e
     else:
+<<<<<<< HEAD
         serialized_context = serialize_node_def.to_dumpable_context(treespec._context)
 
     child_schemas = [_treespec_to_json(child) for child in treespec._children]
+=======
+        serialized_context = serialize_node_def.to_dumpable_context(treespec.context)
+
+    child_schemas = [_treespec_to_json(child) for child in treespec.children_specs]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return _TreeSpecSchema(serialized_type_name, serialized_context, child_schemas)
 
@@ -1897,7 +2237,10 @@ def enum_object_hook(obj: dict[str, Any]) -> Union[Enum, dict[str, Any]]:
         for attr in classname.split("."):
             enum_cls = getattr(enum_cls, attr)
         enum_cls = cast(type[Enum], enum_cls)
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return enum_cls[obj["name"]]
     return obj
 
@@ -1912,7 +2255,11 @@ def _json_to_treespec(json_schema: DumpableContext) -> TreeSpec:
 
     if json_schema["type"] not in SERIALIZED_TYPE_TO_PYTHON_TYPE:
         raise NotImplementedError(
+<<<<<<< HEAD
             f"Deserializing {json_schema['type']} in pytree is not registered.",
+=======
+            f'Deserializing {json_schema["type"]} in pytree is not registered.',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     typ = SERIALIZED_TYPE_TO_PYTHON_TYPE[json_schema["type"]]

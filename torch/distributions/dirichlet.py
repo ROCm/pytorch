@@ -22,7 +22,10 @@ def _Dirichlet_backward(x, concentration, grad_output):
 
 class _Dirichlet(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, concentration):
         x = torch._sample_dirichlet(concentration)
         ctx.save_for_backward(x, concentration)
@@ -30,7 +33,10 @@ class _Dirichlet(Function):
 
     @staticmethod
     @once_differentiable
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         x, concentration = ctx.saved_tensors
         return _Dirichlet_backward(x, concentration, grad_output)
@@ -52,7 +58,10 @@ class Dirichlet(ExponentialFamily):
             (often referred to as alpha)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "concentration": constraints.independent(constraints.positive, 1)
     }
@@ -133,6 +142,9 @@ class Dirichlet(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor]:
         return (self.concentration,)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x):
         return x.lgamma().sum(-1) - torch.lgamma(x.sum(-1))

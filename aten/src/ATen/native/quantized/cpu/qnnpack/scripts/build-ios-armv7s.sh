@@ -40,7 +40,11 @@ CMAKE_ARGS+=("-DIOS_ARCH=armv7s")
 CMAKE_ARGS+=("-DENABLE_BITCODE=OFF")
 CMAKE_ARGS+=("-DENABLE_ARC=OFF")
 
+<<<<<<< HEAD
 # Use-specified CMake arguments go last to allow overriding defaults
+=======
+# Use-specified CMake arguments go last to allow overridding defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CMAKE_ARGS+=($@)
 
 cd build/ios/armv7s && cmake ../../.. \

@@ -43,7 +43,11 @@ def add_job(
     if workflow_name not in workflows:
         workflows[workflow_name] = {"when": "always", "jobs": []}
 
+<<<<<<< HEAD
     requires = job.get("requires")
+=======
+    requires = job.get("requires", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if requires is not None:
         for requirement in requires:
             dependency = past_jobs[requirement]

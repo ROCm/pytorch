@@ -66,6 +66,7 @@ def post_training_sparse_quantize(
 
     else:
         embedding_modules = []
+<<<<<<< HEAD
         if not isinstance(select_embeddings, list):
             raise AssertionError(
                 "the embedding_modules must be a list of embedding modules"
@@ -80,6 +81,19 @@ def post_training_sparse_quantize(
                 raise AssertionError(
                     "the embedding modules must be part of input model"
                 )
+=======
+        assert isinstance(select_embeddings, list), (
+            "the embedding_modules must be a list of embedding modules"
+        )
+        for emb in select_embeddings:
+            assert type(emb) in SUPPORTED_MODULES, (
+                "the embedding_modules list must be an embedding or embedding bags"
+            )
+            fqn_name = module_to_fqn(model, emb)
+            assert fqn_name is not None, (
+                "the embedding modules must be part of input model"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             embedding_modules.append((fqn_name, emb))
 
     if sparsify_first:
@@ -117,8 +131,12 @@ def post_training_sparse_quantize(
 
         for name, _ in embedding_modules:
             quantized_emb = fqn_to_module(model, name)
+<<<<<<< HEAD
             if quantized_emb is None:
                 raise AssertionError(f"quantized embedding {name} not found in model")
+=======
+            assert quantized_emb is not None  # satisfy mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             quantized_weight = quantized_emb.weight()  # type: ignore[operator]
             quantize_params["scales"][name] = quantized_weight.q_per_channel_scales()
@@ -142,8 +160,12 @@ def post_training_sparse_quantize(
 
         for name, _ in embedding_modules:
             quantized_emb = fqn_to_module(model, name)
+<<<<<<< HEAD
             if quantized_emb is None:
                 raise AssertionError(f"quantized embedding {name} not found in model")
+=======
+            assert quantized_emb is not None  # satisfy mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             requantized_vector = torch.quantize_per_channel(
                 quantize_params["dequant_weights"][name],
                 scales=quantize_params["scales"][name],

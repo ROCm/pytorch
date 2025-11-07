@@ -216,7 +216,11 @@ class Agent:
             returns.insert(0, R)
         returns = torch.tensor(returns)
         returns = (returns - returns.mean()) / (returns.std() + self.eps)
+<<<<<<< HEAD
         for log_prob, R in zip(probs, returns, strict=True):
+=======
+        for log_prob, R in zip(probs, returns):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             policy_loss.append(-log_prob * R)
         self.optimizer.zero_grad()
         policy_loss = torch.cat(policy_loss).sum()

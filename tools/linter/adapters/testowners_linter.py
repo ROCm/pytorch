@@ -103,7 +103,11 @@ def check_labels(
                 description=(
                     f"{label} is not an acceptable owner "
                     "(please update to another label or edit ACCEPTABLE_OWNERS_LABELS "
+<<<<<<< HEAD
                     "in tools/linters/adapters/testowners_linter.py)"
+=======
+                    "in tools/linters/adapters/testowners_linter.py"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             )
         )

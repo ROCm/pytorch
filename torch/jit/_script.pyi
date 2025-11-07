@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 # mypy: disable-error-code="type-arg"
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, NamedTuple, overload, TypeAlias, TypeVar
 from typing_extensions import Never
+=======
+from typing import Any, Callable, NamedTuple, overload, TypeVar
+from typing_extensions import Never, TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from _typeshed import Incomplete
 

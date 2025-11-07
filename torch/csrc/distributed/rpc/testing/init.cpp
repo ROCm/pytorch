@@ -106,6 +106,7 @@ PyObject* faulty_agent_init(PyObject* _unused, PyObject* noargs) {
           py::call_guard<py::gil_scoped_release>())
       .def(
           "get_worker_info",
+<<<<<<< HEAD
           static_cast<const WorkerInfo& (TensorPipeAgent::*)(void) const>(
               &RpcAgent::getWorkerInfo),
           py::call_guard<py::gil_scoped_release>())
@@ -123,6 +124,25 @@ PyObject* faulty_agent_init(PyObject* _unused, PyObject* noargs) {
           "get_worker_infos",
           static_cast<std::vector<WorkerInfo> (TensorPipeAgent::*)() const>(
               &TensorPipeAgent::getWorkerInfos),
+=======
+          (const WorkerInfo& (TensorPipeAgent::*)(void) const) &
+              RpcAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_info",
+          (const WorkerInfo& (TensorPipeAgent::*)(const std::string&) const) &
+              TensorPipeAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_info",
+          (const WorkerInfo& (TensorPipeAgent::*)(worker_id_t id) const) &
+              TensorPipeAgent::getWorkerInfo,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_worker_infos",
+          (std::vector<WorkerInfo>(TensorPipeAgent::*)() const) &
+              TensorPipeAgent::getWorkerInfos,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           py::call_guard<py::gil_scoped_release>());
 #endif // USE_TENSORPIPE
 

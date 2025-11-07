@@ -58,10 +58,17 @@ class XPUDeviceOpOverrides(DeviceOpOverrides):
     def cpp_device_ptr(self) -> str:
         return "void *"
 
+<<<<<<< HEAD
     def cpp_scratch(
         self, idx: int, workspace: TritonScratchWorkspace, prefix: Optional[str] = None
     ) -> Optional[tuple[list[str], str]]:
         return [f"void *global_scratch_{idx} = 0;"], f"global_scratch_{idx}"
+=======
+    def cpp_global_scratch(
+        self, idx: int, workspace: TritonScratchWorkspace
+    ) -> Optional[tuple[list[str], str]]:
+        return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 register_device_op_overrides("xpu", XPUDeviceOpOverrides())

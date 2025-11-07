@@ -14,15 +14,23 @@ struct ProfileMetrics {
   size_t staticDispatchNodesCount{0};
   size_t totalNodesCount{0};
   std::vector<float> timePerNode;
+<<<<<<< HEAD
   std::vector<std::string> nodeTypes;
   std::unordered_map<std::string, float> timePerNodeType;
   std::unordered_map<std::string, float> percentPerNodeType;
   std::vector<float> percentPerNode;
+=======
+  std::unordered_map<std::string, float> timePerNodeType;
+  std::unordered_map<std::string, float> percentPerNodeType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unordered_map<std::string, int> instancesPerNodeType;
   std::unordered_set<std::string> staticDispatchNodes;
   std::unordered_set<std::string> primNodes;
   float totalTime{0};
+<<<<<<< HEAD
   std::string name;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 /**
@@ -54,7 +62,11 @@ class GraphExecutorBase {
 
   ProfileMetrics benchmarkIndividualNodes(
       ExecutionFrame& executionFrame,
+<<<<<<< HEAD
       const std::vector<std::vector<c10::IValue>>& inputs,
+=======
+      std::vector<std::vector<c10::IValue>> inputs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const uint32_t warmup_runs,
       const uint32_t main_runs);
 

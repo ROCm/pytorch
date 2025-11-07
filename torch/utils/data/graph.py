@@ -72,7 +72,10 @@ def _list_connected_datapipes(
             p.dump(scan_obj)
         except (pickle.PickleError, AttributeError, TypeError):
             if dill_available():
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 d.dump(scan_obj)
             else:
                 raise
@@ -132,7 +135,11 @@ def traverse(datapipe: DataPipe, only_datapipe: Optional[bool] = None) -> DataPi
     )
     if not only_datapipe:
         msg += " And, the behavior will be changed to the equivalent of `only_datapipe=True`."
+<<<<<<< HEAD
     warnings.warn(msg, FutureWarning, stacklevel=2)
+=======
+    warnings.warn(msg, FutureWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if only_datapipe is None:
         only_datapipe = False
     cache: set[int] = set()

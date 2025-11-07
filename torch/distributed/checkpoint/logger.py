@@ -2,8 +2,12 @@
 import functools
 import logging
 import time
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, TypeVar
+=======
+from typing import Any, Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 from uuid import uuid4
 
@@ -16,7 +20,10 @@ logger = logging.getLogger()
 
 __all__: list[str] = []
 
+<<<<<<< HEAD
 # pyrefly: ignore [unknown-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 global _dcp_logger
 _dcp_logger = c10d_logger._get_or_create_logger(DCP_LOGGER_NAME)
 
@@ -31,16 +38,27 @@ def _msg_dict_from_dcp_method_args(*args, **kwargs) -> dict[str, Any]:
     msg_dict = {}
 
     # checkpoint ID can be passed in through the serializer or through the checkpoint id directly
+<<<<<<< HEAD
     storage_writer = kwargs.get("storage_writer")
     storage_reader = kwargs.get("storage_reader")
     planner = kwargs.get("planner")
 
     checkpoint_id = kwargs.get("checkpoint_id")
+=======
+    storage_writer = kwargs.get("storage_writer", None)
+    storage_reader = kwargs.get("storage_reader", None)
+    planner = kwargs.get("planner", None)
+
+    checkpoint_id = kwargs.get("checkpoint_id", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not checkpoint_id and (serializer := storage_writer or storage_reader):
         checkpoint_id = getattr(serializer, "checkpoint_id", None)
 
     msg_dict["checkpoint_id"] = (
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         str(checkpoint_id) if checkpoint_id is not None else checkpoint_id
     )
 

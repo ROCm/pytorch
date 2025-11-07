@@ -197,10 +197,18 @@ INSTANTIATE_INT4MV(float, 128);
 INSTANTIATE_INT4MV(half, 128);
 INSTANTIATE_INT4MV(float, 256);
 INSTANTIATE_INT4MV(half, 256);
+<<<<<<< HEAD
+=======
+#if __METAL_VERSION__ >= 310
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 INSTANTIATE_INT4MV(bfloat, 32);
 INSTANTIATE_INT4MV(bfloat, 64);
 INSTANTIATE_INT4MV(bfloat, 128);
 INSTANTIATE_INT4MV(bfloat, 256);
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // ------------------------------ int8 MM For M >= 12 ------------------------------------
 /**
@@ -232,10 +240,18 @@ template <> struct BlockType<half> {
   using simdgroup_type8x8 = simdgroup_half8x8;
   using type4 = half4;
 };
+<<<<<<< HEAD
+=======
+#if __METAL_VERSION__ >= 310
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <> struct BlockType<bfloat> {
   using simdgroup_type8x8 = simdgroup_bfloat8x8;
   using type4 = bfloat4;
 };
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template<typename T>
 float2 get_scale_zero_q8(constant T * scalesAndZeros, uint2 index) {
@@ -486,7 +502,13 @@ kernel void kernel_mul_mm<DTYPE, WDTYPE, DEQUANT_FUNC>(                  \
 
 INSTANTIATE_MM(float, char, get_scale_zero_q8);
 INSTANTIATE_MM(half, char, get_scale_zero_q8);
+<<<<<<< HEAD
 INSTANTIATE_MM(bfloat, char, get_scale_zero_q8);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_MM(bfloat, char, get_scale_zero_q8);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // ------------------------------ int8 MM For M < 12 ------------------------------------
 /* Matrix vector multiplication, used for small M size for matrix multiplication as well.
 
@@ -640,4 +662,10 @@ kernel void kernel_mul_mv<DTYPE>(                                               
 
 INSTANTIATE_MV(float);
 INSTANTIATE_MV(half);
+<<<<<<< HEAD
 INSTANTIATE_MV(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+INSTANTIATE_MV(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

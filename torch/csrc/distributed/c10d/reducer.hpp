@@ -26,8 +26,13 @@
 
 namespace c10d {
 
+<<<<<<< HEAD
 constexpr int kDefaultFirstBucketBytes = 1024 * 1024;
 constexpr int kDefaultBucketBytesCap = 25 * 1024 * 1024;
+=======
+constexpr int kDefaultFirstBucketBytes = int(1024 * 1024);
+constexpr int kDefaultBucketBytesCap = int(25 * 1024 * 1024);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Collect runtime stats once for every kDDPRuntimeLoggingSampleRate iterations.
 constexpr int kDDPRuntimeLoggingSampleRate = 100;
 

@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import Any
+=======
+from collections.abc import Iterable
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["trace_dependencies"]

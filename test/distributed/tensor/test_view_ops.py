@@ -10,9 +10,13 @@ from torch import rand, randn, Tensor
 from torch.distributed.tensor import (
     DeviceMesh,
     distribute_tensor,
+<<<<<<< HEAD
     DTensor,
     init_device_mesh,
     Partial,
+=======
+    init_device_mesh,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Replicate,
     Shard,
 )
@@ -27,10 +31,16 @@ from torch.distributed.tensor._ops._view_ops import (
     view_groups,
 )
 from torch.distributed.tensor.debug import CommDebugMode
+<<<<<<< HEAD
 from torch.distributed.tensor.placement_types import _StridedShard, Placement
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     create_local_tensor_test_class,
+=======
+from torch.distributed.tensor.placement_types import Placement
+from torch.testing._internal.common_utils import run_tests
+from torch.testing._internal.distributed._tensor.common_dtensor import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DTensorTestBase,
     with_comms,
 )
@@ -171,6 +181,7 @@ class TestViewOps(DTensorTestBase):
             *(device_mesh.ndim * [sharding_choices])
         )
 
+<<<<<<< HEAD
         outer_mesh = device_mesh["outer"]
         inner_mesh = device_mesh["inner"]
         inner_mesh_size = inner_mesh.size()
@@ -199,6 +210,10 @@ class TestViewOps(DTensorTestBase):
                 )
             else:
                 in_dt = distribute_tensor(args[0], device_mesh, in_shard)
+=======
+        for in_shard in all_sharding_choices:
+            in_dt = distribute_tensor(args[0], device_mesh, in_shard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             comm_mode = CommDebugMode()
             with comm_mode:
@@ -229,13 +244,20 @@ class TestViewOps(DTensorTestBase):
         shard.view(-1)
 
         shard = dtensor.redistribute(device_mesh=device_mesh, placements=[Shard(dim=1)])
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "Sharding propagation failed"):
+=======
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten sharded dimension"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shard.view(-1)
 
         # 8 is the uneven case since mesh dim is 6
         tensor = torch.randn((8, 256))
         dtensor = distribute_tensor(tensor, device_mesh, [Replicate()])
         shard = dtensor.redistribute(device_mesh=device_mesh, placements=[Shard(dim=0)])
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "Sharding propagation failed"):
             shard.view(-1)
 
@@ -252,6 +274,17 @@ class TestViewOps(DTensorTestBase):
         mesh_shape = (dist.get_world_size() // 2, 2)
         self.device_mesh = init_device_mesh(
             self.device_type, mesh_shape=mesh_shape, mesh_dim_names=("outer", "inner")
+=======
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten unevenly sharded dimension"
+        ):
+            shard.view(-1)
+
+    @with_comms
+    def test_view_ops(self):
+        self.device_mesh = DeviceMesh(
+            self.device_type, torch.arange(dist.get_world_size()).view(-1, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.dimmap_test(torch.atleast_1d, (randn(()),), (Singleton(),))
         self.dimmap_test(torch.atleast_1d, (randn(24),), (InputDim(0),))
@@ -476,6 +509,10 @@ class TestViewOps(DTensorTestBase):
             (randn(42, 24, 36), 1),
             (InputDim(0), Singleton(), InputDim(1), InputDim(2)),
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.dimmap_test(
             Tensor.view,
             (randn(6, 12, 24), 72, 24),
@@ -642,6 +679,7 @@ class TestViewOps(DTensorTestBase):
         mesh = init_device_mesh(self.device_type, (self.world_size,))
         dtensor_x = distribute_tensor(x, mesh, (Shard(0),))
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "Sharding propagation failed"):
             dtensor_x.view(-1, 8)
 
@@ -672,6 +710,13 @@ TestViewOpsWithLocalTensor = create_local_tensor_test_class(
         "test_dtensor_view_op_uneven",
     ],
 )
+=======
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten unevenly sharded dimension"
+        ):
+            dtensor_x.view(-1, 8)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

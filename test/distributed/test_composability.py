@@ -6,12 +6,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
+<<<<<<< HEAD
 from torch.distributed.fsdp._fully_shard._fsdp_param import ShardedState
 from torch.distributed.pipelining import PipelineStage
 from torch.distributed.pipelining.schedules import (
     _Action,
     _ComputationType,
     _PipelineScheduleRuntime,
+=======
+from torch.distributed.pipelining import PipelineStage
+from torch.distributed.pipelining.schedules import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PipelineScheduleSingle,
     Schedule1F1B,
     ScheduleGPipe,
@@ -23,7 +28,11 @@ from torch.distributed.tensor import DTensor
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_distributed import (
+<<<<<<< HEAD
     MultiProcContinuousTest,
+=======
+    MultiProcContinousTest,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     requires_nccl,
     skip_if_lt_x_gpu,
 )
@@ -95,7 +104,11 @@ def loss_fn(y, target, scale=1e-4):
     return torch.nn.functional.cross_entropy(y, target) * scale
 
 
+<<<<<<< HEAD
 class ComposabilityTest(MultiProcContinuousTest):
+=======
+class ComposabilityTest(MultiProcContinousTest):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @classmethod
     def backend_str(cls) -> str:
         # Testing with NCCL backend
@@ -146,7 +159,10 @@ class ComposabilityTest(MultiProcContinuousTest):
         total_layers,
         apply_dp,
         loss_fn,
+<<<<<<< HEAD
         scale_grads=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if issubclass(ScheduleClass, PipelineScheduleSingle):
             pipeline_stage, offset = self._build_pp_stage(
@@ -164,7 +180,10 @@ class ComposabilityTest(MultiProcContinuousTest):
                 pipeline_stage,
                 n_microbatches=num_microbatches,
                 loss_fn=loss_fn,
+<<<<<<< HEAD
                 scale_grads=scale_grads,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             n_virtual = 2
@@ -187,7 +206,10 @@ class ComposabilityTest(MultiProcContinuousTest):
                 stages,
                 n_microbatches=num_microbatches,
                 loss_fn=loss_fn,
+<<<<<<< HEAD
                 scale_grads=scale_grads,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return pipeline_schedule, partial_models, offsets
 
@@ -382,6 +404,7 @@ class ComposabilityTest(MultiProcContinuousTest):
                     p.grad.full_tensor(), ref_p.grad, atol=5e-5, rtol=2e-2
                 )
 
+<<<<<<< HEAD
     @requires_nccl()
     @skip_if_lt_x_gpu(4)
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "Test requires 4+ GPUs")
@@ -531,5 +554,10 @@ class ComposabilityTest(MultiProcContinuousTest):
 
 
 instantiate_parametrized_tests(ComposabilityTest)
+=======
+
+instantiate_parametrized_tests(ComposabilityTest)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()
