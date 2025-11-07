@@ -415,10 +415,6 @@ class LoopOrderingTest(TestCase):
         self.assertEqual(1, metrics.generated_kernel_count)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
-    @skipIfRocm
-    # Related PR: https://github.com/pytorch/pytorch/pull/149369
-    # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
-    # in eager mode that is required here to check vs compiled results
     def test_fp8_cast_and_t(self):
         """
         This test repros the not able to fuses issue in
@@ -441,10 +437,6 @@ class LoopOrderingTest(TestCase):
         self.assertEqual(1, metrics.generated_kernel_count)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
-    @skipIfRocm
-    # Related PR: https://github.com/pytorch/pytorch/pull/149369
-    # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
-    # in eager mode that is required here to check vs compiled results
     def test_fp8_pattern_2(self):
         """
         This test repros the fp8 fusion relation issue here:
